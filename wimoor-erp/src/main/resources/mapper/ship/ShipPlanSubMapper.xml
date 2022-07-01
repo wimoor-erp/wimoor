@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipPlanSubMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipPlanSub" >
+      <id column="id" property="id" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="planid" property="planid" jdbcType="CHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <delete id="deleteAllPlanSub" parameterType="java.lang.String">
+	   delete from t_erp_ship_plansub where planid = #{planid,jdbcType=CHAR} 
+  </delete>
+  
+ <!--  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipPlanSub" >
+    insert into t_erp_ship_plansub (id, marketplaceid, planid, 
+      status)
+    values (#{id,jdbcType=CHAR}, #{marketplaceid,jdbcType=CHAR}, #{planid,jdbcType=CHAR}, 
+      #{status,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipPlanSub" >
+    insert into t_erp_ship_plansub
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid,
+      </if>
+      <if test="planid != null" >
+        planid,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="planid != null" >
+        #{planid,jdbcType=CHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

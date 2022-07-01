@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.InplaceFeeFormatMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.InplaceFeeFormat" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="inplacefeeid" property="inplacefeeid" jdbcType="CHAR" />
+    <result column="producttierId" property="producttierId" jdbcType="CHAR" />
+    <result column="standard" property="standard" jdbcType="BIT" />
+    <result column="format" property="format" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="country" property="country" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, inplacefeeid, producttierId, standard, format, description, country
+  </sql>
+  <select id="findByInvplaceFeeId" resultMap="BaseResultMap" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_inplacefeeformat
+    where inplacefeeid = #{invplaceFee,jdbcType=CHAR} and standard = #{isStandard,jdbcType=BIT} and
+     country = #{country,jdbcType=CHAR}
+  </select>
+  
+  <select id="findByProductTierId" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select 
+    <include refid="Base_Column_List" />
+    from t_inplacefeeformat
+    where producttierId = #{productTierId,jdbcType=CHAR} 
+  </select>
+</mapper>

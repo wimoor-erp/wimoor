@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchasePlanModelItemMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchasePlanModelItem" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="planamount" property="planamount" jdbcType="INTEGER" />
+    <result column="invamount" property="invamount" jdbcType="INTEGER" />
+    <result column="itemprice" property="itemprice" jdbcType="DECIMAL" />
+    <result column="orderprice" property="orderprice" jdbcType="DECIMAL" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+     <result column="modelid" property="modelid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, materialid, planamount, itemprice, orderprice, opttime, operator,invamount,modelid   
+  </sql>
+
+</mapper>

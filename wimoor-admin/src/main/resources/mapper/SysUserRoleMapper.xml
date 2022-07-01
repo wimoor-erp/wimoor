@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SysUserRoleMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SysUserRole" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="user_id" property="userId" jdbcType="CHAR" />
+    <result column="role_id" property="roleId" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, user_id, role_id
+  </sql>
+  
+
+  
+</mapper>

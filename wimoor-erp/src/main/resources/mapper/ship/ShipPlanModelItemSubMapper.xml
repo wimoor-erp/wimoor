@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipPlanModelItemSubMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipPlanModelItemSub" >
+    <id column="itemid" property="itemid" jdbcType="CHAR" />
+    <id column="sku" property="sku" jdbcType="INTEGER" />
+    <id column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="needship" property="needship" jdbcType="CHAR" />
+    <result column="salesday" jdbcType="INTEGER" property="salesday" />
+    <result column="aftersalesday" jdbcType="INTEGER" property="aftersalesday" />
+    <result column="short_time" property="shortTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    itemid, marketplaceid, needship,sku,salesday,aftersalesday,shortTime
+  </sql>
+  
+    <delete id="deleteByModelid" parameterType="java.lang.String" >
+     delete sub,item from t_erp_ship_planmodelitemsub sub
+      left join t_erp_ship_planmodelitem item on item.id=sub.itemid
+     where item.modelid=#{id,jdbcType=CHAR};
+  </delete>
+ 
+</mapper>

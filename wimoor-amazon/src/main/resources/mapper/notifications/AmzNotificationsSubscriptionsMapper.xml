@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.notifications.mapper.AmzNotificationsSubscriptionsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.notifications.pojo.entity.AmzNotificationsSubscriptions">
+        <id column="subscriptionId" property="subscriptionId" />
+        <result column="eventFilterType" property="eventFilterType" />
+        <result column="payloadVersion" property="payloadVersion" />
+        <result column="destinationId" property="destinationId" />
+        <result column="aggregationSettings" property="aggregationSettings" />
+        <result column="marketplaceIds" property="marketplaceIds" />
+        <result column="refreshtime" property="refreshtime" />
+        <result column="amazonauthid" property="amazonauthid" />
+    </resultMap>
+
+</mapper>

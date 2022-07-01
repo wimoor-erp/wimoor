@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInOptMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInOpt">
+        <id column="pid" property="pid" />
+        <result column="remark" property="remark" />
+        <result column="priceremark" property="priceremark" />
+        <result column="buyprice" property="buyprice" />
+        <result column="businessprice" property="businessprice" />
+        <result column="businesstype" property="businesstype" />
+        <result column="businesslist" property="businesslist" />
+        <result column="disable" property="disable" />
+        <result column="presales" property="presales" />
+        <result column="lastupdate" property="lastupdate" />
+        <result column="remark_analysis" property="remarkAnalysis" />
+        <result column="msku" property="msku" />
+        <result column="fnsku" property="fnsku" />
+        <result column="review_daily_refresh" property="reviewDailyRefresh" />
+        <result column="profitid" property="profitid" />
+        <result column="status" property="status" />
+        <result column="operator" property="operator" />
+    </resultMap>
+    
+  <update id="updateBySessionRpt" parameterType="java.lang.String">
+        update t_product_in_ses o 
+		inner join t_product_info i on i.id=o.pid
+		   and  i.amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+		   and  i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		  set   o.session_day7=null,o.session_rate7=null,o.buybox_rate7=null;
+		  
+		update t_product_in_ses o 
+		inner join t_product_info i on i.id=o.pid
+		inner join t_product_in_order s on s.pid=o.pid
+		inner join (
+		select  amazonAuthid,marketplaceid,sku,sum(Sessions) Sessions
+		,avg(Buy_Box_Percentage) Buy_Box_Percentage
+		 from t_amz_product_pageviews
+		where byday >= date_add(curdate(),INTERVAL -9 DAY)
+		and byday &lt;date_add(curdate(),INTERVAL -2 DAY) 
+		and amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+		and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		group by amazonAuthid,marketplaceid,sku
+		) v on v.amazonAuthid=i.amazonauthid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+		set  
+		o.session_day7=v.Sessions,
+		o.session_rate7=s.sales_seven/v.Sessions,
+		o.buybox_rate7=v.Buy_Box_Percentage;
+		
+		
+	insert into t_product_in_ses (pid,session_day7,session_rate7,buybox_rate7)	
+    select 
+	    i.id,v.Sessions,ifnull(s.sales_seven,0)/v.Sessions,v.Buy_Box_Percentage   
+	 from  t_product_info i  
+	  left join t_product_in_order s on s.pid=i.id
+	 left join 	(select  amazonAuthid,marketplaceid,sku,sum(Sessions) Sessions
+		,avg(Buy_Box_Percentage) Buy_Box_Percentage
+		 from t_amz_product_pageviews
+		where byday >= date_add(curdate(),INTERVAL -9 DAY)
+		and byday &lt;date_add(curdate(),INTERVAL -2 DAY) 
+		and amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+		and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		group by amazonAuthid,marketplaceid,sku
+		) v on v.amazonAuthid=i.amazonAuthid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+	 left join t_product_in_ses o on o.pid=i.id
+	 where o.pid is null  
+	 and i.amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+	 and i.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+    </update>
+</mapper>

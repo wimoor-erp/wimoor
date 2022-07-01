@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.StepWisePriceMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.StepWisePrice" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="material" property="material" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, material, amount, price, operator, opttime
+  </sql>
+  
+  <delete id="deleteIsNull" >
+    delete from t_erp_stepwise_quotn where material is null
+  </delete>
+  
+  <delete id="deleteByMaterial" >
+    delete from t_erp_stepwise_quotn where material = #{material,jdbcType=CHAR}
+  </delete>
+  
+  <select id="selectByMaterial"  resultMap="BaseResultMap"  parameterType="java.lang.String" >
+  	select * from t_erp_stepwise_quotn where material = #{material,jdbcType=CHAR}
+  	order by amount asc
+  </select>
+  
+  <select id="selectAssByMaterial" resultType="java.util.Map" parameterType="java.lang.String">
+  	select t.price price from t_erp_stepwise_quotn t 
+  	where t.material=#{material,jdbcType=CHAR} order by price desc limit 1;
+  </select>
+  
+</mapper>

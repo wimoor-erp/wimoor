@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialGroupMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialGroup" >
+    <id column="marterial" property="marterial" jdbcType="CHAR" />
+    <id column="groupid" property="groupid" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+ <!--  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.MaterialCategoryKey" >
+    delete from t_erp_material_category
+    where marterial = #{marterial,jdbcType=CHAR}
+      and categoryid = #{categoryid,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.MaterialCategoryKey" >
+    insert into t_erp_material_category (marterial, categoryid)
+    values (#{marterial,jdbcType=CHAR}, #{categoryid,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.MaterialCategoryKey" >
+    insert into t_erp_material_category
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="marterial != null" >
+        marterial,
+      </if>
+      <if test="categoryid != null" >
+        categoryid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="marterial != null" >
+        #{marterial,jdbcType=CHAR},
+      </if>
+      <if test="categoryid != null" >
+        #{categoryid,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>
