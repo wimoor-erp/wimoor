@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchasePlanWareHouseMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchasePlanWareHouse" >
+    <id column="warehouseid" property="warehouseid" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="planid" property="planid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    warehouseid, shopid, planid 
+  </sql>
+  
+  <select id="getWareHouseIdForPlanId" resultType="java.util.Map" parameterType="java.lang.String">
+    select t.warehouseid, tw.name 
+    from t_erp_purchase_plan_warahouse t 
+    left join t_erp_warehouse tw on t.warehouseid = tw.id
+    where t.planid = #{planid, jdbcType=CHAR} 
+    	and t.shopid = #{shopid, jdbcType=CHAR}
+  </select>  
+  
+  <select id="getPurchasePlanWareHouseForShopId" resultType="java.util.Map" parameterType="java.lang.String">
+    select t.*,tw.name
+    from t_erp_purchase_plan_warahouse t 
+    left join t_erp_warehouse tw on tw.id = t.warehouseid
+    where t.shopid = #{shopid, jdbcType=CHAR}
+  </select>
+  
+  <delete id="deletePlanWarehouseForPlanId" parameterType="java.lang.String">
+  	delete from t_erp_purchase_warahouse_material where planid = #{planid, jdbcType=CHAR};
+
+	delete from t_erp_purchase_plan_warahouse where planid = #{planid, jdbcType=CHAR};
+
+	delete from t_erp_purchase_planmodelitem where modelid in(select modelid from t_erp_purchase_planmodel where planid = #{planid, jdbcType=CHAR});
+
+	delete from t_erp_purchase_planmodel where planid = #{planid, jdbcType=CHAR};
+
+	delete from t_erp_purchase_planitem where subplanid in(select id subplanid from t_erp_purchase_plansub where planid = #{planid, jdbcType=CHAR}) ;
+
+	delete from t_erp_purchase_plansub where planid = #{planid, jdbcType=CHAR};
+
+	delete from t_erp_purchase_plan where id = #{planid, jdbcType=CHAR};
+  </delete>
+  
+</mapper>

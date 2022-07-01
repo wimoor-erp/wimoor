@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInOrder">
+        <id column="pid" property="pid" />
+        <result column="avgsales" property="avgsales" />
+        <result column="oldavgsales" property="oldavgsales" />
+        <result column="daynum" property="daynum" />
+        <result column="sales_week" property="salesWeek" />
+        <result column="price_week" property="priceWeek" />
+        <result column="sales_month" property="salesMonth" />
+        <result column="order_week" property="orderWeek" />
+        <result column="order_month" property="orderMonth" />
+        <result column="changeRate" property="changeRate" />
+        <result column="lastupdate" property="lastupdate" />
+        <result column="sales_seven" property="salesSeven" />
+        <result column="sales_fifteen" property="salesFifteen" />
+        <result column="rank" property="rank" />
+    </resultMap>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_product_in_order(
+			pid, avgsales, oldavgsales, daynum, sales_week, price_week, sales_month, order_week,
+			order_month, changeRate, lastupdate, sales_seven, sales_fifteen, `rank`)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.pid,jdbcType=BIGINT}, #{adv.avgsales,jdbcType=INTEGER},
+			#{adv.oldavgsales,jdbcType=INTEGER},
+			#{adv.daynum,jdbcType=INTEGER}, #{adv.salesWeek,jdbcType=INTEGER},
+			#{adv.priceWeek,jdbcType=DECIMAL},
+			#{adv.salesMonth,jdbcType=INTEGER},
+			#{adv.orderWeek,jdbcType=INTEGER},
+			#{adv.orderMonth,jdbcType=INTEGER},
+			#{adv.changeRate,jdbcType=DECIMAL},
+			#{adv.lastupdate,jdbcType=TIMESTAMP},
+			#{adv.salesSeven,jdbcType=INTEGER},
+			#{adv.salesFifteen,jdbcType=INTEGER}, #{adv.rank,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+
+	<select id="selectProductOrderWithProfitByPid" parameterType="java.lang.String" resultType="java.util.Map">
+		select porder.`*`, profit.profit_week,profit.margin_week,profit.shipmentfee,profit.othersfee,profit.costDetail
+		from t_product_in_order porder
+		left join t_product_in_profit profit on profit.pid = porder.pid
+		where porder.pid = #{pid,jdbcType=CHAR}
+	</select>
+
+	<select id="getProductOrderSales" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select sum(t.avgsales) sales
+		from t_product_in_order t
+		left join t_product_info info on t.pid = info.id
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
+		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		where  auth.disable = FALSE and (o.disable is null or o.disable=0) and info.invalid=0 and info.isparent=0
+		    AND  info.sku = #{sku,jdbcType=CHAR}
+			and (mk.marketplaceid = #{marketplaceid,jdbcType=CHAR} or mk.region = #{marketplaceid,jdbcType=CHAR})
+			and auth.groupid = #{groupid,jdbcType=CHAR}
+	</select>
+</mapper>

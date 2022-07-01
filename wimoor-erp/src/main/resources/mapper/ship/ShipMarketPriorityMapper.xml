@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipMarketPriorityMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipMarketPriority" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="region" property="region" jdbcType="CHAR" />
+    <result column="level" property="level" jdbcType="INTEGER" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, marketplaceid, region, level, opttime, operator
+  </sql>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_ship_marketpriority
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_ship_marketpriority
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipMarketPriority" >
+    insert into t_erp_ship_marketpriority (id, shopid, marketplaceid, 
+      region, level, opttime, 
+      operator)
+    values (#{id,jdbcType=CHAR}, #{shopid,jdbcType=CHAR}, #{marketplaceid,jdbcType=CHAR}, 
+      #{region,jdbcType=CHAR}, #{level,jdbcType=INTEGER}, #{opttime,jdbcType=TIMESTAMP}, 
+      #{operator,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipMarketPriority" >
+    insert into t_erp_ship_marketpriority
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid,
+      </if>
+      <if test="region != null" >
+        region,
+      </if>
+      <if test="level != null" >
+        level,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="region != null" >
+        #{region,jdbcType=CHAR},
+      </if>
+      <if test="level != null" >
+        #{level,jdbcType=INTEGER},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.ShipMarketPriority" >
+    update t_erp_ship_marketpriority
+    <set >
+      <if test="shopid != null" >
+        shopid = #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid = #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="region != null" >
+        region = #{region,jdbcType=CHAR},
+      </if>
+      <if test="level != null" >
+        level = #{level,jdbcType=INTEGER},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ShipMarketPriority" >
+    update t_erp_ship_marketpriority
+    set shopid = #{shopid,jdbcType=CHAR},
+      marketplaceid = #{marketplaceid,jdbcType=CHAR},
+      region = #{region,jdbcType=CHAR},
+      level = #{level,jdbcType=INTEGER},
+      opttime = #{opttime,jdbcType=TIMESTAMP},
+      operator = #{operator,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

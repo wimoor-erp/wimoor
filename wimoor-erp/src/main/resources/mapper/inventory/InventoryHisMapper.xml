@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.inventory.mapper.InventoryHisMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.inventory.pojo.entity.InventoryHis" >
+    <id column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <id column="shopid" property="shopid" jdbcType="CHAR" />
+    <id column="materialid" property="materialid" jdbcType="CHAR" />
+    <id column="status" property="status" jdbcType="CHAR" />
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="modifyday" property="modifyday" jdbcType="DATE" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    warehouseid, shopid, materialid, status, id, quantity, operator, modifyday, opttime
+  </sql>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.erp.pojo.entity.InventoryHisKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_inventory_his
+    where warehouseid = #{warehouseid,jdbcType=CHAR}
+      and shopid = #{shopid,jdbcType=CHAR}
+      and materialid = #{materialid,jdbcType=CHAR}
+      and status = #{status,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.InventoryHisKey" >
+    delete from t_erp_inventory_his
+    where warehouseid = #{warehouseid,jdbcType=CHAR}
+      and shopid = #{shopid,jdbcType=CHAR}
+      and materialid = #{materialid,jdbcType=CHAR}
+      and status = #{status,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.InventoryHis" >
+    insert into t_erp_inventory_his (warehouseid, shopid, materialid, 
+      status, id, quantity, operator, 
+      modifyday, opttime)
+    values (#{warehouseid,jdbcType=CHAR}, #{shopid,jdbcType=CHAR}, #{materialid,jdbcType=CHAR}, 
+      #{status,jdbcType=CHAR}, #{id,jdbcType=CHAR}, #{quantity,jdbcType=INTEGER}, #{operator,jdbcType=CHAR}, 
+      #{modifyday,jdbcType=DATE}, #{opttime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.InventoryHis" >
+    insert into t_erp_inventory_his
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="warehouseid != null" >
+        warehouseid,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="materialid != null" >
+        materialid,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="quantity != null" >
+        quantity,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+      <if test="modifyday != null" >
+        modifyday,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="warehouseid != null" >
+        #{warehouseid,jdbcType=CHAR},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="materialid != null" >
+        #{materialid,jdbcType=CHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=CHAR},
+      </if>
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="quantity != null" >
+        #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+      <if test="modifyday != null" >
+        #{modifyday,jdbcType=DATE},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.InventoryHis" >
+    update t_erp_inventory_his
+    <set >
+      <if test="id != null" >
+        id = #{id,jdbcType=CHAR},
+      </if>
+      <if test="quantity != null" >
+        quantity = #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+      <if test="modifyday != null" >
+        modifyday = #{modifyday,jdbcType=DATE},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where warehouseid = #{warehouseid,jdbcType=CHAR}
+      and shopid = #{shopid,jdbcType=CHAR}
+      and materialid = #{materialid,jdbcType=CHAR}
+      and status = #{status,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.InventoryHis" >
+    update t_erp_inventory_his
+    set id = #{id,jdbcType=CHAR},
+      quantity = #{quantity,jdbcType=INTEGER},
+      operator = #{operator,jdbcType=CHAR},
+      modifyday = #{modifyday,jdbcType=DATE},
+      opttime = #{opttime,jdbcType=TIMESTAMP}
+    where warehouseid = #{warehouseid,jdbcType=CHAR}
+      and shopid = #{shopid,jdbcType=CHAR}
+      and materialid = #{materialid,jdbcType=CHAR}
+      and status = #{status,jdbcType=CHAR}
+  </update> -->
+</mapper>

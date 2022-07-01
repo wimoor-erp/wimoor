@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.ERPGroupMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.ERPGroup" >
+    <id column="shopid" property="shopid" jdbcType="CHAR" />
+    <id column="ftype" property="ftype" jdbcType="INTEGER" />
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="color" property="color" jdbcType="CHAR" />
+    <result column="issys" property="issys" jdbcType="BIT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    shopid, ftype, id, color, issys, name, remark, opttime, operator
+  </sql>
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.erp.pojo.entity.ERPCategoryKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_category
+    where shopid = #{shopid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=INTEGER}
+      and id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ERPCategoryKey" >
+    delete from t_erp_category
+    where shopid = #{shopid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=INTEGER}
+      and id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ERPCategory" >
+    insert into t_erp_category (shopid, ftype, id, 
+      color, issys, name, remark, 
+      opttime, operator)
+    values (#{shopid,jdbcType=CHAR}, #{ftype,jdbcType=INTEGER}, #{id,jdbcType=CHAR}, 
+      #{color,jdbcType=CHAR}, #{issys,jdbcType=BIT}, #{name,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, 
+      #{opttime,jdbcType=TIMESTAMP}, #{operator,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ERPCategory" >
+    insert into t_erp_category
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="ftype != null" >
+        ftype,
+      </if>
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="color != null" >
+        color,
+      </if>
+      <if test="issys != null" >
+        issys,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="ftype != null" >
+        #{ftype,jdbcType=INTEGER},
+      </if>
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="color != null" >
+        #{color,jdbcType=CHAR},
+      </if>
+      <if test="issys != null" >
+        #{issys,jdbcType=BIT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.ERPCategory" >
+    update t_erp_category
+    <set >
+      <if test="color != null" >
+        color = #{color,jdbcType=CHAR},
+      </if>
+      <if test="issys != null" >
+        issys = #{issys,jdbcType=BIT},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+    </set>
+    where shopid = #{shopid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=INTEGER}
+      and id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ERPCategory" >
+    update t_erp_category
+    set color = #{color,jdbcType=CHAR},
+      issys = #{issys,jdbcType=BIT},
+      name = #{name,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      opttime = #{opttime,jdbcType=TIMESTAMP},
+      operator = #{operator,jdbcType=CHAR}
+    where shopid = #{shopid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=INTEGER}
+      and id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.warehouse.mapper.WarehouseMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.warehouse.pojo.entity.Warehouse">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="ftype" property="ftype" jdbcType="CHAR" />
+		<result column="flevel" property="flevel" jdbcType="CHAR" />
+		<result column="number" property="number" jdbcType="CHAR" />
+		<result column="address" property="address" jdbcType="VARCHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="parentid" property="parentid" jdbcType="CHAR" />
+		<result column="findex" property="findex" jdbcType="INTEGER" />
+		<result column="isdefault" property="isdefault" jdbcType="BIT" />
+		<result column="fbawareid" property="fbawareid" jdbcType="CHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="stocking_cycle" property="stockingCycle" jdbcType="INTEGER" />
+		<result column="disabled" property="disabled" jdbcType="BIT" />
+		<result column="isstocktaking" property="isstocktaking" jdbcType="BIT" />
+		<result column="min_cycle" property="mincycle" jdbcType="INTEGER" />
+	</resultMap>
+	<!-- 显示仓库信息 -->
+	<select id="selectAllByShopId" resultType="java.util.Map" parameterType="java.lang.String">
+		select *
+		from t_erp_warehouse tw
+		where tw.shopid = #{shopid,jdbcType=CHAR}
+	</select>
+
+	<select id="findByCondition" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.id, w.name,t.name ftype,w.flevel,w.number,w.address,w.remark,ifnull(w.findex,9999) findex,
+			w.shopid,w.parentid,u.name operator,w.opttime,w.stocking_cycle
+		from t_erp_warehouse w
+		left join t_erp_warehouse_type t on t.id=w.ftype
+		left join t_userinfo u on u.id=w.operator
+		where w.shopid=#{shopid,jdbcType=CHAR} and w.disabled ='0'
+		<if test="search != null">
+			and (w.name like #{search,jdbcType=CHAR} or w.number like #{search,jdbcType=CHAR})
+		</if>
+		<if test="ftype ==null">
+			and w.ftype = 'self'
+		</if>
+		<if test="ftype != null">
+			and w.ftype like #{ftype,jdbcType=CHAR}
+		</if>
+		order by ifnull(w.findex,9999) asc,w.name
+	</select>
+
+	<!-- 假如第一次添加仓库，默认插入该ShopId下的的FBA仓库 -->
+	<insert id="saveFBA" parameterType="java.lang.String">
+		insert into
+		t_erp_warehouse_fba (
+		`id` , `name` , `number` , `shopid` , `marketplaceid`, `operator` , `opttime`
+		)
+		select UUID_SHORT() id,CONCAT('FBA-', m.market) name,CONCAT(m.market,#{sernum,jdbcType=CHAR}) number,
+			#{shopid,jdbcType=CHAR}, m.marketplaceid, #{operator,jdbcType=CHAR},now()
+		from t_marketplace m
+		left join t_erp_warehouse_fba w on m.marketplaceid=w.marketplaceid and w.shopid=#{shopid,jdbcType=CHAR}
+		where w.id is null 
+			and m.region!='EU'
+			and m.marketplaceid in 
+				(
+				select marketplace_id
+				from t_amazonseller_market
+				where sellerid in 
+					(
+					select sellerid
+					from t_amazon_auth
+					where shop_id=#{shopid,jdbcType=CHAR}
+					)
+				)
+		union all
+		select * 
+		from 
+			(
+			select UUID_SHORT() id,CONCAT('FBA-', m.region) name,
+				CONCAT(m.region,#{sernum,jdbcType=CHAR}) number,
+				#{shopid,jdbcType=CHAR}, m.region, #{operator,jdbcType=CHAR},now()
+			from t_marketplace m
+			left join t_erp_warehouse_fba w on m.region=w.marketplaceid and w.shopid=#{shopid,jdbcType=CHAR}
+			where w.id is null 
+				and m.region='EU'
+				and m.marketplaceid in 
+					(
+					select marketplace_id
+					from t_amazonseller_market
+					where sellerid in 
+						(
+						select sellerid
+						from t_amazon_auth
+						where shop_id=#{shopid,jdbcType=CHAR}
+						) 
+					)
+		group by m.region,m.region_name ) V
+	</insert>
+	<!-- 删除没有绑定地区的FBA仓库 -->
+	<delete id="deleteFBA" parameterType="java.lang.String">
+		delete
+		from t_erp_warehouse_fba
+		where shopid=#{shopid,jdbcType=CHAR}
+			and marketplaceid not in
+				(
+				select marketplace_id 
+				from t_amazonseller_market
+				where sellerid in 
+					(
+					select sellerid 
+					from t_amazon_auth
+					where shop_id=#{shopid,jdbcType=CHAR}
+					)
+				union all
+				select region 
+				from t_amazon_auth
+				where shop_id=#{shopid,jdbcType=CHAR} 
+					and region='EU'
+				)
+	</delete>
+	<!-- 查询当前ftypeid -->
+	<select id="selectTypeByName" resultType="java.lang.String">
+		SELECT tt.id 
+		FROM t_erp_warehouse_type tt 
+		where tt.name=#{fname,jdbcType=CHAR} limit 0,1
+	</select>
+
+	<select id="findByType" resultType="java.util.Map" parameterType="java.lang.String">
+		<if test="ftype == 'FBA'">
+			SELECT case when m.region='EU' then 'EU' else m.marketplaceid end parentid,
+				case when m.region='EU' then 'EU' else m.marketplaceid END id,
+				case when m.region='EU' then CONCAT('FBA-',m.region_name) else CONCAT('FBA-',m.name) END name
+			from t_amazon_auth w
+			left join t_amazonseller_market mk on mk.sellerid=w.sellerid
+			left join t_marketplace m on m.marketplaceid=mk.marketplace_id
+			where w.shop_id=#{shopid,jdbcType=CHAR} 
+				and ifnull(w.disable,0)=0 
+				and ifnull(mk.disable,0)=0 
+				AND m.marketplaceId IS NOT null
+			group by case
+			when m.region='EU' then 'EU' else m.marketplaceid end
+			ORDER BY m.findex;
+		</if>
+		<if test="ftype != 'FBA'">
+			select w.* 
+			from t_erp_warehouse w
+			left join t_erp_warehouse wp on w.parentid=wp.id
+			where w.shopid=#{shopid,jdbcType=CHAR} 
+				and wp.ftype ='self' and w.disabled ='0'
+			ORDER BY ifnull(wp.findex,99999) ASC,w.name;
+		</if>
+	</select>
+
+	<select id="selectFbaSale" resultType="java.util.Map" parameterType="java.lang.String">
+	 select v2.groupid,
+	        w.name,
+	        v2.groupname,
+	        w.id warehouseid,
+	        v2.point_name point_name,
+			v2.asin,
+			w.marketplaceid,
+			w.marketplaceid parentid, 
+			v2.salesweek, 
+			v2.salesfifteen, 
+			v2.salesmonth,
+			v2.sales, 
+			v2.openDate, 
+			v2.price,
+			v2.currency,
+			v2.market, 
+			tsale.presales presales,
+			v2.psku sku,
+			v2.pid,
+			v2.mystatus,
+			ifnull(afn_fulfillable_quantity,0)+ifnull(afn_inbound_working_quantity,0)+
+			ifnull(afn_inbound_shipped_quantity,0)+ifnull(afn_inbound_receiving_quantity,0)+
+			ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) quantity,
+			ifnull(w.put_on_days,0) putondays,ifnull(w.first_leg_days,0) firstlegdays,
+			ifnull(ifnull(sc.stockingCycle,w.stocking_cycle),0) safeinvdays,
+			ifnull(ifnull(sc.min_cycle,w.min_cycle),0) mincycle,
+			ifnull(ifnull(sc.stockingCycle,w.stocking_cycle),0)+ifnull(w.put_on_days,0)+ifnull(w.first_leg_days,0)+${delivery_cycle} stocking_cycle
+            from (
+      select v.groupid,v.name groupname,
+				case when v.region='EU' then 'EU' else v.marketplaceId end marketplace,
+				max(v.point_name) point_name,v.findex,
+				max(v.asin) asin, ifnull(max(v.msku),max(v.sku)) sku,
+				max(v.pid) pid,
+				max(v.sku) psku, min(v.openDate) openDate, sum(v.avgsales) sales ,
+				sum(v.sales_seven) salesweek, sum(ifnull(v.sales_fifteen,0)) salesfifteen,
+				sum(v.sales_month) salesmonth, MAX(v.landed_amount) price,
+				case when v.pageDimensions is null
+				then (select max(pageDimensions) from t_product_info where asin=v.asin  and amazonAuthId=v.amazonAuthId )
+				else v.pageDimensions end dimensions,
+				max(v.currency) currency, max(v.market) market, max(v.amazonAuthId) amazonAuthId ,
+				max(v.shop_id) shopid,
+				max(v.mystatus) mystatus
+               from (
+      select  a.groupid,
+				g.name ,
+				m.marketplaceId ,
+				m.point_name,
+                m.region,
+                m.findex,
+				p.asin asin, 
+                o.msku,
+                p.sku ,
+                p.id pid,
+				p.openDate, 
+				s.avgsales,
+				s.sales_seven, 
+                s.sales_fifteen,
+				s.sales_month, 
+                pp.landed_amount,
+				p.pageDimensions,
+				m.currency, 
+                m.market, 
+                p.amazonAuthId,
+                o.status mystatus,
+				a.shop_id from t_product_info p 
+            left join t_product_in_opt o on o.pid=p.id
+            left join t_amazon_auth a on a.id=p.amazonauthid
+            left join t_marketplace m on m.marketplaceId=p.marketplaceid
+      		LEFT JOIN t_amazon_group g on g.id=a.groupid 
+			left join t_amazonseller_market am on a.sellerid=am.sellerid and am.marketplace_id=m.marketplaceId
+			left join t_product_in_order s on p.id=s.pid
+			left join t_product_price pp on pp.SellerId=a.sellerid and p.marketplaceid=pp.MarketplaceId 
+				and pp.SellerSKU=p.sku and pp.isnewest=true and pp.ptype='BUYP' 
+            where a.shop_id=#{shopid,jdbcType=CHAR} and  o.msku=#{sku,jdbcType=CHAR}
+				 AND a.disable = FALSE and (o.disable is null or o.disable=0) and p.invalid=0 and p.isparent=0
+            union 
+		select  a.groupid,
+				g.name ,
+				m.marketplaceId ,
+				m.point_name,
+                m.region,
+                m.findex,
+				p.asin asin, 
+                o.msku,
+                p.sku ,
+                p.id pid,
+				p.openDate, 
+				s.avgsales,
+				s.sales_seven, 
+                s.sales_fifteen,
+				s.sales_month, 
+                pp.landed_amount,
+				p.pageDimensions,
+				m.currency, 
+                m.market, 
+                p.amazonAuthId,
+                o.status mystatus,
+				a.shop_id
+                from t_product_info p 
+            left join t_product_in_opt o on o.pid=p.id
+            left join t_amazon_auth a on a.id=p.amazonauthid
+            left join t_marketplace m on m.marketplaceId=p.marketplaceid
+      		LEFT JOIN t_amazon_group g on g.id=a.groupid 
+			left join t_amazonseller_market am on a.sellerid=am.sellerid and am.marketplace_id=m.marketplaceId
+			left join t_product_in_order s on p.id=s.pid
+			left join t_product_price pp on pp.SellerId=a.sellerid and p.marketplaceid=pp.MarketplaceId 
+				and pp.SellerSKU=p.sku and pp.isnewest=true and pp.ptype='BUYP' 
+            where a.shop_id=#{shopid,jdbcType=CHAR} 
+             and  p.sku=#{sku,jdbcType=CHAR} 
+             and o.msku is null
+			 AND a.disable = FALSE and (o.disable is null or o.disable=0) and p.invalid=0 and p.isparent=0
+     ) v
+     group by v.groupid,v.sku,case when v.region='EU' then 'EU' else v.marketplaceId end
+     ) v2
+     left join t_erp_warehouse_fba w on w.marketplaceid=v2.marketplace and w.shopid=v2.shopid 
+		left join t_erp_shipcycle sc on sc.groupid=v2.groupid and sc.sku=v2.psku and sc.marketplaceid=v2.marketplace 
+		left join t_erp_estimated_sales tsale on tsale.groupid=v2.groupid and tsale.sku=v2.psku and tsale.marketplaceid=v2.marketplace and tsale.isInvalid=0 
+		left join t_inventory_report ir on ir.marketplaceid=w.marketplaceid and ir.amazonAuthId=v2.amazonAuthId and ir.sku=v2.psku and ir.isnewest=true 
+		left join t_inventory_reserved_report rr on ir.sku=rr.sku and ir.marketplaceid=rr.marketplaceid and ir.amazonAuthId=rr.amazonAuthId 
+		where v2.sku=#{sku,jdbcType=CHAR}
+			and v2.shopid=#{shopid,jdbcType=CHAR}
+		order by v2.groupname asc, v2.findex asc, v2.psku asc
+	</select>
+
+	<select id="selectShipFbaSale" resultType="java.util.Map" parameterType="java.lang.String">
+		select 
+		    w.name, 
+		    w.id id, 
+		    w.marketplaceid parentid, 
+		    v.asin, 
+		    v.sku, 
+		    v.pid,
+		    v.psku psku,
+			v.point_name, 
+			v.dimensions, 
+			v.currency, 
+			v.market, 
+			v.marketplace marketplaceid,
+			v.margin profitRate, 
+			v.mystatus,
+			ifnull(v.price,0) price, 
+			v.sales sales, 
+			shipsub.short_time shorttime,
+			v.openDate, 
+			v.salesweek salesweek, 
+			v.salesfifteen salesfifteen, 
+			v.salesmonth salesmonth,
+			tsale.presales presales,
+			plan.pamount,plan.selfamount,
+			ifnull(afn_fulfillable_quantity,0)+ifnull(afn_inbound_working_quantity,0)+
+			ifnull(afn_inbound_shipped_quantity,0)+ifnull(afn_inbound_receiving_quantity,0)+
+			ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) quantity,
+			ifnull(afn_fulfillable_quantity,0)+ ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) localquantity,
+			ifnull(w.put_on_days,0) putondays, ifnull(w.first_leg_days,0) firstlegdays,
+			ifnull(ifnull(sc.stockingCycle,w.stocking_cycle),0) safeinvdays,
+			ifnull(ifnull(sc.stockingCycle,w.stocking_cycle),0)+ ifnull(w.put_on_days,0)+ifnull(w.first_leg_days,0) stocking_cycle,
+			ifnull(ifnull(sc.min_cycle,w.min_cycle),0) min_cycle
+		from (
+			SELECT 
+		        CASE
+		                WHEN m.region = 'EU' THEN 'EU'
+		                ELSE m.marketplaceId
+		            END marketplace,
+		            MAX(m.point_name) point_name,
+		            IFNULL(mp.priority, m.findex) priority,
+		            MAX(p.asin) asin,
+		            IFNULL(MAX(p.msku), MAX(p.sku)) sku,
+		            MAX(profit.margin_week) margin,
+		            MAX(p.sku) psku,
+		            Max(p.id) pid,
+		            MIN(p.openDate) openDate,
+		            SUM(s.avgsales) sales,
+		            SUM(s.sales_seven) salesweek,
+		            SUM(IFNULL(s.sales_fifteen, 0)) salesfifteen,
+		            SUM(s.sales_month) salesmonth,
+		            MAX(pp.landed_amount) price,
+		            CASE
+		                WHEN
+		                    p.pageDimensions IS NULL
+		                THEN
+		                    (SELECT 
+		                            MAX(pageDimensions)
+		                        FROM
+		                            t_product_info
+		                        WHERE
+		                            asin = p.asin and amazonAuthId=p.amazonAuthId )
+		                ELSE p.pageDimensions
+		            END dimensions,
+		            MAX(m.currency) currency,
+		            MAX(m.market) market,
+		            MAX(p.amazonAuthId) amazonAuthId,
+		            MAX(p.groupid) groupid,
+		            MAX(p.shop_id) shopid,
+		            max(p.mystatus) mystatus
+		    FROM
+		      (  
+		       select p1.*,a.sellerid,o.msku,a.groupid,a.shop_id,o.status mystatus 
+               from t_product_info p1
+		       LEFT JOIN t_product_in_opt o ON p1.id = o.pid
+		       LEFT JOIN t_amazon_auth a ON a.id = p1.amazonAuthId
+		       where a.groupid =#{groupid,jdbcType=CHAR} and    o.msku is null and p1.sku =#{sku,jdbcType=CHAR}
+				AND a.disable = FALSE and (o.disable is null or o.disable=0) and p1.invalid=0 and p1.isparent=0
+		       union 
+               select p1.*,a.sellerid,o.msku,a.groupid,a.shop_id,o.status mystatus  
+               from t_product_info p1
+		       LEFT JOIN t_product_in_opt o ON p1.id = o.pid
+		       LEFT JOIN t_amazon_auth a ON a.id = p1.amazonAuthId
+		       where a.groupid = #{groupid,jdbcType=CHAR} and    o.msku  =#{sku,jdbcType=CHAR}
+				AND a.disable = FALSE and (o.disable is null or o.disable=0)  and p1.invalid=0   and p1.isparent=0   
+		    ) p
+			left join t_marketplace m on m.marketplaceId=p.marketplaceid
+			left join t_amazon_auth a on a.id=p.amazonAuthId
+			left join t_amazonseller_market am on am.sellerid=p.sellerid and am.marketplace_id=p.marketplaceId
+			left join t_product_in_order s on p.id=s.pid
+			left join t_product_in_profit profit on p.id=profit.pid
+			left join t_product_price pp on pp.SellerId=p.sellerid and p.marketplaceid=pp.MarketplaceId 
+				and pp.SellerSKU=p.sku and pp.isnewest=true and pp.ptype='BUYP'
+			left join t_erp_market_priority mp on mp.marketplaceId = 
+				case when m.region='EU' then 'EU' else m.marketplaceId end and mp.groupid=#{groupid,jdbcType=CHAR}
+			where    am.disable=false
+			group by p.sku,case when m.region='EU' then 'EU' else m.marketplaceId end ) v
+		left join t_erp_warehouse_fba w on w.marketplaceid=v.marketplace and w.shopid=v.shopid
+		left join t_erp_shipcycle sc on sc.groupid=v.groupid and sc.sku=v.psku and sc.marketplaceid=v.marketplace
+		left join t_erp_estimated_sales tsale on tsale.groupid=v.groupid and tsale.sku=v.psku and tsale.marketplaceid=v.marketplace and tsale.isInvalid=0
+		left join t_inventory_report ir on ir.marketplaceid=v.marketplace and ir.amazonAuthId=v.amazonAuthId and ir.sku=v.psku and isnewest=true
+		left join t_inventory_reserved_report rr on ir.sku=rr.sku and ir.marketplaceid=rr.marketplaceid and ir.amazonAuthId=rr.amazonAuthId 
+		left join ( 
+			select sub.short_time,sub.marketplaceid,tsp.warehouseid,tsp.planid,sub.sku
+			from t_erp_ship_planmodelitemsub sub
+			left join t_erp_ship_planmodelitem tsitm on sub.itemid = tsitm.id
+			left join t_erp_ship_planmodel tsp on tsitm.modelid = tsp.id 
+			left join t_erp_ship_plan plan on plan.id=tsp.planid and tsp.warehouseid=plan.warehouseid
+			where tsitm.materialid = #{materialid,jdbcType=CHAR}
+				and plan.id = #{planid,jdbcType=CHAR}
+				and tsp.groupid = #{groupid,jdbcType=CHAR} 
+				
+		)shipsub on shipsub.marketplaceid=v.marketplace and shipsub.sku=v.psku
+		left join (
+				select pi.materialid,pi.amount pamount,ps.marketplaceid,ps.planid,pi.sku,pi.selfamount 
+					from t_erp_ship_planitem pi
+					left join t_erp_ship_plansub ps on pi.plansubid=ps.id and pi.status=1 and ps.status=1
+				where ps.planid=#{planid,jdbcType=CHAR} and pi.materialid= #{materialid,jdbcType=CHAR} 
+		) plan on plan.marketplaceid=v.marketplace and plan.materialid = #{materialid,jdbcType=CHAR} and plan.sku=v.psku
+		where v.shopid=#{shopid,jdbcType=CHAR} and v.asin is not null
+		order by v.priority asc,v.psku asc
+	</select>
+
+	<select id="selectSelfSale" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.id, w.id warehouseid, w.name,'self' groupid, ifnull(max(ifnull(sc.stockingCycle,w.stocking_cycle)),0) stocking_cycle,
+			ifnull(ifnull(sc.min_cycle,w.min_cycle),0) min_cycle,
+			ifnull(sum(case when substring_index(i.`status`,'_',1) ='inbound' or i.`status`='fulfillable'
+			then ifnull(i.quantity,0) else 0 end ),0) quantity
+		from t_erp_warehouse w
+		left join t_erp_warehouse wcell on wcell.parentid=w.id
+		left join t_erp_stockcycle sc on sc.warehouseid=w.id and sc.materialid=#{materialid,jdbcType=CHAR}
+		left join t_erp_inventory i on i.warehouseid=wcell.id and i.materialid=#{materialid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
+		where
+		<if test="warehouseidList != null and warehouseidList.size>0 ">
+			w.id in
+			<foreach collection="warehouseidList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		    and (wcell.ftype='self_usable' or wcell.ftype='self_test')
+			and w.disabled ='0'
+			and w.shopid=#{shopid,jdbcType=CHAR}
+		group by w.id
+	</select>
+	<!-- 默认添加三个子仓库 -->
+	<insert id="saveCheckOut" parameterType="java.lang.String">
+		replace into t_erp_warehouse
+		(`id` , `name` , `ftype` , `flevel`, `number` ,`address` , `remark` ,
+		`findex` , `shopid` , `parentid`, `operator` , `opttime` , `stocking_cycle`,`min_cycle`,`disabled`,`isdefault`) 
+		select UUID_SHORT(),concat(#{wname,jdbcType=CHAR},'-测试仓'), 'self_test',2,#{sernum,jdbcType=CHAR},tw.address,
+		concat(tw.address,'测试仓库'), 2,tw.shopid,tw.id,tw.operator,tw.opttime,tw.stocking_cycle,tw.min_cycle,0,1
+		from t_erp_warehouse tw
+		where tw.id=#{parentid,jdbcType=CHAR};
+	</insert>
+	
+	<insert id="saveQuality" parameterType="java.lang.String">
+		replace into t_erp_warehouse 
+		(`id` , `name` , `ftype` , `flevel`, `number` , `address` , `remark` , `findex` , `shopid` ,
+		`parentid`, `operator` , `opttime` , `stocking_cycle`,`min_cycle`,`disabled`,`isdefault`) 
+		select UUID_SHORT(),concat(#{wname,jdbcType=CHAR},'-正品仓'),
+		'self_usable',2,#{sernum,jdbcType=CHAR},tw.address,concat(tw.address,'正品仓库'),
+		1,tw.shopid,tw.id,tw.operator,tw.opttime,tw.stocking_cycle,tw.min_cycle,0,1
+		from t_erp_warehouse tw
+		where tw.id=#{parentid,jdbcType=CHAR};
+	</insert>
+	
+	<insert id="saveScrap" parameterType="java.lang.String">
+		replace into t_erp_warehouse 
+		(`id` , `name` , `ftype` , `flevel`, `number` , `address` , `remark` ,
+		`findex` , `shopid` , `parentid`, `operator` , `opttime` , `stocking_cycle`,`min_cycle`,`disabled`,`isdefault`) 
+		select UUID_SHORT(),concat(#{wname,jdbcType=CHAR},'-废品仓'),
+		'self_unusable',2,#{sernum,jdbcType=CHAR},tw.address,concat(tw.address,'废品仓库'),
+		3,tw.shopid,tw.id,tw.operator,tw.opttime,tw.stocking_cycle,tw.min_cycle,0,1
+		from t_erp_warehouse tw
+		where tw.id=#{parentid,jdbcType=CHAR};
+	</insert>
+
+	<select id="getTotalInvAndWorth" resultType="java.util.Map" parameterType="java.lang.String">
+		select wp.name , sum(i.quantity) totalqty,sum(i.quantity*m.price) worth
+		from t_erp_inventory i
+		left join t_erp_material m on i.materialid=m.id
+		left join t_erp_warehouse w on i.warehouseid=w.id
+		left join t_erp_warehouse wp on wp.id =w.parentid
+		where wp.id =#{warehouseid,jdbcType=CHAR} 
+			and i.`status` not like 'inbound%'
+		group by wp.id
+	</select>
+
+	<select id="getParentWarehouse" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT * from t_erp_warehouse wp
+		LEFT JOIN t_erp_warehouse w on wp.id=w.parentid
+		where w.id=#{warehouseid,jdbcType=CHAR}
+	</select>
+
+	<select id="findFbaMarket" resultType="com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA" parameterType="java.lang.String">
+		select w.* 
+		from t_erp_warehouse_fba w
+		left join t_erp_market_priority p on p.marketplaceid=w.marketplaceid and p.groupid=#{groupid,jdbcType=CHAR}
+		left join t_marketplace m on case when w.marketplaceid='EU' then m.marketplaceid='A1PA6795UKMFR9' else m.marketplaceid=w.marketplaceid end
+		where shopid=#{shopid,jdbcType=CHAR}
+		order by p.priority asc, m.findex asc
+	</select>
+
+	<select id="findFbaWarehouseByShop" resultType="com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA" parameterType="java.lang.String">
+		select distinct w.* 
+		from t_erp_warehouse_fba w
+		left join t_erp_market_priority p on p.marketplaceid=w.marketplaceid
+		left join t_marketplace m on m.marketplaceid=w.marketplaceid
+		where shopid=#{shopid,jdbcType=CHAR}
+		order by p.priority asc, m.findex asc
+	</select>
+
+	<update id="updateWareDefault" parameterType="java.lang.String">
+		update t_erp_warehouse t 
+		set t.isdefault=0 
+		where t.parentid=#{warehouseid,jdbcType=CHAR}
+		and t.ftype=#{ftype,jdbcType=CHAR}
+	</update>
+
+	<select id="findWareDefault" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select * 
+		from t_erp_warehouse t 
+		where t.isdefault=1 
+			and t.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+
+</mapper>

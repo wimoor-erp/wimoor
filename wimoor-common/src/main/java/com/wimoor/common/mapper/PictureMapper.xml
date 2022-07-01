@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.common.mapper.PictureMapper">
+  <resultMap id="BaseResultMap" type="com.wimoor.common.pojo.entity.Picture">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="url" jdbcType="CHAR" property="url" />
+    <result column="location" jdbcType="CHAR" property="location" />
+    <result column="height" jdbcType="DECIMAL" property="height" />
+    <result column="height_units" jdbcType="CHAR" property="heightUnits" />
+    <result column="width" jdbcType="DECIMAL" property="width" />
+    <result column="width_units" jdbcType="CHAR" property="widthUnits" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, url, location, height, height_units, width, width_units
+  </sql>
+  
+  <select id="selectByImageName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select * from t_picture where location = #{location,jdbcType=CHAR}
+  </select>
+   
+</mapper>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInfo">
+        <id column="id" property="id" />
+        <result column="asin" property="asin" />
+        <result column="sku" property="sku" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="name" property="name" />
+        <result column="openDate" property="openDate" />
+        <result column="itemDimensions" property="itemDimensions" />
+        <result column="pageDimensions" property="pageDimensions" />
+        <result column="fulfillChannel" property="fulfillChannel" />
+        <result column="binding" property="binding" />
+        <result column="totalOfferCount" property="totalOfferCount" />
+        <result column="brand" property="brand" />
+        <result column="manufacturer" property="manufacturer" />
+        <result column="pgroup" property="pgroup" />
+        <result column="typename" property="typename" />
+        <result column="price" property="price" />
+        <result column="image" property="image" />
+        <result column="parentMarketplace" property="parentMarketplace" />
+        <result column="parentAsin" property="parentAsin" />
+        <result column="isparent" property="isparent" />
+        <result column="lastupdate" property="lastupdate" />
+        <result column="amazonAuthId" property="amazonAuthId" />
+        <result column="invalid" property="invalid" />
+        <result column="oldid" property="oldid" />
+        <result column="inSnl" property="inSnl" />
+    </resultMap>
+
+	<!-- 以下内容为原amz_productmapper的 -->
+	<select id="selectBySku" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select *
+		from t_product_info
+		where sku = #{sku,jdbcType=CHAR}
+			and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			and amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+	</select>
+	
+	<select id="findShopSku" resultType="java.util.Map" parameterType="java.lang.String">
+		select ifnull(p.location,p.url) location,t.*
+		from t_product_info t
+		left join t_picture p on p.id=t.image
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		where au.shop_id=#{shopid,jdbcType=CHAR}
+			and t.sku like #{sku,jdbcType=CHAR}
+	</select>
+	<select id="selectByAuth" resultType="java.util.Map"  parameterType="java.lang.String">
+		 SELECT amazonAuthId,marketplaceid,sku,SUM(quantity) sales30,SUM(ordersum) order30,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 15 DAY),'%Y-%m-%d')
+						and purchase_date &lt; now()) then quantity ELSE 0 END ) sales15,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d')
+						and purchase_date &lt; now()) then quantity ELSE 0 END ) sales7,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 8 DAY),'%Y-%m-%d')
+						and purchase_date &lt; DATE_FORMAT(DATE_SUB(now(),INTERVAL 1 DAY),'%Y-%m-%d')) then quantity ELSE 0 END ) salesWeek,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d') 
+						and purchase_date &lt; now()) then ordersum ELSE 0 END ) order7,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d') 
+						and purchase_date &lt; now()) then orderprice ELSE 0 END ) orderprice7
+					FROM t_orders_summary orde
+					WHERE purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 30 DAY),'%Y-%m-%d') AND purchase_date &lt; now()
+					<if test="amazonAuthId != null">
+					and orde.amazonAuthId = #{amazonAuthId,jdbcType=CHAR}
+					</if>
+					group by orde.sku,orde.marketplaceid,orde.amazonAuthId
+					having sales30 &gt; 0
+	</select>
+	<select id="selectByMapByParams" resultType="java.util.Map"  parameterType="java.util.Map">
+	  SELECT a.id,a.shop_id shopid,a.groupid, ifnull(opt.msku,t.sku) msku,t.id pid,
+			t.openDate,t.price,t.asin,t.inSnl,t.pgroup,t.pageDimensions,t.fulfillChannel,
+			price.landed_amount,price.landed_currency,price.ptype, ranks.`rank`,
+			ifnull(sys.avgsales,0),ifnull(sys.daynum,0),ifnull(sys.oldavgsales,0),now() nowdate,
+			td.length,td.width,td.height,td.weight,td.height_units,td.weight_units,
+			mark.market,mark.region 
+			FROM  t_product_info t 
+		left join t_amazon_auth a on a.id = t.amazonAuthId
+		left join t_amazonseller_market b on a.sellerid=b.sellerid and b.marketplace_id = t.marketplaceid
+		left join t_marketplace mark on mark.marketplaceId = t.marketplaceid
+		left join t_product_in_opt opt on opt.pid = t.id  
+		left join t_product_in_order sys on sys.pid = t.id
+		left join t_product_price price on price.SellerSKU = t.sku and price.MarketplaceId=t.marketplaceid and price.SellerId = a.sellerid and price.ptype='BUYP'
+		left join t_product_rank ranks on ranks.product_id = t.id and ranks.isMain=1 and ranks.isNewest=1
+		left join t_dimensions td on td.id = t.pageDimensions
+	   WHERE 
+	   t.sku=#{params.sku,jdbcType=CHAR} and t.marketplaceid =#{params.marketplaceid,jdbcType=CHAR} and t.amazonAuthId =#{params.amazonAuthId,jdbcType=CHAR}
+	   </select>
+	<select id="getShopidByPid" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT a.shop_id from t_product_info p 
+		left join t_amazon_auth a on a.id=p.amazonAuthId
+		where p.id=#{pid,jdbcType=CHAR}
+	</select>
+</mapper>

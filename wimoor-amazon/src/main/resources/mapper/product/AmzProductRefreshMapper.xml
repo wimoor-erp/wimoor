@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductRefreshMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh">
+        <id column="pid" property="pid" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="detail_refresh_time" property="detailRefreshTime" />
+        <result column="price_refresh_time" property="priceRefreshTime" />
+        <result column="sku" property="sku" />
+        <result column="asin" property="asin" />
+        <result column="marketplaceid" property="marketplaceid" />
+    </resultMap>
+    
+    <select id="findForDetailRefresh"  resultType="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh" parameterType="java.lang.String">
+        SELECT  max(r.pid) pid,r.amazonauthid,
+		 MIN(r.detail_refresh_time) detail_refresh_time,
+		 null price_refresh_time,
+		 null catalog_refresh_time,
+		 r.sku,
+	     r.asin,
+		 GROUP_CONCAT(r.marketplaceid) marketplaceid
+		  from 
+		   (SELECT rr.pid,rr.marketplaceid,rr.sku,rr.asin,rr.detail_refresh_time,rr.amazonauthid FROM 
+		       t_amz_product_refresh rr
+           where rr.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+           order by rr.detail_refresh_time asc
+           LIMIT 5  ) r
+	      GROUP BY r.sku 
+	     ;
+    </select>
+    
+   <insert id="insertDefault">
+        insert into t_amz_product_refresh 
+		SELECT i.id,i.amazonauthid,
+		str_to_date('1949-10-01 00:00:00', '%Y-%m-%d %H:%i:%s'),
+		str_to_date('1949-10-01 00:00:00', '%Y-%m-%d %H:%i:%s'),
+		str_to_date('1949-10-01 00:00:00', '%Y-%m-%d %H:%i:%s'),
+		i.sku,i.asin,i.marketplaceid 
+		FROM t_product_info i
+		LEFT JOIN t_amz_product_refresh r ON r.pid=i.id
+		LEFT JOIN t_amazon_auth a ON a.id=i.amazonauthid
+		WHERE a.`disable`=0 
+		AND i.invalid=0  
+		AND r.pid IS NULL 
+   </insert>
+</mapper>

@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipPlanMapper">
+	<resultMap id="BaseResultMap"
+		type="com.wimoor.erp.ship.pojo.entity.ShipPlan">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+		<result column="amazongroupid" property="amazongroupid" jdbcType="CHAR" />
+		<result column="totalnum" property="totalnum" jdbcType="INTEGER" />
+		<result column="totalamount" property="totalamount" jdbcType="INTEGER" />
+		<result column="totalweight" property="totalweight" jdbcType="DECIMAL" />
+		<result column="goodsworth" property="goodsworth" jdbcType="DECIMAL" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, shopid, warehouseid, amazongroupid, totalnum, totalamount,
+		totalweight, goodsworth, opttime, operator, status
+	</sql>
+
+	<select id="selectByGroupAndWarehouse" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT * from t_erp_ship_plan where
+		amazongroupid=#{amazongroupid,jdbcType=CHAR}
+		and warehouseid=#{warehouseid,jdbcType=CHAR}
+		and `status`=1
+	</select>
+	<select id="getPlanAmountByMaterial" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT sum(case when p.id=#{planid,jdbcType=CHAR} then 0 else amount end) amount FROM 
+		t_erp_ship_planitem i
+		LEFT JOIN t_erp_ship_plansub s ON s.id=i.plansubid
+		left join t_erp_ship_plan p ON p.id=s.planid
+		WHERE p.shopid=#{shopid,jdbcType=CHAR}
+		AND i.materialid=#{materialid,jdbcType=CHAR}
+	    and p.warehouseid=#{warehouseid,jdbcType=CHAR}
+	    and i.status=1 and s.status=1 and p.status=1
+	</select>
+
+	<select id="getPlan" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.id,m.name name,m.issfg issfg,ifnull(p1.location,v.url) image,ifnull(m.boxnum,0) boxnum,
+		m.sku,m.color,mn.mark notice,usi.name ticename,DATE_FORMAT(mn.opttime,'%Y-%m-%d %H:%i:%s') ticetime,plan.materialid pitemid,inv.warehouseid,inv.quantity,
+		ifnull(plan.needship,pmi.planamount) needship,ifnull(plan.pamount,0) pamount,mc.material material,mc.addfee addfee,
+		case when mh.materialid is null then 0 else 1 end ishide,
+		<if test="sort=='allamount'">
+		FLOOR(ifnull(va.amount,0)) assamount,(FLOOR(ifnull(va.amount,0))+ifnull(inv.quantity,0)) allamount
+		</if>
+        <if test="sort!='allamount'">
+		0 assamount,ifnull(inv.quantity,0) allamount
+		</if>
+		from (
+			select max(ifnull(p2.location,p2.url)) url,GROUP_CONCAT(pinfo.sku) psku,ifnull(opt.msku,pinfo.sku) sku,max(pinfo.inSnl) inSnl 
+			<if test="marketplaceList !=null">
+				,sum(case when (
+				<foreach collection="marketplaceList" item="marketplaceid" index="marketplace_list" open="(" separator="or" close=")">
+					mkt.region=#{marketplaceid,jdbcType=CHAR} or mkt.marketplaceId=TRIM(#{marketplaceid,jdbcType=CHAR})
+				</foreach>
+				) then 1 else 0 end)   hasmarket  
+			</if>
+			<if	test='sortparam =="countryinventory"'>
+				,max(case when ir.marketplaceid=#{ordercountry,jdbcType=CHAR} then
+				ifnull(ir.afn_fulfillable_quantity,0)+ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0)
+				+ifnull(ir.afn_inbound_working_quantity,0)+
+				ifnull(ir.afn_inbound_shipped_quantity,0)+ifnull(ir.afn_inbound_receiving_quantity,0)
+				else 0 end ) countryinventory
+			</if>
+			<if	test='sortparam =="countrysale" or sortparam =="countrysale7" or sortparam =="countrysale30"'>
+				,sum(case when mkt.region=#{ordercountry,jdbcType=CHAR}
+				or pinfo.marketplaceid=#{ordercountry,jdbcType=CHAR}
+				then
+				<if	test='sortparam =="countrysale"'>
+					ifnull(tsale.presales,sy.avgsales)
+				</if>
+				<if test='sortparam =="countrysale7" '>
+					ifnull(sy.sales_week,0)
+				</if>
+				<if test='sortparam =="countrysale30" '>
+					ifnull(sy.sales_month,0)
+				</if>
+				else 0 end) ${sortparam}
+			</if>
+			from t_product_info pinfo
+			left join t_amazon_auth a on a.id=pinfo.amazonAuthId
+			left join t_picture p2 on p2.id=pinfo.image
+			left join t_marketplace mkt on mkt.marketplaceId=pinfo.marketplaceid
+			left join t_product_in_opt opt on opt.pid=pinfo.id
+			<if test='sortparam =="countrysale"'>
+				left join t_amazon_group g on g.id=a.groupid
+				left join t_erp_warehouse_fba wh on (wh.marketplaceid=mkt.marketplaceid or wh.marketplaceid=mkt.region) and wh.shopid=#{shopid,jdbcType=CHAR}
+				left join t_erp_shipcycle sc on sc.marketplaceid = wh.marketplaceid and sc.groupid=g.id and sc.sku=pinfo.sku
+				left join t_erp_estimated_sales tsale on tsale.marketplaceid = wh.marketplaceid and tsale.groupid=g.id and tsale.sku=pinfo.sku and tsale.isInvalid=0
+			</if>
+			<if	test='sortparam =="countrysale" or sortparam =="countrysale7" or sortparam =="countrysale30"'>
+				left join t_product_in_order sy on sy.pid=pinfo.id
+			</if>
+			<if	test='sortparam =="countryinventory"'>
+				left join t_inventory_report ir on ir.sku=pinfo.sku and ir.amazonAuthId=pinfo.amazonAuthId
+						and ir.marketplaceid=case when mkt.region='EU' then 'EU' else pinfo.marketplaceid end 
+				left join t_inventory_reserved_report rr on ir.sku=rr.sku and ir.marketplaceid=rr.marketplaceid and ir.amazonAuthId=rr.amazonAuthId 
+			</if>
+			where a.shop_id=#{shopid,jdbcType=CHAR} 
+				and ifnull(opt.disable,false)=false 
+				and pinfo.invalid=false
+				and pinfo.isparent=0
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			<if test='samesearchtype =="sameasin"'>
+				and pinfo.parentasin in (SELECT t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=pinfo.amazonAuthId
+				and  t1.asin like #{samesearch,jdbcType=CHAR} AND t1.invalid=0 )
+			</if>
+			<if test='samesearchtype =="samesku"'>
+				and pinfo.parentasin in  (select  t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=pinfo.amazonAuthId
+				and  t1.sku like #{samesearch,jdbcType=CHAR} AND t1.invalid=0)
+			</if>
+			group by ifnull(opt.msku,pinfo.sku)
+		) v
+		left join t_erp_material m on m.sku=v.sku and m.shopid=#{shopid,jdbcType=CHAR} and m.isDelete = 0
+		left join t_picture p1 on p1.id=m.image
+		left join t_erp_material_mark mn on mn.materialid=m.id and mn.ftype='notice'
+		left join t_erp_material_mark mh on mh.materialid=m.id and mh.ftype='phide'
+		left join t_userinfo usi on usi.id=mn.operator 
+		left join t_erp_inventory inv on inv.materialid=m.id and inv.`status`='fulfillable' and inv.warehouseid=#{warehouseid,jdbcType=CHAR}
+	  	left join t_erp_material_customs mc on mc.matreialid=m.id
+	   <if test="sort=='allamount'">
+		left join (	 
+			SELECT     e.mainmid, min(case when canas>ifnull(inv.quantity,0)/(e.units)
+				       then ifnull(inv.quantity,0)/(e.units) ELSE canas END) amount
+		      FROM (
+				SELECT f.mainmid,e.materialid,
+				      max(e.amount/f.amount) units,
+				      SUM(f.amount-f.amount_handle) canas
+				  from t_erp_assembly_form  f
+				left join t_erp_assembly_form_entry e on f.id=e.formid
+				WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
+					   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
+				GROUP BY f.mainmid,e.materialid
+				) e
+				left join t_erp_inventory inv on inv.materialid=e.materialid 	and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+            GROUP BY e.mainmid
+		) va on va.mainmid=m.id
+		</if>
+		left join t_erp_ship_planmodelitem pmi on pmi.materialid=m.id and pmi.modelid=#{modelid,jdbcType=CHAR}
+		<if test='sortparam =="countryneedship" or sortparam =="countrysaleday" or sortparam =="countryaftersaleday"'>
+			<if test="shorttime == null or fbamakerplaceid == null">
+				left join t_erp_ship_planmodelitemsub sub on sub.itemid=pmi.id and sub.marketplaceid=#{ordercountry,jdbcType=CHAR} and sub.sku=v.psku
+			</if>
+		</if>
+		<if test="shorttime != null and fbamakerplaceid !=null">
+			left join t_erp_ship_planmodelitemsub sub on sub.itemid=pmi.id and sub.marketplaceid=#{fbamakerplaceid,jdbcType=CHAR} and sub.sku=v.psku
+		</if>
+		left join (
+			select pli.materialid,sum(pli.amount)+sum(pli.selfamount) pamount ,pli.needship needship,pli.sku
+			<if test='status=="hasamount"'>
+				,
+				<if test='marketplaceList!=null'>
+					sum(case when
+					<foreach collection="marketplaceList" item="marketplaceid" index="marketplace_list" open="(" separator="or" close=")">
+						( ps.marketplaceid=#{marketplaceid,jdbcType=CHAR} )
+					</foreach>
+					then pli.amount else 0 end)
+				</if>
+				<if test='marketplaceList==null'>
+					sum(pli.amount)
+				</if>
+				marketpamount
+			</if>
+			<if test='sortparam =="countrypamount"'>
+				,case when ps.marketplaceid=#{ordercountry,jdbcType=CHAR} then pli.amount
+				else 0 end countrypamount
+			</if>
+			from t_erp_ship_planitem pli
+			left join t_erp_ship_plansub ps on pli.plansubid=ps.id
+			where ps.planid=#{planid,jdbcType=CHAR} and pli.status=1 and ps.status=1
+			group by pli.materialid
+		) plan on   plan.materialid = m.id
+		where m.sku is not null
+		<if test="search != null">
+			<if test="searchtype =='like'">
+				and (m.sku like #{search,jdbcType=CHAR} or v.psku like #{search,jdbcType=CHAR})
+			</if>
+			<if test="searchtype =='notlike'">
+				and (m.sku not like #{search,jdbcType=CHAR} and v.psku not like #{search,jdbcType=CHAR})
+			</if>
+		</if>
+		<if test="marketplaceList !=null">
+			and v.hasmarket &gt;=1
+		</if>
+		<if test="shorttime != null and fbamakerplaceid !=null">
+			and sub.short_time&lt;=date_sub(curdate(),interval #{shorttime,jdbcType=CHAR} day)
+		</if>
+		<if test="color != null">
+			and m.color=#{color,jdbcType=CHAR}
+		</if>
+		<if test="categoryid != null">
+			and m.categoryid=#{categoryid,jdbcType=CHAR}
+		</if>
+		<if test="owner != null">
+			and m.owner=#{owner,jdbcType=CHAR}
+		</if>
+		<if test="myself != null" >
+	    	and m.owner = #{myself,jdbcType=CHAR}  
+        </if>
+		<if test='selected =="true"'>
+			and plan.materialid is not null
+		</if>
+		<if test='status =="shownormal"'>
+			and mh.ftype is null
+		</if>
+		<if test='status =="showhid"'>
+			and mh.ftype='phide'
+		</if>
+		<if test='status =="advice"'>
+			and pmi.planamount &gt; 0
+		</if>
+		<if test='status =="noinv"'>
+			and ifnull(inv.quantity,0) = 0
+		</if>
+		<if test='status=="hasamount"'>
+			and marketpamount &gt; 0
+		</if>
+		<if test="skulist !=null">
+			and
+			<foreach collection="skulist" item="sku" index="i" open="(" separator="or" close=" )">
+				m.sku like #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="issfg !=null">
+			and m.issfg=#{issfg,jdbcType=CHAR}
+		</if>
+		<if test='hasmaterialaddfee =="true"'>
+			and mc.addfee>0
+		</if>
+		<if test="isSmlAndLight !=null">
+			and ( v.inSnl=#{isSmlAndLight,jdbcType=BIT})
+		</if>
+		<if test="remark !=null">
+			and mn.mark like #{remark,jdbcType=CHAR}
+		</if>
+		<if test="pname !=null">
+			and m.name like #{pname,jdbcType=CHAR}
+		</if>
+		group by m.sku
+		order by
+		<if test="orderparam != null and sortparam !=null">
+			<if test='sortparam =="countrysaleday"'>
+				sub.salesday ${orderparam},
+			</if>
+			<if test='sortparam =="countryaftersaleday"'>
+				sub.aftersalesday ${orderparam},
+			</if>
+			<if test='sortparam =="countryneedship"'>
+				sub.needship ${orderparam},
+			</if>
+			<if test='sortparam !="countryaftersaleday" and sortparam !="countrysaleday" and sortparam !="countryneedship"'>
+				${sortparam} ${orderparam} ,
+			</if>
+		</if>
+		pmi.planamount  desc,v.sku desc
+	</select>
+</mapper>

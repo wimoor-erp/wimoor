@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.auth.mapper.AmazonSellerMarketMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.AmazonSellerMarket">
+        <id column="sellerid" property="sellerid" />
+        <result column="marketplace_id" property="marketplaceId" />
+        <result column="country" property="country" />
+        <result column="name" property="name" />
+        <result column="language" property="language" />
+        <result column="currency" property="currency" />
+        <result column="domain" property="domain" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="opttime" property="opttime" />
+        <result column="disable" property="disable" />
+    </resultMap>
+
+</mapper>
