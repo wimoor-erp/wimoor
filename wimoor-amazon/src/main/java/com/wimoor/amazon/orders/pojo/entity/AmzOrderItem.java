@@ -7,6 +7,7 @@ import com.amazon.spapi.model.orders.OrderItem;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.jeffreyning.mybatisplus.anno.MppMultiId;
+import com.wimoor.amazon.util.UUIDUtil;
 import com.wimoor.common.GeneralUtil;
 
 import lombok.Data;
@@ -112,6 +113,12 @@ public class AmzOrderItem   {
     
 	public AmzOrderItem() {
 		
+	}
+	public String getId() {
+		if (null == id) {
+			id = UUIDUtil.getUUIDshort();
+		}
+		return id;
 	}
 	
 	public AmzOrderItem(OrderItem orderitem, String market) {

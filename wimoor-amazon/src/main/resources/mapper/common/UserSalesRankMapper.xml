@@ -12,7 +12,8 @@
     userid, quantity, orderprice, daytype, oldorderprice
   </sql>
   <select  id="findRankByShop" resultType="java.util.Map" parameterType="java.lang.String" >
-  select u.name,p.location,r.*from t_erp_usersales_rank r
+  select u.name,p.location,r.*
+    from t_erp_usersales_rank r
 	left join t_userinfo u on r.userid=u.id
 	left join t_picture p on p.id=u.picture
 	where r.daytype= #{daytype,jdbcType=CHAR} and r.shopid=#{shopid,jdbcType=CHAR}

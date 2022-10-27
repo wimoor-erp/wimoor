@@ -1,8 +1,13 @@
 package com.wimoor.amazon.profit.service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wimoor.amazon.profit.pojo.entity.InplaceFee;
+import com.wimoor.amazon.profit.pojo.entity.ManualProcessingFee;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
  
 public interface IProfitCfgService  extends IService<ProfitConfig> {
@@ -30,4 +35,11 @@ public interface IProfitCfgService  extends IService<ProfitConfig> {
 	
 	ProfitConfig findSysProfitCfg();
 
+	String insert(ProfitConfig config);
+
+	String update(ProfitConfig config);
+
+	public List<InplaceFee> findInplacefee(String country);
+
+	public List<ManualProcessingFee> findManualProcessingFee() ;
 }

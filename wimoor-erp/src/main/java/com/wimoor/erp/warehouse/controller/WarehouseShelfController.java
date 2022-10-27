@@ -182,7 +182,7 @@ public class WarehouseShelfController {
 				p.setAlignment(Element.ALIGN_CENTER);
 				p.setSpacingAfter(10);
 				document.add(p);
-				String content = "https://www.wimoor.com/wxwarehouseshelf/"+shelfid;//内容信息
+				String content = "https://www.wimoor.com/wxwarehouseshelf/"+shelf.getTreepath();//内容信息
 				BufferedImage imagebuffer = QRCodeUtil.generateQRCodeCommon(content, 15);
 			    imagebuffer.flush();
 	            Image image = Image.getInstance(imagebuffer , null); 

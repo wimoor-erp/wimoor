@@ -26,4 +26,5 @@ public interface AmzSettlementSummarySkuMapper extends BaseMapper<AmzSettlementS
 	Map<String,Object>  findSettlementSummarySku_Returns(Map<String, Object> map);
 	Map<String, Object> findSettlementSummarySku_FinItemData(Map<String, Object> map);
 	List<Map<String, Object>> findSettlementOverall(Map<String, Object> map);
+	Double summaryData(String settlementid);
 }

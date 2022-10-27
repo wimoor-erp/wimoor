@@ -116,6 +116,9 @@ public class ProfitConfigCountry extends BaseEntity implements Serializable{
 	@TableField(value= "corporate_InRate")
 	private BigDecimal corporateInRate; //企业所得税率
 	
+	@TableField(exist=false)
+	private BigDecimal amonthBigDecimal; //企业所得税率
+	
 	public BigDecimal getAmonthBigDecimal() {
 		if (amonth == null) {
 			return null;

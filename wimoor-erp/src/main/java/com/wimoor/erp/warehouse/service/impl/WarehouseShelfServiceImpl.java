@@ -145,7 +145,7 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
 	            		wrapperShelf.eq(WarehouseShelf::getParentid, shelf.getParentid());
 	            		wrapperShelf.eq(WarehouseShelf::getIsdelete, false);
 	            		wrapperShelf.eq(WarehouseShelf::getNumber, shelf.getNumber());
-						Integer count = this.baseMapper.selectCount(wrapperShelf);
+						long count = this.baseMapper.selectCount(wrapperShelf);
 						if(count>0) {
 							throw new BizException("编码["+shelf.getNumber()+"]在父节点中已经存在，请修改后重试");
 						}

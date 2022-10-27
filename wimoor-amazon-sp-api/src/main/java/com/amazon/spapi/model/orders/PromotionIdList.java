@@ -23,7 +23,7 @@ import java.util.List;
  * A list of promotion identifiers provided by the seller when the promotions were created.
  */
 @ApiModel(description = "A list of promotion identifiers provided by the seller when the promotions were created.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:03:19.199+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:56:53.532+08:00")
 public class PromotionIdList extends ArrayList<String> {
 
   @Override

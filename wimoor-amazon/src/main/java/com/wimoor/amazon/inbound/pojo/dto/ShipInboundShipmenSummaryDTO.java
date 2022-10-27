@@ -32,8 +32,8 @@ public class ShipInboundShipmenSummaryDTO extends BasePageQuery{
 	
 	@ApiModelProperty(value = "仓库ID", example = "123456789")
 	String warehouseid ;
-	
-	@ApiModelProperty(value = "公司ID", example = "123456789")
+	 
+	@ApiModelProperty(value = "物流公司ID", example = "系统填写")
     String company ;
 	
 	@ApiModelProperty(value = "渠道ID", example = "123456789")
@@ -49,4 +49,7 @@ public class ShipInboundShipmenSummaryDTO extends BasePageQuery{
 	String search ;
 	@ApiModelProperty(value = "异常单据", example = "true")
 	String hasexceptionnum ;
+	
+	@ApiModelProperty(value = "公司ID", example = "系统填写")
+    String shopid ;
 }

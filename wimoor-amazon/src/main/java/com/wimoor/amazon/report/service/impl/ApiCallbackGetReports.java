@@ -9,24 +9,15 @@ import com.amazon.spapi.model.reports.GetReportsResponse;
 import com.amazon.spapi.model.reports.Report;
 import com.amazon.spapi.model.reports.ReportList;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
 import com.wimoor.amazon.report.service.IReportService;
 
 public class ApiCallbackGetReports implements ApiCallback<GetReportsResponse> {
 	AmazonAuthority amazonAuthority=null;
 	IReportService reportService=null;
-	Boolean autoDownload=true;
-	ApiCallbackGetReports(IReportService rpt,AmazonAuthority auth,Boolean autoDownload){
-		 this.amazonAuthority=auth;
-		 this.autoDownload=autoDownload;
-		 this.reportService=rpt;
-	}
 	ApiCallbackGetReports(IReportService rpt,AmazonAuthority auth){
 		 this.amazonAuthority=auth;
-		 this.autoDownload=true;
 		 this.reportService=rpt;
 	}
-	
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
@@ -36,17 +27,11 @@ public class ApiCallbackGetReports implements ApiCallback<GetReportsResponse> {
 	@Override
 	public void onSuccess(GetReportsResponse result, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackGetReport----onSuccess");
 		if(amazonAuthority!=null&&result!=null) {
 			   ReportList list = result.getReports();
 			if(result!=null) {
 				for(Report report:list) {
-					  ReportRequestRecord record = reportService.recordReportRequest(amazonAuthority,report);
-					  if(report.getProcessingStatus().getValue().equals("DONE")) {
-						  if(autoDownload) {
-							  reportService.getReportDocument(record);
-						  }
-					   }
+					  reportService.recordReportRequest(amazonAuthority,report);
 				}
 		  }
 	   }

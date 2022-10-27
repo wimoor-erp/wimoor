@@ -14,6 +14,6 @@ public class SysRoleMenu {
     
     private BigInteger roleId;
 
-    private Long menuId;
+    private BigInteger menuId;
 
 }

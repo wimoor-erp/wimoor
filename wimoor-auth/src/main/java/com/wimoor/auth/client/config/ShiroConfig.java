@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.servlet.Filter;
 
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
@@ -38,6 +39,7 @@ import com.wimoor.auth.client.shiro.CasUserRealm;
 import com.wimoor.auth.client.shiro.GetCodeFilter;
 import com.wimoor.auth.client.shiro.MyCasFilter;
 import com.wimoor.auth.client.shiro.MyRedisSessionDao;
+import com.wimoor.auth.client.shiro.SystemLogoutFilter;
 import com.wimoor.auth.client.shiro.SystemUserFilter;
  
 /**
@@ -48,6 +50,8 @@ public class ShiroConfig {
     //1. realm对象注入
     public static String loginUrl;
     public static String uiserver;
+    public static String casserver;
+    public static String authserver;
     
 	@Value("${config.photo-server}")
 	private String photo_server;
@@ -69,20 +73,22 @@ public class ShiroConfig {
 	
 	@Value("${config.cas-filter-url-pattern}")
 	private String urlpattern;
-	
  
     // Cas登录页面地址
     public   final String getCasLoginUrl() {
+    	casserver=cas_server;
     	return cas_server + "/login";
     } 
     // Cas登出页面地址
     public   final String getCasLogoutUrl() {
+    	casserver=cas_server;
     	return cas_server+ "/logout";
     } 
  
     // 登录地址
     public   final String getLoginUrl() {
     	loginUrl=getCasLoginUrl() + "?service=" + authority_server + urlpattern;
+    	authserver=authority_server;
     	return loginUrl;
     }  
     // 登出地址（casserver启用service跳转功能，需在webapps\cas\WEB-INF\cas.properties文件中启用cas.logout.followServiceRedirects=true）
@@ -160,6 +166,7 @@ public class ShiroConfig {
 	        userShiroCasRealm.setCacheManager(cacheManager());
 	        //userShiroCasRealm.setCredentialsMatcher(hashedCredentialsMatcher());
 	        userShiroCasRealm.setCachingEnabled(false);
+	        casserver=cas_server;
 	        userShiroCasRealm.setCasServerUrlPrefix(cas_server);
 	        userShiroCasRealm.setCasService(this.authority_server + this.urlpattern);
 	        return userShiroCasRealm;
@@ -318,7 +325,7 @@ public class ShiroConfig {
         Map<String, Filter> filtersMap = new LinkedHashMap<String, Filter>();
 //        filtersMap.put("myAccessControlFilter", new MyFormAuthenticationFilter());
 //        filtersMap.put("userAccessControlFilter", new SystemUserFilter());
-        LogoutFilter logout = new org.apache.shiro.web.filter.authc.LogoutFilter();
+        LogoutFilter logout = new SystemLogoutFilter();
         logout.setRedirectUrl(getLogoutUrl());
         filtersMap.put("logoutFilter", logout);
         filtersMap.put("VCodeFilter", new GetCodeFilter());

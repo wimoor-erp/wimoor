@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiModelProperty;
  * The response schema for the confirmTransport operation.
  */
 @ApiModel(description = "The response schema for the confirmTransport operation.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class ConfirmTransportResponse {
   @SerializedName("payload")
   private CommonTransportResult payload = null;

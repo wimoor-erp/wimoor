@@ -10,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.amazon.spapi.api.FeedsApi;
 import com.amazon.spapi.client.ApiCallback;
 import com.amazon.spapi.client.ApiException;
@@ -24,7 +26,7 @@ import com.amazon.spapi.model.feeds.CreateFeedResponse;
 import com.amazon.spapi.model.feeds.CreateFeedSpecification;
 import com.amazon.spapi.model.feeds.Feed;
 import com.amazon.spapi.model.feeds.FeedOptions;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -42,6 +44,7 @@ import com.wimoor.amazon.feed.pojo.entity.AmazonFeedStatus;
 import com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue;
 import com.wimoor.amazon.feed.pojo.entity.Submitfeed;
 import com.wimoor.amazon.feed.service.ISubmitfeedService;
+import com.wimoor.amazon.notifications.service.IAwsSQSMessageHandlerService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
@@ -53,7 +56,7 @@ import cn.hutool.core.util.StrUtil;
  
 
 @Service("submitfeedService")
-public class SubmitfeedServiceImpl implements ISubmitfeedService {
+public class SubmitfeedServiceImpl implements ISubmitfeedService,IAwsSQSMessageHandlerService {
 
 	@Resource
 	IMarketplaceService marketplaceService;
@@ -81,6 +84,17 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 			return null;
 		}
 		Marketplace marketplace = amazonAuthority.getMarketPlace();
+		QueryWrapper<AmzSubmitFeedQueue> queryWrapper=new QueryWrapper<AmzSubmitFeedQueue>();
+		queryWrapper.eq("shopid", amazonAuthority.getShopId());
+		queryWrapper.eq("amazonAuthId", amazonAuthority.getId());
+		queryWrapper.eq("marketplaceid", marketplace.getMarketplaceid());
+		queryWrapper.eq("feed_type",feedType);
+		queryWrapper.eq("filename", name);
+		queryWrapper.isNull("process_date");
+	    List<AmzSubmitFeedQueue> oldList = amzSubmitfeedQueueMapper.selectList(queryWrapper);
+	    if(oldList!=null&&oldList.size()>0) {
+	    	throw new BizException("存在正在提交中的任务，请在系统处理完后提交");
+	    }
 		AmzSubmitFeedQueue queue = new AmzSubmitFeedQueue();
 		queue.getId();
 		queue.setShopid(amazonAuthority.getShopId());
@@ -122,22 +136,46 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 			}
 		   throw new BizException("提交失败，请稍等5分钟后重新提交");
 		}
+		 
 		if(queue.getSubmitfeedid()==null) {
-			if(queue.getSubmitfeedid()==null) {
-				amzSubmitfeedQueueMapper.deleteById(queue.getId());
-			}
-		   throw new BizException("提交失败，请稍等5分钟后重新提交");
+			amzSubmitfeedQueueMapper.deleteById(queue.getId());
+			throw new BizException("提交失败，请稍等5分钟后重新提交");
 		}
+		 
 		return queue;
 	}
 	 
  
-
+	private String getContentType(String type) {
+	   	 if(type.equals("UPLOAD_VAT_INVOICE")) {
+			return  String.format("application/pdf; charset=%s", StandardCharsets.UTF_8);
+		 }else if(type.equals("POST_FLAT_FILE_FROM_EXCEL_FBA_CREAT")){
+			 return String.format("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=%s", StandardCharsets.UTF_8);
+		 }else {
+			 return String.format("text/xml; charset=%s", StandardCharsets.UTF_8);
+		 }
+    }
+	
+	private FeedOptions getFeedOptions(AmzSubmitFeedQueue queue) {
+		String options = queue.getFeedoptions();
+		if(StrUtil.isNotBlank(options)) {
+            String[] optarray = options.split(";");
+            FeedOptions option=new FeedOptions();
+            if(optarray.length>0) {
+            	 for(String opt:optarray) {
+                     String[] field = opt.split("=");              	
+                 	 option.put(field[0], field[1]);
+                 }
+            	 return option;
+            } 
+		}
+		return null;
+	}
 	private void callSubmitFeed(AmazonAuthority amazonAuthority, Marketplace marketplace, AmzSubmitFeedQueue queue) {
 		// TODO Auto-generated method stub
 		 FeedsApi api = apiBuildService.getFeedApi(amazonAuthority);
 		 CreateFeedDocumentSpecification body =new CreateFeedDocumentSpecification();
-		 String contentType = String.format("text/xml; charset=%s", StandardCharsets.UTF_8);
+		 String contentType =getContentType(queue.getFeedType());
 		 body.setContentType(contentType);
 		 try {
 			  CreateFeedDocumentResponse response = api.createFeedDocument(body);
@@ -145,7 +183,7 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 			String docid=response.getFeedDocumentId();
 			String url =response.getUrl();
 			byte[] content = queue.getContent();
-			String mlog = upload(content, url);
+			String mlog = upload(content, url,queue);
 			if(mlog==null) {
 				CreateFeedSpecification docbody=new CreateFeedSpecification();
 				List<String> marketlist=new ArrayList<String>();
@@ -153,15 +191,9 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 				docbody.setMarketplaceIds(marketlist);
 				docbody.setInputFeedDocumentId(docid);
 				docbody.setFeedType(queue.getFeedType());
-				String options = queue.getFeedoptions();
-				if(StrUtil.isBlank(options)) {
-                    String[] optarray = options.split(",");
-                    FeedOptions option=new FeedOptions();
-                    for(String opt:optarray) {
-                        String[] field = opt.split("=");              	
-                    	option.put(field[0], field[1]);
-                    }
-                    docbody.setFeedOptions(option);
+				FeedOptions option=getFeedOptions(queue);
+				if(option!=null) {
+					docbody.setFeedOptions(option);
 				}
 				 CreateFeedResponse res = api.createFeed(docbody);
 				 queue.setSubmitfeedid(res.getFeedId());
@@ -182,11 +214,15 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 	}
 	
 	public void handlerCreateFeedDocument(CreateFeedDocumentResponse response,AmazonAuthority amazonAuthority,AmzSubmitFeedQueue queue,Marketplace marketplace) {
-		 FeedsApi api = apiBuildService.getFeedApi(amazonAuthority);
+		amazonAuthority.setUseApi("createFeed");
+		FeedsApi api = apiBuildService.getFeedApi(amazonAuthority);
 		String docid=response.getFeedDocumentId();
 		String url =response.getUrl();
+		if(queue==null||queue.getContent()==null) {
+			return;
+		}
 		byte[] content = queue.getContent();
-		String mlog = upload(content, url);
+		String mlog = upload(content, url,queue);
 		if(mlog==null) {
 			CreateFeedSpecification docbody=new CreateFeedSpecification();
 			List<String> marketlist=new ArrayList<String>();
@@ -194,15 +230,9 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 			docbody.setMarketplaceIds(marketlist);
 			docbody.setInputFeedDocumentId(docid);
 			docbody.setFeedType(queue.getFeedType());
-			String options = queue.getFeedoptions();
-			if(StrUtil.isBlank(options)) {
-                String[] optarray = options.split(",");
-                FeedOptions option=new FeedOptions();
-                for(String opt:optarray) {
-                    String[] field = opt.split("=");              	
-                	option.put(field[0], field[1]);
-                }
-                docbody.setFeedOptions(option);
+			FeedOptions option=getFeedOptions(queue);
+			if(option!=null) {
+				docbody.setFeedOptions(option);
 			}
 			 ApiCallback<CreateFeedResponse>  callback=new ApiCallbackCreateFeed(this,amazonAuthority,marketplace,queue);
 			 try {
@@ -210,29 +240,34 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 			} catch (ApiException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			} 
 		
 		}
 	 
 	}
+	
 	public void callSubmitFeedAsync(AmazonAuthority amazonAuthority, Marketplace marketplace, AmzSubmitFeedQueue queue) {
 		// TODO Auto-generated method stub
+		 amazonAuthority.setUseApi("createFeedDocument");
 		 FeedsApi api = apiBuildService.getFeedApi(amazonAuthority);
 		 CreateFeedDocumentSpecification body =new CreateFeedDocumentSpecification();
-		 String contentType = String.format("text/xml; charset=%s", StandardCharsets.UTF_8);
+		 String contentType =getContentType(queue.getFeedType());
 		 body.setContentType(contentType);
 		 ApiCallback<CreateFeedDocumentResponse> callback=new ApiCallbackCreateFeedDocument(this,amazonAuthority,marketplace,queue);
 		 try {
-			api.createFeedDocumentAsync(body,callback);
+			 if(amazonAuthority.apiNotRateLimit()) {
+				 api.createFeedDocumentAsync(body,callback);
+			 }
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
+			amazonAuthority.setApiRateLimit(null, e);
 			e.printStackTrace();
 		}
 	}
 	
-	public String upload(byte[] source, String url) {
+	public String upload(byte[] source, String url,AmzSubmitFeedQueue queue) {
 		    OkHttpClient client = new OkHttpClient();
-		    String contentType = String.format("text/xml; charset=%s", StandardCharsets.UTF_8);
+		    String contentType =getContentType(queue.getFeedType());
 		    String mlog=null;
 		    try {
 			      Request request = new Request.Builder().url(url).put(RequestBody.create(MediaType.parse(contentType), source)).build();
@@ -259,21 +294,37 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 		return amzSubmitfeedQueueMapper.selectById(id);
 	}
 
-	@Override
-	public void GetFeedSubmissionResult() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public Submitfeed GetFeedSubmissionRequest(String queueid) throws BizException {
 		// TODO Auto-generated method stub
 		AmzSubmitFeedQueue queue = amzSubmitfeedQueueMapper.selectById(queueid);
+		if(queue==null) {
+			return null;
+		}
 		String feedid = queue.getSubmitfeedid();
+		if(feedid==null) {
+			Submitfeed fd=new Submitfeed();
+			fd.setFeedProcessingStatus("waiting");
+			return fd;
+		}
 		queue.getAmazonauthid();
 		AmazonAuthority auth = amazonAuthorityService.getById(queue.getAmazonauthid());
+		auth.setUseApi("getFeed");
+		Submitfeed oldfeed = null;
+		QueryWrapper<Submitfeed> queryWrapper=new QueryWrapper<Submitfeed>();
+		queryWrapper.eq("feed_submissionid", feedid);
+		queryWrapper.eq("sellerid", auth.getSellerid());
+		queryWrapper.eq("feed_type", queue.getFeedType());
+		if(feedid!=null) {
+			oldfeed = submitfeedMapper.selectOne(queryWrapper);
+		}
+		if(oldfeed!=null&&oldfeed.getFeedProcessingStatus().contains("DONE")) {
+			return oldfeed;
+		}else if(oldfeed!=null&&GeneralUtil.distanceOfSecond(oldfeed.getOpttime(), new Date())<30) {
+			return oldfeed;
+		}
 		FeedsApi api = apiBuildService.getFeedApi(auth);
-	 
 		try {
 			Feed feed = api.getFeed(feedid);
 			feed.getCreatedTime();
@@ -281,15 +332,34 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 			fd.setOpttime(new Date());
 			fd.setFeedSubmissionid(feed.getFeedId());
 			fd.setFeedProcessingStatus(feed.getProcessingStatus().getValue());
-			fd.setCompletedProcessiongDate(AmzDateUtils.getDate(feed.getProcessingEndTime()));
-			fd.setSubmittedDate(AmzDateUtils.getDate(feed.getProcessingStartTime()));
+			if(feed.getProcessingEndTime()!=null) {
+				fd.setCompletedProcessiongDate(AmzDateUtils.getUTCToDate(feed.getProcessingEndTime()));
+			}
+            if(feed.getProcessingStartTime()!=null) {
+            	fd.setSubmittedDate(AmzDateUtils.getUTCToDate(feed.getProcessingStartTime()));
+            }
+            if(feed.getResultFeedDocumentId()!=null) {
+            	fd.setDocumentid(feed.getResultFeedDocumentId());
+            }
 			fd.setFeedType(feed.getFeedType());
 			fd.setMarketplaceid(queue.getMarketplaceid());
 			fd.setShopid(queue.getShopid());
 			fd.setOperator(queue.getOperator());
 			fd.setSellerid(auth.getSellerid());
 			fd.setQueueid(queue.getId());
-			submitfeedMapper.insert(fd);
+			if(oldfeed!=null) {
+				submitfeedMapper.update(fd, queryWrapper);
+			}else {
+				if(submitfeedMapper.exists(queryWrapper)) {
+					submitfeedMapper.update(fd, queryWrapper);
+				}else {
+					try {
+						submitfeedMapper.insert(fd);
+					}catch(Exception e) {
+						submitfeedMapper.update(fd, queryWrapper);
+					}
+				}
+			}
 			return fd;
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
@@ -311,22 +381,26 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 	}
 	
 	@Override
-	public void GetFeedSubmissionTask(List<AmazonAuthority> list, Marketplace market) {
-		// TODO Auto-generated method stub
-		for(AmazonAuthority auth:list) {
-			List<AmzSubmitFeedQueue> queuelist = amzSubmitfeedQueueMapper.findByMarket(auth.getShopId(), auth.getId(), market.getMarketplaceid());
-			for(AmzSubmitFeedQueue queue:queuelist) {
-				GetFeedSubmissionRequestAsync(auth,queue);
-			}
+	public void downloadFeedFile(ServletOutputStream outputStream, String queueid) {
+		AmzSubmitFeedQueue q = selectByPrimaryKey(queueid);
+		try {
+			outputStream.write(q.getContent());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void saveFeed(Submitfeed fd) {
 		// TODO Auto-generated method stub
-		Submitfeed oldone = submitfeedMapper.selectById(fd.getFeedSubmissionid());
+		QueryWrapper<Submitfeed> queryWrapper=new QueryWrapper<Submitfeed>();
+		queryWrapper.eq("feed_submissionid", fd.getFeedSubmissionid());
+		queryWrapper.eq("sellerid", fd.getSellerid());
+		queryWrapper.eq("feed_type", fd.getFeedType());
+		Submitfeed oldone = submitfeedMapper.selectOne(queryWrapper);
 		if(oldone!=null) {
-			submitfeedMapper.updateById(fd);
+			
+			submitfeedMapper.update(fd,queryWrapper);
 		}else {
 			submitfeedMapper.insert(fd);
 		}
@@ -339,14 +413,53 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService {
 		for(Marketplace market:marketlist) {
 			Calendar c=Calendar.getInstance();
 			c.add(Calendar.HOUR, -24);
-			List<AmzSubmitFeedQueue> list = amzSubmitfeedQueueMapper.selectList(new LambdaQueryWrapper<AmzSubmitFeedQueue>()
-					.eq(AmzSubmitFeedQueue::getAmazonauthid, amazonAuthority.getId())
-					.eq(AmzSubmitFeedQueue::getMarketplaceid,market.getMarketplaceid())
-					.gt(AmzSubmitFeedQueue::getCreatetime,c.getTime())
-					.isNull(AmzSubmitFeedQueue::getProcessDate));
-			for(AmzSubmitFeedQueue queue :list) {
-				callSubmitFeedAsync(amazonAuthority,market,queue);
+			AmzSubmitFeedQueue queue = amzSubmitfeedQueueMapper.findByMarket(amazonAuthority.getShopId(),amazonAuthority.getId(),market.getMarketplaceid());
+			if(queue==null||queue.getFeedType().indexOf('_')==0) {
+				continue;
+			}
+			callSubmitFeedAsync(amazonAuthority,market,queue);
+			List<AmzSubmitFeedQueue> queueList = amzSubmitfeedQueueMapper.findQueue(amazonAuthority.getId(),market.getMarketplaceid());
+			for(AmzSubmitFeedQueue queueFind:queueList) {
+				if(queue.getFeedType().indexOf('_')==0) {
+					continue;
+				}
+				GetFeedSubmissionRequestAsync(amazonAuthority,queueFind);
 			}
 		}
+	}
+
+	@Override
+	public boolean handlerMessage(JSONObject body) {
+		// TODO Auto-generated method stub
+		JSONObject feedProcessingFinishedNotification = body.getJSONObject("feedProcessingFinishedNotification");
+		String sellerId=feedProcessingFinishedNotification.getString("sellerId");
+		String feedId=feedProcessingFinishedNotification.getString("feedId");
+		String feedType=feedProcessingFinishedNotification.getString("feedType");
+		String processingStatus=feedProcessingFinishedNotification.getString("processingStatus");
+		String resultFeedDocumentId=feedProcessingFinishedNotification.getString("resultFeedDocumentId");
+		QueryWrapper<Submitfeed> queryWrapper=new QueryWrapper<Submitfeed>();
+		queryWrapper.eq("feed_submissionid", feedId);
+		queryWrapper.eq("sellerid", sellerId);
+		queryWrapper.eq("feed_type", feedType);
+		Submitfeed oldone = submitfeedMapper.selectOne(queryWrapper);
+		if(oldone!=null) {
+			if(!oldone.getFeedProcessingStatus().equals(processingStatus)) {
+				oldone.setFeedProcessingStatus(processingStatus);
+				oldone.setDocumentid(resultFeedDocumentId);
+				submitfeedMapper.update(oldone,queryWrapper);
+			}
+		}else {
+			Submitfeed fd=new Submitfeed();
+			AmazonAuthority auth = amazonAuthorityService.selectBySellerId(sellerId);
+			fd.setOpttime(new Date());
+			fd.setFeedSubmissionid(feedId);
+			fd.setFeedProcessingStatus(processingStatus);
+			fd.setFeedType(feedType);
+			fd.setDocumentid(resultFeedDocumentId);
+			fd.setShopid(auth.getShopId());
+			fd.setSellerid(sellerId);
+			submitfeedMapper.insert(fd);
+		}
+		return true;
 	}
 }

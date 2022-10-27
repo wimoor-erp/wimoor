@@ -84,7 +84,7 @@ public class RoleController {
     @PostMapping
     public Result add(@RequestBody SysRole role) {
     	   UserInfo user = UserInfoContext.get();
-        int count = iSysRoleService.count(new LambdaQueryWrapper<SysRole>()
+        long count = iSysRoleService.count(new LambdaQueryWrapper<SysRole>()
                     .eq(SysRole::getName, role.getName())
                     .eq(SysRole::getShopid, user.getCompanyid())
         );
@@ -95,6 +95,17 @@ public class RoleController {
         }
         return Result.judge(result);
     }
+    
+    @ApiOperation(value = "角色详情")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "id", value = "角色id", required = true, paramType = "path", dataType = "Long"),
+    })
+    @GetMapping(value = "/{id}")
+    public Result<SysRole> detail(@PathVariable String id) {
+        SysRole result = iSysRoleService.getById(id);
+        return Result.success(result);
+    }
+
 
     @ApiOperation(value = "修改角色")
     @ApiImplicitParams({
@@ -103,10 +114,10 @@ public class RoleController {
     })
     @PutMapping(value = "/{id}")
     public Result update(
-            @PathVariable Long id,
+            @PathVariable BigInteger id,
             @RequestBody SysRole role) {
     	UserInfo user = UserInfoContext.get();
-        int count = iSysRoleService.count(new LambdaQueryWrapper<SysRole>()
+        long count = iSysRoleService.count(new LambdaQueryWrapper<SysRole>()
                 .eq(SysRole::getShopid, user.getCompanyid())
                 .eq(SysRole::getName, role.getName())
                 .ne(SysRole::getId, id)
@@ -151,8 +162,8 @@ public class RoleController {
     @ApiOperation(value = "获取角色拥有的菜单ID集合")
     @ApiImplicitParam(name = "id", value = "角色id", required = true, paramType = "path", dataType = "Long")
     @GetMapping("/{id}/menus")
-    public Result listRoleMenu(@PathVariable("id") BigInteger roleId) {
-        List<Long> menuIds = iSysRoleMenuService.listMenuIds(roleId);
+    public Result<List<BigInteger>> listRoleMenu(@PathVariable("id") BigInteger roleId) {
+        List<BigInteger> menuIds = iSysRoleMenuService.listMenuIds(roleId);
         return Result.success(menuIds);
     }
 
@@ -178,7 +189,7 @@ public class RoleController {
             @PathVariable("id") BigInteger roleId,
             @RequestBody SysRole role) {
 
-        List<Long> menuIds = role.getMenuIds();
+        List<BigInteger> menuIds = role.getMenuIds();
         boolean result = iSysRoleMenuService.update(roleId, menuIds);
         if (result) {
             iSysPermissionService.refreshPermRolesRules();

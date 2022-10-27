@@ -22,8 +22,8 @@
 		select
 		<include refid="Base_Column_List" />
 		from t_profitcfg 
-		where shop_id=#{shopId,jdbcType=CHAR} or isSystem=true 
-		order by opttime desc
+		where (shop_id=#{shopId,jdbcType=CHAR} and isdelete=0 ) or isSystem=true 
+		order by name desc
 	</select>
 	
 	<select id="findConfigByPrimaryKey" resultType="java.util.Map" parameterType="java.lang.String">
@@ -35,7 +35,7 @@
 	<select id="selectProfitPlanCountByShopId" resultType="java.lang.Long" parameterType="java.lang.String">
 		select count(1) 
 		FROM t_profitcfg
-		where shop_id = #{shopId,jdbcType=CHAR}
+		where shop_id = #{shopId,jdbcType=CHAR} and isdelete=0 
 	</select>
 	
 	<update id="setDefaultPlanById" parameterType="java.lang.String">
@@ -50,7 +50,7 @@
 	<select id="findDefaultPlan" resultMap="BaseResultMap" parameterType="java.lang.String">
 		SELECT * 
 		from t_profitcfg 
-		where (shop_id = #{shopId,jdbcType=CHAR} and isDefault=true)
+		where (shop_id = #{shopId,jdbcType=CHAR} and isDefault=true and isdelete=0 )
 			or isSystem=true 
 			order by opttime desc limit 1
 	</select>

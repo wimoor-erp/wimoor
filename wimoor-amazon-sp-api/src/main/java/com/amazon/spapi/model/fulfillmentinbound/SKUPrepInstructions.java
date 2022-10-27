@@ -14,17 +14,25 @@
 package com.amazon.spapi.model.fulfillmentinbound;
 
 import java.util.Objects;
-
+import java.util.Arrays;
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.fulfillmentinbound.AmazonPrepFeesDetailsList;
+import com.amazon.spapi.model.fulfillmentinbound.BarcodeInstruction;
+import com.amazon.spapi.model.fulfillmentinbound.PrepGuidance;
+import com.amazon.spapi.model.fulfillmentinbound.PrepInstructionList;
+import java.io.IOException;
 
 /**
  * Labeling requirements and item preparation instructions to help you prepare items for shipment to Amazon&#39;s fulfillment network.
  */
 @ApiModel(description = "Labeling requirements and item preparation instructions to help you prepare items for shipment to Amazon's fulfillment network.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class SKUPrepInstructions {
   @SerializedName("SellerSKU")
   private String sellerSKU = null;

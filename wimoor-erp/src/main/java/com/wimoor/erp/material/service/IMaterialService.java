@@ -1,6 +1,7 @@
 package com.wimoor.erp.material.service;
 
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,10 @@ import com.wimoor.erp.material.pojo.entity.MaterialSupplier;
 import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialSupplierVO;
+import com.wimoor.erp.material.pojo.vo.MaterialVO;
 
 public interface IMaterialService extends IService<Material> {
-	Map<String, Object> findMaterialById(String id);
+	MaterialVO findMaterialById(String id);
 
 	boolean saveMark(String materialid, String type, String content, String userid) throws ERPBizException;
 
@@ -56,7 +58,7 @@ public interface IMaterialService extends IService<Material> {
 	
 	Map<String,Object>  findMaterialMapBySku(String sku, String shopid);
 	
-	List<String> findMarterialForColorOwner(Map<String,Object> param);
+	List<String> findMarterialForColorOwner(String key, Map<String,Object> param);
 	
 	void logicalDeleteMaterial(UserInfo user, Material material);
 	
@@ -123,5 +125,10 @@ public interface IMaterialService extends IService<Material> {
 	Map<String, Object> updateMaterialCustoms(String id, String addfee, String material,String ftype);
 
 	public Map<String, Object> getRealityPrice(String materialid);
+
+	int uploadMaterialImg(UserInfo userinfo, String materialid, InputStream inputStream, String originalFilename);
+
+	List<Material> getMaterialByInfo(String shopid, String sku, String name);
+
  
 }

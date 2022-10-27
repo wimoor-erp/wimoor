@@ -14,15 +14,13 @@ import lombok.Data;
 @Data
 public class PasswordHelper {
 
-    private RandomNumberGenerator randomNumberGenerator = new SecureRandomNumberGenerator();
+
     private static String algorithmName = "md5";
     private static int hashIterations = 2;
+ 
 
-    public void setRandomNumberGenerator(RandomNumberGenerator randomNumberGenerator) {
-        this.randomNumberGenerator = randomNumberGenerator;
-    }
-
-   public String initRoundomSalt() {
+   public static String initRoundomSalt() {
+	   RandomNumberGenerator randomNumberGenerator = new SecureRandomNumberGenerator();
 	   return randomNumberGenerator.nextBytes().toHex();
    }
    

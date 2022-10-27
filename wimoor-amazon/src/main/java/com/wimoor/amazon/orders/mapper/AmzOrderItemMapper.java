@@ -24,4 +24,6 @@ import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo;
 public interface AmzOrderItemMapper extends BaseMapper<AmzOrderItem> {
 
 	List<AmazonOrdersDetailVo> selectOrderDetail(@Param("param") Map<String,Object> maps);
+
+	void removeDataArchive(@Param("amazonAuthId") String amazonAuthId);
 }

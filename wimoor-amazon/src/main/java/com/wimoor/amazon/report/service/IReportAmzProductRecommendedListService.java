@@ -5,9 +5,7 @@ import java.util.Map;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.report.pojo.entity.ProductRecommended;
-import com.wimoor.amazon.report.pojo.entity.ProductRecommendedExt;
  
 
 public interface IReportAmzProductRecommendedListService {

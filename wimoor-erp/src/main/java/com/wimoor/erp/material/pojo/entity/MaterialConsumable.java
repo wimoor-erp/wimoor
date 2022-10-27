@@ -28,7 +28,7 @@ public class MaterialConsumable extends BaseEntity{
 	@TableField(value="submaterialid")
     private String submaterialid;
 
-	@ApiModelProperty(value = "单个产品对于的耗材数量")
+	@ApiModelProperty(value = "单个产品对应的耗材数量")
 	@TableField(value="amount")
     private BigDecimal amount;
 

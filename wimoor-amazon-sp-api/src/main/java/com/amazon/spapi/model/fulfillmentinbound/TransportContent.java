@@ -14,17 +14,24 @@
 package com.amazon.spapi.model.fulfillmentinbound;
 
 import java.util.Objects;
-
+import java.util.Arrays;
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.fulfillmentinbound.TransportDetailOutput;
+import com.amazon.spapi.model.fulfillmentinbound.TransportHeader;
+import com.amazon.spapi.model.fulfillmentinbound.TransportResult;
+import java.io.IOException;
 
 /**
  * Inbound shipment information, including carrier details, shipment status, and the workflow status for a request for shipment with an Amazon-partnered carrier.
  */
 @ApiModel(description = "Inbound shipment information, including carrier details, shipment status, and the workflow status for a request for shipment with an Amazon-partnered carrier.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class TransportContent {
   @SerializedName("TransportHeader")
   private TransportHeader transportHeader = null;

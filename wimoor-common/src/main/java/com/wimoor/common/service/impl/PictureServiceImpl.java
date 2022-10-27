@@ -30,20 +30,34 @@ import net.coobird.thumbnailator.Thumbnails;
 public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> implements  IPictureService {
  
     final OSSApiService ossApiService;
-    
-	public static String userImgPath = "wimoor-file/sys/photos/userImg/";
-	public static String shopPhotoPath = "wimoor-file/sys/photos/shopImg/";
-	public static String materialImgPath = "wimoor-file/erp/photos/materialImg/";
-	public static String productImgPath = "wimoor-file/amz/photos/productImg/";
-	public static String logoImgPath = "wimoor-file/amz/photos/logoImg/";
-	public static String storeImgPath = "wimoor-file/amz/photos/storeImg/";
-	public static String reviewPath = "wimoor-file/amz/photos/reviews/";
+    final FileUpload fileUpload;
+	public static String userImgPath = "/sys/photos/userImg/";
+	public static String shopPhotoPath = "/sys/photos/shopImg/";
+	public static String materialImgPath = "/erp/photos/materialImg/";
+	public static String productImgPath = "/amz/photos/productImg/";
+	public static String logoImgPath = "/amz/photos/logoImg/";
+	public static String storeImgPath = "/amz/photos/storeImg/";
+	public static String reviewPath = "/amz/photos/reviews/";
+	public static String customsImgPath = "/amz/photos/customs/";
+	public static String transFilePath = "/erp/file/trans/";
 	
-	public Picture uploadPicture(String imgsrc, String filePath, String pictureid) throws IOException {
+	
+	String destinationPathBucketName(String destinationPath){
+		if(!destinationPath.contains(ossApiService.getBucketName())) {
+			 if(destinationPath.substring(0,1).equals("/")) {
+				 destinationPath=ossApiService.getBucketName()+destinationPath;
+			 }else {
+				 destinationPath=ossApiService.getBucketName()+"/"+destinationPath;
+			 }
+		}
+		return destinationPath;
+	}
+	public Picture uploadPicture(String imgsrc, String destinationPath, String pictureid) throws IOException {
 		String ftppath = "";
 		Picture picture = null;
 		String oldimageName = null;
 		String oldlocation=null;
+		destinationPath=destinationPathBucketName(destinationPath);
 		if (!StrUtil.isEmpty(pictureid)) {
 			picture = this.getById(pictureid);
 			if (picture != null && picture.getLocation() != null) {
@@ -54,14 +68,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 				}
 			}
 		}
-		if (filePath.indexOf("wimoor-file/") == 0) {
-			ftppath = filePath.substring("wimoor-file/".length(), filePath.length());
+		if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
+			ftppath = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
 			if (ftppath.charAt(ftppath.length() - 1) == '/') {
 				ftppath = ftppath.substring(0, ftppath.length() - 1);
 			}
 		}
-		if (filePath.charAt(filePath.length() - 1) != '/') {
-			filePath = filePath + "/";
+		if (destinationPath.charAt(destinationPath.length() - 1) != '/') {
+			destinationPath = destinationPath + "/";
 		}
 		if (imgsrc.contains("data:image/") && imgsrc.contains("base64,")) {
 			String ext = imgsrc.substring(imgsrc.indexOf("data:image/") + "data:image/".length(), imgsrc.indexOf(";"));// 图片后缀
@@ -73,16 +87,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 			try {
 				Thumbnails.of(new ByteArrayInputStream(bs)).scale(1f).outputQuality(0.3f).toFile(filePath2);
 			} catch (Exception e) {
-				ossApiService.putObject(OSSApiService.defaultBucketName, ftppath+"/"+imageName, new ByteArrayInputStream(bs));
+				ossApiService.putObject(ossApiService.getBucketName(), ftppath+"/"+imageName, new ByteArrayInputStream(bs));
 			}
 			try {
-				ossApiService.putObject(OSSApiService.defaultBucketName, ftppath+"/"+imageName, new FileInputStream(filePath2));
+				ossApiService.putObject(ossApiService.getBucketName(), ftppath+"/"+imageName, new FileInputStream(filePath2));
 				if (picture != null) {
-					picture.setLocation(filePath + imageName);
+					picture.setLocation(destinationPath + imageName);
 					this.updateById(picture);
 				} else {
 					picture = new Picture();
-					picture.setLocation(filePath + imageName);
+					picture.setLocation(destinationPath + imageName);
 					this.save(picture);
 				}
 			} catch (Exception e) {
@@ -94,7 +108,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 				List<Picture> list = this.selectByImageName(oldlocation);
 				if (list == null || list.size() == 0) {
 					try {
-						ossApiService.removeObject(OSSApiService.defaultBucketName, ftppath+oldimageName);
+						ossApiService.removeObject(ossApiService.getBucketName(), ftppath+oldimageName);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -111,19 +125,18 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 		if (!GeneralUtil.isEmpty(pictureid)) {
 			picture = this.getById(pictureid);
 		} 
+		destinationPath=destinationPathBucketName(destinationPath);
 		Boolean flag = false;
 		String oldimageName = null;
-		String oldlocation=null;
 		if (picture != null && picture.getLocation() != null) {
 			String[] imageNames = picture.getLocation().split("/");
-			oldlocation= picture.getLocation();
 			if (imageNames.length > 0) {
 				oldimageName = imageNames[imageNames.length - 1];
 			}
 		}
 		String path = "";
-		if (destinationPath.indexOf("wimoor-file/") == 0) {
-			path = destinationPath.substring("wimoor-file/".length(), destinationPath.length());
+		if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
+			path = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
 			if (path.charAt(path.length() - 1) == '/') {
 				path = path.substring(0, path.length() - 1);
 			}
@@ -131,7 +144,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 		if (destinationPath.charAt(destinationPath.length() - 1) != '/') {
 			destinationPath = destinationPath + "/";
 		}
-		flag=ossApiService.putObject(OSSApiService.defaultBucketName, path+"/"+imageName, dataInputStream);
+		flag=ossApiService.putObject(ossApiService.getBucketName(), path+"/"+imageName, dataInputStream);
 		if (flag) {
 			if (picture != null) {
 				if (!GeneralUtil.isEmpty(sourcePath)) {
@@ -164,14 +177,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 		}
 		// 清理没有用的图片
 		if (oldimageName != null && !oldimageName.equals(imageName) && !oldimageName.contains("no-img-sm")) {
-			List<Picture> list = this.selectByImageName(oldlocation);
-			if (list == null || list.size() == 0) {
+			//List<Picture> list = this.selectByImageName(oldlocation);
 				try {
-					ossApiService.removeObject(OSSApiService.defaultBucketName, path+"/"+oldimageName);
+					ossApiService.removeObject(ossApiService.getBucketName(), path+"/"+oldimageName);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
 		}
 		return picture;
 	}
@@ -185,6 +196,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 			return null;
 		Picture picture = null;
 		InputStream openStream =null;
+		destinationPath=destinationPathBucketName(destinationPath);
 		try {
 			  openStream = new URL(resourceUrl).openStream();
 		} catch (IOException e) {
@@ -197,6 +209,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 			String[] imageNames = resourceUrl.split("/");
 			if (imageNames.length > 0) {
 				imageName = imageNames[imageNames.length - 1];
+				imageName= imageName.split("\\.")[1];
+				Double rand =   (Math.random()*1000);
+				imageName=(new Date().getTime()+""+rand.intValue())+"."+imageName;
 			}
 		}
 		try {
@@ -228,7 +243,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 			filePath = picture.getLocation();
 		}
 		try {
-			URL url = new URL(FileUpload.getPictureImage(filePath));
+			URL url = new URL(fileUpload.getPictureImage(filePath));
 			// 打开链接
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			// 设置请求方式为"GET"
@@ -269,6 +284,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 		Picture picture = null;
 		String uri = null;
 		String imageName = null;
+		destinationPath=destinationPathBucketName(destinationPath);
 		if (GeneralUtil.isNotEmpty(pictureid)) {
 			picture = this.getById(pictureid);
 			if (picture != null && GeneralUtil.isNotEmpty(picture.getLocation())) {
@@ -286,8 +302,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 				imageName = imageNames[imageNames.length - 1];
 		}
 		picture.setLocation(destinationPath + imageName);
-		if (destinationPath.indexOf("wimoor-file/") == 0) {
-			destinationPath = destinationPath.substring("wimoor-file/".length(), destinationPath.length());
+		if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
+			destinationPath = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
 			if (destinationPath.charAt(destinationPath.length() - 1) == '/') {
 				destinationPath = destinationPath.substring(0, destinationPath.length() - 1);
 			}
@@ -296,7 +312,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 			destinationPath = destinationPath + "/";
 		}
 		try {
-			ossApiService.putObject(OSSApiService.defaultBucketName,destinationPath+imageName, new URL(sourcePath).openStream());
+			ossApiService.putObject(ossApiService.getBucketName(),destinationPath+imageName, new URL(sourcePath).openStream());
 		} catch (Exception e) {
 			return null;
 		}
@@ -312,6 +328,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 		Picture picture = null;
 		String uri = null;
 		String imageName = null;
+		destinationPath=destinationPathBucketName(destinationPath);
 		if (GeneralUtil.isNotEmpty(pictureid)) {
 			picture = this.getById(pictureid);
 			if (picture != null && GeneralUtil.isNotEmpty(picture.getLocation())) {
@@ -322,21 +339,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 			String[] imageNames = uri.split("/");
 			if (imageNames.length > 0)
 				imageName = imageNames[imageNames.length - 1];
-		} else {
-			picture = new Picture();
-			String[] imageNames = sourcePath.split("\\\\");
-			if (imageNames.length > 0)
-				imageName = imageNames[imageNames.length - 1];
-		}
-		picture.setLocation(destinationPath + imageName);
-		if (destinationPath.indexOf("wimoor-file/") == 0) {
-			destinationPath = destinationPath.substring("wimoor-file/".length(), destinationPath.length());
-			if (destinationPath.charAt(destinationPath.length() - 1) == '/') {
-				destinationPath = destinationPath.substring(0, destinationPath.length() - 1);
-			}
+		    } else {
+				picture = new Picture();
+				String[] imageNames = sourcePath.split("\\\\");
+				if (imageNames.length > 0)
+					imageName = imageNames[imageNames.length - 1];
+			     }
+		  	   picture.setLocation(destinationPath + imageName);
+			  if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
+					destinationPath = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
+					if (destinationPath.charAt(destinationPath.length() - 1) == '/') {
+						destinationPath = destinationPath.substring(0, destinationPath.length() - 1);
+					}
 		}
 		try {
-			ossApiService.putObject(OSSApiService.defaultBucketName,destinationPath+"/"+imageName, new URL(sourcePath).openStream());
+			ossApiService.putObject(ossApiService.getBucketName(),destinationPath+"/"+imageName, new URL(sourcePath).openStream());
 		} catch (Exception e) {
 			return null;
 		}

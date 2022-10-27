@@ -12,11 +12,11 @@ import com.wimoor.amazon.common.pojo.entity.SummaryData;
 @Mapper
 public interface SummaryDataMapper extends BaseMapper<SummaryData> {
 	Integer findProNum(@Param("shopid")String shopid);
+	Integer returnOrders(@Param("shopid")String shopid,@Param("oneday")Date oneday);
+
 	List<SummaryData> findMainReport(@Param("shopid")String shopid,@Param("ftype")String ftype);
 	Map<String,Object> monthSalesOrders(@Param("shopid")String shopid,@Param("oneday")Date oneday);
 	void refreshProRate();
 	Integer deleteAllMainRpt(String shopid);
- 
-	void refreshProNum();
-	
+	void refreshProNum();	
 }

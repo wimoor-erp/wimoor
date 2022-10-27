@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -13,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.amazon.spapi.api.FbaInboundApi;
+import com.amazon.spapi.client.ApiCallback;
 import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.fulfillmentinbound.Address;
+import com.amazon.spapi.model.fulfillmentinbound.BoxContentsFeeDetails;
 import com.amazon.spapi.model.fulfillmentinbound.CommonTransportResult;
 import com.amazon.spapi.model.fulfillmentinbound.Condition;
 import com.amazon.spapi.model.fulfillmentinbound.CreateInboundShipmentPlanRequest;
@@ -25,9 +30,12 @@ import com.amazon.spapi.model.fulfillmentinbound.GetInboundGuidanceResult;
 import com.amazon.spapi.model.fulfillmentinbound.GetLabelsResponse;
 import com.amazon.spapi.model.fulfillmentinbound.GetPrepInstructionsResponse;
 import com.amazon.spapi.model.fulfillmentinbound.GetPrepInstructionsResult;
+import com.amazon.spapi.model.fulfillmentinbound.GetShipmentItemsResponse;
+import com.amazon.spapi.model.fulfillmentinbound.GetShipmentItemsResult;
 import com.amazon.spapi.model.fulfillmentinbound.GetShipmentsResponse;
 import com.amazon.spapi.model.fulfillmentinbound.GetShipmentsResult;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentHeader;
+import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentInfo;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentItem;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentItemList;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentList;
@@ -57,9 +65,14 @@ import com.amazon.spapi.model.fulfillmentinbound.SKUPrepInstructionsList;
 import com.amazon.spapi.model.fulfillmentinbound.ShipmentStatus;
 import com.amazon.spapi.model.fulfillmentinbound.ShipmentType;
 import com.amazon.spapi.model.fulfillmentinbound.TransportDetailInput;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
+import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
+import com.wimoor.amazon.inbound.mapper.ShipInboundItemMapper;
+import com.wimoor.amazon.inbound.mapper.ShipInboundShipmentMapper;
 import com.wimoor.amazon.inbound.pojo.entity.ShipAddress;
 import com.wimoor.amazon.inbound.pojo.entity.ShipAddressTo;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundItem;
@@ -69,19 +82,24 @@ import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans;
 import com.wimoor.amazon.inbound.service.IFulfillmentInboundService;
 import com.wimoor.amazon.inbound.service.IShipAddressService;
 import com.wimoor.amazon.inbound.service.IShipAddressToService;
-import com.wimoor.amazon.inbound.service.IShipInboundItemService;
+import com.wimoor.amazon.inbound.service.IShipInboundPlanService;
+import com.wimoor.amazon.inbound.service.IShipInboundShipmentRecordService;
 import com.wimoor.amazon.inbound.service.IShipInboundTransService;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.result.Result;
+
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 @Service
 public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService {
 	@Autowired
 	ApiBuildService apiBuildService;
 	@Resource
-	private IShipInboundItemService shipInboundItemService;
+	private ShipInboundItemMapper shipInboundItemMapper;
 	@Resource
 	IShipAddressService shipAddressService;
 	@Resource
@@ -90,8 +108,14 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 	IProductInfoService iProductInfoService;
 	@Autowired
 	IShipInboundTransService shipInboundTransService;
-
-	
+	@Autowired
+	IMarketplaceService marketplaceService;
+	@Resource
+	ShipInboundShipmentMapper shipInboundShipmentMapper;
+	@Autowired
+	IShipInboundShipmentRecordService shipInboundShipmentRecordService;
+	@Autowired
+	ErpClientOneFeign erpClientOneFeign;
 	public GetInboundGuidanceResult getInboundGuidance(AmazonAuthority auth,String marketplaceId,List<String> sellerSKUList){
 		 FbaInboundApi api = apiBuildService.getInboundApi(auth); 
 		 GetInboundGuidanceResponse result;
@@ -140,10 +164,13 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 			InboundShipmentPlanRequestItemList item=new InboundShipmentPlanRequestItemList();
 			List<ShipInboundItem> itemlist = inplan.getPlanitemlist();
 			List<String> mlist = new ArrayList<String>();
+			int skunum=0;
 			for(int i=0;i<itemlist.size();i++) {
 				 ShipInboundItem itemsku = itemlist.get(i);
 				 mlist.add(itemsku.getSellersku());
+				 skunum+=1;
 			}
+			inplan.setSkunum(skunum);
 			GetPrepInstructionsResponse prepInst;
 			Map<String,SKUPrepInstructions> skuInsMap =new HashMap<String,SKUPrepInstructions>();
 			List<ShipInboundShipment> shipmentList=new ArrayList<ShipInboundShipment>();
@@ -184,15 +211,15 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 					   }
 					   element.setPrepDetailsList(prelist);
 				   }
+				 item.add(element);   
 			}
-	
 			body.setInboundShipmentPlanRequestItems(item);
 			LabelPrepPreference label=LabelPrepPreference.SELLER_LABEL;
 			body.setLabelPrepPreference(label);
 			Address address = getShipFromAddress(localAddress);
 			body.setShipFromAddress(address);
 			body.setShipToCountryCode(market.getMarket());
-			body.setShipToCountrySubdivisionCode(market.getMarket());
+			//body.setShipToCountrySubdivisionCode(market.getMarket());
 			try {
 				CreateInboundShipmentPlanResponse reponse = api.createInboundShipmentPlan(body);
 				CreateInboundShipmentPlanResult result = reponse.getPayload();
@@ -211,10 +238,8 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 						localSkuItem.setSellersku(shipitem.getSellerSKU());
 						localSkuItem.setShipmentid(shipment.getShipmentId());
 						localSkuItem.setInboundplanid(inplan.getId());
-						localSkuItem.setOperator(inplan.getOperator());
-						localSkuItem.setOpttime(new Date());
 						shipitem.getPrepDetailsList().get(0).getPrepOwner().getValue();
-						shipInboundItemService.save(localSkuItem); 
+						shipInboundItemMapper.insert(localSkuItem); 
 					}
 					ShipInboundShipment localShipment = new ShipInboundShipment();
 					localShipment.setShiptoaddressid(localShipToAddress.getId());
@@ -226,7 +251,7 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 					localShipment.setStatus1date(new Date());
 					localShipment.setShipmentstatus(ShipInboundShipment.ShipmentStatus_WORKING);
 					localShipment.setInboundplanid(inplan.getId());
-					localShipment.setCreator(inplan.getOperator());
+					localShipment.setCreator(inplan.getCreator());
 					localShipment.setCreatedate(new Date());
 					localShipment.setOpttime(new Date());
 					localShipment.setOperator(inplan.getOperator());
@@ -256,6 +281,7 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 		if (inboundplan == null) {
 			return null;// 此处要加入异常逻辑
 		}
+		amazonAuthority.setUseApi("createInboundShipment");
 		FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
 		ShipAddress localAddress = shipAddressService.getById(inboundplan.getShipfromaddressid());
 		InboundShipmentRequest body=new InboundShipmentRequest();
@@ -278,7 +304,7 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 		body.setMarketplaceId(marketplace.getMarketplaceid());
 		List<ShipInboundItem> itemlist = shipment.getItemList();
 		InboundShipmentItemList items=new InboundShipmentItemList();
-	    for(int i=0;i<10;i++) {
+	    for(int i=0;i<itemlist.size();i++) {
 	    	ShipInboundItem itemsku = itemlist.get(i);
 			InboundShipmentItem element=new InboundShipmentItem();
 			element.sellerSKU(itemsku.getSellersku());
@@ -307,7 +333,8 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 			} else if (e.getMessage() != null && e.getMessage().contains("SellerSKU")) {
 				throw new BizException("审核失败，请确保亚马逊后台SKU信息正确。");
 			} else {
-				throw new BizException(e.getMessage());
+				amazonAuthority.setApiRateLimit(null, e);
+				throw new BizException(e.getResponseBody());
 			}
 		}
 		if(response!=null&&response.getPayload()!=null) {
@@ -345,7 +372,7 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 			body.setMarketplaceId(marketplace.getMarketplaceid());
 			List<ShipInboundItem> itemlist = shipment.getItemList();
 			InboundShipmentItemList items=new InboundShipmentItemList();
-		    for(int i=0;i<10;i++) {
+		    for(int i=0;i<itemlist.size();i++) {
 		    	ShipInboundItem itemsku = itemlist.get(i);
 				InboundShipmentItem element=new InboundShipmentItem();
 				element.sellerSKU(itemsku.getSellersku());
@@ -376,8 +403,16 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 	    	   Date end = GeneralUtil.getDatez(enddate);
 	    	   Calendar cend=Calendar.getInstance();
 	    	   cend.setTime(end);
-			   GetShipmentsResponse response = api.getShipments("DATE_RANGE", market.getMarketplaceid(), null, null,
-					   AmzDateUtils.getOffsetDateTime(cstart), AmzDateUtils.getOffsetDateTime(cend), null);
+	    	   List<String> shipmentStatusList=new ArrayList<String>();
+			   shipmentStatusList.add("CLOSED");
+			   shipmentStatusList.add("SHIPPED");
+			   shipmentStatusList.add("RECEIVING");
+			   shipmentStatusList.add("IN_TRANSIT");
+			   shipmentStatusList.add("DELIVERED");
+			   shipmentStatusList.add("CHECKED_IN");
+			   shipmentStatusList.add("WORKING");
+			   GetShipmentsResponse response = api.getShipments("DATE_RANGE", market.getMarketplaceid(), shipmentStatusList, null,
+					   AmzDateUtils.getOffsetDateTimeUTC(cstart), AmzDateUtils.getOffsetDateTimeUTC(cend), null);
 			   GetShipmentsResult result = response.getPayload();
 			   InboundShipmentList data = result.getShipmentData();
 			   while(result.getNextToken()!=null) {
@@ -385,6 +420,23 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 					result=response.getPayload();
 					data.addAll(result.getShipmentData());
 				}
+			  return data;
+		} catch (ApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new BizException("亚马逊API错误："+e.getMessage());
+		}
+	}
+	
+	
+	
+	public InboundShipmentList listShipment(AmazonAuthority auth,Marketplace market,List<String> shipmentIdsList){
+		 FbaInboundApi api = apiBuildService.getInboundApi(auth);
+	     try {
+			   GetShipmentsResponse response = api.getShipments("SHIPMENT", market.getMarketplaceid(), null, shipmentIdsList,
+					   null, null, null);
+			   GetShipmentsResult result = response.getPayload();
+			   InboundShipmentList data = result.getShipmentData();
 			  return data;
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
@@ -430,22 +482,448 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 		}
 	}
 	
-	public String getLabelDownloadUR(AmazonAuthority amazonAuthority,ShipInboundShipment shipment,String pagetype){
+	public String getLabelDownloadUR(AmazonAuthority amazonAuthority,ShipInboundShipment shipment,String pagetype,String labelType,String pannum){
 		 FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
-		 String labelType="UNIQUE";
-		 if(shipment.getTranstyle().equals("LTL")) {
-			 labelType="PALLET";
-		 }
+		 //labelType="SELLER_LABEL";
 		 try {
-			GetLabelsResponse response = api.getLabels(shipment.getShipmentid(),pagetype , labelType, null, null, null, null, null);
+			List<String> cartonIdList=new LinkedList<String>();
+			cartonIdList.add("1");
+//			for(int i=1;i<=shipment.getBoxnum();i++) {
+//				cartonIdList.add(String.format("%d", i));
+//			}
+			//cartonIdList.add(shipment.getShipmentid()+"U"+String.format("%06d", i));
+			GetLabelsResponse response =null;
+			if("PALLET".equals(labelType)) {
+				Integer pansize=1;
+				if(StrUtil.isNotEmpty(pannum)) {
+					pansize=Integer.parseInt(pannum);
+				}
+				response=api.getLabels(shipment.getShipmentid(),pagetype , labelType, shipment.getBoxnum(), null, pansize, shipment.getBoxnum(), null);
+			}else {
+				response=api.getLabels(shipment.getShipmentid(),pagetype , labelType, shipment.getBoxnum(), null, null, shipment.getBoxnum(), null);
+			}
 			LabelDownloadURL url = response.getPayload();
+			System.out.println(url.getDownloadURL());
 			return url.getDownloadURL();
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println(e.getResponseBody());
 			throw new BizException("亚马逊API错误："+e.getMessage());
 		}
 		 
 	}
+	
+	@Override
+	public void runApi(AmazonAuthority amazonAuthority) {
+		// TODO Auto-generated method stub
+		List<Marketplace> awsregion = marketplaceService.findbyauth(amazonAuthority.getId());
+		for(Marketplace market:awsregion) {
+			try {
+				List<Map<String, Object>> list = shipInboundShipmentMapper.findAllShiped(amazonAuthority.getGroupid(), market.getMarketplaceid());
+			    if(list!=null&&list.size()>0) {
+			    	List<String> shipmentidList=new ArrayList<String>();
+			    	list.stream().forEach(item->{
+			    		if(item!=null&&item.get("ShipmentId")!=null) {
+			    			shipmentidList.add(item.get("ShipmentId").toString());
+			    		}
+			    	});
+			    	listShipmentAsync(amazonAuthority,market,shipmentidList);
+			    }
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+			listShipmentAsync(amazonAuthority,market);//屏蔽此功能因为时常发生子SKU没有同步的情况
+			listShipmentItemsAsync(amazonAuthority,market);
+		}
+	}
+	
+	public List<ShipInboundItem> syncItemsByShipmentId(AmazonAuthority amazonAuthority, Marketplace market,ShipInboundShipment shipment) {
+		// TODO Auto-generated method stub
+		amazonAuthority.setUseApi("getShipmentItemsByShipmentId");
+		FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
+		  try {
+			 GetShipmentItemsResponse response = api.getShipmentItemsByShipmentId(shipment.getShipmentid(),shipment.getInboundplan().getMarketplaceid());
+			 if(response!=null&&response.getPayload()!=null) {
+				 GetShipmentItemsResult shipmentItemsResult = response.getPayload();
+				 return handlerItemResultData(amazonAuthority,shipmentItemsResult,shipment);
+			 }
+		  } catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				amazonAuthority.setApiRateLimit( null, e);
+				 
+			}
+		  return null;
+	}
+
+	public List<ShipInboundItem> getUnSyncItemsByShipmentId(AmazonAuthority amazonAuthority, Marketplace market,ShipInboundShipment shipment) {
+		// TODO Auto-generated method stub
+		amazonAuthority.setUseApi("getShipmentItemsByShipmentId");
+		FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
+		  try {
+			 GetShipmentItemsResponse response = api.getShipmentItemsByShipmentId(shipment.getShipmentid(),shipment.getInboundplan().getMarketplaceid());
+			 if(response!=null&&response.getPayload()!=null) {
+				 GetShipmentItemsResult shipmentItemsResult = response.getPayload();
+				 return getItemResultData(amazonAuthority,shipmentItemsResult,shipment);
+			 }
+		  } catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				amazonAuthority.setApiRateLimit(null, e);
+				 
+			}
+		  return null;
+	}
+	
+	public void listShipmentAsync(AmazonAuthority auth,Marketplace market){
+		auth.setUseApi("getShipments");
+		 FbaInboundApi api = apiBuildService.getInboundApi(auth);
+	     try {
+	    	   Calendar cstart=Calendar.getInstance();
+	    	   cstart.add(Calendar.DATE, -3);
+	    	   Calendar cend=Calendar.getInstance();
+			   List<String> shipmentStatusList=new ArrayList<String>();
+			   shipmentStatusList.add("CLOSED");
+			   shipmentStatusList.add("SHIPPED");
+			   shipmentStatusList.add("RECEIVING");
+			   shipmentStatusList.add("IN_TRANSIT");
+			   shipmentStatusList.add("DELIVERED");
+			   shipmentStatusList.add("CHECKED_IN");
+			   shipmentStatusList.add("WORKING");
+			   ApiCallback<GetShipmentsResponse> callback=new ApiCallbackGetShipments(this,auth,market);
+			   api.getShipmentsAsync("DATE_RANGE", market.getMarketplaceid(), shipmentStatusList, null,
+					   AmzDateUtils.getOffsetDateTimeUTC(cstart), AmzDateUtils.getOffsetDateTimeUTC(cend), null,callback);
+		} catch (ApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			auth.setApiRateLimit(null, e);
+		}
+	}
+	
+	private void listShipmentItemsAsync(AmazonAuthority amazonAuthority, Marketplace market) {
+		// TODO Auto-generated method stub
+		amazonAuthority.setUseApi("getShipmentItems");
+		FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
+		  try {
+	    	 Calendar cstart=Calendar.getInstance();
+	    	 cstart.add(Calendar.DATE, -3);
+	    	 Calendar cend=Calendar.getInstance();
+			 ApiCallback<GetShipmentItemsResponse> callback=new ApiCallbackGetShipmentItems(this,amazonAuthority,market,null);
+			 api.getShipmentItemsAsync("DATE_RANGE", market.getMarketplaceid(),
+					   AmzDateUtils.getOffsetDateTimeUTC(cstart), AmzDateUtils.getOffsetDateTimeUTC(cend),null, callback);
+			} catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				amazonAuthority.setApiRateLimit(null, e);
+				 
+			}
+	}
+
+	private void getItemsByShipmentIdAsync(AmazonAuthority amazonAuthority, Marketplace market,ShipInboundShipment shipment) {
+		// TODO Auto-generated method stub
+		amazonAuthority.setUseApi("getShipmentItemsByShipmentId");
+		FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
+		  try {
+			 ApiCallback<GetShipmentItemsResponse> callback=new ApiCallbackGetShipmentItems(this,amazonAuthority,market,shipment);
+			api.getShipmentItemsByShipmentIdAsync(shipment.getShipmentid(),market.getMarketplaceid(),callback);
+			} catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				amazonAuthority.setApiRateLimit( null, e);
+				 
+			}
+	}
+ 
+	
+	public void listShipmentAsync(AmazonAuthority auth,Marketplace market,List<String> shipmentIdList){
+		 auth.setUseApi("getShipments");
+		 FbaInboundApi api = apiBuildService.getInboundApi(auth);
+	     try {
+    		 ApiCallback<GetShipmentsResponse> callback=new ApiCallbackGetShipments(this,auth,market);
+             api.getShipmentsAsync("SHIPMENT", market.getMarketplaceid(), null, shipmentIdList,
+	    				 null, null, null,callback);
+		} catch (ApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			auth.setApiRateLimit(null, e);
+		}
+	}
+
+	@Override
+	public void handlerResult(AmazonAuthority auth, Marketplace market, GetShipmentsResponse result) {
+		// TODO Auto-generated method stub
+		if(result==null||result.getPayload()==null)return ;
+		GetShipmentsResult shipmentsResult = result.getPayload();
+		InboundShipmentList data = shipmentsResult.getShipmentData();
+		for (InboundShipmentInfo item:data) {
+			String shipmentid = item.getShipmentId();
+			 ShipInboundShipment shipment = shipInboundShipmentMapper.selectById(shipmentid);
+			 if(shipment!=null) {
+				 shipment.setShipmentstatus(item.getShipmentStatus().getValue());
+				  BoxContentsFeeDetails boxfee = item.getEstimatedBoxContentsFee();
+				if (boxfee != null) {
+					if(boxfee.getFeePerUnit()!=null) {
+						shipment.setFeeperunit(boxfee.getFeePerUnit().getValue());
+					}
+					if(boxfee.getTotalFee()!=null) {
+						shipment.setTotalfee(boxfee.getTotalFee().getValue());
+						if(boxfee.getTotalFee().getCurrencyCode()!=null) {
+							shipment.setCurrency(boxfee.getTotalFee().getCurrencyCode().getValue());
+						}
+					}									
+					shipment.setTotalunits(boxfee.getTotalUnits());
+				}
+				if (shipment.getStatus() >= 5) {
+					if ("CLOSED".equals(item.getShipmentStatus().getValue())) {
+						if(shipment.getStatus()!=6) {
+							shipInboundShipmentRecordService.saveRecord(shipment);
+						}
+						shipment.setStatus(6);
+						shipment.setStatus6date(new Date());
+					}
+					if (!"CLOSED".equals(item.getShipmentStatus().getValue()) && shipment.getStatus() == 6) {
+						shipment.setStatus(5);
+						shipment.setStatus5date(new Date());
+					}
+				}
+				shipment.setRefreshtime(new Date());
+				shipInboundShipmentMapper.updateById(shipment);
+				getItemsByShipmentIdAsync(auth,market,shipment);
+			 }else {
+				 IShipInboundPlanService shipInboundPlanService=SpringUtil.getBean("shipInboundPlanService");
+				 shipment=shipInboundPlanService.createShipment(auth,market,item,null,null);
+				 getItemsByShipmentIdAsync(auth,market,shipment);
+			 }
+		}
+		
+		if(shipmentsResult.getNextToken()!=null) {
+			FbaInboundApi api = apiBuildService.getInboundApi(auth);
+		    ApiCallback<GetShipmentsResponse> callback=new ApiCallbackGetShipments(this,auth,market);
+			try {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			     api.getShipmentsAsync("NEXT_TOKEN", market.getMarketplaceid(), null, null, null, null, shipmentsResult.getNextToken(),callback);
+			} catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+	}
+
+	private List<ShipInboundItem> getItemResultData(AmazonAuthority auth,GetShipmentItemsResult itemResult, ShipInboundShipment param_shipment) {
+	    String shipmentid=param_shipment.getShipmentid();
+	    List<ShipInboundItem> myResult=new ArrayList<ShipInboundItem>();
+		for (InboundShipmentItem  item:itemResult.getItemData()) {
+			LambdaQueryWrapper<ShipInboundItem> query = new LambdaQueryWrapper<ShipInboundItem>()
+					   .eq(ShipInboundItem::getShipmentid, item.getShipmentId())
+					   .eq(ShipInboundItem::getSellersku, item.getSellerSKU());
+			ShipInboundItem inbounditem = shipInboundItemMapper.selectOne(query);
+		    if(inbounditem!=null) {
+		    	String msku=iProductInfoService.getMSKU(auth.getId(), param_shipment.getInboundplan().getMarketplaceid(), item.getSellerSKU());
+				try {
+					if(msku==null) {
+						msku=item.getSellerSKU();
+					}
+					Result<String> materialidResult = erpClientOneFeign.getIdBySku(auth.getShopId(),msku);
+					if(Result.isSuccess(materialidResult)) {
+						String materialid=materialidResult.getData();
+						inbounditem.setMaterialid(materialid);
+					}
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
+		    	inbounditem.setQuantityreceived(item.getQuantityReceived());
+				shipInboundItemMapper.updateById(inbounditem);
+				myResult.add(inbounditem);
+		    }else if(param_shipment!=null)  {
+		    	  inbounditem=new ShipInboundItem();
+		    	  inbounditem.setShipmentid(shipmentid);
+		    	  inbounditem.setFulfillmentnetworksku(item.getFulfillmentNetworkSKU());
+		    	  inbounditem.setInboundplanid(param_shipment.getInboundplanid());
+		    	  inbounditem.setSellersku(item.getSellerSKU());
+		    	  inbounditem.setQuantity(item.getQuantityShipped());
+		    	  inbounditem.setQuantityshipped(item.getQuantityShipped());
+		    	  inbounditem.setQuantityincase(item.getQuantityInCase());
+		    	  inbounditem.setQuantityreceived(item.getQuantityReceived());
+					if(param_shipment!=null&&	 param_shipment.getInboundplan() !=null) {
+						String msku=iProductInfoService.getMSKU(auth.getId(), param_shipment.getInboundplan().getMarketplaceid(), item.getSellerSKU());
+						try {
+							if(msku==null) {
+								msku=item.getSellerSKU();
+							}
+							Result<String> materialidResult = erpClientOneFeign.getIdBySku(auth.getShopId(),msku);
+							if(Result.isSuccess(materialidResult)) {
+								String materialid=materialidResult.getData();
+								inbounditem.setMaterialid(materialid);
+							}
+						}catch(Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
+					myResult.add(inbounditem);
+					shipInboundItemMapper.insert(inbounditem);
+		    
+		    }
+			
+		}
+	 
+		return myResult;
+}
+	
+	private List<ShipInboundItem> handlerItemResultData(AmazonAuthority auth,GetShipmentItemsResult itemResult, ShipInboundShipment param_shipment) {
+		    Boolean hasReceived=false;
+		    Boolean errorReceived=false;
+		    String shipmentid="";
+		    List<ShipInboundItem> myResult=new ArrayList<ShipInboundItem>();
+		    Set<String> hasSku=new HashSet<String>();
+			for (InboundShipmentItem  item:itemResult.getItemData()) {
+				LambdaQueryWrapper<ShipInboundItem> query = new LambdaQueryWrapper<ShipInboundItem>()
+						   .eq(ShipInboundItem::getShipmentid, item.getShipmentId())
+						   .eq(ShipInboundItem::getSellersku, item.getSellerSKU());
+				ShipInboundItem inbounditem = shipInboundItemMapper.selectOne(query);
+		    	hasSku.add(item.getSellerSKU());
+			    if(inbounditem!=null) {
+			    	inbounditem.setQuantityreceived(item.getQuantityReceived());
+					if (item.getQuantityReceived() != null && item.getQuantityReceived() > 0) {
+						hasReceived = true;
+					}
+					shipmentid= item.getShipmentId();
+					int rec=0;
+					if(item.getQuantityReceived()!=null) {
+						rec=item.getQuantityReceived();
+					}
+					int shipped=item.getQuantityShipped();
+					int amount = rec-shipped;
+					
+					if(errorReceived==true) {
+						if (amount>=10 || amount<=-10) {
+							errorReceived = false;
+						}
+					}
+					inbounditem.setShipmentid(shipmentid);
+					if(param_shipment!=null&&param_shipment.getInboundplanid()!=null) {
+						inbounditem.setInboundplanid(param_shipment.getInboundplanid());
+					}
+					shipInboundItemMapper.updateById(inbounditem);
+					myResult.add(inbounditem);
+			    }else if(param_shipment!=null)  {
+			    	  inbounditem=new ShipInboundItem();
+			    	  inbounditem.setShipmentid(shipmentid);
+			    	  inbounditem.setFulfillmentnetworksku(item.getFulfillmentNetworkSKU());
+			    	  if(param_shipment.getInboundplanid()!=null) {
+						 inbounditem.setInboundplanid(param_shipment.getInboundplanid());
+					  }
+			    	  inbounditem.setSellersku(item.getSellerSKU());
+			    	  inbounditem.setQuantity(item.getQuantityShipped());
+			    	  inbounditem.setQuantityshipped(item.getQuantityShipped());
+			    	  inbounditem.setQuantityincase(item.getQuantityInCase());
+			    	  inbounditem.setQuantityreceived(item.getQuantityReceived());
+						if (item.getQuantityReceived() != null && item.getQuantityReceived() > 0) {
+							hasReceived = true;
+						}
+						shipmentid= item.getShipmentId();
+						int rec=0;
+						if(item.getQuantityReceived()!=null) {
+							rec=item.getQuantityReceived();
+						}
+						int shipped=item.getQuantityShipped();
+						int amount = rec-shipped;
+						
+						if(errorReceived==true) {
+							if (amount>=10 || amount<=-10) {
+								errorReceived = false;
+							}
+						}
+						if(param_shipment!=null&&	 param_shipment.getInboundplan() !=null) {
+							String msku=iProductInfoService.getMSKU(auth.getId(), param_shipment.getInboundplan().getMarketplaceid(), item.getSellerSKU());
+							inbounditem.setMsku(msku);
+							try {
+								Result<String> materialidResult = erpClientOneFeign.getIdBySku(auth.getShopId(),msku);
+								if(Result.isSuccess(materialidResult)) {
+									String materialid=materialidResult.getData();
+									inbounditem.setMaterialid(materialid);
+								}
+							}catch(Exception e) {
+								e.printStackTrace();
+							}
+							
+						}
+						inbounditem.setShipmentid(shipmentid);
+						shipInboundItemMapper.insert(inbounditem);
+						myResult.add(inbounditem);
+			    
+			    }
+				
+			}
+			if (StrUtil.isNotEmpty(shipmentid)) {
+				 ShipInboundShipment shipment = shipInboundShipmentMapper.selectById(shipmentid);
+				if (shipment!=null&&shipment.getStart_receive_date() == null && hasReceived) {
+					shipment.setStart_receive_date(new Date());
+					shipInboundShipmentMapper.updateById(shipment);
+				}
+			}
+			return myResult;
+	}
+	
+	@Override
+	public void handlerItemResult(AmazonAuthority auth, Marketplace market, GetShipmentItemsResponse result, ShipInboundShipment param_shipment) {
+		// TODO Auto-generated method stub
+		GetShipmentItemsResult itemResult = result.getPayload();
+		handlerItemResultData(auth,itemResult,param_shipment);
+		if(itemResult.getNextToken()!=null) {
+			FbaInboundApi api = apiBuildService.getInboundApi(auth);
+			 ApiCallback<GetShipmentItemsResponse> callback=new ApiCallbackGetShipmentItems(this,auth,market,param_shipment);
+			try {
+			     api.getShipmentItemsAsync("NEXT_TOKEN", market.getMarketplaceid(), null, null,  itemResult.getNextToken(),callback);
+			} catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+	}
+
+	@Override
+	public List<InboundShipmentItem> requestInboundShipmentsItem(AmazonAuthority auth, String shipmentid, Marketplace marketPlace) {
+		FbaInboundApi api = apiBuildService.getInboundApi(auth);
+		List<InboundShipmentItem> list=null;
+		try {
+			GetShipmentItemsResponse response = api.getShipmentItemsByShipmentId(shipmentid, marketPlace.getMarketplaceid());
+			if(response!=null && response.getPayload()!=null) {
+				list=response.getPayload().getItemData();
+			}
+		} catch (ApiException e) {
+			e.printStackTrace();
+			throw new BizException("获取不到当前货件内容，请确认该货件是否依然存在！");
+		}
+		return list;
+	}
+
+	@Override
+	public InboundShipmentInfo requestInboundShipments(AmazonAuthority auth, String shipmentid, Marketplace marketPlace) {
+		FbaInboundApi api = apiBuildService.getInboundApi(auth);
+		String querytype="SHIPMENT";
+		GetShipmentsResponse response=null;
+		try {
+			List<String> shipmentIdList=new ArrayList<String>();
+			shipmentIdList.add(shipmentid);
+			response = api.getShipments(querytype, marketPlace.getMarketplaceid(),null,shipmentIdList,null,null,null);
+		} catch (ApiException e) {
+			e.printStackTrace();
+			throw new BizException("获取不到当前货件内容，请确认该货件是否依然存在！");
+		}
+		if(response!=null && response.getPayload()!=null) {
+			InboundShipmentInfo info = response.getPayload().getShipmentData().get(0);
+			return info;
+		}else {
+			return null;
+		}
+	}
+	
 	
 }

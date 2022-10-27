@@ -61,5 +61,6 @@ public interface MarketplaceMapper extends BaseMapper<Marketplace> {
 
 	List<Marketplace> findMarketplaceBySku(Map<String, String> param);
 
-	List<Marketplace> getMarketPointBySkuGroup(@Param("sku")String sku,@Param("groupid") String groupid,@Param("marketplaceid") String marketplaceid);
+	List<Marketplace> getMarketPointBySkuGroup(@Param("sku")String sku,@Param("groupid") String groupid);
+	List<Marketplace> getMarketPointByMSku(@Param("sku")String sku,@Param("shopid") String shopid);
 }

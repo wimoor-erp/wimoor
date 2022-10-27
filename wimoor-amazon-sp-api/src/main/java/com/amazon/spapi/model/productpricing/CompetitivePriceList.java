@@ -15,8 +15,8 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.CompetitivePriceType;
 import io.swagger.annotations.ApiModel;
+import com.amazon.spapi.model.productpricing.CompetitivePriceType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
  * A list of competitive pricing information.
  */
 @ApiModel(description = "A list of competitive pricing information.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class CompetitivePriceList extends ArrayList<CompetitivePriceType> {
 
   @Override

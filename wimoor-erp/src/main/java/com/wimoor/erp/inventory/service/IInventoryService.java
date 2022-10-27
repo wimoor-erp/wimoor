@@ -13,13 +13,15 @@ import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.Operate;
 import com.wimoor.erp.common.pojo.entity.Status;
+import com.wimoor.erp.inventory.pojo.dto.InvDayDetailDTO;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.pojo.entity.StockTaking;
+import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 
 public interface IInventoryService extends IService<Inventory> {
 
-	IPage<Map<String, Object>> findByTypeWithStockCycle(Page<?> page,String ftype, String id, String shopid );
+	List<Map<String, Object>> findByTypeWithStockCycle(String ftype, String id, String shopid );
 
 	// 出库入库
 	Integer outStockByDirect(InventoryParameter para) throws BizException;
@@ -107,4 +109,13 @@ public interface IInventoryService extends IService<Inventory> {
 
 	Inventory selectAllInvSubWarehouse(String warehouseid, String materialid, String shopid, Status fulfillable);
 	public IPage<Map<String,Object>> findLocalInventory(Page<?> page,Map<String,Object> param) ;
+	
+	public void getExcelBookFBAInventoryReport(SXSSFWorkbook workbook, List<Map<String, Object>> inventoryList);
+	public void getExcelBookNotFBAInventoryReport(SXSSFWorkbook workbook, List<Map<String, Object>> inventoryList);
+	public IPage<Map<String, Object>> findByTypeWithStockCycle(Page<?> page,String ftype, String id, String shopid) ;
+	
+	public List<Map<String, Object>> findByType(Map<String,Object> param) ;
+
+	IPage<Map<String, Object>> getInvDayDetail(InvDayDetailDTO query, Map<String, Object> parameter);
+	public List<MaterialInventoryVo> findLocalWarehouseInventory(String shopid,String materialid) ;
 }

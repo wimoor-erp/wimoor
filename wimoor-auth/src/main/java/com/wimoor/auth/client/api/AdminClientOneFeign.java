@@ -27,7 +27,7 @@ public interface AdminClientOneFeign {
     @RequestMapping("admin/api/v1/users/sysrole/findbyopenid/{openid}")
     public Result<List<UserInfo>> findUserByOpenid(@PathVariable String openid) ;
     
-    @RequestMapping("/sysrole/verifyAccount")
+    @RequestMapping("admin/api/v1/users/sysrole/verifyAccount")
     public Result<UserInfo> verifyAccountAction(@RequestParam("account")String account,@RequestParam("password")String password);
 
 }

@@ -8,7 +8,7 @@ import com.amazon.spapi.model.orders.Money;
 public class AmzUtil {
 
     public static BigDecimal getMoneny(Money value) {
-    	if(value==null||value.getAmount()==null)return new BigDecimal("0");
+    	if(value==null||value.getAmount()==null)return null;
     	else {
     		return new BigDecimal(value.getAmount());
     	}

@@ -5,11 +5,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.inventory.mapper.StockTakingMapper;
 import com.wimoor.erp.inventory.pojo.entity.StockTaking;
@@ -17,7 +20,6 @@ import com.wimoor.erp.inventory.pojo.entity.StockTakingItem;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.inventory.service.IStockTakingItemService;
 import com.wimoor.erp.inventory.service.IStockTakingService;
-import com.wimoor.erp.util.FileUpload;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
@@ -27,12 +29,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StockTakingServiceImpl extends  ServiceImpl<StockTakingMapper,StockTaking> implements IStockTakingService {
 	 
-	IStockTakingItemService stockTakingItemService;
-	 
+	final IStockTakingItemService stockTakingItemService;
+	@Autowired
+    @Lazy
 	IInventoryService inventoryService;
 	 
-	IWarehouseService warehouseService;
-
+	final IWarehouseService warehouseService;
+	
+    final FileUpload fileUpload;
+	
 	public List<Map<String, Object>> findByCondition(Map<String, Object> map) {
 		return this.baseMapper.findByCondition(map);
 	}
@@ -88,7 +93,7 @@ public class StockTakingServiceImpl extends  ServiceImpl<StockTakingMapper,Stock
 
 	public List<Map<String, Object>> getItemList(String id, String warehouseid,String materialid) {
 		List<Map<String, Object>> list = this.baseMapper.getItemList(id, warehouseid,materialid);
-		return FileUpload.covertPictureImage(list);
+		return fileUpload.covertPictureImage(list);
 	}
 
 	public Map<String, Object> getSumQuantity(String id, String warehouseid) {

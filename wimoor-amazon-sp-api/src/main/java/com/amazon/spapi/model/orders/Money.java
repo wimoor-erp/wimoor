@@ -28,7 +28,7 @@ import java.io.IOException;
  * The monetary value of the order.
  */
 @ApiModel(description = "The monetary value of the order.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:03:19.199+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:56:53.532+08:00")
 public class Money {
   @SerializedName("CurrencyCode")
   private String currencyCode = null;

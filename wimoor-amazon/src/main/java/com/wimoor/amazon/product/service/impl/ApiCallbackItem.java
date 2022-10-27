@@ -24,15 +24,15 @@ public class ApiCallbackItem implements ApiCallback<Item> {
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-           e.printStackTrace();
-           amazonAuthority.setApiRateLimit("getListingsItem", responseHeaders, e);
+           amazonAuthority.setApiRateLimit(responseHeaders, e);
+           productCaptureService.handlerFailure(amazonAuthority,amzProductRefresh,e);
 	}
 
 	@Override
 	public void onSuccess(Item result, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-	     amazonAuthority.setApiRateLimit("getListingsItem", responseHeaders, "");
-		productCaptureService.handlerItem(result,amazonAuthority);
+	    amazonAuthority.setApiRateLimit(responseHeaders, "");
+		productCaptureService.handlerResult(result,amazonAuthority);
 	}
 
 	@Override

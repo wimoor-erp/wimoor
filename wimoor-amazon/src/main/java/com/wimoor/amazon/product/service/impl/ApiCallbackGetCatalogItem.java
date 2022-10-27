@@ -28,15 +28,15 @@ public class ApiCallbackGetCatalogItem implements ApiCallback<Item> {
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
 		//Forbidden 被禁用
-      e.printStackTrace();
-  	  auth.setApiRateLimit("getCatalogItem", responseHeaders, e);
+  	  auth.setApiRateLimit(responseHeaders, e);
+  	 this.iProductCaptureCatalogItemService.handlerFailure(this.auth,skuRefresh,e);
 	}
 
 	@Override
 	public void onSuccess(Item result, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-	  	auth.setApiRateLimit("getCatalogItem", responseHeaders, "");
-        this.iProductCaptureCatalogItemService.handlerCatalogItem(this.auth,skuRefresh,result);
+	  	auth.setApiRateLimit(responseHeaders, "");
+        this.iProductCaptureCatalogItemService.handlerResult(this.auth,skuRefresh,result);
 	}
 
 	@Override

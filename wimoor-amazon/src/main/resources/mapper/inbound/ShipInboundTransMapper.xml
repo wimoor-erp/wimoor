@@ -468,7 +468,7 @@
 	</select>
 	
 	<select id="getSelfTransDataView" resultType="java.util.Map" parameterType="java.lang.String">
-		 select tt.name transtyle,c.name company,ifnull(cn.name,'') channeltype,ifnull(t.subarea,'') subarea,t.channame ,s.* from t_erp_ship_inboundtrans s 
+		 select tt.name transtyle,c.name company,ifnull(cn.name,'') channeltype,t.drate,ifnull(t.subarea,'') subarea,t.channame ,s.* from t_erp_ship_inboundtrans s 
 		 left join t_erp_ship_transdetail t ON t.id=s.channel
 		 LEFT JOIN t_erp_ship_transcompany c ON c.id=t.company
 		 LEFT JOIN t_erp_ship_transchannel cn ON cn.id=t.channel

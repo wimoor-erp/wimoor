@@ -2,7 +2,7 @@ package com.wimoor.amazon.inbound.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.wimoor.amazon.common.pojo.entity.AmazonBaseEntity;
+import com.wimoor.amazon.common.pojo.entity.BaseEntity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value="ShipInboundItem对象", description="货件Item")
 @TableName("t_erp_ship_inbounditem")
-public class ShipInboundItem extends AmazonBaseEntity {
+public class ShipInboundItem extends BaseEntity {
 	/**
 	 * 
 	 */
@@ -47,6 +47,10 @@ public class ShipInboundItem extends AmazonBaseEntity {
 	@TableField(value="SellerSKU")
     private String sellersku;
  
+	@ApiModelProperty(value = "平台SKU【订单填写】")
+	@TableField(value="msku")
+    private String msku;
+	
 	@ApiModelProperty(value = "订单数量【订单填写】")
 	@TableField(value="quantity")
     private Integer quantity;

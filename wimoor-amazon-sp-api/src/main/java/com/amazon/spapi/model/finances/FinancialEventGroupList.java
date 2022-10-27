@@ -15,8 +15,8 @@ package com.amazon.spapi.model.finances;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.finances.FinancialEventGroup;
 import io.swagger.annotations.ApiModel;
+import com.amazon.spapi.model.finances.FinancialEventGroup;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
  * A list of financial event group information.
  */
 @ApiModel(description = "A list of financial event group information.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class FinancialEventGroupList extends ArrayList<FinancialEventGroup> {
 
   @Override

@@ -28,7 +28,7 @@ import java.io.IOException;
  * Information about the seller&#39;s feedback, including the percentage of positive feedback, and the total number of ratings received.
  */
 @ApiModel(description = "Information about the seller's feedback, including the percentage of positive feedback, and the total number of ratings received.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class SellerFeedbackType {
   @SerializedName("SellerPositiveFeedbackRating")
   private Double sellerPositiveFeedbackRating = null;

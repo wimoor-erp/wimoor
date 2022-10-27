@@ -279,41 +279,16 @@
 			and marketplaceid=#{marketplaceid,jdbcType=CHAR}
 			and amazonAuthId=#{id,jdbcType=CHAR}
 	</select>
-
+    <insert id="newestInsertArchive" parameterType="java.lang.String">
+         insert into t_inventory_report_his 
+         select * from t_inventory_report_his_bkp20220815
+         where marketplaceid=#{marketplaceid,jdbcType=CHAR} and  amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+           and byday=#{byday,jdbcType=CHAR};
+         delete from t_inventory_report_his_bkp20220815
+         where marketplaceid=#{marketplaceid,jdbcType=CHAR} and  amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+           and byday=#{byday,jdbcType=CHAR};
+    </insert>
 	<insert id="newestInsert" parameterType="com.wimoor.amazon.report.pojo.entity.InventoryReport">
-		delete from t_inventory_report
-		where marketplaceid=#{marketplaceid,jdbcType=CHAR}
-			and sku=#{sku,jdbcType=CHAR}
-			and amazonAuthId=#{amazonAuthId,jdbcType=CHAR};
-
-		insert into t_inventory_report (
-			id,sku,byday,marketplaceid,fnsku,asin,pcondition,your_price,
-			mfn_listing_exists,
-			mfn_fulfillable_quantity, afn_listing_exists, afn_warehouse_quantity, afn_fulfillable_quantity,
-			afn_unsellable_quantity, afn_reserved_quantity, afn_total_quantity,
-			per_unit_volume,
-			afn_inbound_working_quantity, afn_inbound_shipped_quantity, afn_inbound_receiving_quantity,
-			afn_reserved_future_supply,afn_researching_quantity,afn_future_supply_buyable,isnewest,amazonAuthId
-		)
-		values (
-			#{id,jdbcType=CHAR}, #{sku,jdbcType=CHAR}, #{byday,jdbcType=TIMESTAMP},
-			#{marketplaceid,jdbcType=CHAR},
-			#{fnsku,jdbcType=CHAR}, #{asin,jdbcType=CHAR}, #{pcondition,jdbcType=CHAR},
-			#{yourPrice,jdbcType=DECIMAL},
-			#{mfnListingExists,jdbcType=CHAR}, #{mfnFulfillableQuantity,jdbcType=INTEGER},
-			#{afnListingExists,jdbcType=CHAR},
-			#{afnWarehouseQuantity,jdbcType=INTEGER},
-			#{afnFulfillableQuantity,jdbcType=INTEGER},
-			#{afnUnsellableQuantity,jdbcType=INTEGER},
-			#{afnReservedQuantity,jdbcType=INTEGER},
-			#{afnTotalQuantity,jdbcType=INTEGER},
-			#{perUnitVolume,jdbcType=DECIMAL},
-			#{afnInboundWorkingQuantity,jdbcType=INTEGER},
-			#{afnInboundShippedQuantity,jdbcType=INTEGER},
-			#{afnInboundReceivingQuantity,jdbcType=INTEGER},#{afnReservedFutureSupply,jdbcType=INTEGER},
-			#{afnResearchingQuantity,jdbcType=INTEGER},#{afnFutureSupplyBuyable,jdbcType=INTEGER},1,#{amazonAuthId,jdbcType=CHAR}
-		);
-
 		delete from t_inventory_report_his
 		where marketplaceid=#{marketplaceid,jdbcType=CHAR}
 			and sku=#{sku,jdbcType=CHAR}
@@ -442,55 +417,6 @@
 		where t.authid=#{authid,jdbcType=BIGINT} limit 1
 	</select>
 
-	<select id="getInvDayDetail" parameterType="java.lang.String" resultType="java.util.Map">
-	select 
-    h.shopid,h.warehouseid,h.materialid,m.sku,m.name pname,h.modifyday,
-			 h.quantity  quantity,h.`status`,p.location image,w.name warehouse
-         from  ( select h.shopid,  h.warehouseid,h.materialid,h.modifyday,h.`status`  ,sum( h.quantity) quantity    FROM t_erp_inventory_his h
-          where  h.shopid=#{shopid,jdbcType=CHAR} 
-           and h.modifyday >#{beginDate,jdbcType=CHAR}
-       		<if test="warehouse != null">
-			and h.warehouseid=#{warehouse,jdbcType=CHAR}
-		    </if>
-			and h.modifyday &lt;=#{endDate,jdbcType=CHAR}
-            and (h.`status`='fulfillable' or   h.`status` like 'outbound%' )
-             GROUP BY h.shopid,h.warehouseid,h.materialid,h.modifyday,h.`status`
-         	order by h.modifyday desc) h
-		left join t_erp_warehouse w on w.id=h.warehouseid  and w.shopid=h.shopid
-		left join t_erp_material m on m.id=h.materialid and m.shopid=h.shopid
-		left join t_picture p on p.id=m.image
-		WHERE   m.isDelete=0
-		
-		<if test="myself != null">
-			and m.owner = #{myself,jdbcType=CHAR}
-		</if>
-		 <if test="sku != null">
-			and m.sku like #{sku,jdbcType=CHAR}
-		</if>
-		union all
-			select 
-             h.shopid,h.warehouseid,h.materialid,m.sku,m.name pname,#{beginDate,jdbcType=CHAR} modifyday, h.quantity  quantity,h.`status`,p.location image,w.name warehouse
-         from  ( select h.shopid,  h.warehouseid,h.materialid,max(h.modifyday) modifyday,h.`status`   FROM t_erp_inventory_his h
-          where  h.shopid=#{shopid,jdbcType=CHAR} 
-           and h.modifyday &lt;=#{beginDate,jdbcType=CHAR}
-       		<if test="warehouse != null">
-			and h.warehouseid=#{warehouse,jdbcType=CHAR}
-		    </if>
-            and (h.`status`='fulfillable' or   h.`status` like 'outbound%' )
-             GROUP BY h.shopid,h.warehouseid,h.materialid,h.`status`) h1
-         left join t_erp_inventory_his h on h.shopid=h1.shopid and h.warehouseid=h1.warehouseid and h.materialid=h1.materialid and h.`status`=h1.`status` and h.modifyday=h1.modifyday
-		left join t_erp_warehouse w on w.id=h.warehouseid  and w.shopid=h.shopid
-		left join t_erp_material m on m.id=h.materialid and m.shopid=h.shopid
-		left join t_picture p on p.id=m.image
-		WHERE   m.isDelete=0
-		 <if test="myself != null">
-			and m.owner = #{myself,jdbcType=CHAR}
-		</if>
-		 <if test="sku != null">
-			and m.sku like #{sku,jdbcType=CHAR}
-		</if>
-	</select>
-
 	<select id="getFBAInvDayDetail" parameterType="java.util.Map" resultType="java.util.Map">
 		select t.sku,w.name warehouse
 		<if test="fieldlist != null">
@@ -588,5 +514,39 @@
 	</select>
 	
 
-
+	<select id="findFBA" resultType="com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo" parameterType="java.lang.String">
+		select a.groupid,ag.name groupname,a.shop_id shopid, i.marketplaceid , 
+			CONCAT('FBA-',case when i.marketplaceid='EU' then '欧洲' else m.name end ) warehouse, 
+		  	i.sku, max(p.`name`) pname,max(pc.location) image,
+			i.afn_warehouse_quantity afnWarehouseQuantity,
+			i.afn_fulfillable_quantity afnFulfillableQuantity,
+			i.afn_reserved_quantity afnReservedQuantity,
+			i.afn_inbound_working_quantity afnInboundWorkingQuantity ,
+			i.afn_inbound_shipped_quantity afnInboundShippedQuantity ,
+			i.afn_inbound_receiving_quantity afnInboundReceivingQuantity,
+			i.afn_unsellable_quantity afnUnsellableQuantity,
+			i.afn_researching_quantity afnResearchingQuantity
+		from t_inventory_report i
+		left join t_amazon_auth a on i.amazonAuthId=a.id
+		LEFT JOIN t_marketplace m ON (m.marketplaceId=i.marketplaceid OR m.region=i.marketplaceid)
+		left join t_amazon_group ag on ag.id=a.groupid 
+		left join t_product_info p on p.sku=i.sku and p.marketplaceid=m.marketplaceId and p.amazonAuthId=a.id 
+		left join t_product_in_opt opt on opt.pid=p.id
+		left join t_erp_material mt on mt.sku=ifnull(opt.msku,p.sku) and mt.shopid=a.shop_id and mt.isDelete=0
+		left join t_picture pc on pc.id=p.image 
+		where a.shop_id=#{shopid,jdbcType=CHAR} and a.disable=0 and i.isnewest=TRUE 
+		<if test="marketplaceid != null">
+			and i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="sku != null">
+			and i.sku=#{sku,jdbcType=CHAR}
+		</if>
+	    <if test="myself != null">
+			and mt.owner=#{myself,jdbcType=CHAR} 
+		</if>
+		group by i.id 
+	</select>
 </mapper>

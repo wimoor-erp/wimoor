@@ -512,6 +512,11 @@ public class CostDetail implements Serializable{
 	public void setSelling_GST(BigDecimal selling_GST) {
 		this.selling_GST = selling_GST;
 	}
+
+	public void setPerItemFee(BigDecimal perItemFee) {
+		// TODO Auto-generated method stub
+		
+	}
  
 
 }

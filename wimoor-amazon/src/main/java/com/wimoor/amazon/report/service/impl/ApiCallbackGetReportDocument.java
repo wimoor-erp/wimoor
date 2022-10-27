@@ -27,7 +27,6 @@ public class ApiCallbackGetReportDocument  implements ApiCallback<ReportDocument
 	@Override
 	public void onFailure(ApiException arg0, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackGetReportDocument----onFailure");
 		reportService.recordReportRequest(amazonAuthority,record,arg0);
 	}
 
@@ -39,7 +38,6 @@ public class ApiCallbackGetReportDocument  implements ApiCallback<ReportDocument
 	@Override
 	public void onSuccess(ReportDocument result, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackGetReportDocument----onSuccess");
 		if(amazonAuthority!=null&&result!=null) {
 			if(result!=null) {
 				reportService.downloadReport(amazonAuthority,record,result);

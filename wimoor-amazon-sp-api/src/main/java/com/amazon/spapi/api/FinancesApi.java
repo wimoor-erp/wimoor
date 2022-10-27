@@ -1,3 +1,4 @@
+package com.amazon.spapi.api;
 /*
  * Selling Partner API for Finances
  * The Selling Partner API for Finances helps you obtain financial information relevant to a seller's business. You can obtain financial events for a given order, financial event group, or date range without having to wait until a statement period closes. You can also obtain financial event groups for a given date range.
@@ -11,25 +12,36 @@
  */
 
 
-package com.amazon.spapi.api;
-
-import com.amazon.spapi.SellingPartnerAPIAA.*;
-import com.amazon.spapi.client.*;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
-
-
-import com.amazon.spapi.model.finances.ListFinancialEventGroupsResponse;
-import com.amazon.spapi.model.finances.ListFinancialEventsResponse;
-import org.threeten.bp.OffsetDateTime;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.threeten.bp.OffsetDateTime;
+
+import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentials;
+import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentialsProvider;
+import com.amazon.spapi.SellingPartnerAPIAA.AWSSigV4Signer;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAccessTokenCache;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAccessTokenCacheImpl;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationCredentials;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationSigner;
+import com.amazon.spapi.SellingPartnerAPIAA.RateLimitConfiguration;
+import com.amazon.spapi.client.ApiCallback;
+import com.amazon.spapi.client.ApiClient;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.client.ApiResponse;
+import com.amazon.spapi.client.Configuration;
+import com.amazon.spapi.client.Pair;
+import com.amazon.spapi.client.ProgressRequestBody;
+import com.amazon.spapi.client.ProgressResponseBody;
+import com.amazon.spapi.client.StringUtil;
+import com.amazon.spapi.model.finances.ListFinancialEventGroupsResponse;
+import com.amazon.spapi.model.finances.ListFinancialEventsResponse;
+import com.google.gson.reflect.TypeToken;
 
 public class FinancesApi {
     private ApiClient apiClient;
@@ -602,6 +614,7 @@ public class FinancesApi {
         private LWAAccessTokenCache lwaAccessTokenCache;
         private Boolean disableAccessTokenCache = false;
         private AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider;
+        private RateLimitConfiguration rateLimitConfiguration;
 
         public Builder awsAuthenticationCredentials(AWSAuthenticationCredentials awsAuthenticationCredentials) {
             this.awsAuthenticationCredentials = awsAuthenticationCredentials;
@@ -630,6 +643,16 @@ public class FinancesApi {
         
         public Builder awsAuthenticationCredentialsProvider(AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider) {
             this.awsAuthenticationCredentialsProvider = awsAuthenticationCredentialsProvider;
+            return this;
+        }
+        
+        public Builder rateLimitConfigurationOnRequests(RateLimitConfiguration rateLimitConfiguration){
+            this.rateLimitConfiguration = rateLimitConfiguration;
+            return this;
+        }
+        
+        public Builder disableRateLimitOnRequests() {
+            this.rateLimitConfiguration = null;
             return this;
         }
         
@@ -669,7 +692,8 @@ public class FinancesApi {
             return new FinancesApi(new ApiClient()
                 .setAWSSigV4Signer(awsSigV4Signer)
                 .setLWAAuthorizationSigner(lwaAuthorizationSigner)
-                .setBasePath(endpoint));
+                .setBasePath(endpoint)
+                .setRateLimiter(rateLimitConfiguration));
         }
     }
 }

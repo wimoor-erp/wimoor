@@ -1,5 +1,6 @@
 package com.wimoor.api.amzon.inbound.pojo.vo;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -27,6 +28,7 @@ public class ShipInboundItemVo extends BaseEntity {
 	@ApiModelProperty(value = "货件ID")
     private String ShipmentId;
 	
+	String typename;
 	@ApiModelProperty(value = "亚马逊仓库SKU")
 	@TableField(value="FNSKU")
     private String FNSKU;
@@ -39,8 +41,8 @@ public class ShipInboundItemVo extends BaseEntity {
     private Integer QuantityInCase;
 	
 	@ApiModelProperty(value = "接收数量")
-	@TableField(value="quantityreceived")
-    private Integer quantityreceived;
+	@TableField(value="QuantityReceived")
+    private Integer QuantityReceived;
 
 	@ApiModelProperty(value = "产品颜色")
     private String mcolor;
@@ -49,17 +51,28 @@ public class ShipInboundItemVo extends BaseEntity {
     private Integer boxnum;
 	 
 	@ApiModelProperty(value = "箱子长度cm")
-    private Integer boxlength;
+    private BigDecimal boxlength;
 	
 	@ApiModelProperty(value = "箱子宽度cm")
-    private Integer boxwidth;
+    private BigDecimal boxwidth;
 	
 	@ApiModelProperty(value = "箱子高度cm")
-    private Integer boxheight;
+    private BigDecimal boxheight;
 	
 	@ApiModelProperty(value = "箱子重量kg")
-    private Integer boxweight;
+    private BigDecimal boxweight;
 	
+	@ApiModelProperty(value = "体积")
+    private BigDecimal boxvolume;
+	
+	@ApiModelProperty(value = "产品体积")
+    private BigDecimal volume;
+	
+	@ApiModelProperty(value = "产品体积重")
+    private BigDecimal dimweight;
+	
+	@ApiModelProperty(value = "产品重量")
+    private BigDecimal weight;
 	
 	@ApiModelProperty(value = "是否组合产品")
     private Integer issfg;
@@ -71,7 +84,7 @@ public class ShipInboundItemVo extends BaseEntity {
     private Long invquantity;
 
 	@ApiModelProperty(value = "产品待出库库存")
-    private Long invquantity_outbound; 
+    private Long outbound; 
 	
 	@ApiModelProperty(value = "本地产品ID")
     private String materialid; 
@@ -94,9 +107,14 @@ public class ShipInboundItemVo extends BaseEntity {
     private String image;
 	
 	
+	@ApiModelProperty(value = "日均销量")
+    private Integer avgsales;
+	
+	
 	@ApiModelProperty(value = "货架库存")
 	List<WarehouseShelfInventoryVo> shelfInvList;
 	
-	@ApiModelProperty(value = "货架库存")
+	@ApiModelProperty(value = "组装列表")
 	List<AssemblyVO> assemblyList;
+	
 }

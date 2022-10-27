@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * ASINIdentifier
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class ASINIdentifier {
   @SerializedName("MarketplaceId")
   private String marketplaceId = null;

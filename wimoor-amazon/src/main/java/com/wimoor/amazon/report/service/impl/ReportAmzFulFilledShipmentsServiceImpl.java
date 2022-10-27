@@ -125,19 +125,30 @@ public class ReportAmzFulFilledShipmentsServiceImpl extends ReportServiceImpl{
 							OrdersFulfilledShipmentsReport report = new OrdersFulfilledShipmentsReport();
 							report.setAmazonOrderId(getStrValue(info,titleList,"amazon-order-id"));
 							report.setMerchantOrderId(getStrValue(info,titleList,"merchant-order-id"));
+							if(report.getMerchantOrderId().length()>=50) {
+								report.setMerchantOrderId(report.getMerchantOrderId().substring(0, 49));
+							}
 							report.setShipmentId(getStrValue(info,titleList,"shipment-id"));
 							report.setShipmentItemId(getStrValue(info,titleList,"shipment-item-id"));
 							report.setAmazonOrderItemId(getStrValue(info,titleList,"amazon-order-item-id"));
 							report.setMerchantOrderItemId(getStrValue(info,titleList,"merchant-order-item-id"));
+							if(report.getMerchantOrderItemId().length()>=30) {
+								report.setMerchantOrderItemId(report.getMerchantOrderItemId().substring(0, 29));
+							}
 							report.setPurchaseDate(GeneralUtil.getDatez(info[titleList.get("purchase-date")]));
 							report.setPaymentsDate(GeneralUtil.getDatez(info[titleList.get("payments-date")]));
 							report.setShipmentDate(GeneralUtil.getDatez(info[titleList.get("shipment-date")]));
 							report.setReportingDate(GeneralUtil.getDatez(info[titleList.get("reporting-date")]));
 							report.setBuyerEmail(getStrValue(info,titleList,"buyer-email"));
 							report.setBuyerName(getStrValue(info,titleList,"buyer-name"));
+						
 							report.setBuyerPhoneNumber(getStrValue(info,titleList,"buyer-phone-number"));
 							report.setSku(getStrValue(info,titleList,"sku"));
+							if(report.getSku()!=null&&report.getSku().length()>=50) {
+								report.setSku(report.getSku().substring(0, 49));
+							}
 							report.setProductName(EmojiFilterUtils.filterEmoji(getStrValue(info,titleList,"product-name")));
+							report.setProductName("");
 							report.setQuantityShipped(new Integer(info[titleList.get("quantity-shipped")]));
 							report.setCurrency(getStrValue(info,titleList,"currency"));
 							report.setItemPrice(getBigDecimalValue(info,titleList,"item-price"));
@@ -171,11 +182,18 @@ public class ReportAmzFulFilledShipmentsServiceImpl extends ReportServiceImpl{
 							report.setFulfillmentCenterId(getStrValue(info,titleList,"fulfillment-center-id"));
 							report.setFulfillmentChannel(getStrValue(info,titleList,"fulfillment-channel"));
 							report.setSalesChannel(getStrValue(info,titleList,"sales-channel"));
+							report.setAmazonauthid(amazonAuthority.getId());
 							list.add(report);
+						}
+						if(list.size()>200) {
+							ordersFulfilledShipmentsReportMapper.insertBatch(list);
+							list.clear();
 						}
 						lineNumber++;
 					}
-					ordersFulfilledShipmentsReportMapper.insertBatch(list);
+					if(list.size()>0) {
+						ordersFulfilledShipmentsReportMapper.insertBatch(list);
+					}
 				} catch (NumberFormatException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

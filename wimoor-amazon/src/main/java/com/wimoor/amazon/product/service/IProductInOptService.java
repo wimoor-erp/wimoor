@@ -1,6 +1,14 @@
 package com.wimoor.amazon.product.service;
 
+import com.wimoor.amazon.product.pojo.dto.ProductPriceDTO;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
+import com.wimoor.amazon.product.pojo.entity.ProductPrice;
+import com.wimoor.amazon.product.pojo.vo.ProductPriceVo;
+
+import java.util.List;
+import java.util.Map;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -13,4 +21,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IProductInOptService extends IService<ProductInOpt> {
 
+	void refreshAllProductAdv();
+	public  IPage<ProductPriceVo>  priceQueue(ProductPriceDTO dto);
+	public List<Map<String, Object>> findMaterialSizeByCondition(Map<String, Object> param);
+	public List<Map<String, Object>> getProRemarkHis(String pid,String ftype);
+	public List<ProductPrice> findPrice(String pid);
 }

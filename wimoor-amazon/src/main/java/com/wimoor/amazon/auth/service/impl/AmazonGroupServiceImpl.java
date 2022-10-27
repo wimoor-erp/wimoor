@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.api.AdminClientOneFeign;
 import com.wimoor.amazon.auth.mapper.AmazonGroupMapper;
@@ -48,4 +49,15 @@ public class AmazonGroupServiceImpl extends ServiceImpl<AmazonGroupMapper, Amazo
 			}
 		   return groupList;
 	}
+
+	@Override
+	public List<AmazonGroup> selectByShopId(String shopid) {
+		// TODO Auto-generated method stub
+			QueryWrapper<AmazonGroup> query = new QueryWrapper<AmazonGroup>();
+			query.eq("shopid", shopid);
+			List<AmazonGroup> glist = this.baseMapper.selectList(query);
+			return glist;
+	}
+
+ 
 }

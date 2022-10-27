@@ -14,11 +14,7 @@
   </sql>
    <delete id="refreshSummary" parameterType="java.util.Map">
 		delete from t_amz_settlement_summary_returns
-		where marketplace_name = #{marketplace_name,jdbcType=CHAR}
-		and posted_date >= #{beginDate,jdbcType=DATE}
-		and posted_date &lt;= #{endDate,jdbcType=DATE}
-		and amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
-		and settlementid=#{settlement_id,jdbcType=CHAR};
+		where settlementid=#{settlement_id,jdbcType=CHAR};
 	       
 		insert into t_amz_settlement_summary_returns 
 		select UUID_SHORT(),r.settlement_id,r.amazonauthid,IFNULL(r.sku,'*'),
@@ -30,11 +26,7 @@
 		where r.transaction_type='Refund' 
 		  and r.amount_description='Principal' 
 		  and r.amount_type='ItemPrice' 
-          and rt.marketplace_name = #{marketplace_name,jdbcType=CHAR}
-		  and r.posted_date >= #{beginDate,jdbcType=DATE}
-		  and r.posted_date &lt;= #{endDate,jdbcType=DATE}
-		  and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
-		  and r.settlement_id=#{settlement_id,jdbcType=CHAR}
+          and r.settlement_id=#{settlement_id,jdbcType=CHAR}
 		group BY r.amazonAuthId,sku,rt.marketplace_name ,r.posted_date
 	</delete>
 	

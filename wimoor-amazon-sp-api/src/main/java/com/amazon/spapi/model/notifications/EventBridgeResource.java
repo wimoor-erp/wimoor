@@ -1,6 +1,6 @@
 /*
  * Selling Partner API for Notifications
- * The Selling Partner API for Notifications lets you subscribe to notifications that are relevant to a selling partner's business. Using this API you can create a destination to receive notifications, subscribe to notifications, delete notification subscriptions, and more.
+ * The Selling Partner API for Notifications lets you subscribe to notifications that are relevant to a selling partner's business. Using this API you can create a destination to receive notifications, subscribe to notifications, delete notification subscriptions, and more.  For more information, see the [Notifications Use Case Guide](doc:notifications-api-v1-use-case-guide).
  *
  * OpenAPI spec version: v1
  * 
@@ -28,7 +28,7 @@ import java.io.IOException;
  * Represents an Amazon EventBridge destination.
  */
 @ApiModel(description = "Represents an Amazon EventBridge destination.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:51:27.111+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-01T14:03:31.230+08:00")
 public class EventBridgeResource {
   @SerializedName("name")
   private String name = null;

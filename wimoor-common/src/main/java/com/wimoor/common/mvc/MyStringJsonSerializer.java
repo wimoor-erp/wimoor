@@ -10,13 +10,14 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  
 public class MyStringJsonSerializer extends JsonSerializer<String> {
 	ObjectMapper mapper;
-
+    FileUpload fileUpload;
 	public MyStringJsonSerializer() {
 		mapper = new ObjectMapper();
 	}
 
-	public MyStringJsonSerializer(ObjectMapper mapper) {
+	public MyStringJsonSerializer(ObjectMapper mapper,FileUpload fileUpload) {
 		this.mapper = mapper;
+		this.fileUpload=fileUpload;
 	}
 
 
@@ -27,7 +28,7 @@ public class MyStringJsonSerializer extends JsonSerializer<String> {
 			if(gen.getOutputContext().getCurrentName()!=null)
 				if("image".equals(gen.getOutputContext().getCurrentName())||
 				   "location".equals(gen.getOutputContext().getCurrentName())) {
-				    value=FileUpload.getPictureImage(value);
+				    value=fileUpload.getPictureImage(value);
 			}
 		} 
 		gen.writeString(value);

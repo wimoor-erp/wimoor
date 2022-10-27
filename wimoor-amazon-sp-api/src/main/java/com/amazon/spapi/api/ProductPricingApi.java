@@ -13,21 +13,37 @@
 
 package com.amazon.spapi.api;
 
-import com.amazon.spapi.SellingPartnerAPIAA.*;
-import com.amazon.spapi.client.*;
-import com.google.gson.reflect.TypeToken;
-
 import java.io.IOException;
-
-
-import com.amazon.spapi.model.productpricing.GetOffersResponse;
-import com.amazon.spapi.model.productpricing.GetPricingResponse;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentials;
+import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentialsProvider;
+import com.amazon.spapi.SellingPartnerAPIAA.AWSSigV4Signer;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAccessTokenCache;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAccessTokenCacheImpl;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationCredentials;
+import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationSigner;
+import com.amazon.spapi.SellingPartnerAPIAA.RateLimitConfiguration;
+import com.amazon.spapi.client.ApiCallback;
+import com.amazon.spapi.client.ApiClient;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.client.ApiResponse;
+import com.amazon.spapi.client.Configuration;
+import com.amazon.spapi.client.Pair;
+import com.amazon.spapi.client.ProgressRequestBody;
+import com.amazon.spapi.client.ProgressResponseBody;
+import com.amazon.spapi.client.StringUtil;
+import com.amazon.spapi.model.productpricing.GetItemOffersBatchRequest;
+import com.amazon.spapi.model.productpricing.GetItemOffersBatchResponse;
+import com.amazon.spapi.model.productpricing.GetListingOffersBatchRequest;
+import com.amazon.spapi.model.productpricing.GetListingOffersBatchResponse;
+import com.amazon.spapi.model.productpricing.GetOffersResponse;
+import com.amazon.spapi.model.productpricing.GetPricingResponse;
+import com.google.gson.reflect.TypeToken;
 
 public class ProductPricingApi {
     private ApiClient apiClient;
@@ -54,12 +70,13 @@ public class ProductPricingApi {
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. Possible values: Asin, Sku. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
+     * @param customerType Indicates whether to request pricing information from the point of view of Consumer or Business buyers. Default is Consumer. (optional)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getCompetitivePricingCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getCompetitivePricingCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, String customerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
@@ -75,6 +92,8 @@ public class ProductPricingApi {
         localVarCollectionQueryParams.addAll(apiClient.parameterToPairs("csv", "Skus", skus));
         if (itemType != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("ItemType", itemType));
+        if (customerType != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("CustomerType", customerType));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -109,7 +128,7 @@ public class ProductPricingApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getCompetitivePricingValidateBeforeCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getCompetitivePricingValidateBeforeCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, String customerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         
         // verify the required parameter 'marketplaceId' is set
         if (marketplaceId == null) {
@@ -122,54 +141,57 @@ public class ProductPricingApi {
         }
         
 
-        com.squareup.okhttp.Call call = getCompetitivePricingCall(marketplaceId, itemType, asins, skus, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getCompetitivePricingCall(marketplaceId, itemType, asins, skus, customerType, progressListener, progressRequestListener);
         return call;
 
     }
 
     /**
      * 
-     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. Possible values: Asin, Sku. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
+     * @param customerType Indicates whether to request pricing information from the point of view of Consumer or Business buyers. Default is Consumer. (optional)
      * @return GetPricingResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public GetPricingResponse getCompetitivePricing(String marketplaceId, String itemType, List<String> asins, List<String> skus) throws ApiException {
-        ApiResponse<GetPricingResponse> resp = getCompetitivePricingWithHttpInfo(marketplaceId, itemType, asins, skus);
+    public GetPricingResponse getCompetitivePricing(String marketplaceId, String itemType, List<String> asins, List<String> skus, String customerType) throws ApiException {
+        ApiResponse<GetPricingResponse> resp = getCompetitivePricingWithHttpInfo(marketplaceId, itemType, asins, skus, customerType);
         return resp.getData();
     }
 
     /**
      * 
-     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. Possible values: Asin, Sku. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
+     * @param customerType Indicates whether to request pricing information from the point of view of Consumer or Business buyers. Default is Consumer. (optional)
      * @return ApiResponse&lt;GetPricingResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<GetPricingResponse> getCompetitivePricingWithHttpInfo(String marketplaceId, String itemType, List<String> asins, List<String> skus) throws ApiException {
-        com.squareup.okhttp.Call call = getCompetitivePricingValidateBeforeCall(marketplaceId, itemType, asins, skus, null, null);
+    public ApiResponse<GetPricingResponse> getCompetitivePricingWithHttpInfo(String marketplaceId, String itemType, List<String> asins, List<String> skus, String customerType) throws ApiException {
+        com.squareup.okhttp.Call call = getCompetitivePricingValidateBeforeCall(marketplaceId, itemType, asins, skus, customerType, null, null);
         Type localVarReturnType = new TypeToken<GetPricingResponse>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      *  (asynchronously)
-     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. Possible values: Asin, Sku. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
+     * @param customerType Indicates whether to request pricing information from the point of view of Consumer or Business buyers. Default is Consumer. (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getCompetitivePricingAsync(String marketplaceId, String itemType, List<String> asins, List<String> skus, final ApiCallback<GetPricingResponse> callback) throws ApiException {
+    public com.squareup.okhttp.Call getCompetitivePricingAsync(String marketplaceId, String itemType, List<String> asins, List<String> skus, String customerType, final ApiCallback<GetPricingResponse> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -190,7 +212,7 @@ public class ProductPricingApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getCompetitivePricingValidateBeforeCall(marketplaceId, itemType, asins, skus, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getCompetitivePricingValidateBeforeCall(marketplaceId, itemType, asins, skus, customerType, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<GetPricingResponse>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -200,12 +222,13 @@ public class ProductPricingApi {
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings to be considered based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param asin The Amazon Standard Identification Number (ASIN) of the item. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getItemOffersCall(String marketplaceId, String itemCondition, String asin, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getItemOffersCall(String marketplaceId, String itemCondition, String asin, String customerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
@@ -218,6 +241,8 @@ public class ProductPricingApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("MarketplaceId", marketplaceId));
         if (itemCondition != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("ItemCondition", itemCondition));
+        if (customerType != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("CustomerType", customerType));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -252,7 +277,7 @@ public class ProductPricingApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getItemOffersValidateBeforeCall(String marketplaceId, String itemCondition, String asin, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getItemOffersValidateBeforeCall(String marketplaceId, String itemCondition, String asin, String customerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         
         // verify the required parameter 'marketplaceId' is set
         if (marketplaceId == null) {
@@ -270,51 +295,54 @@ public class ProductPricingApi {
         }
         
 
-        com.squareup.okhttp.Call call = getItemOffersCall(marketplaceId, itemCondition, asin, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getItemOffersCall(marketplaceId, itemCondition, asin, customerType, progressListener, progressRequestListener);
         return call;
 
     }
 
     /**
      * 
-     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings to be considered based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param asin The Amazon Standard Identification Number (ASIN) of the item. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @return GetOffersResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public GetOffersResponse getItemOffers(String marketplaceId, String itemCondition, String asin) throws ApiException {
-        ApiResponse<GetOffersResponse> resp = getItemOffersWithHttpInfo(marketplaceId, itemCondition, asin);
+    public GetOffersResponse getItemOffers(String marketplaceId, String itemCondition, String asin, String customerType) throws ApiException {
+        ApiResponse<GetOffersResponse> resp = getItemOffersWithHttpInfo(marketplaceId, itemCondition, asin, customerType);
         return resp.getData();
     }
 
     /**
      * 
-     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings to be considered based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param asin The Amazon Standard Identification Number (ASIN) of the item. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @return ApiResponse&lt;GetOffersResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<GetOffersResponse> getItemOffersWithHttpInfo(String marketplaceId, String itemCondition, String asin) throws ApiException {
-        com.squareup.okhttp.Call call = getItemOffersValidateBeforeCall(marketplaceId, itemCondition, asin, null, null);
+    public ApiResponse<GetOffersResponse> getItemOffersWithHttpInfo(String marketplaceId, String itemCondition, String asin, String customerType) throws ApiException {
+        com.squareup.okhttp.Call call = getItemOffersValidateBeforeCall(marketplaceId, itemCondition, asin, customerType, null, null);
         Type localVarReturnType = new TypeToken<GetOffersResponse>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      *  (asynchronously)
-     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings to be considered based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param asin The Amazon Standard Identification Number (ASIN) of the item. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getItemOffersAsync(String marketplaceId, String itemCondition, String asin, final ApiCallback<GetOffersResponse> callback) throws ApiException {
+    public com.squareup.okhttp.Call getItemOffersAsync(String marketplaceId, String itemCondition, String asin, String customerType, final ApiCallback<GetOffersResponse> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -335,8 +363,130 @@ public class ProductPricingApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getItemOffersValidateBeforeCall(marketplaceId, itemCondition, asin, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getItemOffersValidateBeforeCall(marketplaceId, itemCondition, asin, customerType, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<GetOffersResponse>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for getItemOffersBatch
+     * @param getItemOffersBatchRequestBody  (required)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call getItemOffersBatchCall(GetItemOffersBatchRequest getItemOffersBatchRequestBody, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = getItemOffersBatchRequestBody;
+
+        // create path and map variables
+        String localVarPath = "/batches/products/pricing/v0/itemOffers";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call getItemOffersBatchValidateBeforeCall(GetItemOffersBatchRequest getItemOffersBatchRequestBody, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        
+        // verify the required parameter 'getItemOffersBatchRequestBody' is set
+        if (getItemOffersBatchRequestBody == null) {
+            throw new ApiException("Missing the required parameter 'getItemOffersBatchRequestBody' when calling getItemOffersBatch(Async)");
+        }
+        
+
+        com.squareup.okhttp.Call call = getItemOffersBatchCall(getItemOffersBatchRequestBody, progressListener, progressRequestListener);
+        return call;
+
+    }
+
+    /**
+     * 
+     * Returns the lowest priced offers for a batch of items based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     * @param getItemOffersBatchRequestBody  (required)
+     * @return GetItemOffersBatchResponse
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public GetItemOffersBatchResponse getItemOffersBatch(GetItemOffersBatchRequest getItemOffersBatchRequestBody) throws ApiException {
+        ApiResponse<GetItemOffersBatchResponse> resp = getItemOffersBatchWithHttpInfo(getItemOffersBatchRequestBody);
+        return resp.getData();
+    }
+
+    /**
+     * 
+     * Returns the lowest priced offers for a batch of items based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     * @param getItemOffersBatchRequestBody  (required)
+     * @return ApiResponse&lt;GetItemOffersBatchResponse&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<GetItemOffersBatchResponse> getItemOffersBatchWithHttpInfo(GetItemOffersBatchRequest getItemOffersBatchRequestBody) throws ApiException {
+        com.squareup.okhttp.Call call = getItemOffersBatchValidateBeforeCall(getItemOffersBatchRequestBody, null, null);
+        Type localVarReturnType = new TypeToken<GetItemOffersBatchResponse>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     *  (asynchronously)
+     * Returns the lowest priced offers for a batch of items based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     * @param getItemOffersBatchRequestBody  (required)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call getItemOffersBatchAsync(GetItemOffersBatchRequest getItemOffersBatchRequestBody, final ApiCallback<GetItemOffersBatchResponse> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = getItemOffersBatchValidateBeforeCall(getItemOffersBatchRequestBody, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<GetItemOffersBatchResponse>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
     }
@@ -345,12 +495,13 @@ public class ProductPricingApi {
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param sellerSKU Identifies an item in the given marketplace. SellerSKU is qualified by the seller&#39;s SellerId, which is included with every operation that you submit. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getListingOffersCall(String marketplaceId, String itemCondition, String sellerSKU, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getListingOffersCall(String marketplaceId, String itemCondition, String sellerSKU, String customerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
@@ -363,6 +514,8 @@ public class ProductPricingApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("MarketplaceId", marketplaceId));
         if (itemCondition != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("ItemCondition", itemCondition));
+        if (customerType != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("CustomerType", customerType));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -397,7 +550,7 @@ public class ProductPricingApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getListingOffersValidateBeforeCall(String marketplaceId, String itemCondition, String sellerSKU, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getListingOffersValidateBeforeCall(String marketplaceId, String itemCondition, String sellerSKU, String customerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         
         // verify the required parameter 'marketplaceId' is set
         if (marketplaceId == null) {
@@ -415,51 +568,54 @@ public class ProductPricingApi {
         }
         
 
-        com.squareup.okhttp.Call call = getListingOffersCall(marketplaceId, itemCondition, sellerSKU, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getListingOffersCall(marketplaceId, itemCondition, sellerSKU, customerType, progressListener, progressRequestListener);
         return call;
 
     }
 
     /**
      * 
-     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param sellerSKU Identifies an item in the given marketplace. SellerSKU is qualified by the seller&#39;s SellerId, which is included with every operation that you submit. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @return GetOffersResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public GetOffersResponse getListingOffers(String marketplaceId, String itemCondition, String sellerSKU) throws ApiException {
-        ApiResponse<GetOffersResponse> resp = getListingOffersWithHttpInfo(marketplaceId, itemCondition, sellerSKU);
+    public GetOffersResponse getListingOffers(String marketplaceId, String itemCondition, String sellerSKU, String customerType) throws ApiException {
+        ApiResponse<GetOffersResponse> resp = getListingOffersWithHttpInfo(marketplaceId, itemCondition, sellerSKU, customerType);
         return resp.getData();
     }
 
     /**
      * 
-     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param sellerSKU Identifies an item in the given marketplace. SellerSKU is qualified by the seller&#39;s SellerId, which is included with every operation that you submit. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @return ApiResponse&lt;GetOffersResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<GetOffersResponse> getListingOffersWithHttpInfo(String marketplaceId, String itemCondition, String sellerSKU) throws ApiException {
-        com.squareup.okhttp.Call call = getListingOffersValidateBeforeCall(marketplaceId, itemCondition, sellerSKU, null, null);
+    public ApiResponse<GetOffersResponse> getListingOffersWithHttpInfo(String marketplaceId, String itemCondition, String sellerSKU, String customerType) throws ApiException {
+        com.squareup.okhttp.Call call = getListingOffersValidateBeforeCall(marketplaceId, itemCondition, sellerSKU, customerType, null, null);
         Type localVarReturnType = new TypeToken<GetOffersResponse>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      *  (asynchronously)
-     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (required)
      * @param sellerSKU Identifies an item in the given marketplace. SellerSKU is qualified by the seller&#39;s SellerId, which is included with every operation that you submit. (required)
+     * @param customerType Indicates whether to request Consumer or Business offers. Default is Consumer. (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getListingOffersAsync(String marketplaceId, String itemCondition, String sellerSKU, final ApiCallback<GetOffersResponse> callback) throws ApiException {
+    public com.squareup.okhttp.Call getListingOffersAsync(String marketplaceId, String itemCondition, String sellerSKU, String customerType, final ApiCallback<GetOffersResponse> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -480,8 +636,130 @@ public class ProductPricingApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getListingOffersValidateBeforeCall(marketplaceId, itemCondition, sellerSKU, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getListingOffersValidateBeforeCall(marketplaceId, itemCondition, sellerSKU, customerType, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<GetOffersResponse>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for getListingOffersBatch
+     * @param getListingOffersBatchRequestBody  (required)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call getListingOffersBatchCall(GetListingOffersBatchRequest getListingOffersBatchRequestBody, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = getListingOffersBatchRequestBody;
+
+        // create path and map variables
+        String localVarPath = "/batches/products/pricing/v0/listingOffers";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call getListingOffersBatchValidateBeforeCall(GetListingOffersBatchRequest getListingOffersBatchRequestBody, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        
+        // verify the required parameter 'getListingOffersBatchRequestBody' is set
+        if (getListingOffersBatchRequestBody == null) {
+            throw new ApiException("Missing the required parameter 'getListingOffersBatchRequestBody' when calling getListingOffersBatch(Async)");
+        }
+        
+
+        com.squareup.okhttp.Call call = getListingOffersBatchCall(getListingOffersBatchRequestBody, progressListener, progressRequestListener);
+        return call;
+
+    }
+
+    /**
+     * 
+     * Returns the lowest priced offers for a batch of listings by SKU.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     * @param getListingOffersBatchRequestBody  (required)
+     * @return GetListingOffersBatchResponse
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public GetListingOffersBatchResponse getListingOffersBatch(GetListingOffersBatchRequest getListingOffersBatchRequestBody) throws ApiException {
+        ApiResponse<GetListingOffersBatchResponse> resp = getListingOffersBatchWithHttpInfo(getListingOffersBatchRequestBody);
+        return resp.getData();
+    }
+
+    /**
+     * 
+     * Returns the lowest priced offers for a batch of listings by SKU.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     * @param getListingOffersBatchRequestBody  (required)
+     * @return ApiResponse&lt;GetListingOffersBatchResponse&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<GetListingOffersBatchResponse> getListingOffersBatchWithHttpInfo(GetListingOffersBatchRequest getListingOffersBatchRequestBody) throws ApiException {
+        com.squareup.okhttp.Call call = getListingOffersBatchValidateBeforeCall(getListingOffersBatchRequestBody, null, null);
+        Type localVarReturnType = new TypeToken<GetListingOffersBatchResponse>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     *  (asynchronously)
+     * Returns the lowest priced offers for a batch of listings by SKU.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     * @param getListingOffersBatchRequestBody  (required)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call getListingOffersBatchAsync(GetListingOffersBatchRequest getListingOffersBatchRequestBody, final ApiCallback<GetListingOffersBatchResponse> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = getListingOffersBatchValidateBeforeCall(getListingOffersBatchRequestBody, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<GetListingOffersBatchResponse>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
     }
@@ -492,12 +770,13 @@ public class ProductPricingApi {
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (optional)
+     * @param offerType Indicates whether to request pricing information for the seller&#39;s B2C or B2B offers. Default is B2C. (optional)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getPricingCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getPricingCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, String offerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = null;
 
         // create path and map variables
@@ -515,6 +794,8 @@ public class ProductPricingApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("ItemType", itemType));
         if (itemCondition != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("ItemCondition", itemCondition));
+        if (offerType != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("OfferType", offerType));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -549,7 +830,7 @@ public class ProductPricingApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getPricingValidateBeforeCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getPricingValidateBeforeCall(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, String offerType, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         
         // verify the required parameter 'marketplaceId' is set
         if (marketplaceId == null) {
@@ -562,57 +843,60 @@ public class ProductPricingApi {
         }
         
 
-        com.squareup.okhttp.Call call = getPricingCall(marketplaceId, itemType, asins, skus, itemCondition, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getPricingCall(marketplaceId, itemType, asins, skus, itemCondition, offerType, progressListener, progressRequestListener);
         return call;
 
     }
 
     /**
      * 
-     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (optional)
+     * @param offerType Indicates whether to request pricing information for the seller&#39;s B2C or B2B offers. Default is B2C. (optional)
      * @return GetPricingResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public GetPricingResponse getPricing(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition) throws ApiException {
-        ApiResponse<GetPricingResponse> resp = getPricingWithHttpInfo(marketplaceId, itemType, asins, skus, itemCondition);
+    public GetPricingResponse getPricing(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, String offerType) throws ApiException {
+        ApiResponse<GetPricingResponse> resp = getPricingWithHttpInfo(marketplaceId, itemType, asins, skus, itemCondition, offerType);
         return resp.getData();
     }
 
     /**
      * 
-     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (optional)
+     * @param offerType Indicates whether to request pricing information for the seller&#39;s B2C or B2B offers. Default is B2C. (optional)
      * @return ApiResponse&lt;GetPricingResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<GetPricingResponse> getPricingWithHttpInfo(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition) throws ApiException {
-        com.squareup.okhttp.Call call = getPricingValidateBeforeCall(marketplaceId, itemType, asins, skus, itemCondition, null, null);
+    public ApiResponse<GetPricingResponse> getPricingWithHttpInfo(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, String offerType) throws ApiException {
+        com.squareup.okhttp.Call call = getPricingValidateBeforeCall(marketplaceId, itemType, asins, skus, itemCondition, offerType, null, null);
         Type localVarReturnType = new TypeToken<GetPricingResponse>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      *  (asynchronously)
-     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      * @param marketplaceId A marketplace identifier. Specifies the marketplace for which prices are returned. (required)
      * @param itemType Indicates whether ASIN values or seller SKU values are used to identify items. If you specify Asin, the information in the response will be dependent on the list of Asins you provide in the Asins parameter. If you specify Sku, the information in the response will be dependent on the list of Skus you provide in the Skus parameter. (required)
      * @param asins A list of up to twenty Amazon Standard Identification Number (ASIN) values used to identify items in the given marketplace. (optional)
      * @param skus A list of up to twenty seller SKU values used to identify items in the given marketplace. (optional)
      * @param itemCondition Filters the offer listings based on item condition. Possible values: New, Used, Collectible, Refurbished, Club. (optional)
+     * @param offerType Indicates whether to request pricing information for the seller&#39;s B2C or B2B offers. Default is B2C. (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getPricingAsync(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, final ApiCallback<GetPricingResponse> callback) throws ApiException {
+    public com.squareup.okhttp.Call getPricingAsync(String marketplaceId, String itemType, List<String> asins, List<String> skus, String itemCondition, String offerType, final ApiCallback<GetPricingResponse> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -633,7 +917,7 @@ public class ProductPricingApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getPricingValidateBeforeCall(marketplaceId, itemType, asins, skus, itemCondition, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getPricingValidateBeforeCall(marketplaceId, itemType, asins, skus, itemCondition, offerType, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<GetPricingResponse>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -646,6 +930,7 @@ public class ProductPricingApi {
         private LWAAccessTokenCache lwaAccessTokenCache;
         private Boolean disableAccessTokenCache = false;
         private AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider;
+        private RateLimitConfiguration rateLimitConfiguration;
 
         public Builder awsAuthenticationCredentials(AWSAuthenticationCredentials awsAuthenticationCredentials) {
             this.awsAuthenticationCredentials = awsAuthenticationCredentials;
@@ -674,6 +959,16 @@ public class ProductPricingApi {
         
         public Builder awsAuthenticationCredentialsProvider(AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider) {
             this.awsAuthenticationCredentialsProvider = awsAuthenticationCredentialsProvider;
+            return this;
+        }
+        
+        public Builder rateLimitConfigurationOnRequests(RateLimitConfiguration rateLimitConfiguration){
+            this.rateLimitConfiguration = rateLimitConfiguration;
+            return this;
+        }
+        
+        public Builder disableRateLimitOnRequests() {
+            this.rateLimitConfiguration = null;
             return this;
         }
         
@@ -713,7 +1008,8 @@ public class ProductPricingApi {
             return new ProductPricingApi(new ApiClient()
                 .setAWSSigV4Signer(awsSigV4Signer)
                 .setLWAAuthorizationSigner(lwaAuthorizationSigner)
-                .setBasePath(endpoint));
+                .setBasePath(endpoint)
+                .setRateLimiter(rateLimitConfiguration));
         }
     }
 }

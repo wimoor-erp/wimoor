@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvBrowseNodeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvBrowseNode" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="parentid" property="parentid" jdbcType="BIGINT" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="level" property="level" jdbcType="INTEGER" />
+    <result column="is_category_root" property="isCategoryRoot" jdbcType="BIT" />
+    <result column="refreshtime" property="refreshtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, parentid, country, level, is_category_root, refreshtime
+  </sql>
+  
+   <insert id="insertBatch" parameterType="java.util.List" >
+    insert into t_amz_adv_browsenode (id, name, parentid, 
+      country, level, is_category_root, refreshtime
+      )
+    values
+     <foreach collection ="list" item="node" index= "index" separator =",">
+     (#{node.id,jdbcType=BIGINT}, #{node.name,jdbcType=CHAR}, #{node.parentid,jdbcType=BIGINT}, 
+      #{node.country,jdbcType=CHAR},#{node.level,jdbcType=INTEGER}, #{node.isCategoryRoot,jdbcType=BIT}, 
+      #{node.refreshtime,jdbcType=TIMESTAMP}
+      )
+      </foreach>
+  </insert>
+  
+  <select id="selcetByParentId" resultMap="BaseResultMap" parameterType="java.math.BigInteger" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_browsenode
+    where parentid = #{id,jdbcType=BIGINT}
+  </select>
+  
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_browsenode
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_amz_adv_browsenode
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvBrowseNode" >
+    insert into t_amz_adv_browsenode (id, name, parentid, 
+      country, is_category_root, refreshtime
+      )
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=CHAR}, #{parentid,jdbcType=BIGINT}, 
+      #{country,jdbcType=CHAR}, #{isCategoryRoot,jdbcType=BIT}, #{refreshtime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvBrowseNode" >
+    insert into t_amz_adv_browsenode
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="parentid != null" >
+        parentid,
+      </if>
+      <if test="country != null" >
+        country,
+      </if>
+      <if test="isCategoryRoot != null" >
+        is_category_root,
+      </if>
+      <if test="refreshtime != null" >
+        refreshtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=CHAR},
+      </if>
+      <if test="parentid != null" >
+        #{parentid,jdbcType=BIGINT},
+      </if>
+      <if test="country != null" >
+        #{country,jdbcType=CHAR},
+      </if>
+      <if test="isCategoryRoot != null" >
+        #{isCategoryRoot,jdbcType=BIT},
+      </if>
+      <if test="refreshtime != null" >
+        #{refreshtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvBrowseNode" >
+    update t_amz_adv_browsenode
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=CHAR},
+      </if>
+      <if test="parentid != null" >
+        parentid = #{parentid,jdbcType=BIGINT},
+      </if>
+      <if test="country != null" >
+        country = #{country,jdbcType=CHAR},
+      </if>
+      <if test="isCategoryRoot != null" >
+        is_category_root = #{isCategoryRoot,jdbcType=BIT},
+      </if>
+      <if test="refreshtime != null" >
+        refreshtime = #{refreshtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvBrowseNode" >
+    update t_amz_adv_browsenode
+    set name = #{name,jdbcType=CHAR},
+      parentid = #{parentid,jdbcType=BIGINT},
+      country = #{country,jdbcType=CHAR},
+      is_category_root = #{isCategoryRoot,jdbcType=BIT},
+      refreshtime = #{refreshtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update> -->
+</mapper>

@@ -29,7 +29,17 @@ public class AmzProductRefreshServiceImpl extends ServiceImpl<AmzProductRefreshM
 		this.baseMapper.insertDefault();
 	}
 	
-	public List<AmzProductRefresh> findForDetailRefresh(String amazonauthid){
+	public AmzProductRefresh findForDetailRefresh(String amazonauthid){
 		return this.baseMapper.findForDetailRefresh(amazonauthid);
+	}
+
+	public List<AmzProductRefresh> findForCatalogRefresh(String amazonauthid){
+		return this.baseMapper.findForCatalogRefresh(amazonauthid);
+	}
+	
+	@Override
+	public List<AmzProductRefresh> findForPriceRefresh(String amazonauthid) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.findForPriceRefresh(amazonauthid);
 	}
 }

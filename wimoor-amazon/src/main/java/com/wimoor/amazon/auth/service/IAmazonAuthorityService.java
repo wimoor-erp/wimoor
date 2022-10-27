@@ -1,8 +1,13 @@
 package com.wimoor.amazon.auth.service;
 
 import java.util.List;
+import java.util.Map;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.vo.AmazonGroupVO;
+import com.wimoor.amazon.report.pojo.entity.AmazonAuthMarketPerformance;
+import com.wimoor.common.user.UserInfo;
  
 public interface IAmazonAuthorityService  extends IService<AmazonAuthority> {
 
@@ -10,7 +15,7 @@ public interface IAmazonAuthorityService  extends IService<AmazonAuthority> {
 
 	public   void executTask(IRunAmazonService apiService) ;
 
-	public   void executThread(List<Runnable> runnables, int waitMinute) ;
+	public   void executThread(List<Runnable> runnables,String type) ;
 	
 	public AmazonAuthority selectByGroupAndMarket(String groupid,String marketplaceid);
 	
@@ -20,12 +25,18 @@ public interface IAmazonAuthorityService  extends IService<AmazonAuthority> {
 
 	AmazonAuthority authSeller(String state, String selling_partner_id, String mws_auth_token, String spapi_oauth_code);
 
-	String getAuthUrl(String groupid, String marketplaceid);
+	String getAuthUrl(String groupid, String marketplaceid,String redirecturl);
 	
 	public List<AmazonAuthority> selectByGroupId(String groupid);
 	
 	public 	List<AmazonAuthority> getAllAuth(String region) ;
 	
 	public 	List<AmazonAuthority> getAllAuth() ;
+
+	AmazonAuthMarketPerformance getPerformance(AmazonAuthority auth, String marketplaceid);
+	
+	public List<AmazonGroupVO> selectBindAuth(UserInfo user);
+	
+	public int deleteByLogic(Map<String,Object> param);
 	
 }

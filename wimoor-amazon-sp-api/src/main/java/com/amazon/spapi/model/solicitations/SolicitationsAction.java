@@ -28,7 +28,7 @@ import java.io.IOException;
  * A simple object containing the name of the template.
  */
 @ApiModel(description = "A simple object containing the name of the template.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T21:00:32.319+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:35:06.645+08:00")
 public class SolicitationsAction {
   @SerializedName("name")
   private String name = null;

@@ -16,5 +16,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IAmzProductRefreshService extends IService<AmzProductRefresh> {
 	void insert();
-	List<AmzProductRefresh> findForDetailRefresh(String amazonauthid);
+	
+	public AmzProductRefresh findForDetailRefresh(String amazonauthid);
+
+	public List<AmzProductRefresh> findForCatalogRefresh(String amazonauthid);
+	
+	public List<AmzProductRefresh> findForPriceRefresh(String amazonauthid) ;
+	
 }

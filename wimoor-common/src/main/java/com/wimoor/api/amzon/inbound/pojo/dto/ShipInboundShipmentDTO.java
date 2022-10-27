@@ -188,6 +188,10 @@ public class ShipInboundShipmentDTO {
 	@TableField(value="ignorerec")
 	private Boolean ignorerec;
 	
+	@ApiModelProperty(value = "操作类型【系统使用】[updateqty:配货，updateshipped:发货，updateself:本地改状态]")
+	@TableField(value="actiontype")
+	private String actiontype;
+	
     @TableField(exist = false)
 	private List<ShipInboundItemDTO> itemList=new ArrayList<ShipInboundItemDTO>();
 	

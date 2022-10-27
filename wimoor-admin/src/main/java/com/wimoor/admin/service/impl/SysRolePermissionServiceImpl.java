@@ -26,6 +26,11 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
     }
 
     @Override
+    public List<BigInteger> listMenuPermissionId(BigInteger menuId) {
+        return this.baseMapper.listMenuPermissionId(menuId);
+    }
+    
+    @Override
     public List<BigInteger> listPermissionId(BigInteger menuId, BigInteger roleId) {
         return this.baseMapper.listPermissionId(menuId, roleId);
     }

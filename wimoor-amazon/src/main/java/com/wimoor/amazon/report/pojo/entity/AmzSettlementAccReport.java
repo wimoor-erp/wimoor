@@ -40,6 +40,14 @@ public class AmzSettlementAccReport  {
 	@TableField(value= "deposit_date")
     private Date depositDate;
 
+    @ApiModelProperty(value = "创建时间")
+   	@TableField(value= "capturetime")
+    private Date capturetime;
+    
+    @ApiModelProperty(value = "创建时间")
+   	@TableField(value= "sumtime")
+    private Date sumtime;
+    
     @ApiModelProperty(value = "转账金额")
 	@TableField(value= "total_amount")
     private BigDecimal totalAmount;
@@ -47,5 +55,9 @@ public class AmzSettlementAccReport  {
     @ApiModelProperty(value = "转账币种")
 	@TableField(value= "currency")
     private String currency;
+    
+    @ApiModelProperty(value = "数据是否迁移")
+	@TableField(value= "ismoved")
+    private Boolean ismoved;
  
 }

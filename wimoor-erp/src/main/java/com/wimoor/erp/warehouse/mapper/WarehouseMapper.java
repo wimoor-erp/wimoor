@@ -8,17 +8,12 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface WarehouseMapper extends BaseMapper<Warehouse> {
 	IPage<Map<String, Object>> findByCondition(Page<?> page,@Param("search") String search, @Param("shopid") String shopid,@Param("ftype") String ftype); 
-	 
-	Integer saveFBA(@Param("shopid") String shopid, @Param("operator") String operator,@Param("sernum")String sernum);
-
-	Integer deleteFBA(@Param("shopid") String shopid);
 	
 	String selectTypeByName(@Param("fname")String fname);
 
@@ -39,10 +34,6 @@ public interface WarehouseMapper extends BaseMapper<Warehouse> {
 	Map<String, Object> getTotalInvAndWorth(String warehouseid);
 	
 	Warehouse getParentWarehouse(String warehouseid);
-	
-	List<WareHouseFBA> findFbaMarket(@Param("shopid")String shopid,@Param("groupid")String groupid);
-	
-	List<WareHouseFBA> findFbaWarehouseByShop(@Param("shopid")String shopid);
 
 	List<Warehouse> findWareDefault(String shopid);
 	

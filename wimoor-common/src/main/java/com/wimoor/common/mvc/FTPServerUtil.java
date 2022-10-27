@@ -12,9 +12,11 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class FTPServerUtil {
 	 public FTPClient ftpClient = null;
-	 public FTPServerUtil(){
+	 public String ftpHost;
+	 public FTPServerUtil(String ftpHost){
 		 if(ftpClient==null) {
 			 	 try {
+			 		this.ftpHost=ftpHost;
 					ftpClient =getFTPClient();
 				} catch (SocketException e) {
 					// TODO Auto-generated catch block
@@ -26,7 +28,6 @@ public class FTPServerUtil {
 		 }
 	 }
 	    public   FTPClient getFTPClient() throws SocketException,IOException {
-	    	String ftpHost= IniConfig.photoServer();
 	    	String ftpUserName= "pwftp";
 		    String ftpPassword="Wimoor123*";
 		    int ftpPort=21;

@@ -37,4 +37,5 @@ public interface AmazonGroupMapper extends BaseMapper<AmazonGroup> {
 	List<Map<String,Object>> getRoleGroupListByRoleid(@Param("roleid")String roleid);
 	
 	List<Map<String,Object>> getRoleGroupListByShopid(@Param("shopid")String shopid);
+
 }

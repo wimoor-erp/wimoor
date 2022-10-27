@@ -27,6 +27,25 @@
     <result column="quantity_purchased" property="quantityPurchased" jdbcType="INTEGER" />
     <result column="promotion_id" property="promotionId" jdbcType="CHAR" />
   </resultMap>
+  
+   <select id="hasData"  parameterType="com.wimoor.amazon.report.pojo.entity.AmzSettlementReport"  resultType="java.lang.Integer">
+		 SELECT count(settlement_id) FROM  t_amz_settlement_report
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </select>
+   <select id="hasDataArchive"  parameterType="com.wimoor.amazon.report.pojo.entity.AmzSettlementReport"  resultType="java.lang.Integer">
+		 SELECT count(settlement_id) FROM  t_amz_settlement_report_archive
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </select>
+  <insert id="moveData"  parameterType="com.wimoor.amazon.report.pojo.entity.AmzSettlementReport">
+		 INSERT INTO t_amz_settlement_report
+		  SELECT * FROM  t_amz_settlement_report_archive
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </insert>
+   <insert id="moveDataArchive"  parameterType="com.wimoor.amazon.report.pojo.entity.AmzSettlementReport">
+		 INSERT INTO t_amz_settlement_report_archive
+		  SELECT * FROM  t_amz_settlement_report
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </insert>
   <select id="settlement"  resultType="java.util.Map" parameterType="java.util.Map">
 		select  d.posted_date,sum(d.amount) 
 		from  
@@ -45,7 +64,6 @@
 		and d.amount_description='Principal'
 		group by d.posted_date
   </select>
-  
   
   <select id="findBySettlementAcc"  resultType="java.util.Map"  parameterType="java.util.Map">
     select r.*
@@ -295,9 +313,6 @@
     <delete id="deleteBatch" parameterType="java.util.Map" >
     delete from t_amz_settlement_report
     where settlement_id = #{settlement_id,jdbcType=BIGINT}
-        and amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
-        and posted_date &gt;=#{beginDate,jdbcType=DATE} 
- 		and posted_date &lt;=#{endDate,jdbcType=DATE}
   </delete>
    <insert id="insertBatch"   parameterType="java.util.List">
       insert into t_amz_settlement_report (id,
@@ -310,7 +325,7 @@
       promotion_id,amazonAuthId)
     values 
     <foreach collection ="list" item="stm" index= "index" separator =",">
-    ( #{stm.id,jdbcType=CHAR},#{stm.settlementId,jdbcType=BIGINT}, #{stm.currency,jdbcType=CHAR}, #{stm.transactionType,jdbcType=CHAR}, #{stm.orderId,jdbcType=CHAR}, 
+    ( uuid_short(),#{stm.settlementId,jdbcType=BIGINT}, #{stm.currency,jdbcType=CHAR}, #{stm.transactionType,jdbcType=CHAR}, #{stm.orderId,jdbcType=CHAR}, 
       #{stm.merchantOrderId,jdbcType=CHAR}, #{stm.adjustmentId,jdbcType=CHAR}, #{stm.shipmentId,jdbcType=CHAR}, 
       #{stm.marketplaceName,jdbcType=CHAR}, #{stm.amountType,jdbcType=CHAR}, #{stm.amountDescription,jdbcType=CHAR}, 
       #{stm.amount,jdbcType=DECIMAL},       #{stm.fulfillmentId,jdbcType=CHAR}, #{stm.postedDate,jdbcType=DATE}, 
@@ -349,8 +364,7 @@
     
     <select id="getTotalAmountBySettementId"  resultType="java.math.BigDecimal" parameterType="java.util.Map">
 		select  sum(amount) from t_amz_settlement_report 
-		WHERE settlement_id=#{settlement_id,jdbcType=CHAR} and amazonauthid=#{amazonAuthId,jdbcType=CHAR} 
-		and posted_date>=#{beginDate,jdbcType=DATE} and posted_date &lt;=  #{endDate,jdbcType=DATE}
+		WHERE settlement_id=#{settlement_id,jdbcType=CHAR}
    </select>
     
 </mapper>

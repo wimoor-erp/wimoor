@@ -15,9 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.CompetitivePriceList;
-import com.amazon.spapi.model.productpricing.MoneyType;
-import com.amazon.spapi.model.productpricing.NumberOfOfferListingsList;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -25,13 +22,16 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.CompetitivePriceList;
+import com.amazon.spapi.model.productpricing.MoneyType;
+import com.amazon.spapi.model.productpricing.NumberOfOfferListingsList;
 import java.io.IOException;
 
 /**
  * Competitive pricing information for the item.
  */
 @ApiModel(description = "Competitive pricing information for the item.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class CompetitivePricingType {
   @SerializedName("CompetitivePrices")
   private CompetitivePriceList competitivePrices = null;

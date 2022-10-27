@@ -1,0 +1,1078 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvReportKeywordsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sp.pojo.AmzAdvReportKeywords" >
+    <id column="keywordId" property="keywordid" jdbcType="BIGINT" />
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="keywordText" property="keywordtext" jdbcType="CHAR" />
+    <result column="adGroupName" property="adgroupname" jdbcType="CHAR" />
+    <result column="campaignName" property="campaignname" jdbcType="CHAR" />
+    <result column="matchType" property="matchtype" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+    <result column="attributedConversions1d" property="attributedconversions1d" jdbcType="INTEGER" />
+    <result column="attributedConversions7d" property="attributedconversions7d" jdbcType="INTEGER" />
+    <result column="attributedConversions14d" property="attributedconversions14d" jdbcType="INTEGER" />
+    <result column="attributedConversions30d" property="attributedconversions30d" jdbcType="INTEGER" />
+    <result column="attributedConversions1dSameSKU" property="attributedconversions1dsamesku" jdbcType="INTEGER" />
+    <result column="attributedConversions7dSameSKU" property="attributedconversions7dsamesku" jdbcType="INTEGER" />
+    <result column="attributedConversions14dSameSKU" property="attributedconversions14dsamesku" jdbcType="INTEGER" />
+    <result column="attributedConversions30dSameSKU" property="attributedconversions30dsamesku" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered1d" property="attributedunitsordered1d" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered7d" property="attributedunitsordered7d" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered14d" property="attributedunitsordered14d" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered30d" property="attributedunitsordered30d" jdbcType="INTEGER" />
+    <result column="attributedSales1d" property="attributedsales1d" jdbcType="DECIMAL" />
+    <result column="attributedSales7d" property="attributedsales7d" jdbcType="DECIMAL" />
+    <result column="attributedSales14d" property="attributedsales14d" jdbcType="DECIMAL" />
+    <result column="attributedSales30d" property="attributedsales30d" jdbcType="DECIMAL" />
+    <result column="attributedSales1dSameSKU" property="attributedsales1dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales7dSameSKU" property="attributedsales7dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales14dSameSKU" property="attributedsales14dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales30dSameSKU" property="attributedsales30dsamesku" jdbcType="DECIMAL" />
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    keywordId,bydate, profileid, campaignId,adGroupId, keywordText, adGroupName,campaignName,matchType, impressions, clicks, cost, 
+    attributedConversions1d, attributedConversions7d, attributedConversions14d, attributedConversions30d, 
+    attributedConversions1dSameSKU, attributedConversions7dSameSKU, attributedConversions14dSameSKU, 
+    attributedConversions30dSameSKU, attributedUnitsOrdered1d, attributedUnitsOrdered7d, 
+    attributedUnitsOrdered14d, attributedUnitsOrdered30d, attributedSales1d, attributedSales7d, 
+    attributedSales14d, attributedSales30d, attributedSales1dSameSKU, attributedSales7dSameSKU, 
+    attributedSales14dSameSKU, attributedSales30dSameSKU
+  </sql>
+  
+  <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sp_keywords ( 
+         keywordId,bydate,adGroupId, profileid, campaignId,   impressions, clicks, cost, 
+         opttime)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.keywordid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},#{adv.adgroupid,jdbcType=BIGINT},
+       #{adv.profileid,jdbcType=BIGINT}, #{adv.campaignid,jdbcType=BIGINT}, 
+      #{adv.impressions,jdbcType=INTEGER},  #{adv.clicks,jdbcType=INTEGER}, #{adv.cost,jdbcType=DECIMAL}, #{adv.opttime,jdbcType=DATE}
+    )
+    </foreach>
+  </insert>
+  
+    <insert id="insertBatchAttributed"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sp_keywords_attributed ( 
+    keywordId,bydate,
+    attributedConversions1d, 
+    attributedConversions7d, 
+    attributedConversions14d, 
+    attributedConversions30d, 
+
+    attributedUnitsOrdered1d, 
+    attributedUnitsOrdered7d, 
+    attributedUnitsOrdered14d, 
+    attributedUnitsOrdered30d, 
+    
+    attributedSales1d, 
+    attributedSales7d, 
+    attributedSales14d, 
+    attributedSales30d)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.keywordid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},
+      #{adv.attributedconversions1d,jdbcType=INTEGER}, 
+      #{adv.attributedconversions7d,jdbcType=INTEGER}, 
+      #{adv.attributedconversions14d,jdbcType=INTEGER}, 
+      #{adv.attributedconversions30d,jdbcType=INTEGER}, 
+
+      #{adv.attributedunitsordered1d,jdbcType=INTEGER}, 
+      #{adv.attributedunitsordered7d,jdbcType=INTEGER}, 
+      #{adv.attributedunitsordered14d,jdbcType=INTEGER}, 
+      #{adv.attributedunitsordered30d,jdbcType=INTEGER}, 
+      
+      #{adv.attributedsales1d,jdbcType=DECIMAL}, 
+      #{adv.attributedsales7d,jdbcType=DECIMAL}, 
+      #{adv.attributedsales14d,jdbcType=DECIMAL}, 
+      #{adv.attributedsales30d,jdbcType=DECIMAL}
+    )
+    </foreach>
+  </insert>
+      <insert id="insertBatchAttributedSame"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sp_keywords_attributed_same ( 
+    keywordId,bydate,
+  
+    attributedConversions1dSameSKU, 
+    attributedConversions7dSameSKU, 
+    attributedConversions14dSameSKU, 
+    attributedConversions30dSameSKU, 
+
+    attributedSales1dSameSKU, 
+    attributedSales7dSameSKU, 
+    attributedSales14dSameSKU, 
+    attributedSales30dSameSKU,
+    
+    attributedUnitsOrdered1dSameSKU,
+    attributedUnitsOrdered7dSameSKU,
+    attributedUnitsOrdered14dSameSKU,
+    attributedUnitsOrdered30dSameSKU)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.keywordid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},
+      #{adv.attributedconversions1dsamesku,jdbcType=INTEGER}, 
+      #{adv.attributedconversions7dsamesku,jdbcType=INTEGER}, 
+      #{adv.attributedconversions14dsamesku,jdbcType=INTEGER}, 
+      #{adv.attributedconversions30dsamesku,jdbcType=INTEGER}, 
+      
+      #{adv.attributedsales1dsamesku,jdbcType=DECIMAL}, 
+      #{adv.attributedsales7dsamesku,jdbcType=DECIMAL}, 
+      #{adv.attributedsales14dsamesku,jdbcType=DECIMAL}, 
+      #{adv.attributedsales30dsamesku,jdbcType=DECIMAL},
+      
+      #{adv.attributedUnitsOrdered1dSameSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered7dSameSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered14dSameSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered30dSameSKU,jdbcType=INTEGER}
+    )
+    </foreach>
+  </insert>
+  
+  <select id="getKeywords" resultType="java.util.LinkedHashMap" parameterType="java.util.Map" >
+	    select 
+	    <if test="dateType == 'daily'">
+			t.bydate,
+		</if> 
+		    ad.name adGroupName,cm.name campaignName,k.matchType matchType,k.keywordText keywordText, 
+		    sum(impressions) impressions, sum(clicks) clicks, sum(cost) Spend, 
+		    ifnull((sum(clicks) / sum(impressions)),0) 'Click Thru Rate (CTR)',
+		    ifnull((sum(cost) / sum(clicks)),0) 'Cost Per Click (CPC)',
+		    ifnull(sum(attributedSales7d),0) '7 Day Total Sales',  
+		    case when ifnull(sum(cost),0) > 0 and ifnull(sum(attributedSales7d),0) = 0 
+		    then 0
+			else 
+			ifnull((sum(cost) / sum(attributedSales7d)),0) 
+			end 'Total Advertising Cost of Sales (ACoS)',
+			ifnull((sum(attributedSales7d) / sum(cost)),0) 'Total Return on Advertising Spend (RoAS)',
+			ifnull(sum(attributedConversions7d),0) '7 Day Total Orders', 
+			ifnull(sum(attributedUnitsOrdered7d),0) '7 Day Total Units',
+			ifnull((sum(attributedConversions7d) / sum(clicks)),0) '7 Day Conversion Rate',
+			ifnull(sum(attributedConversions7dSameSKU),0) '7 Day Advertised SKU Units',
+			ifnull(sum(attributedConversions7d) - sum(attributedConversions7dSameSKU),0) '7 Day Other SKU Units',
+			ifnull(sum(attributedSales7dSameSKU),0) '7 Day Advertised SKU Sales',
+			ifnull(sum(attributedSales7d) - sum(attributedSales7dSameSKU),0) '7 Day Other SKU Sales' 
+	    from t_amz_adv_rpt2_sp_keywords t
+		left join t_amz_adv_rpt2_sp_keywords_attributed d on d.keywordId=t.keywordId and d.bydate=t.bydate
+		left join t_amz_adv_rpt2_sp_keywords_attributed_same sa on sa.bydate=t.bydate and sa.keywordId=t.keywordId
+		left join t_amz_adv_adgroups ad on ad.adGroupId=t.adGroupId and ad.campaignId=t.campaignId and t.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=t.campaignId and cm.profileid=t.profileid
+		left join t_amz_adv_keywords k on t.keywordId = k.keywordId and t.adGroupId= k.adGroupId 
+			and t.campaignId = k.campaignId and t.profileid = k.profileid
+	    where t.profileid = #{profileid,jdbcType=BIGINT} 
+		    and t.bydate &lt;= #{endDate,jdbcType=CHAR} 
+		    and t.bydate &gt;= #{fromDate,jdbcType=CHAR}
+	    <if test="dateType == 'daily'">
+			group by bydate,campaignName,adGroupName,keywordText,matchType
+		</if>
+		<if test="dateType == 'total'">
+			group by campaignName,adGroupName,keywordText,matchType 
+		</if>
+  </select>
+  
+  <select id="getWarningIndicatorForYesterday" resultType="java.util.Map" parameterType="java.util.Map" >
+	 select w.shopid,sum(w.impyestoday) impyestoday,sum(w.clickyestoday) clickyestoday,sum(w.cryestoday) cryestoday,sum(w.acosyestoday) acosyestoday
+     from(
+    	select t.shopid,t.keywordid,
+			case when impressions2>0
+				and (impressions2-impressions0)>#{absoluteNumImpressions,jdbcType=INTEGER} 
+				and (impressions2-impressions0)/impressions2>#{numImpressions,jdbcType=DECIMAL} then 1 else 0 end impyestoday,
+		 
+			case when click2>0 
+				and (click2-click0)>#{absoluteNumClicks,jdbcType=INTEGER}
+				and (click2-click0)/click2>#{numClicks,jdbcType=DECIMAL} then 1 else 0 end clickyestoday,
+		 
+			case when click0>0 and click2>0 and orders2>0 
+				and (orders2/click2-orders0/click0)>#{absoluteNumCSRT,jdbcType=DECIMAL}
+				and (orders2/click2-orders0/click0)/(orders2/click2)>#{numCSRT,jdbcType=DECIMAL} then 1 else 0 end cryestoday,
+		 
+			case when sales0>0 and sales2>0 and cost0>0 
+				and (cost0/sales0-cost2/sales2)>#{absoluteNumACOS,jdbcType=DECIMAL}
+				and (cost0/sales0-cost2/sales2)/(cost0/sales0)>#{numACOS,jdbcType=DECIMAL} then 1 else 0 end acosyestoday
+	 from  t_advert_warning_keywords_data t where ftype='yesterday' and t.shopid=#{shopid,jdbcType=CHAR}
+			 
+	) w
+	WHERE w.shopid IS NOT null
+	 group by w.shopid
+  </select>
+  
+  <select id="getWarningIndicatorForSequent" resultType="java.util.Map" parameterType="java.util.Map" >
+	 select w.shopid,sum(w.impsequent) impsequent,sum(w.clicksequent) clicksequent,sum(w.crsequent) crsequent,sum(w.acossequent) acossequent
+     from(
+    	select t.shopid,t.keywordid,
+			case when impressions1>0 and impressions2>0 
+				and (impressions1-impressions0)>#{absoluteNumImpressions,jdbcType=INTEGER}
+				and (impressions2-impressions1)>#{absoluteNumImpressions,jdbcType=INTEGER}
+				and (impressions1-impressions0)/impressions1>#{numImpressions,jdbcType=DECIMAL}
+	          	and (impressions2-impressions1)/impressions2>#{numImpressions,jdbcType=DECIMAL} then 1 else 0 end impsequent,
+ 
+			case when click1>0 and click2>0
+				and (click1-click0)>#{absoluteNumClicks,jdbcType=INTEGER}
+				and (click2-click1)>#{absoluteNumClicks,jdbcType=INTEGER} 
+			    and (click1-click0)/click1>#{numClicks,jdbcType=DECIMAL}
+				and (click2-click1)/click2>#{numClicks,jdbcType=DECIMAL} then 1 else 0 end clicksequent,
+	 
+			case when click1>0 and click2>0 and click0>0 and orders1>0 and orders2>0
+				and (orders1/click1-orders0/click0)>#{absoluteNumCSRT,jdbcType=DECIMAL}
+				and (orders2/click2-orders1/click1)>#{absoluteNumCSRT,jdbcType=DECIMAL}
+				and (orders1/click1-orders0/click0)/(orders1/click1)>#{numCSRT,jdbcType=DECIMAL}
+	            and (orders2/click2-orders1/click1)/(orders2/click2)>#{numCSRT,jdbcType=DECIMAL} then 1 else 0 end crsequent,
+ 
+			case when sales0>0 and sales1>0 and sales2>0 and cost0>0 and cost1>0
+				and (cost0/sales0-cost1/sales1)>#{absoluteNumACOS,jdbcType=DECIMAL}
+				and (cost1/sales1-cost2/sales2)>#{absoluteNumACOS,jdbcType=DECIMAL}
+				and (cost0/sales0-cost1/sales1)/(cost0/sales0)>#{numACOS,jdbcType=DECIMAL}
+	            and (cost1/sales1-cost2/sales2)/(cost1/sales1)>#{numACOS,jdbcType=DECIMAL} then 1 else 0 end acossequent
+		  from  t_advert_warning_keywords_data t where ftype='sequent' and t.shopid=#{shopid,jdbcType=CHAR}
+			 
+	) w
+	WHERE w.shopid IS NOT null
+	 group by w.shopid
+  </select>
+  
+  <select id="getWarningIndicatorForCo" resultType="java.util.Map" parameterType="java.util.Map" >
+	 select w.shopid,sum(w.impco) impco,sum(w.clickco) clickco, sum(w.crco) crco,sum(w.acosco) acosco
+     from(
+    	select t.shopid,t.keywordid,
+			case when impressions2>0 
+				and (impressions2-impressions0)>#{absoluteNumImpressions,jdbcType=INTEGER}
+				and (impressions2-impressions0)/impressions2>#{numImpressions,jdbcType=DECIMAL} then 1 else 0 end impco, 
+	 
+			case when click2>0
+				and (click2-click0)>#{absoluteNumClicks,jdbcType=INTEGER} 
+				and (click2-click0)/click2>#{numClicks,jdbcType=DECIMAL} then 1 else 0 end clickco,		    
+		 
+			case when click0>0 and click2>0 and orders2>0
+				and (orders2/click2-orders0/click0)>#{absoluteNumCSRT,jdbcType=DECIMAL} 
+				and (orders2/click2-orders0/click0)/(orders2/click2)>#{numCSRT,jdbcType=DECIMAL} then 1 else 0 end crco,		
+	 
+			case when sales0>0 and sales2>0 and cost0>0 
+				and (cost0/sales0-cost2/sales2)>#{absoluteNumACOS,jdbcType=DECIMAL}
+				and (cost0/sales0-cost2/sales2)/(cost0/sales0)>#{numACOS,jdbcType=DECIMAL} then 1 else 0 end acosco
+	  	 from  t_advert_warning_keywords_data t where ftype='co' and t.shopid=#{shopid,jdbcType=CHAR}
+			 
+	) w
+	WHERE w.shopid IS NOT null
+	 group by w.shopid
+  </select>
+  
+  <insert id="refreshAdvertWarningData" parameterType="java.util.Map">
+  delete from t_advert_warning_keywords_data where shopid= #{shopid,jdbcType=CHAR};
+  replace into  t_advert_warning_keywords_data
+  		select v.id,v.shopid,'yesterday',v.groupName,v.market,v.campaignName,v.adGroupName,v.keywordText,
+sum(v.click0) clicks,sum(v.impressions0)  impressions,sum(v.cost0) cost,sum(v.order0) orders,sum(v.sales0) sales,
+	null clicksp,null  impressionsp,null costp,null ordersp,null salesp ,
+		sum(v.click1) clickscp,sum(v.impressions1)  impressionscp,sum(v.cost1) costcp,sum(v.order1) orderscp,sum(v.sales1) salescp 
+		from (
+				select a.shopid,pdt.keywordId id, g.name groupName, m.name market, cm.name campaignName,
+				ad.name adGroupName, k.keywordText keywordText,
+				case when pdt.bydate=		
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+			        then pdt.clicks else 0 end click0,
+			    case when pdt.bydate=
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		         	then pdt.impressions else 0 end impressions0,
+		        case when pdt.bydate=
+		   			case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		            then pdt.cost else 0 end cost0,
+		        case when pdt.bydate=
+		 			case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		            then attributedConversions7d else 0 end order0,
+		        case when pdt.bydate=
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		         	then attributedSales7d else 0 end sales0,
+			    	case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			       		then pdt.clicks else 0 end click1,
+			       	case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			 			then pdt.impressions else 0 end impressions1,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			 			then pdt.cost else 0 end cost1,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+						then attributedConversions7d else 0 end order1,
+					case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			 			then attributedSales7d else 0 end sales1
+			from t_amz_adv_rpt2_sp_keywords pdt
+		left join t_amz_adv_rpt2_sp_keywords_attributed d on d.keywordId=pdt.keywordId and d.bydate=pdt.bydate
+		left join t_amz_adv_rpt2_sp_keywords_attributed_same sa on sa.bydate=pdt.bydate and sa.keywordId=pdt.keywordId
+		left join t_amz_adv_adgroups ad on ad.adGroupId=pdt.adGroupId and ad.campaignId=pdt.campaignId and pdt.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=pdt.campaignId and cm.profileid=pdt.profileid
+		left join t_amz_adv_keywords k on pdt.keywordId = k.keywordId and pdt.adGroupId= k.adGroupId 
+			and pdt.campaignId = k.campaignId and pdt.profileid = k.profileid
+			left join t_amz_adv_profile pf on pf.id=pdt.profileid
+			left join t_marketplace m on m.marketplaceid=pf.marketplaceid
+			left join t_amz_adv_auth a on a.id=pf.advauthId and a.disable = 0
+			left join t_amazon_group g on g.id=a.groupid
+			where (pdt.bydate=date_add(curdate() , interval -1 day)
+				or pdt.bydate=date_add(curdate() , interval -2 day)
+					or pdt.bydate=date_add(curdate() , interval -3 day)
+				)
+				and pdt.profileid=#{profileid,jdbcType=CHAR}
+			group by pdt.keywordId,pdt.bydate
+		) v group by v.id
+		having 1=1;
+		
+		 replace into  t_advert_warning_keywords_data
+		select v.id,v.shopid,'sequent',v.groupName,v.market,v.campaignName,v.adGroupName,v.keywordText,
+sum(v.click0) clicks,sum(v.impressions0)  impressions,sum(v.cost0) cost,sum(v.order0) orders,sum(v.sales0) sales,
+	sum(v.click1) clicksp,sum(v.impressions1)  impressionsp,sum(v.cost1) costp,sum(v.order1) ordersp,sum(v.sales1) salesp ,
+		sum(v.click2) clickscp,sum(v.impressions2)  impressionscp,sum(v.cost2) costcp,sum(v.order2) orderscp,sum(v.sales2) salescp 
+		from (
+				select a.shopid,pdt.keywordId id, g.name groupName, m.name market, cm.name campaignName,
+				ad.name adGroupName, k.keywordText keywordText,
+				case when pdt.bydate=		
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+			        then pdt.clicks else 0 end click0,
+			    case when pdt.bydate=
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		         	then pdt.impressions else 0 end impressions0,
+		        case when pdt.bydate=
+		   			case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		            then pdt.cost else 0 end cost0,
+		        case when pdt.bydate=
+		 			case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		            then attributedConversions7d else 0 end order0,
+		        case when pdt.bydate=
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		         	then attributedSales7d else 0 end sales0,
+			    	case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			       		then pdt.clicks else 0 end click1,
+			       	case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72 hour),'%Y-%m-%d') end end end
+			 			then pdt.clicks else 0 end click2,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			 			then pdt.impressions else 0 end impressions1,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72 hour),'%Y-%m-%d') end end end
+			 			then pdt.impressions else 0 end impressions2,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			 			then pdt.cost else 0 end cost1,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72 hour),'%Y-%m-%d') end end end
+						then pdt.cost else 0 end cost2,
+					case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+						then attributedConversions7d else 0 end order1,
+					case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72 hour),'%Y-%m-%d') end end end
+						then attributedConversions7d else 0 end order2,
+					case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -48 hour),'%Y-%m-%d') end end end
+			 			then attributedSales7d else 0 end sales1,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -72 hour),'%Y-%m-%d') end end end
+			          	then attributedSales7d else 0 end sales2
+			from t_amz_adv_rpt2_sp_keywords pdt
+		left join t_amz_adv_rpt2_sp_keywords_attributed d on d.keywordId=pdt.keywordId and d.bydate=pdt.bydate
+		left join t_amz_adv_rpt2_sp_keywords_attributed_same sa on sa.bydate=pdt.bydate and sa.keywordId=pdt.keywordId
+		left join t_amz_adv_adgroups ad on ad.adGroupId=pdt.adGroupId and ad.campaignId=pdt.campaignId and pdt.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=pdt.campaignId and cm.profileid=pdt.profileid
+		left join t_amz_adv_keywords k on pdt.keywordId = k.keywordId and pdt.adGroupId= k.adGroupId 
+			and pdt.campaignId = k.campaignId and pdt.profileid = k.profileid
+			left join t_amz_adv_profile pf on pf.id=pdt.profileid
+			left join t_marketplace m on m.marketplaceid=pf.marketplaceid
+			left join t_amz_adv_auth a on a.id=pf.advauthId and a.disable = 0
+			left join t_amazon_group g on g.id=a.groupid
+			where (pdt.bydate=date_add(curdate() , interval -1 day)
+				or pdt.bydate=date_add(curdate() , interval -2 day)
+					or pdt.bydate=date_add(curdate() , interval -3 day)
+					or pdt.bydate=date_add(curdate() , INTERVAL -4 day)
+				)
+				and pdt.profileid=#{profileid,jdbcType=CHAR}
+			group by pdt.keywordId,pdt.bydate
+		) v group by v.id
+		having 1=1;
+		
+		 replace into  t_advert_warning_keywords_data
+		select v.id,v.shopid,'co',v.groupName,v.market,v.campaignName,v.adGroupName,v.keywordText,
+sum(v.click0) clicks,sum(v.impressions0)  impressions,sum(v.cost0) cost,sum(v.order0) orders,sum(v.sales0) sales,
+	null clicksp,null  impressionsp,null costp,null ordersp,null salesp ,
+		sum(v.click2) clickscp,sum(v.impressions3)  impressionscp,sum(v.cost2) costcp,sum(v.order3) orderscp,sum(v.sales2) salescp 
+		from (
+				select a.shopid,pdt.keywordId id, g.name groupName, m.name market, cm.name campaignName,
+				ad.name adGroupName, k.keywordText keywordText,
+				case when pdt.bydate=		
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+			        then pdt.clicks else 0 end click0,
+			    case when pdt.bydate=
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		         	then pdt.impressions else 0 end impressions0,
+		        case when pdt.bydate=
+		   			case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		            then pdt.cost else 0 end cost0,
+		        case when pdt.bydate=
+		 			case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		            then attributedConversions7d else 0 end order0,
+		        case when pdt.bydate=
+					case when pf.timezone='America/Los_Angeles' 
+				    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-16 hour),'%Y-%m-%d')
+				    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-8 hour),'%Y-%m-%d')
+			        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24-7 hour),'%Y-%m-%d')
+			        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -24 hour),'%Y-%m-%d') end end end
+		         	then attributedSales7d else 0 end sales0,
+			    
+			    	case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168 hour),'%Y-%m-%d') end end end
+				        then pdt.clicks else 0 end click2,
+				    case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168 hour),'%Y-%m-%d') end end end
+						then pdt.impressions else 0 end impressions3,
+					case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168 hour),'%Y-%m-%d') end end end
+			 			then pdt.cost else 0 end cost2,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168 hour),'%Y-%m-%d') end end end
+			 			then attributedConversions7d else 0 end order3,
+			 		case when pdt.bydate=
+						case when pf.timezone='America/Los_Angeles' 
+					    then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-16 hour),'%Y-%m-%d')
+					    else case when pf.timezone='Europe/Paris' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-8 hour),'%Y-%m-%d')
+				        else case when pf.timezone='Europe/London' then DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168-7 hour),'%Y-%m-%d')
+				        else DATE_FORMAT(date_add(CURRENT_TIMESTAMP , interval -168 hour),'%Y-%m-%d') end end end
+			       		then attributedSales7d else 0 end sales2
+			from t_amz_adv_rpt2_sp_keywords pdt
+		left join t_amz_adv_rpt2_sp_keywords_attributed d on d.keywordId=pdt.keywordId and d.bydate=pdt.bydate
+		left join t_amz_adv_rpt2_sp_keywords_attributed_same sa on sa.bydate=pdt.bydate and sa.keywordId=pdt.keywordId
+		left join t_amz_adv_adgroups ad on ad.adGroupId=pdt.adGroupId and ad.campaignId=pdt.campaignId and pdt.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=pdt.campaignId and cm.profileid=pdt.profileid
+		left join t_amz_adv_keywords k on pdt.keywordId = k.keywordId and pdt.adGroupId= k.adGroupId 
+			and pdt.campaignId = k.campaignId and pdt.profileid = k.profileid
+			
+			
+			left join t_amz_adv_profile pf on pf.id=pdt.profileid
+			left join t_marketplace m on m.marketplaceid=pf.marketplaceid
+			left join t_amz_adv_auth a on a.id=pf.advauthId and a.disable = 0
+			left join t_amazon_group g on g.id=a.groupid
+			where (pdt.bydate=date_add(curdate() , interval -1 day)
+				   or pdt.bydate=date_add(curdate() , interval -2 day)
+					or pdt.bydate=date_add(curdate() , INTERVAL -7 day)
+					 or pdt.bydate=date_add(curdate() , INTERVAL -8 day)
+				)
+				and pdt.profileid=#{profileid,jdbcType=CHAR}
+			group by pdt.keywordId,pdt.bydate
+		) v group by v.id
+		having 1=1;
+  </insert>
+  
+  <select id="getWarningIndicatorDetail" resultType="java.util.Map" parameterType="java.lang.String">
+	 	 select *,orders0/click0 cr0,orders1/click1 cr1,orders2/click2 cr2, 
+ 			cost0/sales0 acos0,cost1/sales1 acos1,cost2/sales2 acos2,
+ 			(impressions1-impressions0)/impressions1 impressionsyesterdayrate,
+ 			((impressions2-impressions1)/impressions2+(impressions1-impressions0)/impressions1)/2 
+ 			 impressionssequentrate,
+ 			 (impressions2-impressions0)/impressions2 impressionscorate,
+ 			 
+ 			 (click1-click0)/click1 clickyesterdayrate,
+ 			 ((click2-click1)/click2+(click1-click0)/click1)/2  clicksequentrate,
+ 			 (click2-click0)/click2 clickcorate,
+ 			 
+ 			 	 
+ 			  (orders1/click1-orders0/click0)/(orders1/click1) cryesterdayrate,
+ 			  ((orders2/click2-orders1/click1)/(orders2/click2)+(orders1/click1-orders0/click0)/(orders1/click1))/2 crsequentrate,
+ 			 (orders2/click2-orders0/click0)/(orders2/click2) crcorate,
+ 			 
+ 			  (cost0/sales0-cost1/sales1)/(cost0/sales0) acosyesterdayrate,
+ 			 ( (cost0/sales0-cost1/sales1)/(cost0/sales0) + (cost1/sales1-cost2/sales2)/(cost1/sales1))/2  acossequentrate,
+ 			 (cost0/sales0-cost2/sales2)/(cost0/sales0) acoscorate
+ 			 
+	 	  from t_advert_warning_keywords_data where shopid=#{shopid,jdbcType=CHAR}
+	    <if test="type=='impyestoday'">
+			and impressions1>0
+			and (impressions1-impressions0)>#{absoluteNumImpressions,jdbcType=INTEGER}
+			and (impressions1-impressions0)/impressions1>#{numImpressions,jdbcType=DECIMAL}
+		</if>
+	    <if test="type=='impsequent'">
+			and impressions1>0 and impressions2>0
+			and (impressions1-impressions0)>#{absoluteNumImpressions,jdbcType=INTEGER}
+			and (impressions2-impressions1)>#{absoluteNumImpressions,jdbcType=INTEGER}
+			and (impressions1-impressions0)/impressions1>#{numImpressions,jdbcType=DECIMAL} 
+			and (impressions2-impressions1)/impressions2>#{numImpressions,jdbcType=DECIMAL} 
+		</if>
+		<if test="type=='impco'">
+			and impressions2>0 and impressions1 is null
+			and (impressions2-impressions0)>#{absoluteNumImpressions,jdbcType=INTEGER}
+			and (impressions2-impressions0)/impressions2>#{numImpressions,jdbcType=DECIMAL}
+		</if>
+	    <if test="type=='clickyestoday'">
+			and click1>0 
+			and (click1-click0)>#{absoluteNumClicks,jdbcType=INTEGER}
+			and (click1-click0)/click1>#{numClicks,jdbcType=DECIMAL}
+		</if>
+		<if test="type=='clicksequent'">
+	      	and click1>0 and click2>0  
+	      	and (click1-click0)>#{absoluteNumClicks,jdbcType=INTEGER}
+	      	and (click2-click1)>#{absoluteNumClicks,jdbcType=INTEGER}
+		  	and (click1-click0)/click1>#{numClicks,jdbcType=DECIMAL} 
+		  	and (click2-click1)/click2>#{numClicks,jdbcType=DECIMAL}
+		</if>
+	    <if test="type=='clickco'">
+	      	and click2>0 and click1 is null
+	      	and (click2-click0)>#{absoluteNumClicks,jdbcType=INTEGER}
+	      	and (click2-click0)/click2)>#{numClicks,jdbcType=DECIMAL} 
+		</if>
+	    <if test="type=='cryestoday'">
+	     	and click0>0 and click1>0 and orders1>0
+	     	and (orders1/click1-orders0/click0)>#{absoluteNumCSRT,jdbcType=DECIMAL} 
+	      	and (orders1/click1-orders0/click0)/(orders1/click1)>#{numCSRT,jdbcType=DECIMAL}
+		</if>
+		<if test="type=='crsequent'">
+	      	and click0>0 and click1>0 and click2>0 and orders1>0 and orders2>0
+	      	and (orders1/click1-orders0/click0)>#{absoluteNumCSRT,jdbcType=DECIMAL} 
+	      	and (orders2/click2-orders1/click1)>#{absoluteNumCSRT,jdbcType=DECIMAL} 
+		  	and (orders1/click1-orders0/click0)/(orders1/click1)>#{numCSRT,jdbcType=DECIMAL} 
+		  	and (orders2/click2-orders1/click1)/(orders2/click2)>#{numCSRT,jdbcType=DECIMAL} 
+		</if>
+		<if test="type=='crco'">
+	      	and click0>0 and click2>0 and orders2>0 and click1 is null and orders1 is null
+	      	and (orders2/click2-orders0/click0)>#{absoluteNumCSRT,jdbcType=DECIMAL}  
+	      	and (orders2/click2-orders0/click0)/(orders2/click2)>#{numCSRT,jdbcType=DECIMAL}
+		</if>
+	    <if test="type=='acosyestoday'">
+	      	and sales0>0 and sales1>0 and cost0>0
+	      	and (cost0/sales0-cost1/sales1)>#{absoluteNumACOS,jdbcType=DECIMAL} 
+	      	and (cost0/sales0-cost1/sales1)/(cost0/sales0)>#{numACOS,jdbcType=DECIMAL}
+		</if>
+		<if test="type=='acossequent'">
+	      	and sales0>0 and sales1>0 and sales2>0 and cost1>0 and cost0>0
+	      	and (cost0/sales0-cost1/sales1)>#{absoluteNumACOS,jdbcType=DECIMAL}
+	      	and (cost1/sales1-cost2/sales2)>#{absoluteNumACOS,jdbcType=DECIMAL}
+		  	and (cost0/sales0-cost1/sales1)/(cost0/sales0)>#{numACOS,jdbcType=DECIMAL} 
+		  	and (cost1/sales1-cost2/sales2)/(cost1/sales1)>#{numACOS,jdbcType=DECIMAL} 
+		</if>
+	    <if test="type=='acosco'">
+	      	and sales0>0 and sales2>0 and cost0>0  and sales1 is null
+	      	and (cost0/sales0-cost2/sales2)>#{absoluteNumACOS,jdbcType=DECIMAL} 
+	      	and (cost0/sales0-cost2/sales2)/(cost0/sales0)>#{numACOS,jdbcType=DECIMAL}
+	    </if>
+	</select>
+
+  <select id="top5" resultType="java.util.Map" parameterType="java.math.BigInteger">
+		select * 
+		from (
+			select pdt.keywordId, max(cm.name) campaignName, max(ad.name) adGroupName,
+			max(k.keywordText) keywordText, sum(ifnull(pdt.cost,0)) cost, sum(ifnull(d.attributedSales7d,0)) sales,
+			sum(ifnull(pdt.cost,0))/sum(ifnull(d.attributedSales7d,0)) acos,
+			sum(ifnull(d.attributedSales7d,0))/sum(ifnull(pdt.cost,0)) roas
+		from t_amz_adv_rpt2_sp_keywords pdt
+		left join t_amz_adv_rpt2_sp_keywords_attributed d on d.keywordId=pdt.keywordId and d.bydate=pdt.bydate
+		left join t_amz_adv_rpt2_sp_keywords_attributed_same sa on sa.bydate=pdt.bydate and sa.keywordId=pdt.keywordId
+		left join t_amz_adv_adgroups ad on ad.adGroupId=pdt.adGroupId and ad.campaignId=pdt.campaignId and pdt.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=pdt.campaignId and cm.profileid=pdt.profileid
+		left join t_amz_adv_keywords k on pdt.keywordId = k.keywordId and pdt.adGroupId= k.adGroupId 
+			and pdt.campaignId = k.campaignId and pdt.profileid = k.profileid
+		where profileid= #{profileid,jdbcType=INTEGER}
+			and pdt.bydate>date_add(curdate() , interval -7 day)
+		group by pdt.keywordId
+		having(sum(pdt.cost)>7)
+		) v
+		order by roas asc ,cost desc limit 5
+  </select>
+  
+  <update id="moveData" parameterType="java.util.Map">
+		 insert ignore into t_amz_adv_rpt2_hsa_campaigns
+		 SELECT h.campaignId,h.bydate,h.profileid,h.campaignBudget,h.impressions,h.clicks,h.cost,h.opttime 
+		 from t_amz_adv_rpt_campaigns_hsa_bkp20210924 h 
+		 WHERE (h.impressions>0 OR h.clicks>0 OR h.cost>0) and  bydate=#{mydate,jdbcType=CHAR} 
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_hsa_campaigns_attributed
+		 SELECT h.campaignId,h.bydate,h.attributedSales14d,h.attributedSales14dSameSKU,h.attributedConversions14d,h.attributedConversions14dSameSKU
+		 from t_amz_adv_rpt_campaigns_hsa_bkp20210924 h 
+		 WHERE  (h.attributedSales14d>0 OR h.attributedSales14dSameSKU>0 OR h.attributedConversions14d>0 OR h.attributedConversions14dSameSKU>0)
+		 AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_hsa_keywords
+		 SELECT h.campaignId,h.adGroupId,h.keywordId,h.bydate,h.profileid,h.keywordBid,h.impressions,h.clicks,h.cost,h.opttime
+		 from t_amz_adv_rpt_keywords_hsa_bkp20210924 h 
+		 WHERE (h.impressions>0 OR h.clicks>0 OR h.cost>0) and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+
+		 insert ignore into t_amz_adv_rpt2_hsa_keywords_attributed
+		 SELECT h.keywordId,h.bydate,h.attributedSales14d,h.attributedSales14dSameSKU,h.attributedConversions14d,h.attributedConversions14dSameSKU
+		 from t_amz_adv_rpt_keywords_hsa_bkp20210924 h 
+		 WHERE  (h.attributedSales14d>0 OR h.attributedSales14dSameSKU>0 OR h.attributedConversions14d>0 OR h.attributedConversions14dSameSKU>0)
+		 AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 INSERT ignore INTO t_amz_adv_rpt2_sd_campaigns 
+		 SELECT d.campaignId,d.bydate,d.profileid,d.impressions,d.clicks,d.cost,NOW() 
+		 from t_amz_adv_rpt_campaigns_sd_bkp20210924 d 
+		 WHERE (d.impressions>0 OR d.clicks>0 OR d.cost>0) and  bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 INSERT ignore INTO t_amz_adv_rpt2_sd_campaigns_attributed 
+		 SELECT d.campaignId,d.bydate,d.attributedConversions1d,d.attributedConversions7d,d.attributedConversions14d,d.attributedConversions30d,
+		 d.attributedUnitsOrdered1d,d.attributedUnitsOrdered7d,d.attributedUnitsOrdered14d,d.attributedUnitsOrdered30d,
+		 d.attributedSales1d,d.attributedSales7d,d.attributedSales14d,d.attributedSales30d
+		 from t_amz_adv_rpt_campaigns_sd_bkp20210924 d 
+		 WHERE (d.attributedConversions30d>0 OR d.attributedUnitsOrdered30d>0 OR d.attributedSales30d>0) and  bydate=#{mydate,jdbcType=CHAR} 
+         and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		INSERT ignore INTO t_amz_adv_rpt2_sd_campaigns_attributed_same 
+		SELECT d.campaignId,d.bydate,
+		d.attributedConversions1dSameSKU,d.attributedConversions7dSameSKU,d.attributedConversions14dSameSKU,d.attributedConversions30dSameSKU,
+		d.attributedSales1dSameSKU,d.attributedSales7dSameSKU,d.attributedSales14dSameSKU,d.attributedSales30dSameSKU
+		from t_amz_adv_rpt_campaigns_sd_bkp20210924 d 
+		WHERE ( d.attributedConversions30dSameSKU>0 OR d.attributedSales30dSameSKU>0) and  bydate=#{mydate,jdbcType=CHAR}
+        and profileid=#{profileid,jdbcType=CHAR} ;
+        
+        INSERT ignore INTO t_amz_adv_rpt2_sd_adgroups 
+		SELECT   c.adGroupId,c.bydate,c.campaignId,c.profileid,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_adgroups_sd_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0 OR c.cost>0 ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_adgroups_attributed 
+		SELECT   c.adGroupId,c.bydate,
+				c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+				c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+				c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_adgroups_sd_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0 ) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_adgroups_attributed_same 
+		SELECT   c.adGroupId,c.bydate,
+		   c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+		   c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU
+		from t_amz_adv_rpt_adgroups_sd_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_productads 
+		SELECT   c.adId,c.bydate, c.profileid,c.campaignId,c.adGroupId,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_productads_sd_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0 OR c.cost>0) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_productads_attributed 
+		SELECT   c.adId,c.bydate,
+		c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_productads_sd_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_productads_attributed_same 
+		SELECT   c.adId,c.bydate,
+			   c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+				   c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU
+		from t_amz_adv_rpt_productads_sd_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0 ) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+
+		INSERT ignore INTO t_amz_adv_rpt2_sd_product_targets 
+		SELECT   c.targetId,c.bydate, c.profileid,c.campaignId,c.adGroupId,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_product_targets_sd_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0 OR c.cost>0) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_product_targets_attributed 
+		SELECT  c.targetId,c.bydate,
+		c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_product_targets_sd_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sd_product_targets_attributed_same 
+		SELECT  c.targetId,c.bydate,
+			   c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+				   c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU
+		from t_amz_adv_rpt_product_targets_sd_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0 ) 
+		AND  bydate=#{mydate,jdbcType=CHAR} and profileid=#{profileid,jdbcType=CHAR} ;
+
+		INSERT ignore INTO t_amz_adv_rpt2_sp_compaigns 
+		SELECT c.campaignId,c.bydate,c.profileid,c.campaignBudget,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_compaigns_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0 OR c.cost>0) AND  bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_compaigns_attributed 
+		SELECT c.campaignId,c.bydate,
+		c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_compaigns_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0) AND  bydate=#{mydate,jdbcType=CHAR} 
+        and profileid=#{profileid,jdbcType=CHAR} ;
+        
+        INSERT ignore INTO t_amz_adv_rpt2_sp_compaigns_attributed_same 
+		SELECT c.campaignId,c.bydate,
+		c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+		c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU,
+		NULL,NULL,NULL,null
+		from t_amz_adv_rpt_compaigns_bkp20210924 c
+		WHERE   ( c.attributedSales1dSameSKU>0 OR c.attributedConversions30dSameSKU>0 ) AND  bydate=#{mydate,jdbcType=CHAR} 
+        and profileid=#{profileid,jdbcType=CHAR} ;
+        
+        INSERT ignore INTO t_amz_adv_rpt2_sp_adgroups 
+		SELECT  c.adGroupId,c.bydate,c.campaignId,c.profileid,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_adgroups_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0 OR c.cost>0) AND  bydate=#{mydate,jdbcType=CHAR} 
+        and profileid=#{profileid,jdbcType=CHAR} ;
+        
+        INSERT ignore INTO t_amz_adv_rpt2_sp_adgroups_attributed 
+		SELECT  c.adGroupId,c.bydate,
+		c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d,NOW()
+		from t_amz_adv_rpt_adgroups_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_adgroups_attributed_same 
+		SELECT  c.adGroupId,c.bydate,
+		c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+		NULL,NULL,NULL,NULL,
+		c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU
+		from t_amz_adv_rpt_adgroups_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0 ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_keywords 
+		SELECT c.keywordId,c.bydate,c.campaignId,c.adGroupId,c.profileid,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_keywords_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0  OR c.cost>0 ) 
+		AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_keywords_attributed 
+		SELECT c.keywordId,c.bydate,
+		c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_keywords_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0  OR c.attributedSales30d>0 ) AND  bydate=#{mydate,jdbcType=CHAR} 
+ 		and profileid=#{profileid,jdbcType=CHAR} ;
+ 		
+ 		INSERT ignore INTO t_amz_adv_rpt2_sp_keywords_attributed_same 
+		SELECT c.keywordId,c.bydate,
+		c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+		c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU,
+		NULL,NULL,NULL,null
+		from t_amz_adv_rpt_keywords_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0   ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_productads 
+		SELECT c.adId,c.bydate,c.profileid,c.campaignId,c.adGroupId,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_productads_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0  OR c.cost>0   ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_productads_attributed 
+		SELECT c.adId,c.bydate,
+		c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_productads_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0  OR c.attributedSales30d>0   ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_productads_attributed_same 
+		SELECT c.adId,c.bydate,
+		c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+		c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU,
+		NULL,NULL,NULL,null
+		from t_amz_adv_rpt_productads_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0     ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_product_targets 
+		SELECT c.targetId,c.campaignId,c.adGroupId,c.bydate,c.profileid,c.impressions,c.clicks,c.cost,NOW()
+		from t_amz_adv_rpt_product_targe_bkp20210924 c
+		WHERE   ( c.impressions>0 OR c.clicks>0  OR c.cost>0      ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_product_targets_attributed 
+		SELECT c.targetId,c.bydate,
+		  c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		  c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		  c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		from t_amz_adv_rpt_product_targe_bkp20210924 c
+		WHERE   ( c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0  OR c.attributedSales30d>0      ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		INSERT ignore INTO t_amz_adv_rpt2_sp_product_targets_attributed_same 
+		SELECT c.targetId,c.bydate,
+				c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+				c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU,
+				NULL,NULL,NULL,NULL
+		from t_amz_adv_rpt_product_targe_bkp20210924 c
+		WHERE   ( c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0       ) AND  bydate=#{mydate,jdbcType=CHAR}
+		and profileid=#{profileid,jdbcType=CHAR} ;
+		
+  </update>
+  
+  
+    <update id="moveData2" parameterType="java.util.Map">
+		 insert ignore into t_amz_adv_rpt2_hsa_campaigns_place
+		 SELECT h.campaignId,h.bydate,pc.id placementid,h.profileid,h.campaignBudget,h.impressions,h.clicks,h.cost,h.opttime 
+		 from t_amz_adv_rpt_campaignsplace_hsa_bkp20210917 h 
+		 LEFT JOIN t_amz_adv_rpt_placement pc ON pc.name=h.placement
+		 WHERE (h.impressions>0 OR h.clicks>0 OR h.cost>0) 
+		 AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+          insert ignore into t_amz_adv_rpt2_hsa_campaigns_place_attributed
+		 SELECT h.campaignId,h.bydate,pc.id placementid,h.attributedSales14d,h.attributedSales14dSameSKU,h.attributedConversions14d,h.attributedConversions14dSameSKU
+		 from t_amz_adv_rpt_campaignsplace_hsa_bkp20210917 h 
+		 LEFT JOIN t_amz_adv_rpt_placement pc ON pc.name=h.placement
+		 WHERE  (h.attributedSales14d>0 OR h.attributedSales14dSameSKU>0 OR h.attributedConversions14d>0 OR h.attributedConversions14dSameSKU>0)
+		 AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		  
+		 insert ignore into t_amz_adv_rpt2_sp_compaigns_place
+		 SELECT h.campaignId,h.bydate,h.profileid,h.campaignBudget,pc.id placementid,h.impressions,h.clicks,h.cost,NOW()
+		 from t_amz_adv_rpt_compaignsplace_bkp20210924 h 
+		 LEFT JOIN t_amz_adv_rpt_placement pc ON pc.name=h.placement
+		 WHERE (h.impressions>0 OR h.clicks>0 OR h.cost>0) 
+         AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		 insert ignore into t_amz_adv_rpt2_sp_compaigns_place_attributed
+		 SELECT c.campaignId,c.bydate,pc.id placementid,
+		 c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		 c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		 c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		 from t_amz_adv_rpt_compaignsplace_bkp20210924 c 
+		 LEFT JOIN t_amz_adv_rpt_placement pc ON pc.name=c.placement
+		 WHERE  (c.attributedSales14d>0 OR c.attributedSales14dSameSKU>0 OR c.attributedConversions14d>0 OR c.attributedConversions14dSameSKU>0)
+         AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+         
+         insert ignore into t_amz_adv_rpt2_sp_compaigns_place_attributed_same
+		 SELECT c.campaignId,c.bydate,pc.id placementid,
+          c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+        	NULL,NULL,NULL,NULL,
+	   	  c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU
+		 from t_amz_adv_rpt_compaignsplace_bkp20210924 c 
+		 LEFT JOIN t_amz_adv_rpt_placement pc ON pc.name=c.placement
+		 WHERE  (c.attributedSales14d>0 OR c.attributedSales14dSameSKU>0 OR c.attributedConversions14d>0 OR c.attributedConversions14dSameSKU>0)
+         AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+         
+		 INSERT ignore INTO t_amz_adv_rpt_query		 
+		 SELECT UUID_SHORT(),query FROM t_amz_adv_rpt_keywordsquery_hsa_bkp20210924  
+         where bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+         
+         INSERT ignore INTO t_amz_adv_rpt_query		 
+		 SELECT UUID_SHORT(),query FROM t_amz_adv_rpt_keywordsquery_bkp20210924  
+		 where bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		
+		 INSERT ignore INTO t_amz_adv_rpt_query		 
+		 SELECT UUID_SHORT(),query FROM t_amz_adv_rpt_product_target_query_bkp20210924 
+		 where bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_sp_keywords_query
+		 SELECT h.keywordId,h.bydate,pc.id,h.adGroupId,h.campaignId,h.profileid,h.impressions,h.clicks,h.cost,NOW()
+		 from t_amz_adv_rpt_keywordsquery_bkp20210924 h 
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=h.`query`
+		 WHERE (h.impressions>0 OR h.clicks>0 OR h.cost>0) 
+		 AND bydate=#{mydate,jdbcType=CHAR}  and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_sp_keywords_query_attributed
+		 SELECT c.keywordId,c.bydate,pc.id,
+		  c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		  c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		  c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		 from t_amz_adv_rpt_keywordsquery_bkp20210924 c
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=c.`query`
+		 WHERE (c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0) 
+		 and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_sp_keywords_query_attributed_same
+		 SELECT c.keywordId,c.bydate,pc.id,
+         c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+          NULL,NULL,NULL,NULL,
+	   	 c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU
+		 from t_amz_adv_rpt_keywordsquery_bkp20210924 c 
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=c.query
+		 WHERE  (c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0)
+		 and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_hsa_keywords_query
+		 SELECT c.keywordId,c.bydate,pc.id,c.adGroupId,c.campaignId,c.profileid,c.impressions,c.clicks,c.cost,c.attributedConversions14d,c.attributedSales14d,NOW()
+		 from t_amz_adv_rpt_keywordsquery_hsa_bkp20210924 c
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=c.`query`
+		 WHERE (c.impressions>0 OR c.clicks>0 OR c.cost>0) 
+		 and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+        
+         insert ignore into t_amz_adv_rpt2_sp_product_targets_query
+		 SELECT c.targetId,c.campaignId,c.adGroupId,c.bydate,c.profileid,pc.id,c.impressions,c.clicks,c.cost,NOW()
+		 from t_amz_adv_rpt_product_target_query_bkp20210924 c
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=c.`query`
+		 WHERE (c.impressions>0 OR c.clicks>0 OR c.cost>0) 
+		 and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+		 insert ignore into t_amz_adv_rpt2_sp_product_targets_query_attributed
+		 SELECT c.targetId,c.bydate,pc.id,
+		  c.attributedConversions1d,c.attributedConversions7d,c.attributedConversions14d,c.attributedConversions30d,
+		  c.attributedUnitsOrdered1d,c.attributedUnitsOrdered7d,c.attributedUnitsOrdered14d,c.attributedUnitsOrdered30d,
+		  c.attributedSales1d,c.attributedSales7d,c.attributedSales14d,c.attributedSales30d
+		 from t_amz_adv_rpt_product_target_query_bkp20210924 c
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=c.`query`
+		 WHERE (c.attributedConversions30d>0 OR c.attributedUnitsOrdered30d>0 OR c.attributedSales30d>0) 
+		 and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+		 
+	     insert ignore into t_amz_adv_rpt2_sp_product_targets_query_attributed_same
+		 SELECT c.targetId,c.bydate,pc.id,
+		 c.attributedConversions1dSameSKU,c.attributedConversions7dSameSKU,c.attributedConversions14dSameSKU,c.attributedConversions30dSameSKU,
+	   	 c.attributedSales1dSameSKU,c.attributedSales7dSameSKU,c.attributedSales14dSameSKU,c.attributedSales30dSameSKU,
+	   	 NULL,NULL,NULL,NULL
+		 from t_amz_adv_rpt_product_target_query_bkp20210924 c
+		 LEFT JOIN t_amz_adv_rpt_query pc ON pc.query=c.`query`
+		 WHERE (c.attributedConversions30dSameSKU>0 OR c.attributedSales30dSameSKU>0) 
+	     and  bydate=#{mydate,jdbcType=CHAR}
+		 and profileid=#{profileid,jdbcType=CHAR} ;
+  </update>
+</mapper>

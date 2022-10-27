@@ -4,7 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.wimoor.amazon.common.pojo.entity.AmazonBaseEntity;
+import com.wimoor.amazon.common.pojo.entity.BaseEntity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value="ShipInboundCase对象", description="货件装箱详情")
 @TableName("t_erp_ship_inboundcase")
-public class ShipInboundCase extends AmazonBaseEntity{
+public class ShipInboundCase extends BaseEntity{
 	/**
 	 * 
 	 */

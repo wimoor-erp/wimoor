@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,22 +15,17 @@ import java.util.zip.GZIPInputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIUtils;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -50,7 +43,6 @@ import org.w3c.dom.NodeList;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONReader;
 
 
 @SuppressWarnings("deprecation")
@@ -97,8 +89,10 @@ public class HttpClientUtil {
 		if (success_code.contains(resp.getStatusLine().getStatusCode())) {
 			return respContent;
 		} else {
-			String errorcode = "";
 			String errormsg = "";
+			if(respContent!=null) {
+				throw new HttpException(respContent);
+			}
 			if(header!=null) {
 				throw new HttpException(header.getName());
 			}
@@ -107,18 +101,15 @@ public class HttpClientUtil {
 				JSONArray jsonarray = json == null ? GeneralUtil.getJsonArray(respContent) : null;
 				json = jsonarray != null && jsonarray.size() > 0 ? jsonarray.getJSONObject(0) : json;
 				if (json != null) {
-					errorcode = json.getString("code");
 					errormsg = json.getString("details");
-					if (GeneralUtil.isEmpty(errorcode)) {
-						errorcode = json.getString("error_code");
+					if (GeneralUtil.isEmpty(errormsg)) {
 						if(json.getString("error_message")!=null) {
 							errormsg = json.getString("error_message");
 						}else {
 							errormsg = json.getString("message");
 						}
 					}
-					if (GeneralUtil.isEmpty(errorcode)) {
-						errorcode = json.getString("error");
+					if (GeneralUtil.isEmpty(errormsg)) {
 						if(json.getString("error_message")!=null) {
 							errormsg = json.getString("error_message");
 						}else {
@@ -128,13 +119,11 @@ public class HttpClientUtil {
 				} else {
 					Document xml = GeneralUtil.getXML(respContent);
 					if (xml != null) {
-						NodeList codelist = xml.getElementsByTagName("Code");
-						errorcode = codelist != null && codelist.getLength() > 0 ? codelist.item(0).getNodeValue() : "";
 						NodeList messagelist = xml.getElementsByTagName("Message");
 						errormsg = messagelist != null && messagelist.getLength() > 0 ? messagelist.item(0).getNodeValue() : "";
 					}
 				}
-				throw new HttpException(errorcode);
+				throw new HttpException(errormsg);
 			} else {
 				throw new HttpException("访问异常错误编码：" + resp.getStatusLine().getStatusCode());
 			}

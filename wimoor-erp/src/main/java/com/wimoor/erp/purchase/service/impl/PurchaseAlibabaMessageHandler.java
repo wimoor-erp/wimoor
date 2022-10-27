@@ -62,6 +62,7 @@ public class PurchaseAlibabaMessageHandler {
 		    /**
 		     * 2. 创建 消息处理 Handler
 		     */
+		    
 		    WebSocketMessageHandler tunaMessageHandler = new WebSocketMessageHandler() {
 		        /**
 		         * 消费消息。
@@ -150,7 +151,6 @@ public class PurchaseAlibabaMessageHandler {
 		                			}
 		                		}
 		                	}
-		                    System.out.println("message: " + json);
 		                } catch (Exception e) {
 		                    success = false;
 		                }
@@ -159,11 +159,10 @@ public class PurchaseAlibabaMessageHandler {
 		        }
 		    };
 		    client.setTunaMessageHandler(tunaMessageHandler);
-
 		    /**
 		     * 3. 启动 Client
 		     */
-		    client.connect();
+		    //client.connect();
  
 		}
  
@@ -172,7 +171,6 @@ public class PurchaseAlibabaMessageHandler {
 	    public  void messageCloseAction() {
 	        if(client!=null&&client.isConnect()) {
 	        	 client.shutdown();
-	        	
 	        }
 		   
 		}

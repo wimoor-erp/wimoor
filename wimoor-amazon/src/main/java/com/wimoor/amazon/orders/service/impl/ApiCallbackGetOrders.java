@@ -35,15 +35,15 @@ public class ApiCallbackGetOrders implements ApiCallback<GetOrdersResponse> {
 	@Override
 	public void onFailure(ApiException arg0, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
-		auth.setApiRateLimit("getOrders", arg2, arg0);
+		auth.setApiRateLimit(arg2, arg0);
 	}
 
 	@Override
 	public void onSuccess(GetOrdersResponse res, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
 		//System.out.println("onSuccess");
-		auth.setApiRateLimit("getOrders", arg2,startDate,res.getPayload().getNextToken());
-		handlerService.handlerOrderResponse(auth,apilimit,startDate,res);
+		auth.setApiRateLimit(arg2,startDate,res.getPayload().getNextToken());
+		handlerService.handlerOrderResponse(auth,apilimit,res);
 	}
 
 	@Override

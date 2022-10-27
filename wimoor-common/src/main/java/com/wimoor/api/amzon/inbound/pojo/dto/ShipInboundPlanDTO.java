@@ -67,8 +67,8 @@ public class ShipInboundPlanDTO  extends BizBaseEntity{/**
     private String shopid;
 
 	@ApiModelProperty(value = "计划ID")
-	@TableField(value="plansubid")
-    private String plansubid;
+	@TableField(value="planid")
+    private String planid;
 
 	@ApiModelProperty(value = "创建时间【系统填写】")
 	@TableField(value="createdate")
@@ -103,4 +103,7 @@ public class ShipInboundPlanDTO  extends BizBaseEntity{/**
 	@ApiModelProperty(value = "是否欧洲分割")
 	Boolean issplit;
    
+	@TableField(exist = false)
+	@ApiModelProperty(value = "计划的站点")
+	String planmarketplaceid;
 }

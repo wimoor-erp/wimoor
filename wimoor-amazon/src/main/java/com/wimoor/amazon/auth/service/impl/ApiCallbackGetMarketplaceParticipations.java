@@ -21,14 +21,14 @@ public class ApiCallbackGetMarketplaceParticipations implements ApiCallback<GetM
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-		amazonAuthority.setApiRateLimit("getMarketplaceParticipations", responseHeaders, e);
+		amazonAuthority.setApiRateLimit(responseHeaders, e);
 	}
 
 	@Override
 	public void onSuccess(GetMarketplaceParticipationsResponse result, int statusCode,
 			Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-		amazonAuthority.setApiRateLimit("getMarketplaceParticipations", responseHeaders, "");
+		amazonAuthority.setApiRateLimit(responseHeaders, "");
 		iAmazonSellerMarketService.handler(amazonAuthority, result);
 	}
 

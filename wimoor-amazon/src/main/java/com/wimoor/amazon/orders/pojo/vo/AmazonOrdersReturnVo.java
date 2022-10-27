@@ -16,16 +16,22 @@ import lombok.experimental.Accessors;
 public class AmazonOrdersReturnVo {
 
 	@ApiModelProperty(value = "订单退货时间")
-	Date returndate;
+	Date returnDate;
 	
 	@ApiModelProperty(value = "订单ID")
-	String orderid;
+	String orderId;
+	
+	@ApiModelProperty(value = "marketplaceid")
+	String marketplaceid;
 	
 	@ApiModelProperty(value = "退货原因")
 	String reason;
 	
+	@ApiModelProperty(value = "退货详细")
+	String detailedDisposition;
+	
 	@ApiModelProperty(value = "物流中心ID")
-	String centerid;
+	String fulfillmentCenterId;
 	
 	@ApiModelProperty(value = "商品图片")
 	String image;
@@ -48,23 +54,21 @@ public class AmazonOrdersReturnVo {
 	@ApiModelProperty(value = "商品名称")
 	String name;
 	
-	@ApiModelProperty(value = "sku_orderid")
-	String id;
-	
 	@ApiModelProperty(value = "站点名称")
-	String market;
+	String marketname;
 	
 	@ApiModelProperty(value = "AuthID")
 	String authid;
 	
 	@ApiModelProperty(value = "客户注释")
-	String custcomment;
+	String customerComments;
 	
 	@ApiModelProperty(value = "下单时间")
-	Date purchase_date;
+	Date purchaseDate;
 	
 	@ApiModelProperty(value = "订单总金额")
-	BigDecimal item_price;
+	BigDecimal itemPrice;
+	
 	
 	
 }

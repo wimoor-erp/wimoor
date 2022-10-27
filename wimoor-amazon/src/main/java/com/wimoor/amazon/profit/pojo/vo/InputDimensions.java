@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.amazon.spapi.model.catalogitems.Dimensions;
 import com.wimoor.common.mvc.BizException;
  
  
@@ -192,6 +193,51 @@ public 	class InputDimensions {
 	
 	public void clearUnitConversionMap(){
 		unitConversionMap = null;
+	}
+	
+	public static InputDimensions getTrueInputDimesions(Dimensions dimensions) {
+		InputDimensions itemDim = new InputDimensions();
+		String LUnit = null;
+		if(dimensions==null)return null;
+		if (dimensions.getLength() != null && dimensions.getLength().getValue() != null
+				&& dimensions.getLength().getUnit() != null) {
+			LUnit = dimensions.getLength().getUnit();
+			if (LUnit != null && LUnit.toLowerCase().contains("inches")) {
+				LUnit = InputDimensions.unit_in;
+			}
+			if (LUnit != null && LUnit.toLowerCase().contains("centimeters")) {
+				LUnit = InputDimensions.unit_cm;
+			}
+			ItemMeasure lengh = new ItemMeasure(dimensions.getLength().getValue(), LUnit);
+			itemDim.setLength(lengh);
+		}
+		if (dimensions.getWidth() != null && dimensions.getWidth().getValue() != null && LUnit != null) {
+			ItemMeasure width = new ItemMeasure(dimensions.getWidth().getValue(), LUnit);
+			itemDim.setWidth(width);
+		}
+		if (dimensions.getHeight() != null && dimensions.getHeight().getValue() != null && LUnit != null) {
+			ItemMeasure height = new ItemMeasure(dimensions.getHeight().getValue(), LUnit);
+			itemDim.setHeight(height);
+		}
+		if (dimensions.getWeight() != null && dimensions.getWeight().getValue() != null
+				&& dimensions.getWeight().getUnit() != null) {
+			String WUnit = dimensions.getWeight().getUnit();
+			if (WUnit != null && WUnit.toLowerCase().contains("pounds")) {
+				WUnit = InputDimensions.unit_lb;
+			}
+			if (WUnit != null && WUnit.toLowerCase().contains("ounces")) {
+				WUnit = InputDimensions.unit_oz;
+			}
+			if (WUnit != null && WUnit.toLowerCase().contains("kilograms")) {
+				WUnit = InputDimensions.unit_kg;
+			}
+			if (WUnit != null && WUnit.toLowerCase().contains("grams")) {
+				WUnit = InputDimensions.unit_g;
+			}
+			ItemMeasure weight = new ItemMeasure(dimensions.getWeight().getValue(), WUnit);
+			itemDim.setWeight(weight);
+		}
+		return itemDim;
 	}
 	
  

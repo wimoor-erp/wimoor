@@ -1,6 +1,11 @@
 package com.wimoor.auth.client.controller;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +19,7 @@ import org.apache.http.HttpException;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +36,9 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.result.ResultCode;
 import com.wimoor.common.user.UserInfo;
 
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
+@EnableAutoConfiguration
 @Controller
 public class LoginController {
     @Autowired
@@ -41,60 +49,61 @@ public class LoginController {
     ShiroConfig shiroConfig;
     @Autowired
 	MyWxConfig wxconfig;
+    
     @RequestMapping("/mylogout")
 	String mylogoutAction(HttpServletRequest request,HttpServletResponse response, Model model) {
 		HttpSession session = request.getSession();
 		String jsessionid = session.getId();
 		try {
-			String key = jsessionid;
-		    stringRedisTemplate.delete(key);
-			Subject subject = SecurityUtils.getSubject();
-			subject.logout();
+			String logout=shiroConfig.getCasLogoutUrl()+"?service="+ShiroConfig.loginUrl.split("service=")[1];
+			System.out.println(logout);
+			response.sendRedirect(logout);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally {
-			try {
-		      
-				response.sendRedirect(ShiroConfig.loginUrl);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			String key = jsessionid;
+		    stringRedisTemplate.delete(key);
+			Subject subject = SecurityUtils.getSubject();
+			subject.logout();
 		}
 		  return null;
 	}
+
     
 	@RequestMapping("/getJSession")
 	String showLoginAction(HttpServletRequest request,HttpServletResponse response, Model model) {
 		HttpSession session = request.getSession();
 		String jsessionid = session.getId();
+		String errorpage="index";
 		try {
 			Subject subject = SecurityUtils.getSubject();
 			if(subject.getPrincipal()!=null) {
 				  int expiresIn =3600;
 			        String key = jsessionid;
 			        String value = (String) subject.getPrincipal();
+			        //value="调试账号";
 			        Result<UserInfo> userresult = adminClientOneFeign.getUserByUsername(value);
 			        if(Result.isSuccess(userresult)) {
 			        	 UserInfo user = userresult.getData();
 					     user.setSession(key);
 					     String jsonuser = JSONObject.toJSONString(user);
-						 stringRedisTemplate.opsForValue().set(key,jsonuser ,  expiresIn ,java.util.concurrent.TimeUnit.SECONDS);
+						 stringRedisTemplate.opsForValue().set(key,jsonuser,expiresIn,java.util.concurrent.TimeUnit.SECONDS);
 			        }else {
-			        	Result.failed("账户不存在或者异常");
+			        	return errorpage;
 			        }
 			       
 			}else {
 				response.sendRedirect(ShiroConfig.loginUrl);
-				return null;
+				return errorpage;
 			}
 			response.sendRedirect(ShiroConfig.uiserver+"/ssologin?jsessionid="+jsessionid);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
+			//TODO Auto-generated catch block
 			e.printStackTrace();
+			return errorpage;
 		}
-		  return null;
+		return errorpage;
 	}
 	
 	@ResponseBody
@@ -115,13 +124,111 @@ public class LoginController {
 	}
 	
 	@ResponseBody
-	@RequestMapping("/login")
-	public Result<UserInfo> loginAction(HttpServletRequest request,HttpServletResponse response) {
-		String account = request.getParameter("account");
-		String password = request.getParameter("password");
-		return adminClientOneFeign.verifyAccountAction(account, password);
-	}
+	@RequestMapping("/ssologinisrun")
+	public Result<String> ssoLoginisRunAction(HttpServletRequest request,HttpServletResponse response) {
+		try {
+			if(!StrUtil.isEmpty(ShiroConfig.casserver)) {
+				URL url = new URL(ShiroConfig.casserver);
+				HttpURLConnection con = (HttpURLConnection)url.openConnection();
+				con.setUseCaches(false);
+				con.setConnectTimeout(3000);
+				int status = con.getResponseCode();
+				if(status==200) {
+					return Result.success(ShiroConfig.authserver);
+				}else {
+					return Result.success("false");
+				}
+			}else {
+				return Result.success("false");
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return Result.success("false");
+		}
 	
+	}
+	public static String getBody(HttpServletRequest request) throws IOException {	 
+		String body = null;	    
+		StringBuilder stringBuilder = new StringBuilder();	    
+		BufferedReader bufferedReader = null;	    
+		try {	        
+			InputStream inputStream = request.getInputStream();	        
+			if (inputStream != null) {	           
+				bufferedReader = new BufferedReader(new InputStreamReader(inputStream));	           
+				char[] charBuffer = new char[128];	           
+				int bytesRead = -1;	            
+				while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {	               
+					stringBuilder.append(charBuffer, 0, bytesRead);	           
+					}	        
+				} 
+			  else {	            
+					stringBuilder.append("");	        
+					}	    
+			} catch (IOException ex) {	        
+				    throw ex;	    
+				    } 
+		    finally {	        
+		    	if (bufferedReader != null) {	            
+		    		try {	                
+		    			bufferedReader.close();	           
+		    			} catch (IOException ex) {	                
+		    				throw ex;	            
+		    			}	      
+		    		}	    
+		    	}	    
+		body = stringBuilder.toString();
+		return body;
+	}
+ 
+	@ResponseBody
+    @RequestMapping("/login")
+	public Result<UserInfo> loginAction(HttpServletRequest request,HttpServletResponse response ) {
+		String body=null;
+		try {
+			body = getBody(request);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(body==null)return Result.failed();
+		JSONObject userjson = GeneralUtil.getJsonObject(body);
+		String account=userjson.getString("account");
+		String password=userjson.getString("password");
+		try {
+			Result<UserInfo> result = adminClientOneFeign.verifyAccountAction(account, password);
+			if(result.getData()!=null) {
+				String sessionkey=UUID.randomUUID().toString();
+				 UserInfo user = result.getData();
+				 user.setSession(sessionkey);
+				 String jsonuser = JSONObject.toJSONString(user);
+				 int expiresIn =3600;
+				 stringRedisTemplate.opsForValue().set(sessionkey,jsonuser,expiresIn,java.util.concurrent.TimeUnit.SECONDS);
+			     return result;
+			}else {
+				return result;
+			}
+		}catch(Exception e) {
+			return Result.failed("登录失败");
+		}
+	}
+    
+	@ResponseBody
+    @RequestMapping("/apilogout")
+	Result<String> logoutAction(HttpServletRequest request,HttpServletResponse response, Model model) {
+        String jsessionid =request.getHeader("jsessionid");
+		try {
+			String key = jsessionid;
+		    stringRedisTemplate.delete(key);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return Result.success("fail");
+		} 
+		  return Result.success("success");
+	}
+    
 	
 	@ResponseBody
 	@RequestMapping("/loginWechat")

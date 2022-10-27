@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.erp.material.pojo.entity.Material;
+import com.wimoor.erp.material.pojo.vo.MaterialVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
@@ -16,7 +17,7 @@ public interface MaterialMapper extends BaseMapper<Material> {
 
 	IPage<Map<String, Object>> findMaterial(Page<?> page,Map<String,Object> map);
 
-	Map<String, Object> findMaterialById(String id);
+	MaterialVO findMaterialById(String id);
 
 	List<Material> selectAllSKUForSelect(@Param("sku")String sku, @Param("shopid")String shopid);
 	

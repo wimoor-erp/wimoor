@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wimoor.admin.pojo.entity.SysDept;
 import com.wimoor.admin.pojo.vo.DeptVO;
 import com.wimoor.admin.service.ISysDeptService;
+import com.wimoor.common.SelectVO;
 import com.wimoor.common.TreeSelectVO;
 import com.wimoor.common.result.Result;
 
@@ -50,12 +51,20 @@ public class DeptController {
     }
 
     @ApiOperation(value = "部门下拉（TreeSelect）层级列表")
-    @GetMapping("/select")
-    public Result<List<TreeSelectVO>> getSelectList() {
+    @GetMapping("/select-tree")
+    public Result<List<TreeSelectVO>> getSelectTreeList() {
         List<TreeSelectVO> deptSelectList = deptService.listTreeSelect();
         return Result.success(deptSelectList);
     }
 
+    @ApiOperation(value = "部门下拉（TreeSelect）层级列表")
+    @GetMapping("/select")
+    public Result<List<SelectVO>> getSelectList() {
+        List<SelectVO> deptSelectList = deptService.listSelect();
+        return Result.success(deptSelectList);
+    }
+    
+    
     @ApiOperation(value = "部门详情")
     @ApiImplicitParam(name = "id", value = "部门id", required = true, paramType = "path", dataType = "Long")
     @GetMapping("/{id}")

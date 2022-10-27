@@ -30,15 +30,19 @@ public class ProductInfo extends BaseEntity {
     private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "唯一码asin")
+    @TableField("asin")
     private String asin;
 
     @ApiModelProperty(value = "用户码sku")
+    @TableField("sku")
     private String sku;
 
     @ApiModelProperty(value = "站点")
+    @TableField("marketplaceid")
     private String marketplaceid;
 
     @ApiModelProperty(value = "产品名称（产品标题）")
+    @TableField("name")
     private String name;
 
     @ApiModelProperty(value = "创建日期")

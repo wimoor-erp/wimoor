@@ -70,6 +70,15 @@ public class MenuController {
         return Result.success(menuList);
     }
 
+    @ApiOperation(value = "菜单（Tree）层级列表")
+    @GetMapping("/companytree")
+    public Result getCompanyTreeSelectList() {
+    	UserInfo userInfo = UserInfoContext.get();
+        List<MenuVO> menuList = menuService.listCompanyTreeSelect(userInfo);
+        return Result.success(menuList);
+    }
+  
+    
     @ApiOperation(value = "菜单路由（Route）层级列表")
     @GetMapping("/route")
     public Result getRouteList() {

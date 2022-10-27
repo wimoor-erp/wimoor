@@ -16,6 +16,7 @@ package com.amazon.spapi.model.finances;
 import java.util.Objects;
 import java.util.Arrays;
 import io.swagger.annotations.ApiModel;
+import com.amazon.spapi.model.finances.CouponPaymentEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,7 @@ import java.util.List;
  * A list of coupon payment event information.
  */
 @ApiModel(description = "A list of coupon payment event information.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class CouponPaymentEventList extends ArrayList<CouponPaymentEvent> {
 
   @Override

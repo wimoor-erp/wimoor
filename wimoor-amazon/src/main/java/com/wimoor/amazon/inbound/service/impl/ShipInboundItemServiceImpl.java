@@ -1,6 +1,7 @@
 package com.wimoor.amazon.inbound.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,13 @@ public class ShipInboundItemServiceImpl extends  ServiceImpl<ShipInboundItemMapp
 			QueryWrapper<ShipInboundItem> queryWrapper = new QueryWrapper<ShipInboundItem>();
 			queryWrapper.eq("shipmentid",shipmentid);
 			return this.baseMapper.selectList(queryWrapper);
+		}
+
+		@Override
+		public List<Map<String, Object>> getshotTime(String companyid, String groupid, String marketplaceid,
+				String sku) {
+			// TODO Auto-generated method stub
+			return this.baseMapper.getshotTime(companyid, groupid, marketplaceid, sku);
 		}
 		
 	

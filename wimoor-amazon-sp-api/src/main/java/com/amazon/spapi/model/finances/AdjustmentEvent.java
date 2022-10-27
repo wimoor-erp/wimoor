@@ -22,13 +22,15 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.finances.AdjustmentItemList;
+import com.amazon.spapi.model.finances.Currency;
 import java.io.IOException;
 
 /**
  * An adjustment to the seller&#39;s account.
  */
 @ApiModel(description = "An adjustment to the seller's account.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class AdjustmentEvent {
   @SerializedName("AdjustmentType")
   private String adjustmentType = null;

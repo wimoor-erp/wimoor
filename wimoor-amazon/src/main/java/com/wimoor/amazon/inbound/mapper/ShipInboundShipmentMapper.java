@@ -8,14 +8,14 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.amazon.inbound.pojo.dto.ShipInboundShipmenSummaryDTO;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundShipment;
 import com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundShipmenSummarytVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface ShipInboundShipmentMapper extends BaseMapper<ShipInboundShipment> {
-
-	IPage<ShipInboundShipmenSummarytVo> findByTraceCondition(Page<?> page,@Param("param")Map<String,Object> param);
+	IPage<ShipInboundShipmenSummarytVo> findByTraceCondition(Page<ShipInboundShipmenSummarytVo> page,@Param("param")ShipInboundShipmenSummaryDTO param);
 
 	List<String> findCarrierByshipmentid(@Param("country") String country, @Param("transtyle") String transtyle);
 
@@ -33,4 +33,5 @@ public interface ShipInboundShipmentMapper extends BaseMapper<ShipInboundShipmen
 
 	Map<String,Object> findToCountry(@Param("destinationFulfillmentCenterId")String destinationFulfillmentCenterId,@Param("region") String region);
 
+	int findhasAssemblyFormNum(@Param("shipmentid")String shipmentid);
 }

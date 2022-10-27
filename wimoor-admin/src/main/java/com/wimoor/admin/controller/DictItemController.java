@@ -68,10 +68,21 @@ public class DictItemController {
         return Result.success(list);
     }
 
+    @ApiOperation(value = "字典项")
+    @GetMapping("/item")
+    public Result item( String dictCode,String value) {
+        SysDictItem item = iSysDictItemService.getOne(
+                new LambdaQueryWrapper<SysDictItem>()
+                        .eq(SysDictItem::getDictCode, dictCode)
+                        .eq(SysDictItem::getValue, value)
+        );
+        return Result.success(item);
+    }
+    
     @ApiOperation(value = "字典项详情")
     @ApiImplicitParam(name = "id", value = "字典id", required = true, paramType = "path", dataType = "Long")
     @GetMapping("/{id}")
-    public Result detail(@PathVariable Integer id) {
+    public Result detail(@PathVariable String id) {
         SysDictItem dictItem = iSysDictItemService.getById(id);
         return Result.success(dictItem);
     }
@@ -105,7 +116,19 @@ public class DictItemController {
         return Result.judge(status);
     }
 
-
+    @ApiOperation(value = "获取字典")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "typeCode", value = "字典类型", required = true, paramType = "query", dataType = "String"),
+    })
+    @GetMapping(value = "/select_list/{typeCode}")
+    public Result<List<SysDictItem>> listType(@PathVariable String typeCode) {
+    	  List<SysDictItem> list =null;
+            if (!StrUtil.isEmpty(typeCode)) {
+             list = iSysDictItemService.list(new LambdaUpdateWrapper<SysDictItem>().eq(SysDictItem::getDictCode, typeCode));
+            }
+        return Result.success(list);
+    }
+    
     @ApiOperation(value = "选择性更新字典数据")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "用户ID", required = true, paramType = "path", dataType = "Long"),

@@ -9,45 +9,60 @@ import java.util.Map;
 
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import com.wimoor.common.service.impl.OSSApiService;
 
-public class FileUpload {  
+import lombok.RequiredArgsConstructor;
 
+@Component
+@RequiredArgsConstructor
+public class FileUpload   {  
+
+  final OSSApiService ossApiService;
+  
   public static final String FILE_PATH = "/upload/";  
-
-  public static File getFile(String fileName) {  
+ 
+  @Value("${config.photo-server}")
+  public String photoServer;
+  @Value("${config.photo-server-url}")
+  public String photoServerUrl;
+  
+  public   File getFile(String fileName) {  
       return new File(FILE_PATH, fileName);  
   }  
   
-  public static String getPictureImage(String value) {
+  public   String getPictureImage(String value) {
 		if(value!=null&&!value.contains("http")&&(value.contains("photo/")||value.contains("wimoor-file/"))) {
 			//value=value.replace("photo/","https://wimoor-file.oss-cn-shenzhen.aliyuncs.com/old/");
-			value=value.replace("photo/","https://photo.wimoor.com/");
+			value=value.replace("photo/",photoServerUrl+"/");
 			value=value.replace("%2B","%252B");
-			value=value.replace("wimoor-file/", "https://wimoor-file.oss-cn-shenzhen.aliyuncs.com/");
+			value=value.replace("+","%2B");
+			value=value.replace("wimoor-file/", ossApiService.bucketPath+"/");
 		}else if(value==null) {
-	    	value="https://wimoor-file.oss-cn-shenzhen.aliyuncs.com/sys/photos/noimg.png";
+	    	value=ossApiService.bucketPath+"/sys/photos/noimg.png";
 	    } 
 		return value;
   }
  
   
-  public static List<Map<String, Object>> covertPictureImage(List<Map<String, Object>> list) {
+  public   List<Map<String, Object>> covertPictureImage(List<Map<String, Object>> list) {
 	   for(Map<String, Object> item:list) {
-		   item.put("image",FileUpload.getPictureImage(item.get("image")));
-		   item.put("location",FileUpload.getPictureImage(item.get("location")));
+		   item.put("image",getPictureImage(item.get("image")));
+		   item.put("location",getPictureImage(item.get("location")));
 	   }
 	   return list;
   }
   
-  public static String getPictureImage(Object value) {
+  public   String getPictureImage(Object value) {
 	  String result=null;
 	  if(value!=null)result=value.toString();
 	  return getPictureImage(result);
   }
   
-	public static Boolean deletePicture(String path) {
-		FTPServerUtil ftputil=new FTPServerUtil();
+	public   Boolean deletePicture(String path) {
+		FTPServerUtil ftputil=new FTPServerUtil(photoServer);
 		try {
 			FTPClient ftpClient = ftputil.getFTPClient();
 			if(path == null) return false;
@@ -78,4 +93,6 @@ public class FileUpload {
 		
 		return false;
 	}
+
+
 } 

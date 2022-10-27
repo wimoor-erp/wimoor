@@ -2,8 +2,9 @@ package com.wimoor.common.user;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
- 
+
 import lombok.Data;
 
 @Data
@@ -43,9 +44,25 @@ public class UserInfo implements Serializable {
 	private Boolean isActive;
 	
 	private Boolean hasEmail;
+	
+	private String usertype ;
+
+	private String companyid;
  
-    String companyid;
- 
-    String session;
- 
+	private String session;
+	
+	private String deptid;
+	
+	private List<String> roles;
+    
+	private List<String> groups;
+    
+	private List<String> datalimits;
+    
+    public Boolean isLimit(String dataType) {
+    	return datalimits.contains(dataType);
+    };
+    public Boolean isLimit(UserLimitDataType dataType) {
+    	return datalimits.contains(dataType.getCode());
+    };
 }

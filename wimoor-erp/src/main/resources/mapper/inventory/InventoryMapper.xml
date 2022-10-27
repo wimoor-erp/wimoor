@@ -14,7 +14,20 @@
 	<sql id="Base_Column_List">
 		id, warehouseid, shopid, materialid, quantity, status, operator, opttime
 	</sql>
-
+	<select id="findLocalWarehouseInventory" resultType="com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo" parameterType="java.lang.String">
+	  SELECT  i.warehouseid,i.materialid ,w.name warehousename,m.name ,m.sku,
+				sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory i
+			left join t_erp_warehouse w ON w.id=i.warehouseid
+			left join t_erp_material m on m.id=i.materialid
+			where i.shopid=#{shopid,jdbcType=CHAR} 
+			and w.disabled=0
+            and i.materialid=#{materialid,jdbcType=CHAR}
+            and i.quantity>0
+			group by i.shopid,warehouseid,i.materialid
+	</select>
 	<!-- 确认当前SKU的inventory对象(根据状态去查询) -->
 	<select id="selectNowInv" parameterType="java.lang.String" resultMap="BaseResultMap">
 		select iv.id,iv.shopid,iv.warehouseid,iv.materialid,iv.quantity,iv.status,iv.operator,iv.opttime
@@ -24,6 +37,7 @@
 			and iv.materialid=#{material,jdbcType=CHAR}
 			and iv.shopid=#{shopid,jdbcType=CHAR}
 			and iv.status=#{status,jdbcType=CHAR}
+		for update;
 	</select>
 	 <select id="selectAllInvSubWarehouse" parameterType="java.lang.String" resultMap="BaseResultMap">
 		select iv.materialid id,iv.shopid,max(iv.warehouseid) warehouseid,iv.materialid,sum(iv.quantity) quantity,max(iv.status) status,
@@ -77,7 +91,8 @@
 			sum(i.afn_unsellable_quantity) afnUnsellableQuantity,
 			sum(i.afn_researching_quantity) afnResearchingQuantity,
 			sum(r.reserved_customerorders) reservedCustomerorders,
-			sum(ifnull(r.reserved_fc_processing,i.afn_reserved_future_supply)) reservedFcProcessing,
+			sum(case when r.id is null then ifnull(i.afn_reserved_quantity,0) 
+			       else ifnull(r.reserved_fc_processing,i.afn_reserved_future_supply)  end) reservedFcProcessing,
 			sum(r.reserved_fc_transfers) reservedFcTransfers,
       		sum(r.reserved_qty) reservedQty 
 		from t_inventory_report i 
@@ -561,15 +576,15 @@
 		ORDER BY m.sku;
 	</select>
 
-	<select id="getSelfInvBySKU" parameterType="java.math.BigInteger" resultType="java.util.Map">
+	<select id="getSelfInvBySKU" parameterType="java.lang.String"  resultType="java.util.Map">
 		SELECT m.id,m.sku,m.price,m.name,IFNULL(p.location,p.url) image,
 			sum(case when i.`status`='fulfillable' then i.quantity else 0 end) fulfillable,
 			SUM(case when POSITION('outbound' IN i.`status`) then i.quantity else 0 end ) outbound,
 			SUM(case when POSITION('inbound' IN i.`status`) then i.quantity else 0 end ) inbound
 		from t_erp_material m
 		LEFT JOIN t_picture p on m.image=p.id 
-		LEFT JOIN t_erp_inventory i on m.id=i.materialid and i.warehouseid=#{warehouseid,jdbcType=BIGINT}
-		where m.id=#{materialid,jdbcType=BIGINT} 
+		LEFT JOIN t_erp_inventory i on m.id=i.materialid and i.warehouseid=#{warehouseid,jdbcType=CHAR}
+		where m.id=#{materialid,jdbcType=CHAR} 
 		group by m.id
 	</select>
 
@@ -896,6 +911,56 @@
 		AND inv3.`status` like 'inbound%'
 		LEFT JOIN t_picture p ON p.id=t.image
 		WHERE  ass.mainmid=#{materialid,jdbcType=CHAR}
+	</select>
+	
+	
+	<select id="getInvDayDetail" parameterType="java.lang.String" resultType="java.util.Map">
+	select 
+    h.shopid,h.warehouseid,h.materialid,m.sku,m.name pname,h.modifyday,
+			 h.quantity  quantity,h.`status`,p.location image,w.name warehouse
+         from  ( select h.shopid,  h.warehouseid,h.materialid,h.modifyday,h.`status`  ,sum( h.quantity) quantity    FROM t_erp_inventory_his h
+          where  h.shopid=#{shopid,jdbcType=CHAR} 
+           and h.modifyday >#{beginDate,jdbcType=CHAR}
+       		<if test="warehouse != null">
+			and h.warehouseid=#{warehouse,jdbcType=CHAR}
+		    </if>
+			and h.modifyday &lt;=#{endDate,jdbcType=CHAR}
+            and (h.`status`='fulfillable' or   h.`status` like 'outbound%' )
+             GROUP BY h.shopid,h.warehouseid,h.materialid,h.modifyday,h.`status`
+         	order by h.modifyday desc) h
+		left join t_erp_warehouse w on w.id=h.warehouseid  and w.shopid=h.shopid
+		left join t_erp_material m on m.id=h.materialid and m.shopid=h.shopid
+		left join t_picture p on p.id=m.image
+		WHERE   m.isDelete=0
+		
+		<if test="myself != null">
+			and m.owner = #{myself,jdbcType=CHAR}
+		</if>
+		 <if test="sku != null">
+			and m.sku like #{sku,jdbcType=CHAR}
+		</if>
+		union all
+			select 
+             h.shopid,h.warehouseid,h.materialid,m.sku,m.name pname,#{beginDate,jdbcType=CHAR} modifyday, h.quantity  quantity,h.`status`,p.location image,w.name warehouse
+         from  ( select h.shopid,  h.warehouseid,h.materialid,max(h.modifyday) modifyday,h.`status`   FROM t_erp_inventory_his h
+          where  h.shopid=#{shopid,jdbcType=CHAR} 
+           and h.modifyday &lt;=#{beginDate,jdbcType=CHAR}
+       		<if test="warehouse != null">
+			and h.warehouseid=#{warehouse,jdbcType=CHAR}
+		    </if>
+            and (h.`status`='fulfillable' or   h.`status` like 'outbound%' )
+             GROUP BY h.shopid,h.warehouseid,h.materialid,h.`status`) h1
+         left join t_erp_inventory_his h on h.shopid=h1.shopid and h.warehouseid=h1.warehouseid and h.materialid=h1.materialid and h.`status`=h1.`status` and h.modifyday=h1.modifyday
+		left join t_erp_warehouse w on w.id=h.warehouseid  and w.shopid=h.shopid
+		left join t_erp_material m on m.id=h.materialid and m.shopid=h.shopid
+		left join t_picture p on p.id=m.image
+		WHERE   m.isDelete=0
+		 <if test="myself != null">
+			and m.owner = #{myself,jdbcType=CHAR}
+		</if>
+		 <if test="sku != null">
+			and m.sku like #{sku,jdbcType=CHAR}
+		</if>
 	</select>
 	
 </mapper>

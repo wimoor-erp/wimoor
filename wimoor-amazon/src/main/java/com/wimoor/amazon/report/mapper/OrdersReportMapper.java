@@ -14,7 +14,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersRemoveVo;
-import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersReturnVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersShipVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersVo;
 import com.wimoor.amazon.report.pojo.entity.OrdersReport;
@@ -44,27 +43,25 @@ public interface OrdersReportMapper extends BaseMapper<OrdersReport> {
 
 	Date hasDownload(@Param("amazonAuthId") String amazonAuthId);
 
-	List<AmazonOrdersVo> selectOrderList(@Param("dto") AmazonOrdersDTO dto);
+
 	List<Map<String, Object>> selectOrderTodayList(Map<String, Object> paramMap);
 	
 	Map<String, Object> selectProductOrdersTodayList_SalesOfYesterday(Map<String, Object> paramMap);
 	Map<String, Object> selectProductOrdersTodayList_SalesOfLast(Map<String, Object> paramMap);
-	List<Map<String, Object>> selectProductOrdersTodayList(Map<String, Object> paramMap);
+	List<Map<String, Object>> selectProductOrdersTodayList(@Param("param")Map<String, Object> paramMap);
 	IPage<Map<String, Object>> selectOrderTodayList(Page<?> page,Map<String, Object> paramMap);
 	Map<String, Object> selectOrderTodaySummary(Map<String, Object> paramMap);
 	
 	Map<String, Object> selectOrderYesDaySummary(Map<String, Object> paramMap);
 	
 	
-	IPage<Map<String, Object>> selectProductOrdersTodayList(Page<?> page,Map<String, Object> paramMap);
+	IPage<Map<String, Object>> selectProductOrdersTodayList(Page<?> page,@Param("param")Map<String, Object> paramMap);
 //	Map<String, Object> selectProductOrdersTodaySummary(Map<String, Object> paramMap);
 	
 	List<AmazonOrdersDetailVo> selectOrderDetail(@Param("param")Map<String, Object> paramMap);
 	
 	List<AmazonOrdersDetailVo> selectOrderItemDetail(@Param("param")Map<String, Object> paramMap);
 	
-	IPage<AmazonOrdersReturnVo> selectReturnsList(Page<?> page,Map<String, Object> paramMap);
-
 	OrdersReport getOrdersReportByOrderid(Map<String, Object> paramMap);
 
 	void clearOrderReportDownload();
@@ -100,6 +97,8 @@ public interface OrdersReportMapper extends BaseMapper<OrdersReport> {
 
 	List<Map<String, Object>> getOrderAddressListDownload(Map<String, Object> paramMap);
 	
-	List<AmazonOrdersVo>  selectOrderMainList( @Param("dto")AmazonOrdersDTO dto);
+	void moveData(@Param("amazonAuthId")String amazonAuthId,@Param("startDate")String startDate);
 
+	List<AmazonOrdersVo>  selectOrderMainList( @Param("dto")AmazonOrdersDTO dto);
+	List<AmazonOrdersVo> selectOrderList(@Param("dto") AmazonOrdersDTO dto);
 }

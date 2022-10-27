@@ -7,12 +7,14 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.amazon.inbound.pojo.dto.AddressListDTO;
 import com.wimoor.amazon.inbound.pojo.entity.ShipAddress;
 import com.wimoor.amazon.inbound.service.IShipAddressService;
 import com.wimoor.common.mvc.BizException;
@@ -28,28 +30,27 @@ import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
  
 @Api(tags = "发货地址接口")
+@RestController
 @SystemControllerLog("发货地址模块")
-@RestController("/api/v1/shipaddress")
+@RequestMapping("/api/v1/shipaddress")
 @RequiredArgsConstructor
 public class ShipAddressController {
 
 	final IShipAddressService shipAddressService;
 	
 	@ApiOperation("地址列表")
-    @GetMapping("/list")
-	public Result<List<ShipAddress>> getListData(
-			@ApiParam("店铺ID")@RequestParam String groupid,
-    		@ApiParam("SKU查询")@RequestParam String search,
-    		@ApiParam("是否删除")@RequestParam String isdisable,
-    		@ApiParam("每页条数")@RequestParam Integer pagesize,
-    		@ApiParam("当前页[从1开始]")@RequestParam Integer currentpage){
+    @PostMapping("/list")
+	public Result<IPage<ShipAddress>> getListData(@RequestBody AddressListDTO dto ){
 	    UserInfo user = UserInfoContext.get();
 	    String shopid =  user.getCompanyid();
-		if("null".equals(isdisable) || isdisable==null || ("").equals(isdisable)) {
-			isdisable=null;
+		if("null".equals(dto.getIsdisable()) || dto.getIsdisable()==null || ("").equals(dto.getIsdisable())|| ("false").equals(dto.getIsdisable())) {
+			dto.setIsdisable(null);
 		} 
-		IPage<ShipAddress> list = shipAddressService.findByCondition(new Page<ShipAddress>(currentpage,pagesize),shopid,groupid,isdisable, search);
-		return Result.success(list.getRecords(),list.getTotal());
+		if(StrUtil.isEmpty(dto.getSearch())) {
+			dto.setSearch(null);
+		}
+		IPage<ShipAddress> list = shipAddressService.findByCondition(dto.getPage(),shopid,dto.getGroupid(),dto.getIsdisable(),dto.getSearch());
+		return Result.success(list);
 	}
 
 	@ApiOperation("展示地址信息")
@@ -177,12 +178,11 @@ public class ShipAddressController {
 				query.eq("groupid", groupid);
 				query.orderByDesc("isdefault");
 				List<ShipAddress> list = shipAddressService.list(query);
-				Result.success(list);
+				return Result.success(list);
 			} else {
-				Result.failed();
+				return Result.failed();
 			}
 		}
-		return Result.failed();
 	}
 
 

@@ -32,6 +32,12 @@
     <result column="shipment_service_level_category" property="shipmentServiceLevelCategory" jdbcType="CHAR" />
     <result column="amazonAuthid" property="amazonauthid" jdbcType="BIGINT" />
   </resultMap>
+  <insert id="removeDataArchive" parameterType="java.lang.String" >
+     replace into t_amz_order_main_archive
+     select * from  t_amz_order_main where purchase_date&lt; DATE_SUB(now(),INTERVAL 9 DAY) and amazonAuthId = #{amazonAuthId,jdbcType=CHAR};
+     DELETE FROM t_amz_order_main where purchase_date&lt; DATE_SUB(now(),INTERVAL 9 DAY) and amazonAuthId = #{amazonAuthId,jdbcType=CHAR};
+  </insert>
+  
   
     
 </mapper>

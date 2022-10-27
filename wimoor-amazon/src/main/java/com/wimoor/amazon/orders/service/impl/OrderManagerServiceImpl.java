@@ -1,5 +1,7 @@
 package com.wimoor.amazon.orders.service.impl;
 
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,16 +33,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.amazon.spapi.api.OrdersV0Api;
 import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.model.fbainventory.InventorySummary;
+import com.amazon.spapi.model.orders.Address;
+import com.amazon.spapi.model.orders.BuyerInfo;
+import com.amazon.spapi.model.orders.GetOrderAddressResponse;
 import com.amazon.spapi.model.orders.GetOrderBuyerInfoResponse;
 import com.amazon.spapi.model.orders.GetOrderItemsResponse;
 import com.amazon.spapi.model.orders.GetOrderResponse;
 import com.amazon.spapi.model.orders.Order;
+import com.amazon.spapi.model.orders.Order.OrderStatusEnum;
+import com.amazon.spapi.model.orders.OrderAddress;
 import com.amazon.spapi.model.orders.OrderBuyerInfo;
 import com.amazon.spapi.model.orders.OrderItem;
 import com.amazon.spapi.model.orders.OrderItemList;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
@@ -50,6 +61,7 @@ import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.wimoor.amazon.auth.mapper.AmazonGroupMapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
@@ -61,9 +73,11 @@ import com.wimoor.amazon.common.pojo.entity.AmzAmountDescription;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.feed.mapper.AmzSubmitFeedQueueMapper;
 import com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue;
+import com.wimoor.amazon.feed.pojo.entity.Submitfeed;
 import com.wimoor.amazon.feed.service.ISubmitfeedService;
 import com.wimoor.amazon.finances.pojo.entity.OrdersFinancial;
 import com.wimoor.amazon.finances.service.IOrdersFinancialService;
+import com.wimoor.amazon.inventory.service.IInventorySupplyService;
 import com.wimoor.amazon.orders.mapper.AmzOrderBuyerShipAddressMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrderItemMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrderMainMapper;
@@ -71,6 +85,7 @@ import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceVatMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrdersRemarkMapper;
 import com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO;
+import com.wimoor.amazon.orders.pojo.dto.AmazonOrdersReturnDTO;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrderBuyerShipAddress;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrderItem;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrderMain;
@@ -83,15 +98,19 @@ import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersReturnVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersShipVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersVo;
 import com.wimoor.amazon.orders.service.IOrderManagerService;
+import com.wimoor.amazon.product.mapper.ProductInfoMapper;
+import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.report.mapper.AmazonProductSalesMapper;
+import com.wimoor.amazon.report.mapper.AmzOrderReturnsMapper;
+import com.wimoor.amazon.report.mapper.AmzOrdersInvoiceReportMapper;
 import com.wimoor.amazon.report.mapper.OrdersReportMapper;
 import com.wimoor.amazon.report.mapper.OrdersSummaryMapper;
 import com.wimoor.amazon.report.mapper.SummaryAllMapper;
 import com.wimoor.amazon.report.pojo.entity.AmazonProductSales;
+import com.wimoor.amazon.report.pojo.entity.AmzOrdersInvoiceReport;
 import com.wimoor.amazon.report.pojo.entity.OrdersReport;
 import com.wimoor.amazon.report.pojo.entity.OrdersSummary;
 import com.wimoor.amazon.report.pojo.entity.SummaryAll;
-import com.wimoor.amazon.util.IniConfig;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
@@ -100,10 +119,8 @@ import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.service.impl.PictureServiceImpl;
 import com.wimoor.common.user.UserInfo;
-
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-
 
 @Service("orderManagerService")
 public class OrderManagerServiceImpl implements IOrderManagerService{
@@ -160,15 +177,27 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	@Resource
 	IPictureService pictureService;
 	@Resource
+	FileUpload fileUpload;
+	@Resource
 	AmzSubmitFeedQueueMapper amzSubmitfeedQueueMapper;
 	@Autowired
 	IOrdersFinancialService ordersFinancialService;
 	@Resource
 	AmzAmountDescriptionMapper amzAmountDescriptionMapper;
+	@Resource
+	AmzOrdersInvoiceReportMapper amzOrdersInvoiceReportMapper;
+	@Resource
+	ProductInfoMapper productInfoMapper;
+	@Resource
+	AmazonGroupMapper amazonGroupMapper;
+	@Resource
+	AmzOrderReturnsMapper amzOrderReturnsMapper;
+ 
 	
 	@Override
 	public IPage<AmazonOrdersVo> selectOrderList(AmazonOrdersDTO dto) {
 		//一个一个auth反复查询
+		IPage<AmazonOrdersVo> result=null;
 		if(dto.getAmazonAuthId()==null) {
 			if(dto.getGroupList()!=null) {
 				if(dto.getMarketplaceid()!=null) {
@@ -178,7 +207,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 						dto.setAmazonAuthId(auth.getId());
 						addAllQuery(mylist,dto);
 					}
-					return getResult(dto,mylist);
+					result= getResult(dto,mylist);
 				}else {
 					//全是不限
 					List<AmazonOrdersVo> mylist=new LinkedList<AmazonOrdersVo>();
@@ -189,7 +218,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 							addAllQuery(mylist,dto);
 						}
 					}
-					return getResult(dto,mylist);
+					result= getResult(dto,mylist);
 				}
 			}else {
 				String groupid = dto.getGroupid();
@@ -199,26 +228,47 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 					dto.setAmazonAuthId(auth.getId());
 					addAllQuery(mylist,dto);
 				}
-				return getResult(dto,mylist);
+				result= getResult(dto,mylist);
 				 
 			}
 		}else {
 			List<AmazonOrdersVo> mylist=new LinkedList<AmazonOrdersVo>();
 			addAllQuery(mylist,dto);
-			return getResult(dto,mylist);
+			result= getResult(dto,mylist);
 		}
+		return result;
 	}
 	
+	private IPage<AmazonOrdersVo> getResult(AmazonOrdersDTO dto, List<AmazonOrdersVo> mylist) {
+		// TODO Auto-generated method stub
+//		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=2) {
+//			mylist.stream().filter(distinctByKey1(s->s.getKey()));
+//		}
+		IPage<AmazonOrdersVo> result=dto.getListPage(mylist);
+		return result;
+	}
+
 	private long addAllQuery(List<AmazonOrdersVo> mylist, AmazonOrdersDTO dto) {
-		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=2) {
+		Calendar c=Calendar.getInstance();
+		c.add(Calendar.DATE, -3);	
+		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=3) {
 			AmazonOrdersDTO newdto = new AmazonOrdersDTO();
 			BeanUtil.copyProperties(dto, newdto);
-			Calendar c=Calendar.getInstance();
-			c.add(Calendar.DATE, -3);
-			newdto.setStartDate(GeneralUtil.formatDate(c.getTime()));
-			List<AmazonOrdersVo> mainlist = ordersReportMapper.selectOrderMainList(dto);
+			if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getStartDate()), new Date())>3) {
+				newdto.setStartDate(GeneralUtil.formatDate(c.getTime()));
+			}else {
+				newdto.setStartDate(dto.getStartDate());
+			}
+			dto.setEndDate(GeneralUtil.formatDate(c.getTime()));
+			List<AmazonOrdersVo> mainlist = ordersReportMapper.selectOrderMainList(newdto);
 			if(mainlist!=null&&mainlist.size()>0) {
 				mylist.addAll(mainlist);
+			}
+			dto.setEndDate(GeneralUtil.formatDate(c.getTime()));
+		}
+		if(StrUtil.isNotBlank(dto.getOrderid())) {
+			if(mylist.size()>0) {
+				return mylist.size();
 			}
 		}
 		List<AmazonOrdersVo> orderlist = ordersReportMapper.selectOrderList(dto);
@@ -233,23 +283,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 	
-	public IPage<AmazonOrdersVo>  getResult(AmazonOrdersDTO dto,List<AmazonOrdersVo> mylist){
-		Collections.sort(mylist, new Comparator<AmazonOrdersVo>() {
-			@Override
-			public int compare(AmazonOrdersVo o1, AmazonOrdersVo o2) {
-				return o2.getBuydate().compareTo(o1.getBuydate());
-			}
-		});
-		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=2) {
-			mylist.stream().filter(distinctByKey1(s->s.getKey()));
-		}
 
-		IPage<AmazonOrdersVo> result=new Page<AmazonOrdersVo>(dto.getCurrentpage(),dto.getPagesize(),mylist.size());
-		if(mylist.size()>0) {
-			result.setRecords(mylist.subList((dto.getCurrentpage()-1)*dto.getPagesize(), mylist.size()>dto.getCurrentpage()*dto.getPagesize()?dto.getCurrentpage()*dto.getPagesize():mylist.size()));
-		}
-		return result;
-	}
 	public List<AmazonOrdersVo>  getDownloadResult(AmazonOrdersDTO dto,List<AmazonOrdersVo> mylist){
 		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=2) {
 			mylist.stream().filter(distinctByKey1(s->s.getKey()));
@@ -387,9 +421,158 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 
 
 	@Override
-	public IPage<AmazonOrdersReturnVo> selectReturnsList(Map<String, Object> paramMap,
-			Page<AmazonOrdersReturnVo> page) {
-		return ordersReportMapper.selectReturnsList(page,paramMap);
+	public IPage<AmazonOrdersReturnVo> selectReturnsList(AmazonOrdersReturnDTO condition) {
+		 AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(condition.getGroupid(), condition.getMarketplaceid());
+		 if(auth!=null) {
+			 condition.setSellerid(auth.getSellerid());
+		 }
+		 String marketname="";
+		 Marketplace marketplace = marketplaceService.getById(condition.getMarketplaceid());
+		 if(marketplace!=null) {
+			 marketname=marketplace.getName();
+		 }
+		 String gname="";
+		 AmazonGroup amzgroup = amazonGroupMapper.selectById(condition.getGroupid());
+		 if(amzgroup!=null) {
+			 gname=amzgroup.getName();
+		 }
+		 IPage<AmazonOrdersReturnVo> list = amzOrderReturnsMapper.selectReturnsList(condition.getPage(),condition);
+		 if(list.getRecords()!=null && list.getRecords().size()>0) {
+			 for(AmazonOrdersReturnVo item:list.getRecords()) {
+				 item.setAuthid(auth.getId());
+				 item.setMarketname(marketname);
+				 item.setGroupname(gname);
+				 String orderid = item.getOrderId();
+				QueryWrapper<OrdersReport> orderWrapper=new QueryWrapper<OrdersReport>();
+				orderWrapper.eq("amazon_order_id", orderid);
+				orderWrapper.eq("sku", item.getSku());
+				OrdersReport orders = ordersReportMapper.selectOne(orderWrapper);
+				 if(orders!=null) {
+					 item.setPurchaseDate(orders.getPurchaseDate());
+					 item.setItemPrice(orders.getItemPrice());
+				 }
+				QueryWrapper<ProductInfo> queryWrapper=new QueryWrapper<ProductInfo>();
+				queryWrapper.eq("amazonAuthId", auth.getId());
+				queryWrapper.eq("marketplaceid", item.getMarketplaceid());
+				queryWrapper.eq("sku", item.getSku());
+				ProductInfo info = productInfoMapper.selectOne(queryWrapper);
+				if(info!=null) {
+					item.setName(info.getName());
+					if(info.getImage()!=null) {
+						Picture picture = pictureService.getById(info.getImage());
+						if(picture.getLocation()!=null) {
+							item.setImage(picture.getLocation());
+						}else {
+							item.setImage(picture.getUrl());
+						}
+					}
+				}
+				
+				 
+			 }
+		 }
+		 return list;
+	}
+	
+	@Override
+	public void downloadReturnlist(SXSSFWorkbook workbook,AmazonOrdersReturnDTO condition) {
+		 AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(condition.getGroupid(), condition.getMarketplaceid());
+		 if(auth!=null) {
+			 condition.setSellerid(auth.getSellerid());
+		 }
+		 String marketname="";
+		 Marketplace marketplace = marketplaceService.getById(condition.getMarketplaceid());
+		 if(marketplace!=null) {
+			 marketname=marketplace.getName();
+		 }
+		 String gname="";
+		 AmazonGroup amzgroup = amazonGroupMapper.selectById(condition.getGroupid());
+		 if(amzgroup!=null) {
+			 gname=amzgroup.getName();
+		 }
+		 List<AmazonOrdersReturnVo> list = amzOrderReturnsMapper.selectReturnsList(condition);
+		 if(list!=null && list.size()>0) {
+			 for(AmazonOrdersReturnVo item:list) {
+				 item.setAuthid(auth.getId());
+				 item.setMarketname(marketname);
+				 item.setGroupname(gname);
+				 String orderid = item.getOrderId();
+				QueryWrapper<OrdersReport> orderWrapper=new QueryWrapper<OrdersReport>();
+				orderWrapper.eq("amazon_order_id", orderid);
+				orderWrapper.eq("sku", item.getSku());
+				OrdersReport orders = ordersReportMapper.selectOne(orderWrapper);
+				 if(orders!=null) {
+					 item.setPurchaseDate(orders.getPurchaseDate());
+					 item.setItemPrice(orders.getItemPrice());
+				 }
+				QueryWrapper<ProductInfo> queryWrapper=new QueryWrapper<ProductInfo>();
+				queryWrapper.eq("amazonAuthId", auth.getId());
+				queryWrapper.eq("marketplaceid", item.getMarketplaceid());
+				queryWrapper.eq("sku", item.getSku());
+				ProductInfo info = productInfoMapper.selectOne(queryWrapper);
+				if(info!=null) {
+					item.setName(info.getName());
+					if(info.getImage()!=null) {
+						Picture picture = pictureService.getById(info.getImage());
+						if(picture.getLocation()!=null) {
+							item.setImage(picture.getLocation());
+						}else {
+							item.setImage(picture.getUrl());
+						}
+					}
+				}
+				 
+			 }
+			//操作Excel
+			Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
+			titlemap.put("sku", "SKU");
+			titlemap.put("asin", "ASIN");
+			titlemap.put("groupname", "店铺");
+			titlemap.put("market", "站点");
+			titlemap.put("orderid", "订单号");
+			titlemap.put("centerid", "物流中心ID");
+			titlemap.put("returndate", "退款日期");
+			titlemap.put("dispos", "库存属性");
+			titlemap.put("quantity", "数量");
+			titlemap.put("reason", "退货原因");
+			titlemap.put("custcomment", "退货留言");
+			Sheet sheet = workbook.createSheet("sheet1");
+			// 在索引0的位置创建行（最顶端的行）
+			Row trow = sheet.createRow(0);
+			Object[] titlearray = titlemap.keySet().toArray();
+			for (int i = 0; i < titlearray.length; i++) {
+				Cell cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
+				Object value = titlemap.get(titlearray[i].toString());
+				cell.setCellValue(value.toString());
+			}
+			for (int i = 0; i < list.size(); i++) {
+				Row row = sheet.createRow(i + 1);
+				AmazonOrdersReturnVo item = list.get(i);
+				   Cell cell = row.createCell(0); // 在索引0的位置创建单元格(左上端)
+					    cell.setCellValue(item.getSku());
+ 					    cell = row.createCell(1);
+ 					    cell.setCellValue(item.getAsin());
+ 					    cell = row.createCell(2);
+						cell.setCellValue(item.getGroupname());
+			            cell = row.createCell(3);
+						cell.setCellValue(item.getMarketname());
+		                cell = row.createCell(4);
+						cell.setCellValue(item.getOrderId());
+	                    cell = row.createCell(5);
+						cell.setCellValue(item.getFulfillmentCenterId());
+                        cell = row.createCell(6);
+						cell.setCellValue(item.getReturnDate());
+						cell = row.createCell(7);
+ 						cell.setCellValue(item.getDetailedDisposition());
+					    cell = row.createCell(8);
+						cell.setCellValue(item.getQuantity());
+					    cell = row.createCell(9);
+						cell.setCellValue(item.getReason());
+					    cell = row.createCell(10);
+						cell.setCellValue(item.getCustomerComments());
+			} 
+			 
+		 }
 	}
 
 	@Override
@@ -423,6 +606,37 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 		return ordersReportMapper.getOrderAddressListDownload(paramMap);
 	}
 
+	public String refreshAmzVatInvoinceStatus(String orderid) {
+		AmzOrdersRemark orderRemark = amzOrdersRemarkMapper.selectById(orderid); 
+		if(orderRemark!=null) {
+			String queueid = orderRemark.getFeedQueueid();
+			if(StrUtil.isNotEmpty(queueid)) {
+				Submitfeed submitFeed = submitfeedService.GetFeedSubmissionRequest(queueid);
+				String status = submitFeed.getFeedProcessingStatus();
+				if("_DONE_".equals(status)) {
+					status="已处理";
+				}else if("_SUBMITTED_".equals(status)) {
+					status="已提交";
+				}else if("Error".equals(status)) {
+					status="异常";
+				}else if("_CANCELLED_".equals(status)) {
+					status="已取消";
+				}else if("_IN_PROGRESS_".equals(status)) {
+					status="处理中";
+				}else if("_UNCONFIRMED_".equals(status)) {
+					status="请求等待中";
+				}else {
+					status="提交完成";
+				}
+				return status;
+			}else {
+				return "none";
+			}
+		}else {
+			return "none";
+		}
+	}
+	
 	@Override
 	public void setAddressExcelBook(SXSSFWorkbook workbook, Map<String, Object> param) {
 		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
@@ -492,10 +706,9 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	}
 
 	@Override
-	public int setAmzOrderVatHandler(UserInfo userinfo, String groupid, String country, String orderid,
+	public String setAmzOrderVatHandler(UserInfo userinfo, String groupid, String country, String orderid,
 			String itemstatus, String postDate, String vatlabel, String vattype) {
 
-		int res=0;
 		ByteArrayOutputStream baos=new ByteArrayOutputStream();
 		Map<String, Object> map =new HashMap<String, Object>();
 		Document document =new Document(PageSize.A4);
@@ -534,7 +747,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 				 //invoiceNo
 				 //VatNo
 				 String feedoptions=feedOptions.entrySet().stream().map(e -> String.format("%s=%s", e.getKey(), e.getValue())).collect(Collectors.joining(";"));
-				response = submitfeedService.SubmitFeedQueue(baos, orderid, auth, "_UPLOAD_VAT_INVOICE_", userinfo,feedoptions);
+				response = submitfeedService.SubmitFeedQueue(baos, orderid, auth, "UPLOAD_VAT_INVOICE", userinfo,feedoptions);
 			}
 		}
 		//插入或者更新到记录表中
@@ -543,7 +756,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 			AmzOrdersRemark order_remark = amzOrdersRemarkMapper.selectById(orderid);
 			if(order_remark!=null) {
 				order_remark.setFeedQueueid(queueid);
-				res=amzOrdersRemarkMapper.updateById(order_remark);
+				amzOrdersRemarkMapper.updateById(order_remark);
 			}else {
 				AmzOrdersRemark orderRemark=new AmzOrdersRemark();
 				orderRemark.setAmazonOrderId(orderid);
@@ -551,12 +764,12 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 				orderRemark.setOperator(userinfo.getId());
 				orderRemark.setOpttime(new Date());
 				orderRemark.setRemark(null);
-				res=amzOrdersRemarkMapper.insert(orderRemark);
+				amzOrdersRemarkMapper.insert(orderRemark);
 			}
+			return queueid;
 		}else {
 			throw new BizException("未正常提交至亚马逊后台，请核验有无漏缺操作！");
 		}
-		return res;
 	}
 
 	public Map<String, Object> setAmzOrderVatInvoicePDF(String shopid,  com.itextpdf.text.Document document, String orderid,
@@ -608,13 +821,14 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 				}
 			}
 			// 拿order的数据
-			Map<String, Object> orderData = null;
+			AmzOrderMain orderMain = null;
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			paramMap.put("orderid", orderid);
 			paramMap.put("purchaseDate", postDate);
 			paramMap.put("groupid", groupid);
 			paramMap.put("shopid", shopid);
-			List<AmazonOrdersDetailVo> listO = ordersReportMapper.selectOrderDetail(paramMap);
+			paramMap.put("nonfin","true");
+			List<AmazonOrdersDetailVo> listO =this.selectOrderDetail(paramMap);
 			if (listO != null && listO.size() > 0) {
 				String amazonAuthId = listO.get(0).getAmazonAuthId();
 				paramMap.put("amazonAuthId", amazonAuthId);
@@ -622,27 +836,26 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 				AmazonAuthority amazonAuthority = amazonAuthorityService.getById(amazonAuthId);
 				Marketplace tempmarketplace = marketplaceService.getById(marketplaceId);
 				amazonAuthority.setMarketPlace(tempmarketplace);
-				orderData = this.saveOrderDetail(orderid, amazonAuthority, itemstatus);
-			}
+				orderMain =listO.get(0).getOrderMain();
+				}
 			// 处理order的数据和费用信息
-			if (orderData != null && orderData.get("orderMain") != null) {
-				List<AmazonOrdersDetailVo> itemlist = this.selectOrderDetail(paramMap);// 从数据库拿amz_order_item里面的数据
+			if (orderMain != null ) {
+				List<AmazonOrdersDetailVo> itemlist = amzOrderItemMapper.selectOrderDetail(paramMap);// 从数据库拿amz_order_item里面的数据
 				if (itemlist != null && itemlist.size() > 0) {
 					listO = itemlist;
 				}
-				AmzOrderMain orderMain = (AmzOrderMain) orderData.get("orderMain");
 				if (orderMain != null && orderMain.getBuyerAdress() != null) {
-					dear += orderMain.getBuyerName();
+					dear +=  orderMain.getBuyerAdress().getName();
 					String state = orderMain.getBuyerAdress().getStateOrRegion();
 					if (state == null) {
 						state = "";
 					}
 					String adress = orderMain.getBuyerAdress().getAddressLine1();
-					if (adress == null) {
-						adress = orderMain.getBuyerAdress().getAddressLine2();
+					if (orderMain.getBuyerAdress().getAddressLine2() != null) {
+						adress =adress+","+ orderMain.getBuyerAdress().getAddressLine2();
 					}
-					if (adress == null) {
-						adress = orderMain.getBuyerAdress().getAddressLine3();
+					if (orderMain.getBuyerAdress().getAddressLine3() != null) {
+						adress =adress+","+ orderMain.getBuyerAdress().getAddressLine3();
 					}
 					address1 += adress + ", " + state;
 					address2 += (orderMain.getBuyerAdress().getCity() + ", "
@@ -815,6 +1028,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 			Object currency = "";
 			Float totalPrice = 0.00f, totalitemDiscount = 0.00f, totalshipPrice = 0.00f, totalVatFee = 0.00f,
 					totalBalance = 0.00f;
+			
 			if (listO != null && listO.size() > 0) {
 				for (int i = 0; i < listO.size(); i++) {
 					AmazonOrdersDetailVo item = listO.get(i);
@@ -940,8 +1154,9 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 				cell4.setColspan(2);
 				Table.addCell(cell4);
 			}
-			if (StrUtil.isEmpty(vatNum) || vattype.equals("normal"))
+			if (StrUtil.isEmpty(vatNum) || vattype.equals("normal")) {
 				totalVatFee = 0f;
+			}
 			totalPrice = (float) (Math.round(totalPrice * 1000)) / 1000;// 保留3位小数
 			totalBalance = totalPrice - totalitemDiscount + totalshipPrice + totalVatFee;
 			PdfPCell cell5 = new PdfPCell();
@@ -1038,7 +1253,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	}
 	
 
-	public Map<String, Object> saveOrderDetail(String orderid, AmazonAuthority amazonAuthority, String itemstatus) {
+	public AmzOrderMain saveOrderDetail(String orderid, AmazonAuthority amazonAuthority, String itemstatus, boolean nonaddress) {
 		if (itemstatus == null || itemstatus.equals("")) {
 			return null;
 		}
@@ -1050,29 +1265,28 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 		querywrapper.eq("amazon_order_id", orderid);
 		List<AmzOrderItem> orderItemList = amzOrderItemMapper.selectList(querywrapper);
 		//&& orderMain.getBuyerShippingAddressId() != null)
-		if (orderMain != null && orderItemList != null && orderItemList.size() > 0
-				&& itemstatus.equals(orderMain.getOrderStatus())
-				&& "Shipped".equals(orderMain.getOrderStatus())) {// 数据库存在order,并且订单状态一致
-			needRequest = false;
+		if (orderMain != null && "Shipped".equals(orderMain.getOrderStatus())) {// 数据库存在order,并且订单状态一致
 			AmzOrderBuyerShipAddress buyerAdress = amzOrderBuyerShipAddressMapper
-					.selectById(orderMain.getBuyerShippingAddressId());
+					.selectById(orderMain.getAmazonOrderId());
+			if(buyerAdress!=null&&buyerAdress.getName()!=null) {
+				needRequest = false;
+			}
+			if(orderItemList==null|| !itemstatus.equals(orderMain.getOrderStatus())){
+				orderMain.setHasItem(true);
+			}
 			orderMain.setBuyerAdress(buyerAdress);
 		}
 		if (needRequest) {
-			if (IniConfig.isDemo()) {
-				return null;
-			}
-			if (orderMain != null) {// 订单状态不一致
-				amzOrderMainMapper.deleteById(orderMain);
-				amzOrderBuyerShipAddressMapper.deleteById(orderMain.getBuyerShippingAddressId());
-				orderMain = null;
-				orderItemList = null;
-			}
 			// getOrder并保存到数据库
-			orderMain = this.requestOrderMain(orderid, amazonAuthority);
-			orderItemList = requestOrderItemByAmzOrderId(orderMain, amazonAuthority);
+			orderMain = this.requestOrderMain(orderid, amazonAuthority,nonaddress);
 		}
 
+		if(orderMain.isHasItem()==true
+				||orderItemList.size()==0
+				||orderItemList.get(0).getItemPrice()==null
+				||orderItemList.get(0).getItemPrice().compareTo(new BigDecimal("0"))==0) {
+			orderItemList = requestOrderItemByAmzOrderId(orderMain, amazonAuthority);
+		}
 		if (orderMain != null && orderItemList != null && orderItemList.size() > 0
 				&& !itemstatus.equals(orderMain.getOrderStatus())) {
 			// 如果更新之后状态仍然不一致，更新order_report状态
@@ -1094,6 +1308,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 			map.put("sku", orderreport.getSku());
 			map.put("salesChannel", orderreport.getSalesChannel());
 			map.put("amazonOrderId", orderreport.getAmazonOrderId());
+			orderMain.setOrderItemList(orderItemList);
 			List<OrdersReport> oldrecordlist = ordersReportMapper.selectByOrderIDSKU(map);
 			if (oldrecordlist != null && oldrecordlist.size() > 0) {
 				this.addOrder(oldrecordlist.get(0), orderreport);
@@ -1105,7 +1320,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 		
 	 
 		 
-		AmzOrderBuyerShipAddress addressObj = amzOrderBuyerShipAddressMapper.selectById(orderMain.getBuyerShippingAddressId());
+		AmzOrderBuyerShipAddress addressObj = orderMain.getBuyerAdress();
 		if(addressObj!=null ) {
 			Date nowdate = new Date();
 			Calendar calendar = Calendar.getInstance();
@@ -1118,39 +1333,109 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 		}else if(orderMain!=null){
 			orderMain.setBuyerAdress(null);
 		}
-		result.put("orderMain", orderMain);
-		result.put("orderItemList", orderItemList);
-		return result;
+	    orderMain.setOrderItemList(orderItemList);
+		return orderMain;
 	}
 	
-	public AmzOrderMain requestOrderMain(String orderid, AmazonAuthority amazonAuthority) {
-		Order order = this.requestOrderByAmzOrderId(orderid, amazonAuthority);
-		OrderBuyerInfo info=this.requestOrderInfoByAmzOrderId(orderid, amazonAuthority);
-		AmzOrderMain orderMain = null;
-		if (order != null) {
-			Marketplace marketplace = marketplaceService.selectByPKey(order.getMarketplaceId());
-			String market = null;
-			if (marketplace != null) {
-				market = marketplace.getMarket();
+	public AmzOrderMain requestOrderMain(String orderid, AmazonAuthority amazonAuthority, boolean nonaddress) {
+		     AmzOrderMain orderMain = amzOrderMainMapper.selectById(orderid);
+		     Boolean isnew=false;
+		     if(orderMain==null) {
+		    	 isnew=true;
+		     }
+		     if(orderMain==null||!orderMain.getOrderStatus().equals(OrderStatusEnum.SHIPPED.getValue())) {
+		    	 if(orderMain==null||GeneralUtil.distanceOfHour(orderMain.getPurchaseDate(), new Date())>10) {
+		    		  Order order = this.requestOrderByAmzOrderId(orderid, amazonAuthority);
+		 		      Marketplace marketplace = marketplaceService.selectByPKey(order.getMarketplaceId());
+		 				String market = null;
+		 				if (marketplace != null) {
+		 					market = marketplace.getMarket();
+		 				}
+		 			 orderMain = new AmzOrderMain(order, market);
+		    	 }
+		     } 
+			 if(orderMain==null||orderMain.getAmazonOrderId()==null) {
+				   throw new BizException("抓取订单信息失败，请刷新后重试");
+				}
+			 AmzOrderBuyerShipAddress oldaddress = amzOrderBuyerShipAddressMapper.selectById(orderMain.getAmazonOrderId());
+			try {
+				QueryWrapper<AmzOrdersInvoiceReport> queryWrapper=new  QueryWrapper<AmzOrdersInvoiceReport>() ;
+				queryWrapper.eq("order_id", orderid);
+				List<AmzOrdersInvoiceReport> invoicelist = amzOrdersInvoiceReportMapper.selectList(queryWrapper);
+				if(invoicelist!=null&&invoicelist.size()>0) {
+					AmzOrderBuyerShipAddress address=oldaddress;
+					if(address==null) {
+						address =new AmzOrderBuyerShipAddress();
+					}
+					AmzOrdersInvoiceReport inv=invoicelist.get(0);
+					address.setAddressLine1(inv.getShipAddress1());
+					orderMain.setBuyerName(inv.getBuyerName());
+					orderMain.setBuyerEmail(inv.getBuyerEmail());
+					address.setAddressLine2(inv.getShipAddress2());
+					address.setAddressLine3(inv.getShipAddress3());
+					address.setAmazonauthid(inv.getAmazonAuthId().toString());
+					address.setAmazonOrderid(inv.getOrderId());
+					address.setCity(inv.getShipCity());
+					address.setCountryCode(inv.getShipCountry());
+					address.setCounty(inv.getShipCountry());
+					address.setPostalCode(inv.getShipPostalCode());
+					address.setName(inv.getRecipientName());
+					address.setOpttime(new Date());
+					address.setPhone(inv.getBuyerPhoneNumber());
+					if(oldaddress!=null) {
+						amzOrderBuyerShipAddressMapper.updateById(address);
+					}else {
+						amzOrderBuyerShipAddressMapper.insert(address);
+					}
+					orderMain.setBuyerAdress(address);
+				}
+			 if(nonaddress==false) {
+			    final String resourcePath = "/orders/v0/orders/"+orderid;
+			    final List<String> dataElements = Arrays.asList("buyerInfo","shippingAddress");
+				JsonObject responseBodyJson =apiBuildService.getRestrictedData(amazonAuthority, resourcePath, dataElements);
+				if (responseBodyJson!=null) {
+					JsonObject payload = responseBodyJson.getAsJsonObject("payload");
+					if(payload!=null) {
+						JsonObject buyerInfo=payload.getAsJsonObject("BuyerInfo");
+						Gson gson = new Gson();
+						BuyerInfo buyerinfo=gson.fromJson(buyerInfo, BuyerInfo.class);
+						if(buyerInfo!=null) {
+							orderMain.setBuyerEmail(buyerinfo.getBuyerEmail());
+							orderMain.setBuyerName(buyerinfo.getBuyerName());
+						}
+						JsonObject shippingAddress=payload.getAsJsonObject("ShippingAddress");
+						Address address=gson.fromJson(shippingAddress, Address.class);
+						AmzOrderBuyerShipAddress buyerAdress = orderMain.getBuyerAdress();
+						if (shippingAddress != null) {
+							if(buyerAdress==null) {
+								buyerAdress=new AmzOrderBuyerShipAddress();
+							}
+							buyerAdress.setShipAddress(address);
+							buyerAdress.setAmazonauthid(amazonAuthority.getId());
+							buyerAdress.setAmazonOrderid(orderid);
+							buyerAdress.setOpttime(new Date());
+							if(oldaddress!=null) {
+								amzOrderBuyerShipAddressMapper.updateById(buyerAdress);
+							}else {
+								amzOrderBuyerShipAddressMapper.insert(buyerAdress);
+							}
+							orderMain.setBuyerAdress(buyerAdress);
+						}
+					}
+				}
+			 }
+			} catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			orderMain = new AmzOrderMain(order, market);
-			if(info!=null) {
-				orderMain.setBuyerEmail(info.getBuyerEmail());
-				orderMain.setBuyerName(info.getBuyerName());
-			}
-			orderMain.setGroupid(amazonAuthority.getGroupid());
-			orderMain.setShopid(amazonAuthority.getShopId());
-		}
-		if (orderMain != null) {
-			orderMain.setGroupid(amazonAuthority.getGroupid());
-			orderMain.setShopid(amazonAuthority.getShopId());
-			orderMain.setAmazonauthid(amazonAuthority.getId());
+		orderMain.setAmazonauthid(amazonAuthority.getId());
+		if(isnew==true) {
 			amzOrderMainMapper.insert(orderMain);
-			AmzOrderBuyerShipAddress buyerAdress = orderMain.getBuyerAdress();
-			if (buyerAdress != null) {
-				buyerAdress.setAmazonauthid(amazonAuthority.getId());
-				amzOrderBuyerShipAddressMapper.insert(buyerAdress);
-			}
+		}else {
+			amzOrderMainMapper.updateById(orderMain);
 		}
 		return orderMain;
 	}
@@ -1177,6 +1462,21 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 			Order orders = orderRes.getPayload();
 			if(orders!=null) {
 				return orders;
+			}
+		} catch (ApiException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private OrderAddress requestOrderAddressByAmzOrderId(String orderid, AmazonAuthority amazonAuthority) {
+		OrdersV0Api ordersApi = apiBuildService.getOrdersV0Api(amazonAuthority);
+		try {
+			//请求OrderMain
+		   GetOrderAddressResponse orderAdds = ordersApi.getOrderAddress(orderid);
+			  OrderAddress orderAddress = orderAdds.getPayload();
+			if(orderAddress!=null) {
+				return orderAddress;
 			}
 		} catch (ApiException e) {
 			e.printStackTrace();
@@ -1244,7 +1544,13 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 						item.setAmazonauthid(amazonAuthority.getId());
 						result.add(item);
 						///// 保存到数据库///////////
-						amzOrderItemMapper.insert(item);
+						querywrapper.eq("orderItemId",item.getOrderitemid());
+						AmzOrderItem oldone = amzOrderItemMapper.selectOne(querywrapper);
+						if(oldone!=null) {
+							amzOrderItemMapper.update(item, querywrapper);
+						}else {
+							amzOrderItemMapper.insert(item);
+						}
 						flag = true;
 					}
 				}
@@ -1284,7 +1590,13 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 								}
 								result.add(item);
 								///// 保存到数据库///////////
-								amzOrderItemMapper.insert(item);
+								querywrapper.eq("orderItemId",item.getOrderitemid());
+								AmzOrderItem oldone = amzOrderItemMapper.selectOne(querywrapper);
+								if(oldone!=null) {
+									amzOrderItemMapper.update(item, querywrapper);
+								}else {
+									amzOrderItemMapper.insert(item);
+								}
 							}
 						}
 					}
@@ -1516,9 +1828,19 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 
 	@Override
 	public List<AmazonOrdersDetailVo> selectOrderDetail(Map<String, Object> paramMap) {
+		paramMap.put("isarchive", "false");
 		List<AmazonOrdersDetailVo> list = ordersReportMapper.selectOrderDetail(paramMap);
 		if(list==null||list.isEmpty()) {
+			 paramMap.put("isarchive", "false");
 			 list = ordersReportMapper.selectOrderItemDetail(paramMap);
+		}
+		if(list==null||list.isEmpty()) {
+			 paramMap.put("isarchive", "true");
+			 list = ordersReportMapper.selectOrderItemDetail(paramMap);
+		}
+		if(list==null||list.isEmpty()) {
+			 paramMap.put("isarchive", "true");
+			 list = ordersReportMapper.selectOrderDetail(paramMap);
 		}
 		if (list != null && list.size() > 0) {
 			String amazonAuthId = list.get(0).getAmazonAuthId();
@@ -1528,27 +1850,33 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 			amazonAuthority.setMarketPlace(marketplace);
 			String orderid = paramMap.get("orderid").toString();
 			String itemstatus = list.get(0).getItemstatus();
-			Map<String, Object> result = this.saveOrderDetail(orderid, amazonAuthority, itemstatus);
-			if (result != null && result.get("orderItemList") != null) {
-				paramMap.put("amazonAuthId", amazonAuthId);
-				List<AmazonOrdersDetailVo> list_item = amzOrderItemMapper.selectOrderDetail(paramMap);// 从数据库拿amz_order_item里面的数据
-				if (list_item != null && list_item.size() > 0) {
-					list = list_item;
-				}
-			}
+			boolean nonaddress=false;
+			 if(paramMap.get("nonaddress")!=null&&paramMap.get("nonaddress").toString().equals("true")) {
+				 nonaddress=true;
+			 }
+			 AmzOrderMain orderMain = this.saveOrderDetail(orderid, amazonAuthority, itemstatus,nonaddress);
+				if (orderMain != null && orderMain.getOrderItemList() != null) {
+					paramMap.put("amazonAuthId", amazonAuthId);
+					List<AmazonOrdersDetailVo> list_item = amzOrderItemMapper.selectOrderDetail(paramMap);// 从数据库拿amz_order_item里面的数据
+					if (list_item != null && list_item.size() > 0) {
+						list = list_item;
+					}
+		    }
 			for (AmazonOrdersDetailVo map : list) {
 				String itemtax = map.getItemtax().toString();
 				String region = map.getRegion();
 				Object totalprice = map.getTotalprice();
 				if (("EU".equals(region)||"UK".equals(region))&& Float.valueOf(itemtax) == 0.0 && totalprice!=null) {
-					String vat_rate = map.getVat_rate().toString();
-					float rate = Float.valueOf(vat_rate) / 100;
-					float number = (Float.valueOf(totalprice.toString()) * rate) / (1 + rate);
-					map.setItemtax(new BigDecimal(GeneralUtil.formatterNum(number)));
+					if(map.getVatRate()!=null) {
+						String vat_rate = map.getVatRate().toString();
+						float rate = Float.valueOf(vat_rate) / 100;
+						float number = (Float.valueOf(totalprice.toString()) * rate) / (1 + rate);
+						map.setItemtax(new BigDecimal(GeneralUtil.formatterNum(number)));
+					}
+					
 				}
 			}
-			if (result != null && result.get("orderMain") != null) {
-				AmzOrderMain orderMain = (AmzOrderMain) result.get("orderMain");
+			if (orderMain != null) {
 				list.get(0).setOrderprice(orderMain.getOrderTotal());
 				list.get(0).setOrderstatus(orderMain.getOrderStatus());
 				if (orderMain.getBuyerAdress() != null) {
@@ -1572,21 +1900,32 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 					list.get(0).setHasAddress("nohas");
 				}
 				list.get(0).setOrderMain(orderMain);
-				List<OrdersFinancial> financialList = ordersFinancialService.getOrdersFinancialList(amazonAuthority,orderid);
-				if(financialList!=null) {
-					BigDecimal financialfee=new BigDecimal("0");
-					for(int i=0;i<financialList.size();i++) {
-						OrdersFinancial fin = financialList.get(i);
-						String ename = fin.getFtype();
-						QueryWrapper<AmzAmountDescription> queryWrapper=new QueryWrapper<AmzAmountDescription>();
-						queryWrapper.eq("ename", ename);
-						AmzAmountDescription description = amzAmountDescriptionMapper.selectOne(queryWrapper);
-						fin.setMarketplaceId(description.getCname());
-						financialfee=financialfee.add(fin.getAmount());
+				boolean nonfin=false;
+				 if(paramMap.get("nonfin")!=null&&paramMap.get("nonfin").toString().equals("true")) {
+					 nonfin=true;
+				 }
+				if(nonfin==false) {
+					List<OrdersFinancial> financialList = ordersFinancialService.getOrdersFinancialList(amazonAuthority,orderid);
+					if(financialList!=null) {
+						BigDecimal financialfee=new BigDecimal("0");
+						for(int i=0;i<financialList.size();i++) {
+							OrdersFinancial fin = financialList.get(i);
+							String ename = fin.getFtype();
+							QueryWrapper<AmzAmountDescription> queryWrapper=new QueryWrapper<AmzAmountDescription>();
+							queryWrapper.eq("ename", ename);
+							AmzAmountDescription description = amzAmountDescriptionMapper.selectOne(queryWrapper);
+							if(description!=null) {
+								fin.setMarketplaceId(description.getCname());
+							}else {
+								fin.setMarketplaceId(ename);
+							}
+							financialfee=financialfee.add(fin.getAmount());
+						}
+						list.get(0).setFinancialList(financialList);
+						list.get(0).setFinancialfee(financialfee);
 					}
-					list.get(0).setFinancialList(financialList);
-					list.get(0).setFinancialfee(financialfee);
 				}
+		
 			}
 			return list;
 		} else {
@@ -1635,7 +1974,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 		invoice.setProvince(vatprovince);
 		if(picture!=null) {
 			invoice.setImage(picture.getId());
-			invoice.setLogourl(FileUpload.getPictureImage(picture.getLocation()));
+			invoice.setLogourl(fileUpload.getPictureImage(picture.getLocation()));
 		}
 		if (StrUtil.isNotEmpty(vatsign))
 			invoice.setSign(vatsign);
@@ -1677,6 +2016,25 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	
 	}
 
+	public List<OrdersFinancial> lastShippedOrderFin(AmazonAuthority auth, ProductInfo info) {
+		// TODO Auto-generated method stub
+		String marketpalceid=info.getMarketplaceid();
+	 
+		Marketplace market = marketplaceService.findMapByMarketplaceId().get(marketpalceid);
+		String amazonOrderId=ordersReportMapper.getLastShippedOrder(auth.getId(),market.getPointName(),info.getSku());
+		
+		Marketplace marketplace = marketplaceService.getById(info.getMarketplaceid());
+		auth.setMarketPlace(marketplace);
+		if(StrUtil.isEmpty(amazonOrderId)) {
+			return null;
+		}
+		List<OrdersFinancial> financialList = ordersFinancialService.getOrdersFinancialList(auth,amazonOrderId);
+        return financialList;
+	}
+
+
+	 
+	
 	
 
 

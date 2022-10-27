@@ -63,6 +63,26 @@ public class ShipTransDetail extends  ErpBaseEntity{
     @TableField(value= "disabled")
     private Boolean disabled;
 	
-     
 	
+    @TableField(exist = false)
+	private String mname;
+    
+    @TableField(exist = false)
+	private String cname;
+    
+    @TableField(exist = false)
+    private String tname;
+    
+    @TableField(exist = false)
+    private String priceu ;
+    
+    @TableField(exist = false)
+    private String  channeltype; 
+    
+    @TableField(exist = false)
+    private String  market; 
+    
+    @TableField(exist = false)
+    private String  optname; 
+    
 }

@@ -15,11 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.DetailedShippingTimeType;
-import com.amazon.spapi.model.productpricing.MoneyType;
-import com.amazon.spapi.model.productpricing.Points;
-import com.amazon.spapi.model.productpricing.SellerFeedbackType;
-import com.amazon.spapi.model.productpricing.ShipsFromType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -27,18 +22,37 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.DetailedShippingTimeType;
+import com.amazon.spapi.model.productpricing.MoneyType;
+import com.amazon.spapi.model.productpricing.OfferCustomerType;
+import com.amazon.spapi.model.productpricing.Points;
+import com.amazon.spapi.model.productpricing.PrimeInformationType;
+import com.amazon.spapi.model.productpricing.QuantityDiscountPriceType;
+import com.amazon.spapi.model.productpricing.SellerFeedbackType;
+import com.amazon.spapi.model.productpricing.ShipsFromType;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OfferDetail
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class OfferDetail {
   @SerializedName("MyOffer")
   private Boolean myOffer = null;
 
+  @SerializedName("offerType")
+  private OfferCustomerType offerType = null;
+
   @SerializedName("SubCondition")
   private String subCondition = null;
+
+  @SerializedName("SellerId")
+  private String sellerId = null;
+
+  @SerializedName("ConditionNotes")
+  private String conditionNotes = null;
 
   @SerializedName("SellerFeedbackRating")
   private SellerFeedbackType sellerFeedbackRating = null;
@@ -48,6 +62,9 @@ public class OfferDetail {
 
   @SerializedName("ListingPrice")
   private MoneyType listingPrice = null;
+
+  @SerializedName("quantityDiscountPrices")
+  private List<QuantityDiscountPriceType> quantityDiscountPrices = null;
 
   @SerializedName("Points")
   private Points points = null;
@@ -60,6 +77,9 @@ public class OfferDetail {
 
   @SerializedName("IsFulfilledByAmazon")
   private Boolean isFulfilledByAmazon = null;
+
+  @SerializedName("PrimeInformation")
+  private PrimeInformationType primeInformation = null;
 
   @SerializedName("IsBuyBoxWinner")
   private Boolean isBuyBoxWinner = null;
@@ -85,6 +105,24 @@ public class OfferDetail {
     this.myOffer = myOffer;
   }
 
+  public OfferDetail offerType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+    return this;
+  }
+
+   /**
+   * Indicates the type of customer that the offer is valid for.
+   * @return offerType
+  **/
+  @ApiModelProperty(value = "Indicates the type of customer that the offer is valid for.")
+  public OfferCustomerType getOfferType() {
+    return offerType;
+  }
+
+  public void setOfferType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+  }
+
   public OfferDetail subCondition(String subCondition) {
     this.subCondition = subCondition;
     return this;
@@ -101,6 +139,42 @@ public class OfferDetail {
 
   public void setSubCondition(String subCondition) {
     this.subCondition = subCondition;
+  }
+
+  public OfferDetail sellerId(String sellerId) {
+    this.sellerId = sellerId;
+    return this;
+  }
+
+   /**
+   * The seller identifier for the offer.
+   * @return sellerId
+  **/
+  @ApiModelProperty(value = "The seller identifier for the offer.")
+  public String getSellerId() {
+    return sellerId;
+  }
+
+  public void setSellerId(String sellerId) {
+    this.sellerId = sellerId;
+  }
+
+  public OfferDetail conditionNotes(String conditionNotes) {
+    this.conditionNotes = conditionNotes;
+    return this;
+  }
+
+   /**
+   * Information about the condition of the item.
+   * @return conditionNotes
+  **/
+  @ApiModelProperty(value = "Information about the condition of the item.")
+  public String getConditionNotes() {
+    return conditionNotes;
+  }
+
+  public void setConditionNotes(String conditionNotes) {
+    this.conditionNotes = conditionNotes;
   }
 
   public OfferDetail sellerFeedbackRating(SellerFeedbackType sellerFeedbackRating) {
@@ -155,6 +229,32 @@ public class OfferDetail {
 
   public void setListingPrice(MoneyType listingPrice) {
     this.listingPrice = listingPrice;
+  }
+
+  public OfferDetail quantityDiscountPrices(List<QuantityDiscountPriceType> quantityDiscountPrices) {
+    this.quantityDiscountPrices = quantityDiscountPrices;
+    return this;
+  }
+
+  public OfferDetail addQuantityDiscountPricesItem(QuantityDiscountPriceType quantityDiscountPricesItem) {
+    if (this.quantityDiscountPrices == null) {
+      this.quantityDiscountPrices = new ArrayList<QuantityDiscountPriceType>();
+    }
+    this.quantityDiscountPrices.add(quantityDiscountPricesItem);
+    return this;
+  }
+
+   /**
+   * Get quantityDiscountPrices
+   * @return quantityDiscountPrices
+  **/
+  @ApiModelProperty(value = "")
+  public List<QuantityDiscountPriceType> getQuantityDiscountPrices() {
+    return quantityDiscountPrices;
+  }
+
+  public void setQuantityDiscountPrices(List<QuantityDiscountPriceType> quantityDiscountPrices) {
+    this.quantityDiscountPrices = quantityDiscountPrices;
   }
 
   public OfferDetail points(Points points) {
@@ -229,6 +329,24 @@ public class OfferDetail {
     this.isFulfilledByAmazon = isFulfilledByAmazon;
   }
 
+  public OfferDetail primeInformation(PrimeInformationType primeInformation) {
+    this.primeInformation = primeInformation;
+    return this;
+  }
+
+   /**
+   * Amazon Prime information.
+   * @return primeInformation
+  **/
+  @ApiModelProperty(value = "Amazon Prime information.")
+  public PrimeInformationType getPrimeInformation() {
+    return primeInformation;
+  }
+
+  public void setPrimeInformation(PrimeInformationType primeInformation) {
+    this.primeInformation = primeInformation;
+  }
+
   public OfferDetail isBuyBoxWinner(Boolean isBuyBoxWinner) {
     this.isBuyBoxWinner = isBuyBoxWinner;
     return this;
@@ -276,21 +394,26 @@ public class OfferDetail {
     }
     OfferDetail offerDetail = (OfferDetail) o;
     return Objects.equals(this.myOffer, offerDetail.myOffer) &&
+        Objects.equals(this.offerType, offerDetail.offerType) &&
         Objects.equals(this.subCondition, offerDetail.subCondition) &&
+        Objects.equals(this.sellerId, offerDetail.sellerId) &&
+        Objects.equals(this.conditionNotes, offerDetail.conditionNotes) &&
         Objects.equals(this.sellerFeedbackRating, offerDetail.sellerFeedbackRating) &&
         Objects.equals(this.shippingTime, offerDetail.shippingTime) &&
         Objects.equals(this.listingPrice, offerDetail.listingPrice) &&
+        Objects.equals(this.quantityDiscountPrices, offerDetail.quantityDiscountPrices) &&
         Objects.equals(this.points, offerDetail.points) &&
         Objects.equals(this.shipping, offerDetail.shipping) &&
         Objects.equals(this.shipsFrom, offerDetail.shipsFrom) &&
         Objects.equals(this.isFulfilledByAmazon, offerDetail.isFulfilledByAmazon) &&
+        Objects.equals(this.primeInformation, offerDetail.primeInformation) &&
         Objects.equals(this.isBuyBoxWinner, offerDetail.isBuyBoxWinner) &&
         Objects.equals(this.isFeaturedMerchant, offerDetail.isFeaturedMerchant);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myOffer, subCondition, sellerFeedbackRating, shippingTime, listingPrice, points, shipping, shipsFrom, isFulfilledByAmazon, isBuyBoxWinner, isFeaturedMerchant);
+    return Objects.hash(myOffer, offerType, subCondition, sellerId, conditionNotes, sellerFeedbackRating, shippingTime, listingPrice, quantityDiscountPrices, points, shipping, shipsFrom, isFulfilledByAmazon, primeInformation, isBuyBoxWinner, isFeaturedMerchant);
   }
 
 
@@ -300,14 +423,19 @@ public class OfferDetail {
     sb.append("class OfferDetail {\n");
     
     sb.append("    myOffer: ").append(toIndentedString(myOffer)).append("\n");
+    sb.append("    offerType: ").append(toIndentedString(offerType)).append("\n");
     sb.append("    subCondition: ").append(toIndentedString(subCondition)).append("\n");
+    sb.append("    sellerId: ").append(toIndentedString(sellerId)).append("\n");
+    sb.append("    conditionNotes: ").append(toIndentedString(conditionNotes)).append("\n");
     sb.append("    sellerFeedbackRating: ").append(toIndentedString(sellerFeedbackRating)).append("\n");
     sb.append("    shippingTime: ").append(toIndentedString(shippingTime)).append("\n");
     sb.append("    listingPrice: ").append(toIndentedString(listingPrice)).append("\n");
+    sb.append("    quantityDiscountPrices: ").append(toIndentedString(quantityDiscountPrices)).append("\n");
     sb.append("    points: ").append(toIndentedString(points)).append("\n");
     sb.append("    shipping: ").append(toIndentedString(shipping)).append("\n");
     sb.append("    shipsFrom: ").append(toIndentedString(shipsFrom)).append("\n");
     sb.append("    isFulfilledByAmazon: ").append(toIndentedString(isFulfilledByAmazon)).append("\n");
+    sb.append("    primeInformation: ").append(toIndentedString(primeInformation)).append("\n");
     sb.append("    isBuyBoxWinner: ").append(toIndentedString(isBuyBoxWinner)).append("\n");
     sb.append("    isFeaturedMerchant: ").append(toIndentedString(isFeaturedMerchant)).append("\n");
     sb.append("}");

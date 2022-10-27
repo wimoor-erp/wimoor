@@ -62,4 +62,8 @@ public class ShipInboundItemDTO extends BaseEntity {
 	@ApiModelProperty(value = "本地产品ID【系统内置】")
 	@TableField(value="materialid")
     private String materialid;
+	
+	@ApiModelProperty(value = "本地产品sku【系统内置】")
+	@TableField(value="msku")
+    private String msku;
 }

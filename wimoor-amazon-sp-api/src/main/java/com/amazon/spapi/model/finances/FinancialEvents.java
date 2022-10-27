@@ -15,6 +15,13 @@ package com.amazon.spapi.model.finances;
 
 import java.util.Objects;
 import java.util.Arrays;
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import com.amazon.spapi.model.finances.AdjustmentEventList;
 import com.amazon.spapi.model.finances.AffordabilityExpenseEventList;
 import com.amazon.spapi.model.finances.CouponPaymentEventList;
@@ -25,6 +32,8 @@ import com.amazon.spapi.model.finances.LoanServicingEventList;
 import com.amazon.spapi.model.finances.NetworkComminglingTransactionEventList;
 import com.amazon.spapi.model.finances.PayWithAmazonEventList;
 import com.amazon.spapi.model.finances.ProductAdsPaymentEventList;
+import com.amazon.spapi.model.finances.RemovalShipmentAdjustmentEventList;
+import com.amazon.spapi.model.finances.RemovalShipmentEventList;
 import com.amazon.spapi.model.finances.RentalTransactionEventList;
 import com.amazon.spapi.model.finances.RetrochargeEventList;
 import com.amazon.spapi.model.finances.SAFETReimbursementEventList;
@@ -32,21 +41,17 @@ import com.amazon.spapi.model.finances.SellerDealPaymentEventList;
 import com.amazon.spapi.model.finances.SellerReviewEnrollmentPaymentEventList;
 import com.amazon.spapi.model.finances.ServiceFeeEventList;
 import com.amazon.spapi.model.finances.ShipmentEventList;
+import com.amazon.spapi.model.finances.ShipmentSettleEventList;
 import com.amazon.spapi.model.finances.SolutionProviderCreditEventList;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.finances.TaxWithholdingEventList;
+import com.amazon.spapi.model.finances.TrialShipmentEventList;
 import java.io.IOException;
 
 /**
  * Contains all information related to a financial event.
  */
 @ApiModel(description = "Contains all information related to a financial event.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class FinancialEvents {
   @SerializedName("ShipmentEventList")
   private ShipmentEventList shipmentEventList = null;
@@ -113,6 +118,21 @@ public class FinancialEvents {
 
   @SerializedName("AffordabilityExpenseReversalEventList")
   private AffordabilityExpenseEventList affordabilityExpenseReversalEventList = null;
+
+  @SerializedName("TrialShipmentEventList")
+  private TrialShipmentEventList trialShipmentEventList = null;
+
+  @SerializedName("ShipmentSettleEventList")
+  private ShipmentSettleEventList shipmentSettleEventList = null;
+
+  @SerializedName("TaxWithholdingEventList")
+  private TaxWithholdingEventList taxWithholdingEventList = null;
+
+  @SerializedName("RemovalShipmentEventList")
+  private RemovalShipmentEventList removalShipmentEventList = null;
+
+  @SerializedName("RemovalShipmentAdjustmentEventList")
+  private RemovalShipmentAdjustmentEventList removalShipmentAdjustmentEventList = null;
 
   public FinancialEvents shipmentEventList(ShipmentEventList shipmentEventList) {
     this.shipmentEventList = shipmentEventList;
@@ -510,6 +530,96 @@ public class FinancialEvents {
     this.affordabilityExpenseReversalEventList = affordabilityExpenseReversalEventList;
   }
 
+  public FinancialEvents trialShipmentEventList(TrialShipmentEventList trialShipmentEventList) {
+    this.trialShipmentEventList = trialShipmentEventList;
+    return this;
+  }
+
+   /**
+   * Get trialShipmentEventList
+   * @return trialShipmentEventList
+  **/
+  @ApiModelProperty(value = "")
+  public TrialShipmentEventList getTrialShipmentEventList() {
+    return trialShipmentEventList;
+  }
+
+  public void setTrialShipmentEventList(TrialShipmentEventList trialShipmentEventList) {
+    this.trialShipmentEventList = trialShipmentEventList;
+  }
+
+  public FinancialEvents shipmentSettleEventList(ShipmentSettleEventList shipmentSettleEventList) {
+    this.shipmentSettleEventList = shipmentSettleEventList;
+    return this;
+  }
+
+   /**
+   * Get shipmentSettleEventList
+   * @return shipmentSettleEventList
+  **/
+  @ApiModelProperty(value = "")
+  public ShipmentSettleEventList getShipmentSettleEventList() {
+    return shipmentSettleEventList;
+  }
+
+  public void setShipmentSettleEventList(ShipmentSettleEventList shipmentSettleEventList) {
+    this.shipmentSettleEventList = shipmentSettleEventList;
+  }
+
+  public FinancialEvents taxWithholdingEventList(TaxWithholdingEventList taxWithholdingEventList) {
+    this.taxWithholdingEventList = taxWithholdingEventList;
+    return this;
+  }
+
+   /**
+   * Get taxWithholdingEventList
+   * @return taxWithholdingEventList
+  **/
+  @ApiModelProperty(value = "")
+  public TaxWithholdingEventList getTaxWithholdingEventList() {
+    return taxWithholdingEventList;
+  }
+
+  public void setTaxWithholdingEventList(TaxWithholdingEventList taxWithholdingEventList) {
+    this.taxWithholdingEventList = taxWithholdingEventList;
+  }
+
+  public FinancialEvents removalShipmentEventList(RemovalShipmentEventList removalShipmentEventList) {
+    this.removalShipmentEventList = removalShipmentEventList;
+    return this;
+  }
+
+   /**
+   * Get removalShipmentEventList
+   * @return removalShipmentEventList
+  **/
+  @ApiModelProperty(value = "")
+  public RemovalShipmentEventList getRemovalShipmentEventList() {
+    return removalShipmentEventList;
+  }
+
+  public void setRemovalShipmentEventList(RemovalShipmentEventList removalShipmentEventList) {
+    this.removalShipmentEventList = removalShipmentEventList;
+  }
+
+  public FinancialEvents removalShipmentAdjustmentEventList(RemovalShipmentAdjustmentEventList removalShipmentAdjustmentEventList) {
+    this.removalShipmentAdjustmentEventList = removalShipmentAdjustmentEventList;
+    return this;
+  }
+
+   /**
+   * Get removalShipmentAdjustmentEventList
+   * @return removalShipmentAdjustmentEventList
+  **/
+  @ApiModelProperty(value = "")
+  public RemovalShipmentAdjustmentEventList getRemovalShipmentAdjustmentEventList() {
+    return removalShipmentAdjustmentEventList;
+  }
+
+  public void setRemovalShipmentAdjustmentEventList(RemovalShipmentAdjustmentEventList removalShipmentAdjustmentEventList) {
+    this.removalShipmentAdjustmentEventList = removalShipmentAdjustmentEventList;
+  }
+
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -541,12 +651,17 @@ public class FinancialEvents {
         Objects.equals(this.imagingServicesFeeEventList, financialEvents.imagingServicesFeeEventList) &&
         Objects.equals(this.networkComminglingTransactionEventList, financialEvents.networkComminglingTransactionEventList) &&
         Objects.equals(this.affordabilityExpenseEventList, financialEvents.affordabilityExpenseEventList) &&
-        Objects.equals(this.affordabilityExpenseReversalEventList, financialEvents.affordabilityExpenseReversalEventList);
+        Objects.equals(this.affordabilityExpenseReversalEventList, financialEvents.affordabilityExpenseReversalEventList) &&
+        Objects.equals(this.trialShipmentEventList, financialEvents.trialShipmentEventList) &&
+        Objects.equals(this.shipmentSettleEventList, financialEvents.shipmentSettleEventList) &&
+        Objects.equals(this.taxWithholdingEventList, financialEvents.taxWithholdingEventList) &&
+        Objects.equals(this.removalShipmentEventList, financialEvents.removalShipmentEventList) &&
+        Objects.equals(this.removalShipmentAdjustmentEventList, financialEvents.removalShipmentAdjustmentEventList);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(shipmentEventList, refundEventList, guaranteeClaimEventList, chargebackEventList, payWithAmazonEventList, serviceProviderCreditEventList, retrochargeEventList, rentalTransactionEventList, productAdsPaymentEventList, serviceFeeEventList, sellerDealPaymentEventList, debtRecoveryEventList, loanServicingEventList, adjustmentEventList, saFETReimbursementEventList, sellerReviewEnrollmentPaymentEventList, fbALiquidationEventList, couponPaymentEventList, imagingServicesFeeEventList, networkComminglingTransactionEventList, affordabilityExpenseEventList, affordabilityExpenseReversalEventList);
+    return Objects.hash(shipmentEventList, refundEventList, guaranteeClaimEventList, chargebackEventList, payWithAmazonEventList, serviceProviderCreditEventList, retrochargeEventList, rentalTransactionEventList, productAdsPaymentEventList, serviceFeeEventList, sellerDealPaymentEventList, debtRecoveryEventList, loanServicingEventList, adjustmentEventList, saFETReimbursementEventList, sellerReviewEnrollmentPaymentEventList, fbALiquidationEventList, couponPaymentEventList, imagingServicesFeeEventList, networkComminglingTransactionEventList, affordabilityExpenseEventList, affordabilityExpenseReversalEventList, trialShipmentEventList, shipmentSettleEventList, taxWithholdingEventList, removalShipmentEventList, removalShipmentAdjustmentEventList);
   }
 
 
@@ -577,6 +692,11 @@ public class FinancialEvents {
     sb.append("    networkComminglingTransactionEventList: ").append(toIndentedString(networkComminglingTransactionEventList)).append("\n");
     sb.append("    affordabilityExpenseEventList: ").append(toIndentedString(affordabilityExpenseEventList)).append("\n");
     sb.append("    affordabilityExpenseReversalEventList: ").append(toIndentedString(affordabilityExpenseReversalEventList)).append("\n");
+    sb.append("    trialShipmentEventList: ").append(toIndentedString(trialShipmentEventList)).append("\n");
+    sb.append("    shipmentSettleEventList: ").append(toIndentedString(shipmentSettleEventList)).append("\n");
+    sb.append("    taxWithholdingEventList: ").append(toIndentedString(taxWithholdingEventList)).append("\n");
+    sb.append("    removalShipmentEventList: ").append(toIndentedString(removalShipmentEventList)).append("\n");
+    sb.append("    removalShipmentAdjustmentEventList: ").append(toIndentedString(removalShipmentAdjustmentEventList)).append("\n");
     sb.append("}");
     return sb.toString();
   }

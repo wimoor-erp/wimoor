@@ -7,6 +7,10 @@ import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
 import com.wimoor.amazon.finances.mapper.OrdersFinancialMapper;
 import com.wimoor.amazon.finances.service.IOrdersFinancialService;
+import com.wimoor.amazon.orders.mapper.AmzOrderMainMapper;
+import com.wimoor.amazon.orders.pojo.entity.AmzOrderMain;
+import com.wimoor.amazon.report.mapper.AmzSettlementReportMapper;
+import com.wimoor.amazon.report.pojo.entity.AmzSettlementReport;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
@@ -19,15 +23,20 @@ import com.amazon.spapi.model.finances.ShipmentEvent;
 import com.amazon.spapi.model.finances.ShipmentEventList;
 import com.amazon.spapi.model.finances.ShipmentItem;
 import com.amazon.spapi.model.finances.ShipmentItemList;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,13 +54,37 @@ public class OrdersFinancialServiceImpl extends ServiceImpl<OrdersFinancialMappe
 	@Autowired
 	ApiBuildService apiBuildService;
 	
- 
 	@Autowired
 	IMarketplaceService marketplaceService;
 	
-	
+	@Resource
+	AmzOrderMainMapper amzOrderMainMapper;
+	@Resource
+	private AmzSettlementReportMapper amzSettlementReportMapper;
 	
 	public List<OrdersFinancial> getOrdersFinancialList(AmazonAuthority amazonAuthority,String orderid){
+		AmzOrderMain orderMain = amzOrderMainMapper.selectById(orderid);
+		if(orderMain!=null&&GeneralUtil.distanceOfDay(orderMain.getPurchaseDate(), new Date())>14) {
+			QueryWrapper<AmzSettlementReport> querySettlement=new QueryWrapper<AmzSettlementReport>();
+			querySettlement.eq("order_id", orderid);
+			List<AmzSettlementReport> list = amzSettlementReportMapper.selectList(querySettlement);
+			if(list!=null&&list.size()>0) {
+				List<OrdersFinancial> result=new LinkedList<OrdersFinancial>();
+				for(AmzSettlementReport item:list) {
+					OrdersFinancial one =new OrdersFinancial();
+					one.setAmount(item.getAmount());
+					one.setAmazonOrderId(orderid);
+					one.setCurrency(item.getCurrency());
+					one.setFtype(item.getAmountDescription());
+					one.setPostedDate(item.getPostedDate());
+					one.setSku(item.getSku());
+					one.setOpttime(LocalDateTime.now());
+					result.add(one);
+				}
+				return result;
+			}
+		
+		}
 		LambdaQueryWrapper<OrdersFinancial> query = new LambdaQueryWrapper<OrdersFinancial>().eq(OrdersFinancial::getAmazonOrderId, orderid);
 		List<OrdersFinancial> result = this.list(query);
 	    if(result.size()>0)return result;
@@ -98,10 +131,10 @@ public class OrdersFinancialServiceImpl extends ServiceImpl<OrdersFinancialMappe
 			    		}
 			    	}
 			    }
-				if(amzOrderFinancial.getAmount()!=null&&amzOrderFinancial.getAmount().equals(new BigDecimal("0.0"))) {
+				if(amzOrderFinancial.getAmount()==null || amzOrderFinancial.getAmount().equals(new BigDecimal("0.0"))) {
 					continue;
 				}
-				amzOrderFinancial.setPostedDate(AmzDateUtils.getLocalTime(postdate));
+				amzOrderFinancial.setPostedDate(postdate);
 				amzOrderFinancial.setOrderItemId(item.getOrderItemId());
 				amzOrderFinancial.setSku(item.getSellerSKU());
 				amzOrderFinancial.setAmazonOrderId(amazonOrderId);

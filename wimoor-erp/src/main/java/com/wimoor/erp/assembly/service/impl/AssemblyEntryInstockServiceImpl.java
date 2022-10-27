@@ -31,19 +31,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AssemblyEntryInstockServiceImpl extends ServiceImpl<AssemblyEntryInstockMapper,AssemblyEntryInstock> implements IAssemblyEntryInstockService{
 	 
-	AssemblyEntryInstockMapper assemblyEntryInstockMapper;
+	final IAssemblyFormService assemblyFormService;
 	 
-	IAssemblyFormService assemblyFormService;
+	final IAssemblyFormEntryService assemblyFormEntryService;
 	 
-	IAssemblyFormEntryService assemblyFormEntryService;
+	final IInventoryFormAgentService inventoryFormAgentService;
 	 
-	IInventoryFormAgentService inventoryFormAgentService;
+	final IMaterialService materialService;
 	 
-	IMaterialService materialService;
-	 
-	IInventoryService inventoryService;
+	final IInventoryService inventoryService;
 	public List<Map<String,Object>> selectByFormId(String formid) {
-		return assemblyEntryInstockMapper.selectByFormId(formid);
+		return this.baseMapper.selectByFormId(formid);
 	}
  
 	public Map<String, Object> saveAssemblyInStock(AssemblyEntryInstock entity,AssemblyForm assemblyForm, UserInfo user) throws BizException {
@@ -202,14 +200,14 @@ public class AssemblyEntryInstockServiceImpl extends ServiceImpl<AssemblyEntryIn
 
 	public Integer findhasAssemblyFromShipment(String shipmentid) {
 		// TODO Auto-generated method stub
-		return assemblyEntryInstockMapper.findhasAssemblyFormNum(shipmentid);
+		return this.baseMapper.findhasAssemblyFormNum(shipmentid);
 	}
 
 	public   List<AssemblyEntryInstock> findAssemblyFromShipment(String shipmentid) {
 		// TODO Auto-generated method stub
 		QueryWrapper<AssemblyEntryInstock> queryWrapper=new QueryWrapper<AssemblyEntryInstock>();
 		queryWrapper.eq("shipmentid", shipmentid);
-		return assemblyEntryInstockMapper.selectList(queryWrapper);
+		return this.baseMapper.selectList(queryWrapper);
 	}
 	
 	public void cancelInStock(UserInfo user,AssemblyEntryInstock entity){

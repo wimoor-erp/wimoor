@@ -48,5 +48,9 @@ public class AmazonGroup extends BaseEntity {
 	@ApiModelProperty(value = "创建时间【系统填写】")
     @TableField(value =  "createtime")
     private Date createtime;
+	
+	@ApiModelProperty(value = "逻辑删除")
+    @TableField(value =  "isdelete")
+    private Boolean isdelete;
  
 }

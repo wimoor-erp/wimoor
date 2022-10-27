@@ -9,7 +9,7 @@ import com.wimoor.admin.pojo.entity.SysRoleMenu;
 
 public interface ISysRoleMenuService extends IService<SysRoleMenu> {
 
-    List<Long> listMenuIds(BigInteger roleId);
+    List<BigInteger> listMenuIds(BigInteger roleId);
 
     /**
      * 修改角色菜单
@@ -17,5 +17,5 @@ public interface ISysRoleMenuService extends IService<SysRoleMenu> {
      * @param menuIds
      * @return
      */
-    boolean update(BigInteger roleId, List<Long> menuIds);
+    boolean update(BigInteger roleId, List<BigInteger> menuIds);
 }

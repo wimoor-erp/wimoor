@@ -3,22 +3,42 @@ package com.wimoor.amazon.report.service.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
+import org.threeten.bp.OffsetDateTime;
 
+import com.amazon.spapi.api.ReportsApi;
+import com.amazon.spapi.client.ApiCallback;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.model.reports.CreateReportResponse;
+import com.amazon.spapi.model.reports.CreateReportSpecification;
+import com.amazon.spapi.model.reports.ReportOptions;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.report.mapper.FBAStorageFeeReportMapper;
 import com.wimoor.amazon.report.pojo.entity.FBAStorageFeeReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
+import com.wimoor.amazon.util.AmzDateUtils;
+import com.wimoor.common.GeneralUtil;
  
 
 @Service("reportAmzFBAStorageFeeService")
@@ -28,7 +48,69 @@ public class ReportAmzFBAStorageFeeServiceImpl extends ReportServiceImpl{
 	private IMarketplaceService marketplaceService;
 	@Resource
 	private FBAStorageFeeReportMapper fBAStorageFeeReportMapper;
- 
+	
+	@Override
+	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
+        amazonAuthority.setUseApi("createReport");
+		  ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
+		  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
+		  Set<String> region=new HashSet<String>();
+		  for(Marketplace market:marketlist) {
+			  CreateReportSpecification body=new CreateReportSpecification();
+			  body.setReportType(myReportType());
+			  cstart.set(Calendar.DATE, 1);
+			  cend.setTime(cstart.getTime());
+			  cend.add(Calendar.MONTH, 1);
+			  cend.add(Calendar.DATE, -1);
+			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
+			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
+			  QueryWrapper<FBAStorageFeeReport> query=new QueryWrapper<FBAStorageFeeReport>();
+			  query.eq("amazonauthid", amazonAuthority.getId());
+			  query.eq("country", market.getMarket());
+			  SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM");
+			  query.eq("month",fmt.format(cstart.getTime()));
+			   Long count = fBAStorageFeeReportMapper.selectCount(query);
+			   if(count!=null&&count>0) {
+				   continue;
+			   }
+			   if(region.contains(market.getRegion())) {
+				   continue;
+			   }else {
+				   region.add(market.getRegion());
+			   }
+			   Date today = new Date();
+				  double days = Math.floor((today.getTime() - cend.getTime().getTime()) / 1000 / 3600 / 24); 
+				  if(days<8) {
+					  continue;
+				  }
+			  ReportOptions reportOptions=getMyOptions();
+			  if(reportOptions!=null) {
+				body.setReportOptions(reportOptions);  
+			  }
+			  List<String> list=new ArrayList<String>();
+			  list.add(market.getMarketplaceid());
+			  amazonAuthority.setMarketPlace(market);
+			  if(ignore==null||ignore==false) {
+				  Map<String,Object> param=new HashMap<String,Object>();
+				  param.put("sellerid", amazonAuthority.getSellerid());
+				  param.put("reporttype", this.myReportType());
+				  param.put("marketplacelist", list);
+				  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
+				  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
+					  continue;
+				  }
+			  }
+			  body.setMarketplaceIds(list);
+			  try {
+					  ApiCallback<CreateReportResponse> callback = new ApiCallbackReportCreate(this,amazonAuthority,market,cstart.getTime(),cend.getTime());
+				      api.createReportAsync(body,callback);
+				  } catch (ApiException e) {
+					  amazonAuthority.setApiRateLimit( null,e);
+					  e.printStackTrace();
+			    }
+		  }
+}
+
 	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
 		int lineNumber = 0;
 		String line;
@@ -81,7 +163,7 @@ public class ReportAmzFBAStorageFeeServiceImpl extends ReportServiceImpl{
 					fBAStorageFee.setQualifiesForInvDiscount(getBooleanValue(info,titleList,"qualifies_for_inventory_discount"));
 					fBAStorageFee.setLastupdate(new Date());
 					try {
-						fBAStorageFeeReportMapper.insert(fBAStorageFee);
+				         fBAStorageFeeReportMapper.insert(fBAStorageFee);
 					} catch (Exception e) {
 						e.printStackTrace();
 						if(log==null){

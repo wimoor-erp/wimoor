@@ -59,7 +59,7 @@
   			limit 4
    </select>
    
-   <select id="findByCompanyId" resultType="com.wimoor.erp.ship.pojo.entity.ShipTransCompany" parameterType="java.lang.String">
+   <select id="findByCompanyId" resultType="com.wimoor.erp.ship.pojo.entity.ShipTransDetail" parameterType="java.lang.String">
    select s.*,m.name mname,c.name cname,ty.name tname,
           case when s.priceunits='volume' then '体积(m3)' else '重量(kg)' end priceu,c.name channeltype
     from  t_erp_ship_transcompany  t 
@@ -70,7 +70,17 @@
 	where t.id=#{comid,jdbcType=CHAR} and s.disabled=0
 	order by m.findex
    </select>
-   
+  <select id="findDisabledByCompanyId" resultType="com.wimoor.erp.ship.pojo.entity.ShipTransDetail" parameterType="java.lang.String">
+   select s.*,m.name mname,c.name cname,ty.name tname,
+          case when s.priceunits='volume' then '体积(m3)' else '重量(kg)' end priceu,c.name channeltype
+    from  t_erp_ship_transcompany  t 
+	left join t_erp_ship_transdetail s on s.company=t.id
+	left join t_marketplace m on m.marketplaceId=s.marketplaceid
+	left join t_erp_ship_transchannel c on c.id=s.channel
+	left join t_erp_transtype ty on ty.id=s.transtype
+	where t.id=#{comid,jdbcType=CHAR} and s.disabled=1
+	order by m.findex
+   </select>
    <select id="selectBycom" parameterType="java.lang.String" resultType="java.util.Map">
    select s.id,concat(case when s.subarea is null or s.subarea=''  then '' else concat(s.subarea,'-') end,
                       case when ts.name is null  then '' else concat(ts.name,'-') end ,
@@ -102,7 +112,7 @@
 	</if>	
    </select>
    
-   <select id="findListItem"  resultType="java.util.Map" parameterType="java.util.Map">
+   <select id="findListItem"  resultType="com.wimoor.erp.ship.pojo.entity.ShipTransDetail" parameterType="java.util.Map">
    		select t.*,co.name cname,ty.name tname,tk.name market,info.name optname ,tst.name channeltype
    		from t_erp_ship_transdetail t
    		left join t_erp_ship_transcompany co on co.id=t.company
@@ -111,6 +121,7 @@
    		left join t_erp_ship_transchannel tst on tst.id=t.channel
    		left join t_userinfo info on info.id=t.operator
    		where co.shopid=#{shopid,jdbcType=CHAR}	and t.disabled=0
+   		and t.price>0
    		<if test="marketplaceid!=null">
 			 and t.marketplaceid =#{marketplaceid,jdbcType=CHAR}		
    		</if>

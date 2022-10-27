@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiModelProperty;
  * The monetary value.
  */
 @ApiModel(description = "The monetary value.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class Amount {
   @SerializedName("CurrencyCode")
   private CurrencyCode currencyCode = null;

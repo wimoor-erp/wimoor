@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvWarningDateMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvWarningDate" >
+    <id column="shopid" property="shopid" jdbcType="BIGINT" />
+    <id column="recordType" property="recordtype" jdbcType="CHAR" />
+    <id column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="num_impressions" property="numImpressions" jdbcType="DECIMAL" />
+    <result column="num_clicks" property="numClicks" jdbcType="DECIMAL" />
+    <result column="num_CSRT" property="numCSRT" jdbcType="DECIMAL" />
+    <result column="num_ACOS" property="numACOS" jdbcType="DECIMAL" />
+    <result column="absoluteNum_impressions" property="absoluteNumImpressions" jdbcType="INTEGER" />
+    <result column="absoluteNum_clicks" property="absoluteNumClicks" jdbcType="INTEGER" />
+    <result column="absoluteNum_ACOS" property="absoluteNumACOS" jdbcType="DECIMAL" />
+    <result column="absoluteNum_CSRT" property="absoluteNumCSRT" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    shopid, recordType, ftype, num_impressions, num_clicks, num_CSRT, num_ACOS, absoluteNum_impressions,
+    absoluteNum_clicks, absoluteNum_ACOS, absoluteNum_CSRT
+  </sql>
+  
+  <select id="getWarningDateNumForFtype" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	 select * 
+  	 from t_amz_adv_warningdate t
+ 	 where t.shopid=#{shopid,jdbcType=CHAR} 
+ 	 	and t.recordType=#{recordType,jdbcType=CHAR} 
+ 	 	and t.ftype=#{ftype,jdbcType=CHAR} 
+  </select>
+  
+</mapper>

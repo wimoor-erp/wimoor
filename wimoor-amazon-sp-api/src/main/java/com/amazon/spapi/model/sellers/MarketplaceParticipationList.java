@@ -13,18 +13,16 @@
 
 package com.amazon.spapi.model.sellers;
 
-import java.util.Objects;
-import java.util.Arrays;
-import com.amazon.spapi.model.sellers.MarketplaceParticipation;
-import io.swagger.annotations.ApiModel;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+
+import io.swagger.annotations.ApiModel;
 
 /**
  * List of marketplace participations.
  */
 @ApiModel(description = "List of marketplace participations.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T19:59:39.171+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:43:40.699+08:00")
 public class MarketplaceParticipationList extends ArrayList<MarketplaceParticipation> {
 
   @Override

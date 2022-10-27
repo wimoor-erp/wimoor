@@ -13,7 +13,9 @@ import com.amazon.spapi.model.notifications.CreateSubscriptionRequest;
 import com.amazon.spapi.model.notifications.CreateSubscriptionResponse;
 import com.amazon.spapi.model.notifications.GetSubscriptionResponse;
 import com.amazon.spapi.model.notifications.Subscription;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
@@ -55,32 +57,66 @@ public class AmzNotificationsSubscriptionsServiceImpl extends ServiceImpl<AmzNot
 			subpojo.setPayloadVersion(payloadVersion);
 			subpojo.setEventFilterType(type.getNotifications());
 			subpojo.setRefreshtime(LocalDateTime.now());
-			this.baseMapper.insert(subpojo);
+			QueryWrapper<AmzNotificationsSubscriptions> query=new QueryWrapper<AmzNotificationsSubscriptions>();
+			query.eq("subscriptionId", subscriptionId);
+			query.eq("amazonauthid", amazonAuthority.getId());
+			query.eq("eventFilterType", type.getNotifications());
+			AmzNotificationsSubscriptions oldone = this.baseMapper.selectOne(query);
+			if(oldone==null) {
+				this.baseMapper.insert(subpojo);
+			}else {
+				this.baseMapper.update(subpojo, query);
+			}
 		}
+	}
+	
+	void requestCreateSubscription(AmazonAuthority amazonAuthority,AmzNotifications type) throws ApiException {
+		amazonAuthority.setUseApi("createSubscription");
+		NotificationsApi api = apiBuildService.getNotificationsApi(amazonAuthority);
+		List<AmzNotificationsDestination> destinationList = iAmzNotificationsDestinationService.list(new LambdaQueryWrapper<AmzNotificationsDestination>()
+				.eq(AmzNotificationsDestination::getAwsregion, amazonAuthority.getAWSRegion())
+				.eq(AmzNotificationsDestination::getName, AmzNotifications.sqsname));
+		if(destinationList==null||destinationList.size()==0)return;
+		AmzNotificationsDestination destination=destinationList.get(0);
+		CreateSubscriptionRequest body=new CreateSubscriptionRequest();
+		body.setDestinationId(destination.getDestinationid());
+		body.setPayloadVersion("1.0");
+		try {
+			CreateSubscriptionResponse createResponse=api.createSubscription(body, type.getNotifications());
+			handlerCreateSubscriptionResponse(amazonAuthority,type,createResponse);
+		}catch(ApiException e) {
+			System.out.println(e.getResponseBody());
+			e.printStackTrace();
+		}
+		
 	}
 	
 	void handlerGetSubscriptionResponse(AmazonAuthority amazonAuthority,AmzNotifications type,GetSubscriptionResponse response){
 		boolean hasSubcritpion=false;
 	
 		if(response!=null&&response.getPayload()!=null) {
+			hasSubcritpion=true;
 			Subscription subscription = response.getPayload();
 			String subscriptionId=subscription.getSubscriptionId();
-			AmzNotificationsSubscriptions oldone = this.baseMapper.selectById(subscriptionId);
+			QueryWrapper<AmzNotificationsSubscriptions> query=new QueryWrapper<AmzNotificationsSubscriptions>();
+			query.eq("subscriptionId", subscriptionId);
+			query.eq("amazonauthid", amazonAuthority.getId());
+			query.eq("eventFilterType", subscription.getProcessingDirective().getEventFilter().getEventFilterType());
+			AmzNotificationsSubscriptions oldone = this.baseMapper.selectOne(query);
 			if(oldone==null) {
-				hasSubcritpion=true;
+				AmzNotificationsSubscriptions one =new AmzNotificationsSubscriptions();
+				one.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
+				one.setSubscriptionId(subscriptionId);
+				one.setDestinationId(subscription.getDestinationId());
+				one.setEventFilterType(subscription.getProcessingDirective().getEventFilter().getEventFilterType());
+				one.setPayloadVersion(subscription.getPayloadVersion());
+				one.setRefreshtime(LocalDateTime.now());
+				this.baseMapper.insert(one);
 			}
 		}
 		try {
 			if(!hasSubcritpion) {
-				NotificationsApi api = apiBuildService.getNotificationsApi(amazonAuthority);
-				AmzNotificationsDestination destination = iAmzNotificationsDestinationService.getOne(new LambdaQueryWrapper<AmzNotificationsDestination>()
-						.eq(AmzNotificationsDestination::getAmazonauthid, amazonAuthority.getId())
-						.eq(AmzNotificationsDestination::getName, AmzNotifications.sqsname));
-				CreateSubscriptionRequest body=new CreateSubscriptionRequest();
-				body.setDestinationId(destination.getDestinationid());
-				body.setPayloadVersion("1.0");
-				CreateSubscriptionResponse createResponse=api.createSubscription(body, type.getNotifications());
-				handlerCreateSubscriptionResponse(amazonAuthority,type,createResponse);
+				requestCreateSubscription(amazonAuthority,type);
 			}
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
@@ -92,14 +128,28 @@ public class AmzNotificationsSubscriptionsServiceImpl extends ServiceImpl<AmzNot
 	public void runApi(AmazonAuthority amazonAuthority) {
 		// TODO Auto-generated method stub
 		List<AmzNotifications> typeList = iAmzNotificationsService.list(new LambdaQueryWrapper<AmzNotifications>().eq(AmzNotifications::getIsrun, Boolean.TRUE));
+		amazonAuthority.setUseApi("getSubscription");
 		NotificationsApi api = apiBuildService.getNotificationsApi(amazonAuthority);
 		for(AmzNotifications type:typeList) {
 			try {
+				QueryWrapper<AmzNotificationsSubscriptions> query=new QueryWrapper<AmzNotificationsSubscriptions>();
+				query.eq("amazonauthid", amazonAuthority.getId());
+				query.eq("eventFilterType",type.getNotifications());
+				List<AmzNotificationsSubscriptions> oldList = this.baseMapper.selectList(query);
+				if(oldList!=null&&oldList.size()>0) {
+					continue;
+				}
 				GetSubscriptionResponse response = api.getSubscription(type.getNotifications());
 				handlerGetSubscriptionResponse(amazonAuthority,type,response);
 			} catch (ApiException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+					try {
+						requestCreateSubscription(amazonAuthority,type);
+					} catch (ApiException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			 
 			}
 		}
 		

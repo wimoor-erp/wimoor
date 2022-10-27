@@ -10,24 +10,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
-import com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 
 public interface IWarehouseService extends IService<Warehouse> {
 
 	//展示页面
 	IPage<Map<String, Object>> findByCondition(Page<?> page,String search, String shopid, String ftype) throws ERPBizException;
-	
-	//默认添加FBA仓库
-	Integer saveFBA(String shopid,String operator)throws ERPBizException;
-	
-	//删除FBA仓库
-	Integer deleteFBA(String shopid)throws ERPBizException;
+
 	
 	//所有fba仓库
 	String selectTypeByName(String ftypename);
-	
-	List<WareHouseFBA> findFbaMarket(String shopid,String groupid);
+
 	/**
 	 * 查詢fba仓库和自有仓的所有仓位
 	 * @param ftype
@@ -35,8 +28,7 @@ public interface IWarehouseService extends IService<Warehouse> {
 	 * @return
 	 */
 	List<Map<String,Object>> findByType(String ftype, String shopid);
-
-	List<Map<String,Object>> selectAllByShopId(String shopid);
+ 
 	/**
 	 * 查询所有自有仓的仓位
 	 * @param shopid
@@ -66,11 +58,7 @@ public interface IWarehouseService extends IService<Warehouse> {
    
     Integer updateMyware(Warehouse wh,String parentid) throws ERPBizException;
 
-	List<WareHouseFBA> selectFBAAllByShopId(String shopid);
-
 	Warehouse findAvailableBySelf(String warehouseid);
-
-	int refreshFBA(String shopid, String operator) throws ERPBizException;
 
 	LinkedList<Map<String, Object>> selectShipFbaSale(String shopid, String sku, String materialid, String planid,String groupid);
 
@@ -80,8 +68,6 @@ public interface IWarehouseService extends IService<Warehouse> {
 	 * @return
 	 */
 	List<Warehouse> selectDefaultSelfUsableByShopId(String shopid);
-	
-    public List<WareHouseFBA> findFbaWarehouseByShop(String shopid); 
 
 	List<Warehouse> getSubWarehouse(String warehouseid);
 	

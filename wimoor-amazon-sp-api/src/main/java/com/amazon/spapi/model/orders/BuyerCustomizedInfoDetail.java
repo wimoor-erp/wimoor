@@ -28,7 +28,7 @@ import java.io.IOException;
  * Buyer information for custom orders from the Amazon Custom program.
  */
 @ApiModel(description = "Buyer information for custom orders from the Amazon Custom program.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:03:19.199+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:56:53.532+08:00")
 public class BuyerCustomizedInfoDetail {
   @SerializedName("CustomizedURL")
   private String customizedURL = null;

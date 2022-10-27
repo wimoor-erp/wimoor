@@ -24,7 +24,7 @@
 	</select>
 	
 	<select id="findordershopReport" resultType="java.util.Map" parameterType="java.util.Map">
-		select t.sku,t.quantity,t.purchase_date
+		select t.*
 		from t_orders_summary t
 		where t.purchase_date &gt;=#{beginDate,jdbcType=DATE}
 			and t.purchase_date &lt;= #{endDate,jdbcType=DATE}
@@ -33,19 +33,17 @@
 				and a.groupid=#{groupid,jdbcType=CHAR}
 			</if>
 			<if test="region != null">
-			   <if test="region=='IEU'">
+		           and a.region = #{region,jdbcType=CHAR}
+			</if>
+			)
+		 
+		 <if test="marketplaceid=='IEU'">
 				   and t.marketplaceid in('A13V1IB3VIYZZH','A17E79C6D8DWNP',
 				  						  'A1805IZSGTT6HS','A1C3SOZRARQ6R3',
 				  						  'A1PA6795UKMFR9','A1RKKUPIHCS9HS',
 				                          'A2NODRKZP88ZB9','A33AVAJ2PDY3EV',
 				                          'APJ6JRA9NG5V4','ARBP9OOSHTCHU')
-			   </if>
-			   <if test="region!='IEU'">
-				  and a.region = #{region,jdbcType=CHAR}
-			   </if>
-			</if>
-			)
-		
+		  </if>
 		<if test="marketplaceid != null">
 			and t.marketplaceid = #{marketplaceid,jdbcType=CHAR}
 		</if>
@@ -280,7 +278,40 @@
 			ORDER BY sum(s.quantity) desc
 		    limit 5
 	</select>
-
+	<select id="top5" resultType="com.wimoor.amazon.report.pojo.vo.ProductSalesRankVo" parameterType="com.wimoor.amazon.common.pojo.dto.SummaryMutilParameterQueryDTO">
+		 SELECT g.name groupname,m.name marketname,ifnull(c.name,i.pgroup) catename,v.sku,v.quantity,v.orderprice ,r.afn_fulfillable_quantity fulfillable,
+		 		  IFNULL(p.location,p.url) image,ifnull(mt.name,i.name) name
+		  FROM ( SELECT  s.amazonAuthId,s.marketplaceid,s.sku,SUM(s.quantity) quantity,SUM(s.orderprice) orderprice
+		  FROM t_orders_summary s 
+		  WHERE   EXISTS(SELECT id FROM t_amazon_auth 
+				  WHERE id=s.amazonAuthId 
+				  AND shop_id=#{shopid,jdbcType=CHAR}
+				  <if test="groupid !=null">
+				     and  groupid=#{groupid,jdbcType=CHAR}
+			      </if>
+				   ) 
+			  <if test="beginDate != null">
+				and s.purchase_date &gt;= #{beginDate,jdbcType=CHAR}
+			 </if>
+			 <if test="endDate != null">
+				and s.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+			</if>
+		
+		  GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		  ORDER BY quantity desc
+		  LIMIT 15) v
+		  LEFT JOIN t_product_info i ON i.amazonAuthId=v.amazonAuthId AND i.marketplaceid=v.marketplaceid AND i.sku=v.sku
+		  LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+		  LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		  LEFT JOIN t_marketplace m ON m.marketplaceId=i.marketplaceid
+		  LEFT JOIN t_picture p ON p.id=i.image
+		  LEFT JOIN t_inventory_report r ON r.amazonAuthId=i.amazonAuthId AND r.sku=i.sku AND r.marketplaceid=case when m.region='EU' then 'EU' ELSE i.marketplaceid END 
+		  LEFT JOIN t_product_in_opt o ON o.pid=i.id
+		  LEFT JOIN t_erp_material mt ON mt.sku=IFNULL(o.msku,i.sku) AND mt.shopid=g.shopid AND mt.isDelete=0
+		  LEFT JOIN  t_erp_material_category c ON c.id=mt.categoryid
+		  WHERE i.amazonAuthId IS NOT NULL 
+		  LIMIT 5
+  </select>
 	<select id="lastQtyMarket" resultType="java.util.Map">
 	   select m.marketplaceid,v.sales_channel pointName,v.quantity quantity
 		FROM (select sm.sales_channel,sum(sm.quantity) quantity

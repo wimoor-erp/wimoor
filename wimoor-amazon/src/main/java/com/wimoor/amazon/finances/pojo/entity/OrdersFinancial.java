@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
+import java.util.Date;
+
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
@@ -63,7 +65,7 @@ public class OrdersFinancial implements Serializable {
 
     @ApiModelProperty(value = "出账时间")
     @TableField(value="posted_date")
-    private LocalDateTime postedDate;
+    private Date postedDate;
 
 
 }

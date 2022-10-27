@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.SysTariffPackagesAppendMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.SysTariffPackagesAppend">
+        <id column="id" property="id" />
+        <result column="ftype" property="ftype" />
+        <result column="name" property="name" />
+        <result column="units" property="units" />
+        <result column="price" property="price" />
+        <result column="discount" property="discount" />
+    </resultMap>
+
+</mapper>

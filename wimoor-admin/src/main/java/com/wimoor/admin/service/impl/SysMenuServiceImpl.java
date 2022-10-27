@@ -3,6 +3,7 @@ package com.wimoor.admin.service.impl;
  
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,17 +21,22 @@ import com.wimoor.admin.common.constants.GlobalConstants;
 import com.wimoor.admin.common.constants.SystemConstants;
 import com.wimoor.admin.mapper.SysMenuMapper;
 import com.wimoor.admin.pojo.entity.SysMenu;
+import com.wimoor.admin.pojo.entity.SysRole;
 import com.wimoor.admin.pojo.entity.SysUserRole;
 import com.wimoor.admin.pojo.vo.MenuVO;
 import com.wimoor.admin.pojo.vo.NextRouteVO;
 import com.wimoor.admin.pojo.vo.RouteVO;
 import com.wimoor.admin.service.ISysMenuService;
 import com.wimoor.admin.service.ISysPermissionService;
+import com.wimoor.admin.service.ISysRoleMenuService;
 import com.wimoor.admin.service.ISysRolePermissionService;
+import com.wimoor.admin.service.ISysRoleService;
 import com.wimoor.admin.service.ISysUserRoleService;
 import com.wimoor.common.SelectVO;
 import com.wimoor.common.TreeSelectVO;
 import com.wimoor.common.user.UserInfo;
+import com.wimoor.common.user.UserType;
+import com.wimoor.manager.service.IManagerLimitService;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
@@ -52,6 +58,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     private final ISysPermissionService permissionService;
     private final ISysRolePermissionService iSysRolePermissionService;
     private final ISysUserRoleService iSysUserRoleService;
+    private final ISysRoleService iSysRoleService;
+    private final IManagerLimitService iManagerLimitService;
+    private final ISysRoleMenuService iSysRoleMenuService;
     /**
      * 菜单表格（Table）层级列表
      *
@@ -81,6 +90,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
                 .map(SysMenu::getId)
                 .collect(Collectors.toSet());
         for (SysMenu sysMenu : menuList) {
+        	 
             // 不在节点 id 集合中存在的 id 即为顶级节点 id, 递归生成列表
             String parentId = sysMenu.getParentId();
             if (!nodeIdSet.contains(parentId)) {
@@ -172,19 +182,45 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
      * @return
      * @Cacheable cacheNames:缓存名称，不同缓存的数据是彼此隔离； key: 缓存Key。
      */
+
     @Override
     @Cacheable(cacheNames = "system", key = "#user.id")
     public List<RouteVO> listRoute(UserInfo user) {
-        List<SysMenu> menuList = this.baseMapper.listRoute(user.getId());
         List<SysUserRole> roleList = iSysUserRoleService.findByUserId(user.getId());
-        menuList.stream().forEach(menu->{
-        	roleList.stream().forEach(role->{
-        		 List<BigInteger> rp = iSysRolePermissionService.listPermissionId(new BigInteger(menu.getId()),role.getRoleId());
-        		 if(rp.size()>0) {
-        			 menu.setPermissions(rp.stream().map(item ->{ return permissionService.getById(item).getBtnPerm().toString();}).collect(Collectors.toList()));
-        		 }
-        	});
-        });
+        List<SysMenu> menuList = null;
+        boolean isadmin=user.getUsertype().equals(UserType.admin.getCode());
+        boolean ismanager=user.getUsertype().equals(UserType.manager.getCode());
+        if(isadmin) {
+        	menuList = this.baseMapper.listRouteAll();
+            menuList.stream().forEach(menu->{
+            	roleList.stream().forEach(role->{
+            		 List<BigInteger> rp = iSysRolePermissionService.listPermissionId(new BigInteger(menu.getId()),role.getRoleId());
+            		 if(rp.size()>0) {
+            			 menu.setPermissions(rp.stream().map(item ->{ return permissionService.getById(item).getBtnPerm().toString();}).collect(Collectors.toList()));
+            		 }
+            	});
+            });
+        }else if(ismanager){
+        	menuList = this.baseMapper.listRoute(user.getId());
+            menuList.stream().forEach(menu->{
+                 List<BigInteger> rp = iSysRolePermissionService.listMenuPermissionId(new BigInteger(menu.getId()));
+            		 if(rp.size()>0) {
+            			 menu.setPermissions(rp.stream().map(item ->{ return permissionService.getById(item).getBtnPerm().toString();}).collect(Collectors.toList()));
+            		 }
+            });
+        }else {
+        	menuList = this.baseMapper.listRoute(user.getId());
+            menuList.stream().forEach(menu->{
+            	Set<String> permissionSet=new HashSet<String>();
+            	roleList.stream().forEach(role->{
+           		 List<BigInteger> rp = iSysRolePermissionService.listPermissionId(new BigInteger(menu.getId()),role.getRoleId());
+           		 if(rp.size()>0) {
+           			permissionSet.addAll(rp.stream().map(item ->{ return permissionService.getById(item).getBtnPerm().toString();}).collect(Collectors.toSet()));
+           		 }
+           	   });
+            	menu.setPermissions(new ArrayList<String>(permissionSet));
+            });
+        }
         List<RouteVO> list = recursionRoute(SystemConstants.ROOT_MENU_ID, menuList);
         return list;
     }
@@ -370,4 +406,33 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
                 }));
         return list;
     }
+
+	@Override
+	public List<MenuVO> listCompanyTreeSelect(UserInfo user) {
+		// TODO Auto-generated method stub
+	    List<SysUserRole> roleList = iSysUserRoleService.findByUserId(user.getId());
+        boolean isadmin=user.getUsertype().equals(UserType.admin.getCode());
+        if(isadmin) {
+        	return this.listTable(null);
+        }else {
+        	String roleid = iManagerLimitService.getCompanyRole(user.getCompanyid());
+    		List<BigInteger> result = this.iSysRoleMenuService.listMenuIds(new BigInteger(roleid));
+    		List<SysMenu> allList = this.list();
+    		List<SysMenu> menuList=new ArrayList<SysMenu>();
+    		Set<String> roleMenuIdSet=new HashSet<String>();
+    		for(BigInteger id:result) {
+    			roleMenuIdSet.add(id.toString());
+    		}
+    		for(SysMenu menu:allList) {
+    			if(roleMenuIdSet.contains(menu.getId())) {
+    				menuList.add(menu);
+    			}
+    		}
+    		List<MenuVO> menuSelectList = recursion(menuList);
+    		return menuSelectList;
+        }
+		
+	}
+
+ 
 }

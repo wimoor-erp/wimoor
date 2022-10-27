@@ -15,6 +15,7 @@ package com.amazon.spapi.model.solicitations;
 
 import java.util.Objects;
 import java.util.Arrays;
+
 import com.amazon.spapi.model.ErrorList;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
@@ -29,7 +30,7 @@ import java.io.IOException;
  * The response schema for the createProductReviewAndSellerFeedbackSolicitation operation.
  */
 @ApiModel(description = "The response schema for the createProductReviewAndSellerFeedbackSolicitation operation.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T21:00:32.319+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:35:06.645+08:00")
 public class CreateProductReviewAndSellerFeedbackSolicitationResponse {
   @SerializedName("errors")
   private ErrorList errors = null;

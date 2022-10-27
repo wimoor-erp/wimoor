@@ -578,6 +578,29 @@ public class GeneralUtil {
 	public static String formatterQuantity(float number) {// 对浮点型数进行格式化，保留2位小数，如：1,000.00
 		return outputInt((int) (Math.floor(number)) + "") + outputcents(number);
 	}
+	public static String formatterQuantity(BigDecimal number) {// 对浮点型数进行格式化，保留2位小数，如：1,000.00
+		number = number.setScale(2, BigDecimal.ROUND_HALF_UP);
+		String num = number.toString();
+		String[] numarray = num.split("\\.");
+		String intnum = numarray[0];
+		String fot = null;
+		int i = 0;
+		if (numarray.length >= 2) {
+			fot = numarray[1];
+			if (StrUtil.isNotEmpty(fot)) {
+				char[] array = fot.toCharArray();
+				for (i = array.length - 1; i >= 0; i--) {
+					if (array[i] != '0')
+						break;
+				}
+			}
+		}
+		String dotstr = ".00";
+		if (fot != null && fot.length() > 0 && i >= 0) {
+			dotstr = "." + fot.substring(0, i + 1);
+		}
+		return outputInt(intnum) + dotstr;
+	}
 
  
 
@@ -708,7 +731,7 @@ public class GeneralUtil {
 			if(isSummerTime(c,market)){
 				c.add(Calendar.HOUR, 1);//夏时令
 			}
-		} else if("UK".equals(market)||"DE".equals(market)||"FR".equals(market)||"IT".equals(market)||"ES".equals(market)){
+		} else if("UK".equals(market)){
 			if(isSummerTime(c,market)){
 				c.add(Calendar.HOUR, 1);//夏时令
 			}
@@ -719,8 +742,8 @@ public class GeneralUtil {
 			c.add(Calendar.HOUR, 2);
 		} else if ("JP".equals(market)) {
 			c.add(Calendar.HOUR, 9);
-		} else if("NL".equals(market)||"PL".equals(market)||"SE".equals(market)) {
-			c.add(Calendar.HOUR, 1);//夏时令
+		} else if("NL".equals(market)||"PL".equals(market)||"SE".equals(market)||"DE".equals(market)||"FR".equals(market)||"ES".equals(market)||"IT".equals(market)) {
+			c.add(Calendar.HOUR, 1);
 			if(isSummerTime(c,market)){
 				c.add(Calendar.HOUR, 1);//夏时令
 			}
@@ -863,6 +886,9 @@ public class GeneralUtil {
 	}
 
 	public static String formatDate(Date date) {
+		if(date==null) {
+			return null;
+		}
 		return FMT_YMD.format(date);
 	}
 
@@ -1926,6 +1952,15 @@ public class GeneralUtil {
 		}
 		BigDecimal bnumber = new BigDecimal(number.toString());
 		return bnumber.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+
+	public static Double formatterNum(Double rate, int i) {
+		// TODO Auto-generated method stub
+		if (rate == null || StrUtil.isEmpty(rate.toString())) {
+			return 0.0;
+		}
+		BigDecimal bnumber = new BigDecimal(rate.toString());
+		return bnumber.setScale(i, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 

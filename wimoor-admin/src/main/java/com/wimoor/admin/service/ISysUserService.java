@@ -6,6 +6,8 @@ import java.util.Map;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wimoor.admin.pojo.dto.UserDTO;
+import com.wimoor.admin.pojo.dto.UserInsertDTO;
 import com.wimoor.admin.pojo.entity.SysUser;
 import com.wimoor.admin.pojo.vo.UserVO;
 import com.wimoor.common.user.UserInfo;
@@ -23,8 +25,6 @@ public interface ISysUserService  extends IService<SysUser> {
     
 	UserInfo convertToUserInfo(SysUser user);
 
-	public IPage<UserVO> listQuery(Page<?> page, String name);
-
 	public int unbindWechat(UserInfo userInfo, String ftype);
 
 	public int unbindAccount(UserInfo userInfo);
@@ -34,4 +34,11 @@ public interface ISysUserService  extends IService<SysUser> {
 	public List<SysUser> findAppUserByOpenid(String openid);
 
 	SysUser verifyAccount(String account, String password);
+
+	IPage<UserVO> listQuery(Page<?> page, UserDTO dto);
+
+
+	public boolean saveUser(UserInsertDTO userDTO, UserInfo operatorUserInfo);
+
+	boolean updateUser(UserInsertDTO userDTO, UserInfo operatorUserInfo);
 }

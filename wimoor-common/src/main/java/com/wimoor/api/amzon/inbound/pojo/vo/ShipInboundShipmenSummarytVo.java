@@ -27,6 +27,9 @@ public class ShipInboundShipmenSummarytVo{
 	@ApiModelProperty(value = "货件计划ID即表单ID")
 	private String planid;
 	
+	@ApiModelProperty(value = "店铺ID")
+	private String groupid;
+	
 	@ApiModelProperty(value = "站点ID")
 	private String marketplaceid;
 	
@@ -58,7 +61,7 @@ public class ShipInboundShipmenSummarytVo{
 	private Long sumQuantity;
 	
 	@ApiModelProperty(value = "创建日期")
-	private String createdate;
+	private Date createdate;
 	
 	@ApiModelProperty(value = "仓库名称")
 	private String warehouse;
@@ -95,7 +98,10 @@ public class ShipInboundShipmenSummarytVo{
 	
 	@ApiModelProperty(value = "预计到货日期")
 	private Date arrivalTime;
-    
+	
+	@ApiModelProperty(value = "超期天数")
+	private Integer delayDays;
+	
 	@ApiModelProperty(value = "驳回日期")
 	private Date status0date;
 	
@@ -121,7 +127,7 @@ public class ShipInboundShipmenSummarytVo{
 	private Date receivedate;
     
 	@ApiModelProperty(value = "同步订单库存同步1代表没有扣库存，2代表已经扣库存")
-	private Long sync_inv;
+	private Integer syncinv;
 	
 	@ApiModelProperty(value = "订单编号")
 	private String number;
@@ -129,9 +135,23 @@ public class ShipInboundShipmenSummarytVo{
 	@ApiModelProperty(value = "物流公司")
 	private String company;
     
+	@ApiModelProperty(value = "物流公司ID")
+	private String companyid;
+	
+	@ApiModelProperty(value = "物流公司API")
+	private String apiSystem;
+	
 	@ApiModelProperty(value = "物流渠道")
 	private String transtypename;
-    
+	
+	@ApiModelProperty(value = "是否系统提交")
+	private String intendedBoxContentsSource;
+	
+	@ApiModelProperty(value = "物流追踪编码")
+	private String ordernum;
+	     
+	@ApiModelProperty(value = "是否原装发货")
+	private Boolean areCasesRequired;
   }
 
  

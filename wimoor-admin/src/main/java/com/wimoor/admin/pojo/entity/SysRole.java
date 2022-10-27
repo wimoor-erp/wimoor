@@ -36,9 +36,9 @@ public class SysRole implements  Serializable  {
     private BigInteger shopid;
 
     @TableField(exist = false)
-    private List<Long> menuIds;
+    private List<BigInteger> menuIds;
 
     @TableField(exist = false)
-    private List<Long> permissionIds;
+    private List<BigInteger> permissionIds;
 
 }

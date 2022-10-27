@@ -6,6 +6,8 @@ import java.math.BigInteger;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -29,7 +31,8 @@ public class ProductInOrder implements Serializable {
     private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "产品ID")
-      private BigInteger pid;
+    @TableId
+    private BigInteger pid;
 
     @ApiModelProperty(value = "平均销量")
     private Integer avgsales;

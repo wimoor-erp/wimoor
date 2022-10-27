@@ -69,10 +69,6 @@
             <artifactId>druid</artifactId>
             <version>1.1.19</version>
         </dependency>
-         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-quartz</artifactId>
-        </dependency>
        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
@@ -82,27 +78,6 @@
         <artifactId>commons-dbcp</artifactId>
         <version>1.4</version>
         </dependency>
- 
-        <!--mybatis-plus-->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.3.2</version>
-        </dependency>
- 
-		<!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus -->
-		<dependency>
-		    <groupId>com.baomidou</groupId>
-		    <artifactId>mybatis-plus</artifactId>
-		    <version>3.4.3.1</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-generator</artifactId>
-			<version>3.3.2</version>
-		</dependency>
-		
         <!-- velocity 模板引擎, Mybatis Plus 代码生成器需要 -->
         <dependency>
             <groupId>org.apache.velocity</groupId>
@@ -226,6 +201,10 @@
 		  		spring-boot-configuration-processor
 		  	</artifactId>
 		  	<optional>true</optional>
+		  </dependency>
+		  <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>
 		  </dependency>
 	</dependencies>
 

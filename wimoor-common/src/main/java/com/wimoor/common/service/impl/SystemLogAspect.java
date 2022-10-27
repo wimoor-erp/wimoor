@@ -61,7 +61,9 @@ public  class SystemLogAspect {
        
         String params ="";
         if(joinPoint.getArgs()!=null&&joinPoint.getArgs().length>0) {
-        	params=joinPoint.getArgs()[0].toString();    
+        	if(joinPoint.getArgs()[0]!=null) {
+        		params=joinPoint.getArgs()[0].toString();    
+        	}
         }
         IOperationLogService operationLogService;    
    

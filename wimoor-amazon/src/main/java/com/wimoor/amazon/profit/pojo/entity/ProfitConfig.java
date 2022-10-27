@@ -1,10 +1,17 @@
 package com.wimoor.amazon.profit.pojo.entity;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wimoor.amazon.common.pojo.entity.BaseEntity;
 
 import io.swagger.annotations.ApiModel;
@@ -45,108 +52,62 @@ public class ProfitConfig extends BaseEntity implements Serializable {
 
 	@TableField(value= "isDefault")
 	private Boolean isDefault;
+	
 
+	@TableField(value= "isdelete")
+	private Boolean isdelete;
+	
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+08:00")
 	@TableField(value= "opttime")
 	private Date opttime;
 
-	@TableField(exist=false)
-	private ProfitConfigCountry us = new ProfitConfigCountry();
-
-	@TableField(exist=false)
-	private ProfitConfigCountry uk = new ProfitConfigCountry();
-
-	@TableField(exist=false)
-	private ProfitConfigCountry de = new ProfitConfigCountry();
-
-	@TableField(exist=false)
-	private ProfitConfigCountry fr = new ProfitConfigCountry();
-
-	@TableField(exist=false)
-	private ProfitConfigCountry es = new ProfitConfigCountry();
-
-	@TableField(exist=false)
-	private ProfitConfigCountry it = new ProfitConfigCountry();
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+08:00")
+	@TableField(value= "createtime")
+	private Date createtime;
+	
+	@TableField(value= "operator")
+	private BigInteger operator;
+	
+	@TableField(value= "creator")
+	private BigInteger creator;
 	
 	@TableField(exist=false)
-	private ProfitConfigCountry nl = new ProfitConfigCountry();
+	private String operatorName ;
 	
 	@TableField(exist=false)
-	private ProfitConfigCountry jp = new ProfitConfigCountry();
-
+	private List<ProfitConfigCountry> countryList ;
 	@TableField(exist=false)
-	private ProfitConfigCountry ca = new ProfitConfigCountry();
+	private Map<String,ProfitConfigCountry> countryMap ;
 	
-	@TableField(exist=false)
-	private ProfitConfigCountry au = new ProfitConfigCountry();
+	public void setCountryList(List<ProfitConfigCountry> countrys) {
+		countryList=countrys;
+		countryMap=new HashMap<String,ProfitConfigCountry>();
+		for(ProfitConfigCountry item:countryList) {
+			countryMap.put(item.getCountry().toUpperCase(), item);
+		}
+	}
 	
-	@TableField(exist=false)
-	private ProfitConfigCountry in = new ProfitConfigCountry();
-	
-	@TableField(exist=false)
-	private ProfitConfigCountry mx = new ProfitConfigCountry();
-	
-	@TableField(exist=false)
-	private ProfitConfigCountry ae = new ProfitConfigCountry();
-	
-	@TableField(exist=false)
-	private ProfitConfigCountry sa = new ProfitConfigCountry();
-
-	@TableField(exist=false)
-	private ProfitConfigCountry pl = new ProfitConfigCountry();
-	
-	@TableField(exist=false)
-	private ProfitConfigCountry se = new ProfitConfigCountry();
- 
 	public ProfitConfigCountry getProfitConfigCountry(String country) {
-		if ("US".contains(country)) {
-			return us;
+		if(country==null) {
+			return null;
 		}
-		if ("UK".contains(country)) {
-			return uk;
+		String mycountry=country.toUpperCase().trim();
+		if(countryMap==null) {
+			if(countryList!=null) {
+				countryMap=new HashMap<String,ProfitConfigCountry>();
+				for(ProfitConfigCountry item:countryList) {
+					countryMap.put(item.getCountry().toUpperCase(), item);
+				}
+				return countryMap.get(mycountry);
+			}else {
+				return null;
+			}
+		}else {
+			return countryMap.get(mycountry);
 		}
-		if ("DE".contains(country)) {
-			return de;
-		}
-		if ("FR".equalsIgnoreCase(country)) {
-			return fr;
-		}
-		if ("IT".equalsIgnoreCase(country)) {
-			return it;
-		}
-		if ("ES".equalsIgnoreCase(country)) {
-			return es;
-		}
-		if ("NL".equalsIgnoreCase(country)) {
-			return nl;
-		}
-		if ("JP".contains(country)) {
-			return jp;
-		}
-		if ("CA".contains(country)) {
-			return ca;
-		}
-		if ("AU".contains(country)) {
-			return au;
-		}
-		if ("IN".contains(country)) {
-			return in;
-		}
-		if ("MX".contains(country)) {
-			return mx;
-		}
-		if ("AE".contains(country)) {
-			return ae;
-		}
-		if ("SA".contains(country)) {
-			return sa;
-		}
-		if ("PL".contains(country)) {
-			return pl;
-		}
-		if ("SE".contains(country)) {
-			return se;
-		}
-		return null;
+		 
 	}
 	
 	public static long getSerialversionuid() {

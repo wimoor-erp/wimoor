@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiModelProperty;
  * Detailed information about an Amazon market where a seller can list items for sale and customers can view and purchase items.
  */
 @ApiModel(description = "Detailed information about an Amazon market where a seller can list items for sale and customers can view and purchase items.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T19:59:39.171+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:43:40.699+08:00")
 public class Marketplace {
   @SerializedName("id")
   private String id = null;

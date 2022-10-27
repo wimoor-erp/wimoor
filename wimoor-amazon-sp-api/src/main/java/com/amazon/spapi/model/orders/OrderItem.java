@@ -15,11 +15,6 @@ package com.amazon.spapi.model.orders;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.orders.Money;
-import com.amazon.spapi.model.orders.PointsGrantedDetail;
-import com.amazon.spapi.model.orders.ProductInfoDetail;
-import com.amazon.spapi.model.orders.PromotionIdList;
-import com.amazon.spapi.model.orders.TaxCollection;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -27,13 +22,20 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.orders.BuyerRequestedCancel;
+import com.amazon.spapi.model.orders.ItemBuyerInfo;
+import com.amazon.spapi.model.orders.Money;
+import com.amazon.spapi.model.orders.PointsGrantedDetail;
+import com.amazon.spapi.model.orders.ProductInfoDetail;
+import com.amazon.spapi.model.orders.PromotionIdList;
+import com.amazon.spapi.model.orders.TaxCollection;
 import java.io.IOException;
 
 /**
  * A single order item.
  */
 @ApiModel(description = "A single order item.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:03:19.199+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:56:53.532+08:00")
 public class OrderItem {
   @SerializedName("ASIN")
   private String ASIN = null;
@@ -125,6 +127,9 @@ public class OrderItem {
   @SerializedName("IossNumber")
   private String iossNumber = null;
 
+  @SerializedName("StoreChainStoreId")
+  private String storeChainStoreId = null;
+
   /**
    * The category of deemed reseller. This applies to selling partners that are not based in the EU and is used to help them meet the VAT Deemed Reseller tax laws in the EU and UK.
    */
@@ -174,6 +179,12 @@ public class OrderItem {
 
   @SerializedName("DeemedResellerCategory")
   private DeemedResellerCategoryEnum deemedResellerCategory = null;
+
+  @SerializedName("BuyerInfo")
+  private ItemBuyerInfo buyerInfo = null;
+
+  @SerializedName("BuyerRequestedCancel")
+  private BuyerRequestedCancel buyerRequestedCancel = null;
 
   public OrderItem ASIN(String ASIN) {
     this.ASIN = ASIN;
@@ -703,16 +714,34 @@ public class OrderItem {
   }
 
    /**
-   * The IOSS number of the seller. Sellers selling in the EU will be assigned a unique IOSS number that must be listed on all packages sent to the EU.
+   * The IOSS number for the marketplace. Sellers shipping to the European Union (EU) from outside of the EU must provide this IOSS number to their carrier when Amazon has collected the VAT on the sale.
    * @return iossNumber
   **/
-  @ApiModelProperty(value = "The IOSS number of the seller. Sellers selling in the EU will be assigned a unique IOSS number that must be listed on all packages sent to the EU.")
+  @ApiModelProperty(value = "The IOSS number for the marketplace. Sellers shipping to the European Union (EU) from outside of the EU must provide this IOSS number to their carrier when Amazon has collected the VAT on the sale.")
   public String getIossNumber() {
     return iossNumber;
   }
 
   public void setIossNumber(String iossNumber) {
     this.iossNumber = iossNumber;
+  }
+
+  public OrderItem storeChainStoreId(String storeChainStoreId) {
+    this.storeChainStoreId = storeChainStoreId;
+    return this;
+  }
+
+   /**
+   * The store chain store identifier. Linked to a specific store in a store chain.
+   * @return storeChainStoreId
+  **/
+  @ApiModelProperty(value = "The store chain store identifier. Linked to a specific store in a store chain.")
+  public String getStoreChainStoreId() {
+    return storeChainStoreId;
+  }
+
+  public void setStoreChainStoreId(String storeChainStoreId) {
+    this.storeChainStoreId = storeChainStoreId;
   }
 
   public OrderItem deemedResellerCategory(DeemedResellerCategoryEnum deemedResellerCategory) {
@@ -731,6 +760,42 @@ public class OrderItem {
 
   public void setDeemedResellerCategory(DeemedResellerCategoryEnum deemedResellerCategory) {
     this.deemedResellerCategory = deemedResellerCategory;
+  }
+
+  public OrderItem buyerInfo(ItemBuyerInfo buyerInfo) {
+    this.buyerInfo = buyerInfo;
+    return this;
+  }
+
+   /**
+   * Get buyerInfo
+   * @return buyerInfo
+  **/
+  @ApiModelProperty(value = "")
+  public ItemBuyerInfo getBuyerInfo() {
+    return buyerInfo;
+  }
+
+  public void setBuyerInfo(ItemBuyerInfo buyerInfo) {
+    this.buyerInfo = buyerInfo;
+  }
+
+  public OrderItem buyerRequestedCancel(BuyerRequestedCancel buyerRequestedCancel) {
+    this.buyerRequestedCancel = buyerRequestedCancel;
+    return this;
+  }
+
+   /**
+   * Information about whether or not a buyer requested cancellation.
+   * @return buyerRequestedCancel
+  **/
+  @ApiModelProperty(value = "Information about whether or not a buyer requested cancellation.")
+  public BuyerRequestedCancel getBuyerRequestedCancel() {
+    return buyerRequestedCancel;
+  }
+
+  public void setBuyerRequestedCancel(BuyerRequestedCancel buyerRequestedCancel) {
+    this.buyerRequestedCancel = buyerRequestedCancel;
   }
 
 
@@ -773,12 +838,15 @@ public class OrderItem {
         Objects.equals(this.serialNumberRequired, orderItem.serialNumberRequired) &&
         Objects.equals(this.isTransparency, orderItem.isTransparency) &&
         Objects.equals(this.iossNumber, orderItem.iossNumber) &&
-        Objects.equals(this.deemedResellerCategory, orderItem.deemedResellerCategory);
+        Objects.equals(this.storeChainStoreId, orderItem.storeChainStoreId) &&
+        Objects.equals(this.deemedResellerCategory, orderItem.deemedResellerCategory) &&
+        Objects.equals(this.buyerInfo, orderItem.buyerInfo) &&
+        Objects.equals(this.buyerRequestedCancel, orderItem.buyerRequestedCancel);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(ASIN, sellerSKU, orderItemId, title, quantityOrdered, quantityShipped, productInfo, pointsGranted, itemPrice, shippingPrice, itemTax, shippingTax, shippingDiscount, shippingDiscountTax, promotionDiscount, promotionDiscountTax, promotionIds, coDFee, coDFeeDiscount, isGift, conditionNote, conditionId, conditionSubtypeId, scheduledDeliveryStartDate, scheduledDeliveryEndDate, priceDesignation, taxCollection, serialNumberRequired, isTransparency, iossNumber, deemedResellerCategory);
+    return Objects.hash(ASIN, sellerSKU, orderItemId, title, quantityOrdered, quantityShipped, productInfo, pointsGranted, itemPrice, shippingPrice, itemTax, shippingTax, shippingDiscount, shippingDiscountTax, promotionDiscount, promotionDiscountTax, promotionIds, coDFee, coDFeeDiscount, isGift, conditionNote, conditionId, conditionSubtypeId, scheduledDeliveryStartDate, scheduledDeliveryEndDate, priceDesignation, taxCollection, serialNumberRequired, isTransparency, iossNumber, storeChainStoreId, deemedResellerCategory, buyerInfo, buyerRequestedCancel);
   }
 
 
@@ -817,7 +885,10 @@ public class OrderItem {
     sb.append("    serialNumberRequired: ").append(toIndentedString(serialNumberRequired)).append("\n");
     sb.append("    isTransparency: ").append(toIndentedString(isTransparency)).append("\n");
     sb.append("    iossNumber: ").append(toIndentedString(iossNumber)).append("\n");
+    sb.append("    storeChainStoreId: ").append(toIndentedString(storeChainStoreId)).append("\n");
     sb.append("    deemedResellerCategory: ").append(toIndentedString(deemedResellerCategory)).append("\n");
+    sb.append("    buyerInfo: ").append(toIndentedString(buyerInfo)).append("\n");
+    sb.append("    buyerRequestedCancel: ").append(toIndentedString(buyerRequestedCancel)).append("\n");
     sb.append("}");
     return sb.toString();
   }

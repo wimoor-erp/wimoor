@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.erp.inventory.mapper.ChangeWhFormEntryMapper;
 import com.wimoor.erp.inventory.pojo.entity.ChangeWhFormEntry;
 import com.wimoor.erp.inventory.service.IChangeWhFormEntryService;
-import com.wimoor.erp.util.FileUpload;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Service("changeWhFormEntryService")
 @RequiredArgsConstructor
 public class ChangeWhFormEntryServiceImpl extends  ServiceImpl<ChangeWhFormEntryMapper,ChangeWhFormEntry> implements IChangeWhFormEntryService {
- 
+	final FileUpload fileUpload;
 	public void deleteByFormid(String formid) {
 		QueryWrapper<ChangeWhFormEntry> queryWrapper=new QueryWrapper<ChangeWhFormEntry>();
 		queryWrapper.eq("formid", formid);
@@ -33,7 +33,7 @@ public class ChangeWhFormEntryServiceImpl extends  ServiceImpl<ChangeWhFormEntry
 				 String image=null; 
 				Map<String, Object> map = list.get(i);
 				if(map.get("image")!=null)image=map.get("image").toString();
-				if(map.get("image")!=null)list.get(i).put("image",FileUpload.getPictureImage(image));
+				if(map.get("image")!=null)list.get(i).put("image",fileUpload.getPictureImage(image));
 				else list.get(i).put("image","images/systempicture/noimage40.png");
 			}
 		}

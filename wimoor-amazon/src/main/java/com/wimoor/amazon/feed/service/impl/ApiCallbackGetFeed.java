@@ -34,13 +34,12 @@ public class ApiCallbackGetFeed implements ApiCallback<Feed>{
 	public void onSuccess(Feed result, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
 		Feed feed = result;
-		feed.getCreatedTime();
 		Submitfeed fd=new Submitfeed();
 		fd.setOpttime(new Date());
 		fd.setFeedSubmissionid(feed.getFeedId());
 		fd.setFeedProcessingStatus(feed.getProcessingStatus().getValue());
-		fd.setCompletedProcessiongDate(AmzDateUtils.getDate(feed.getProcessingEndTime()));
-		fd.setSubmittedDate(AmzDateUtils.getDate(feed.getProcessingStartTime()));
+		fd.setCompletedProcessiongDate(AmzDateUtils.getUTCToDate(feed.getProcessingEndTime()));
+		fd.setSubmittedDate(AmzDateUtils.getUTCToDate(feed.getProcessingStartTime()));
 		fd.setFeedType(feed.getFeedType());
 		fd.setMarketplaceid(queue.getMarketplaceid());
 		fd.setShopid(queue.getShopid());

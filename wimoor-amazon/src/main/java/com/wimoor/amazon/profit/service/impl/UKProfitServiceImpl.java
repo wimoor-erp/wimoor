@@ -11,6 +11,7 @@ import com.wimoor.amazon.profit.pojo.entity.FBAFormat;
 import com.wimoor.amazon.profit.pojo.entity.ProductTier;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
+import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
  
 @Service("UKProfitService")
@@ -113,7 +114,12 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 		FBAFormat fbaFormat = fbaFormatService.findEUfbaFormat(fenpeiType, productTierId, country, weight);
 		if (fbaFormat != null) {
 			String format = fbaFormat.getFbaFormat();
-			FBA = new BigDecimal(format);
+			if (format.contains("?")) {// 如果有逻辑判断
+				format = (String) AviatorEvaluator.exec(format, outboundWeight);
+			}
+			if(GeneralUtil.isDouble(format)) {
+				FBA = new BigDecimal(format);
+			}
 			if("PAN_EU".equals(fenpeiType) && productTierId.contains("oversize")){//Pan-European Surcharge Oversize
 				if(country.equals("UK")){
 					FBA = FBA.add(new BigDecimal("0.89"));

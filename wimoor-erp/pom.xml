@@ -76,26 +76,6 @@
             <artifactId>mysql-connector-java</artifactId>  
             <version>8.0.21</version> 
         </dependency>  
- 
-        <!--mybatis-plus-->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.3.2</version>
-        </dependency>
- 
-		<!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus -->
-		<dependency>
-		    <groupId>com.baomidou</groupId>
-		    <artifactId>mybatis-plus</artifactId>
-		    <version>3.4.3.1</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-generator</artifactId>
-			<version>3.3.2</version>
-		</dependency>
 		
         <!-- velocity 模板引擎, Mybatis Plus 代码生成器需要 -->
         <dependency>
@@ -227,6 +207,32 @@
 		 	</artifactId>
 		 	<optional>true</optional>
 		 </dependency>
+	   <!--seata-->
+		<dependency>
+		    <groupId>com.alibaba.cloud</groupId>
+		    <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+		    <exclusions>
+		        <!-- 排除依赖 指定版本和服务器端一致 -->
+		        <exclusion>
+		            <groupId>io.seata</groupId>
+		            <artifactId>seata-all</artifactId>
+		        </exclusion>
+		        <exclusion>
+		            <groupId>io.seata</groupId>
+		            <artifactId>seata-spring-boot-starter</artifactId>
+		        </exclusion>
+		    </exclusions>
+		</dependency>
+		
+		<dependency>
+		    <groupId>io.seata</groupId>
+		    <artifactId>seata-all</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>io.seata</groupId>
+		    <artifactId>seata-spring-boot-starter</artifactId>
+		</dependency>
 	</dependencies>
 
     <build>

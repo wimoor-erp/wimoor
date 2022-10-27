@@ -47,5 +47,6 @@ public class UserInfo implements Serializable {
     String companyid;
  
     String session;
+    String roles;
  
 }

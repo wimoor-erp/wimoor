@@ -21,5 +21,8 @@ public class ReportType {
 	public static final String PerformanceReport ="GET_V2_SELLER_PERFORMANCE_REPORT";
 	public static final String FulfilledShipmentsReport ="GET_AMAZON_FULFILLED_SHIPMENTS_DATA_GENERAL";
 	public static final String FbaShipmentDetailRemoveReport="GET_FBA_FULFILLMENT_REMOVAL_ORDER_DETAIL_DATA";
-	
+	public static final String SalesAndTrafficBusinessReport="GET_SALES_AND_TRAFFIC_REPORT";
+	public static final String OrdersInvoicingReport="GET_FLAT_FILE_ORDER_REPORT_DATA_INVOICING";
+	public static final String InventoryByCountry="GET_AFN_INVENTORY_DATA_BY_COUNTRY";
+	public static final String InventoryAge="GET_FBA_INVENTORY_AGED_DATA";
 }

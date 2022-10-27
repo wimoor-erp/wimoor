@@ -1,23 +1,31 @@
 package com.wimoor.admin.controller;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wimoor.admin.pojo.entity.SysRole;
+import com.wimoor.admin.pojo.dto.UserDTO;
+import com.wimoor.admin.pojo.dto.UserInsertDTO;
 import com.wimoor.admin.pojo.entity.SysUser;
 import com.wimoor.admin.pojo.entity.SysUserRole;
 import com.wimoor.admin.pojo.vo.UserVO;
@@ -25,12 +33,14 @@ import com.wimoor.admin.service.ISysUserRoleService;
 import com.wimoor.admin.service.ISysUserService;
 import com.wimoor.api.admin.pojo.dto.SysUserRoleDTO;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.mybatisplus.MysqlGenerator;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.result.ResultCode;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -47,7 +57,51 @@ public class UserController {
 	
 	 private final ISysUserService iSysUserService;
 	 private final ISysUserRoleService iSysUserRoleService;
-	 
+    @ApiOperation(value = "删除用户")
+    @ApiImplicitParam(name = "ids", value = "id集合", required = true, paramType = "query", dataType = "String")
+    @DeleteMapping("/{ids}")
+    public Result<String> delete(@PathVariable String ids) {
+        List<SysUser> list = iSysUserService.listByIds(Arrays.asList(ids.split(",")).stream().collect(Collectors.toList()));
+        for(SysUser item:list) {
+        	item.setLogicDelete(true);
+        	item.setPasswordkey(item.getAccount());
+        	item.setAccount(item.getId());
+        	iSysUserService.updateById(item);
+        }
+        return Result.judge(true);
+    }
+    
+    @ApiOperation(value = "停用用户")
+    @ApiImplicitParam(name = "ids", value = "id集合", required = true, paramType = "query", dataType = "String")
+    @PostMapping("/diable/{ids}")
+    public Result<String> disable(@PathVariable String ids) {
+        List<SysUser> list = iSysUserService.listByIds(Arrays.asList(ids.split(",")).stream().collect(Collectors.toList()));
+        for(SysUser item:list) {
+        	item.setDisable(true);
+        	iSysUserService.updateById(item);
+        }
+        return Result.judge(true);
+    }
+	  
+    @ApiOperation(value = "启用用户")
+    @ApiImplicitParam(name = "ids", value = "id集合", required = true, paramType = "query", dataType = "String")
+    @PostMapping("/enable/{ids}")
+    public Result<String> enable(@PathVariable String ids) {
+    	Calendar c=Calendar.getInstance();
+    	c.add(Calendar.YEAR, 10);
+        List<SysUser> list = iSysUserService.listByIds(Arrays.asList(ids.split(",")).stream().collect(Collectors.toList()));
+        for(SysUser item:list) {
+        	item.setDisable(false);
+           	item.setLosingeffect(c.getTime());
+        	iSysUserService.updateById(item);
+        }
+        return Result.judge(true);
+    }
+	 @GetMapping("/createpojo")
+	 public Result<String> createPojoAction(String table,String pkg) {
+	    	MysqlGenerator.autoGenerator(table, pkg);
+	        return Result.success("true");
+	    }
 	    /**
 	     * 提供用于用户登录认证信息
 	     */
@@ -77,10 +131,26 @@ public class UserController {
 	            @ApiImplicitParam(name = "limit", value = "每页数量", paramType = "query", dataType = "Long"),
 	            @ApiImplicitParam(name = "name", value = "用户名", paramType = "query", dataType = "String"),
 	    })
-	    @GetMapping("/sysrole/list")
-	    public Result<List<UserVO>> list(Integer page, Integer limit, String name) {
-	        IPage<UserVO> result = iSysUserService.listQuery(new Page<>(page,limit),name);
-	        return Result.success(result.getRecords(), result.getTotal());
+	    
+	    @PostMapping("/list")
+	    public Result<IPage<UserVO>> list(@RequestBody UserDTO dto) {
+	    	UserInfo userInfo = UserInfoContext.get();
+	    	dto.setShopid(userInfo.getCompanyid());
+	    	if(StrUtil.isEmpty(dto.getName())) {
+	    		dto.setName(null);
+	    	}else {
+	    		dto.setName("%"+dto.getName().trim()+"%");
+	    	}
+	    	if(StrUtil.isEmpty(dto.getRoleid())) {
+	    		dto.setRoleid(null); 
+	    	}
+	    	if(StrUtil.isEmpty(dto.getAccount())) {
+	    		dto.setAccount(null); 
+	    	}else {
+	    		dto.setAccount("%"+dto.getAccount().trim()+"%"); 
+	    	}
+	        IPage<UserVO> result = iSysUserService.listQuery(dto.getPage(),dto);
+	        return Result.success(result);
 	    }
 	    /**
 	     * 提供用于用户登录认证信息
@@ -111,7 +181,12 @@ public class UserController {
         })
 	    @GetMapping("/sysrole/verifyAccount")
 	    public Result<UserInfo> verifyAccountAction(String account,String password) {
-	    	SysUser user = iSysUserService.verifyAccount(account,password);
+	    	SysUser user = null;
+	    	try {
+	    		user = iSysUserService.verifyAccount(account,password);
+	    	}catch(Exception e) {
+	    		return Result.failed(e.getMessage());
+	    	}
 	    	if(user!=null) {
 	    		user.setPassword("***");
 		    	user.setSalt("***");
@@ -257,4 +332,25 @@ public class UserController {
 		 
 			 return Result.success(map);
 		}
+	    
+	    @ApiOperation(value = "新增用户")
+	    @PostMapping
+		@Transactional
+	    public Result add(@RequestBody UserInsertDTO userDTO) {
+	    	UserInfo operatorUserInfo = UserInfoContext.get();
+	        boolean result = iSysUserService.saveUser(userDTO,operatorUserInfo);
+	        return Result.judge(result);
+	    }
+	    
+	    @ApiOperation(value = "修改用户")
+	    @ApiImplicitParam(name = "id", value = "用户ID", required = true, paramType = "path", dataType = "Long")
+	    @PutMapping(value = "/{id}")
+		@Transactional
+	    public Result update(
+	            @PathVariable BigInteger id,
+	            @RequestBody UserInsertDTO userDTO) {
+	       	UserInfo operatorUserInfo = UserInfoContext.get();
+	        boolean result = iSysUserService.updateUser(userDTO,operatorUserInfo);
+	        return Result.judge(result);
+	    }  
 }

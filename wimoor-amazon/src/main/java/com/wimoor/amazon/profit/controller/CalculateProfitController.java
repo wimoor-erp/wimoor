@@ -11,26 +11,34 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.omg.CORBA.UserException;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.wimoor.amazon.common.pojo.entity.ExchangeRate;
 import com.wimoor.amazon.common.service.IExchangeRateService;
 import com.wimoor.amazon.product.service.IProductInfoService;
+import com.wimoor.amazon.profit.pojo.dto.ProfitQuery;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.vo.CostDetail;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.profit.service.impl.ProfitServiceImpl;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
 import cn.hutool.core.util.StrUtil;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 
-@Controller
+@Api(tags = "利润计算")
+@RestController
 @RequestMapping("/api/v1/profit/detail")
 public class CalculateProfitController {
 	@Resource
@@ -42,60 +50,37 @@ public class CalculateProfitController {
 	@Resource
 	IProfitCfgService profitCfgService;
 	
-	@ResponseBody
-	@RequestMapping("/showProfitDetial")
-	public Object showProfitDetial(HttpServletRequest request) throws UserException {
-		String pid = request.getParameter("pid");
-		if(StrUtil.isEmpty(request.getParameter("price")) || StrUtil.isEmpty(pid)) {
-			return null;
-		}
-		UserInfo user= UserInfoContext.get();
-		String shopid=user.getCompanyid();
-		Map<String, Object> map = new HashMap<String, Object>();
-		String price = request.getParameter("price").trim();
-		price = price.substring(1, price.length()).trim();
-		BigDecimal myprice = GeneralUtil.getBigDecimal(price);
-		map.put("pid", pid);
-		map.put("myprice", myprice);
-		if(request.getParameter("productpricetype")!=null) {
-			map.put("productpricetype", request.getParameter("productpricetype"));
-		}
-		List<ProfitConfig> profitCfgList =  profitCfgService.findProfitCfgName(shopid);
-		//productInfoService.showProfitDetial(map);
-		map.put("profitCfgList", profitCfgList);
-		return map;
-	}
 	
-	@ResponseBody
-	@RequestMapping("/showDetialDailog")
-	public String showDetialDailog(HttpServletRequest request) throws UserException {
+ 
+	@GetMapping("/showDetialDailog")
+	public String showDetialDailog() {
 		return "success";
 	}
 
-	@ResponseBody
-	@RequestMapping("/showSLDetialDailog")
-	public String showSLDetialDailog(HttpServletRequest request) throws UserException {
-		return "success";
+	@GetMapping("/showSLDetialDailog")
+	public Result<?> showSLDetialDailog(){
+		return Result.success();
 	}
 	
-	@ResponseBody
-	@RequestMapping("/showProfit")
-	public Map<String, Object> showProfit(HttpServletRequest request) {
-		Map<String, Object> resultMap = new HashMap<String, Object>();
-		String typeId_ = request.getParameter("typeId");// 产品类型id
-		int typeId = Integer.parseInt(typeId_);
-		String referralrate_ = request.getParameter("referralrate");//印度佣金比率
-		String cfgId=request.getParameter("cfgid");
+	 
+	@ApiOperation(value = "获取利润计算详情")
+	@PostMapping("/showProfit")
+	public Result<Map<String, CostDetail>> showProfit(@RequestBody ProfitQuery query) {
+ 
+		int typeId = query.getTypeId();
+		String cfgId=query.getProfitCfgId();
+		String referralrate_ = query.getReferralrate();//印度佣金比率
 		BigDecimal referralrate = null;
 		if (referralrate_ != null && !"".equals(referralrate_.trim()) && !"undefined".equals(referralrate_)) {
 			referralrate = new BigDecimal(referralrate_);
 		}
-		String isSmlAndLightStr = request.getParameter("isSmlAndLight");// 是否轻小
+	 
+		String isSmlAndLightStr = query.getIsSmlAndLightStr();//是否轻小
 		boolean isSmlAndLight = false;
 		if ("true".equals(isSmlAndLightStr)) {
-			isSmlAndLight = true;
+			isSmlAndLight=true;
 		}
-
+	   
 		List<String> countryList = new ArrayList<String>();
 		if (isSmlAndLight) {
 			countryList = Arrays.asList(ProfitServiceImpl.smlAndLightCountry);
@@ -103,37 +88,46 @@ public class CalculateProfitController {
 			countryList = this.profitService.findCountryList();// 得到需要计算的国家列表
 		}
 		ProfitConfig profitcfg = profitCfgService.findConfigAction(cfgId);
+		Map<String, CostDetail> cuntryDetail = query.getCountry();
 		for (int i = 0; i < countryList.size(); i++) {
-			String price_ = request.getParameter("price_" + countryList.get(i));// 从页面获取用户输入售价
-			String costDetail_ = request.getParameter("costDetail_" + countryList.get(i));
-			if (costDetail_ != null) {
-				Map<String, String> costDetailMap = this.profitService.jsonToMap(costDetail_);
-				CostDetail costDetail = new CostDetail(costDetailMap);
-				if (StrUtil.isNotEmpty(price_)) {
-					costDetail.setSellingPrice(new BigDecimal(price_));
+			     CostDetail costDetail=cuntryDetail.get(countryList.get(i));
+			     if(costDetail!=null) {
+				    costDetail = this.profitService.getCostDetail(costDetail, typeId, referralrate, isSmlAndLight,profitcfg);
+				    cuntryDetail.put(countryList.get(i), costDetail);
+				} else {
+					cuntryDetail.put(countryList.get(i), null);
 				}
-				costDetail = this.profitService.getCostDetail(costDetail, typeId, referralrate, isSmlAndLight,profitcfg);
-				resultMap.put("costDetail_" + countryList.get(i), costDetail);
-			} else {
-				resultMap.put("costDetail_" + countryList.get(i), null);
-			}
 		}
-
-		return resultMap;
+		return Result.success(cuntryDetail);
 	}
 	
-	@ResponseBody
-	@RequestMapping("/getCurrencyRate")
-	public List<ExchangeRate> getCurrencyRateAction(HttpServletRequest request) throws UserException {
-		return exchangeRateService.getExchangeRateLimit();
+	@ApiOperation(value = "获取汇率")
+	@GetMapping("/getCurrencyRate")
+	public  Result<List<ExchangeRate>> getCurrencyRateAction(HttpServletRequest request) throws UserException {
+		return Result.success( exchangeRateService.getExchangeRateLimit());
 	}
 	
-	@ResponseBody
-	@RequestMapping("/updateExchangeRate")
-	public String updateExchangeRateAction(HttpServletRequest request) throws UserException {
+	@ApiOperation(value = "更新汇率")
+	@GetMapping("/updateExchangeRate")
+	public Result<String> updateExchangeRateAction() {
 		exchangeRateService.updateExchangeRate();
-		return "success";
+		return Result.success("success");
 	}
 
-
+ 
+	@GetMapping("/showProfitDetial")
+	public Result<Map<String, Object>> showProfitDetial(String pid,String price,String productpricetype){
+		UserInfo user= UserInfoContext.get();
+		Map<String, Object> map = new HashMap<String, Object>();
+		BigDecimal myprice = GeneralUtil.getBigDecimal(price);
+		map.put("pid", pid);
+		map.put("myprice", myprice);
+		if(StrUtil.isNotBlank(productpricetype)) {
+			map.put("productpricetype", productpricetype);
+		}
+		List<ProfitConfig> profitCfgList =  profitCfgService.findProfitCfgName(user.getCompanyid());
+		productInfoService.showProfitDetial(map);
+		map.put("profitCfgList", profitCfgList);
+		return Result.success(map);
+	}
 }

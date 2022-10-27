@@ -15,8 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.MoneyType;
-import com.amazon.spapi.model.productpricing.PriceType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -24,18 +22,33 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.MoneyType;
+import com.amazon.spapi.model.productpricing.OfferCustomerType;
+import com.amazon.spapi.model.productpricing.PriceType;
+import com.amazon.spapi.model.productpricing.QuantityDiscountPriceType;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OfferType
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class OfferType {
+  @SerializedName("offerType")
+  private OfferCustomerType offerType = null;
+
   @SerializedName("BuyingPrice")
   private PriceType buyingPrice = null;
 
   @SerializedName("RegularPrice")
   private MoneyType regularPrice = null;
+
+  @SerializedName("businessPrice")
+  private MoneyType businessPrice = null;
+
+  @SerializedName("quantityDiscountPrices")
+  private List<QuantityDiscountPriceType> quantityDiscountPrices = null;
 
   @SerializedName("FulfillmentChannel")
   private String fulfillmentChannel = null;
@@ -48,6 +61,24 @@ public class OfferType {
 
   @SerializedName("SellerSKU")
   private String sellerSKU = null;
+
+  public OfferType offerType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+    return this;
+  }
+
+   /**
+   * Indicates the type of customer that the offer is valid for.
+   * @return offerType
+  **/
+  @ApiModelProperty(value = "Indicates the type of customer that the offer is valid for.")
+  public OfferCustomerType getOfferType() {
+    return offerType;
+  }
+
+  public void setOfferType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+  }
 
   public OfferType buyingPrice(PriceType buyingPrice) {
     this.buyingPrice = buyingPrice;
@@ -83,6 +114,50 @@ public class OfferType {
 
   public void setRegularPrice(MoneyType regularPrice) {
     this.regularPrice = regularPrice;
+  }
+
+  public OfferType businessPrice(MoneyType businessPrice) {
+    this.businessPrice = businessPrice;
+    return this;
+  }
+
+   /**
+   * The current listing price for Business buyers.
+   * @return businessPrice
+  **/
+  @ApiModelProperty(value = "The current listing price for Business buyers.")
+  public MoneyType getBusinessPrice() {
+    return businessPrice;
+  }
+
+  public void setBusinessPrice(MoneyType businessPrice) {
+    this.businessPrice = businessPrice;
+  }
+
+  public OfferType quantityDiscountPrices(List<QuantityDiscountPriceType> quantityDiscountPrices) {
+    this.quantityDiscountPrices = quantityDiscountPrices;
+    return this;
+  }
+
+  public OfferType addQuantityDiscountPricesItem(QuantityDiscountPriceType quantityDiscountPricesItem) {
+    if (this.quantityDiscountPrices == null) {
+      this.quantityDiscountPrices = new ArrayList<QuantityDiscountPriceType>();
+    }
+    this.quantityDiscountPrices.add(quantityDiscountPricesItem);
+    return this;
+  }
+
+   /**
+   * Get quantityDiscountPrices
+   * @return quantityDiscountPrices
+  **/
+  @ApiModelProperty(value = "")
+  public List<QuantityDiscountPriceType> getQuantityDiscountPrices() {
+    return quantityDiscountPrices;
+  }
+
+  public void setQuantityDiscountPrices(List<QuantityDiscountPriceType> quantityDiscountPrices) {
+    this.quantityDiscountPrices = quantityDiscountPrices;
   }
 
   public OfferType fulfillmentChannel(String fulfillmentChannel) {
@@ -167,8 +242,11 @@ public class OfferType {
       return false;
     }
     OfferType offerType = (OfferType) o;
-    return Objects.equals(this.buyingPrice, offerType.buyingPrice) &&
+    return Objects.equals(this.offerType, offerType.offerType) &&
+        Objects.equals(this.buyingPrice, offerType.buyingPrice) &&
         Objects.equals(this.regularPrice, offerType.regularPrice) &&
+        Objects.equals(this.businessPrice, offerType.businessPrice) &&
+        Objects.equals(this.quantityDiscountPrices, offerType.quantityDiscountPrices) &&
         Objects.equals(this.fulfillmentChannel, offerType.fulfillmentChannel) &&
         Objects.equals(this.itemCondition, offerType.itemCondition) &&
         Objects.equals(this.itemSubCondition, offerType.itemSubCondition) &&
@@ -177,7 +255,7 @@ public class OfferType {
 
   @Override
   public int hashCode() {
-    return Objects.hash(buyingPrice, regularPrice, fulfillmentChannel, itemCondition, itemSubCondition, sellerSKU);
+    return Objects.hash(offerType, buyingPrice, regularPrice, businessPrice, quantityDiscountPrices, fulfillmentChannel, itemCondition, itemSubCondition, sellerSKU);
   }
 
 
@@ -186,8 +264,11 @@ public class OfferType {
     StringBuilder sb = new StringBuilder();
     sb.append("class OfferType {\n");
     
+    sb.append("    offerType: ").append(toIndentedString(offerType)).append("\n");
     sb.append("    buyingPrice: ").append(toIndentedString(buyingPrice)).append("\n");
     sb.append("    regularPrice: ").append(toIndentedString(regularPrice)).append("\n");
+    sb.append("    businessPrice: ").append(toIndentedString(businessPrice)).append("\n");
+    sb.append("    quantityDiscountPrices: ").append(toIndentedString(quantityDiscountPrices)).append("\n");
     sb.append("    fulfillmentChannel: ").append(toIndentedString(fulfillmentChannel)).append("\n");
     sb.append("    itemCondition: ").append(toIndentedString(itemCondition)).append("\n");
     sb.append("    itemSubCondition: ").append(toIndentedString(itemSubCondition)).append("\n");

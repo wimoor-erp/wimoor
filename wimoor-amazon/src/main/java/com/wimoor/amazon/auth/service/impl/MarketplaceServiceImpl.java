@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.mapper.MarketplaceMapper;
@@ -45,6 +46,7 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 	public List<Marketplace> findAllMarketplace() {
 		QueryWrapper<Marketplace> query = new QueryWrapper<Marketplace>();
 		query.orderByAsc("findex");
+		query.isNotNull("aws_region");
 		return this.list(query);
 	}
 
@@ -176,14 +178,7 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 		}
 	}
 
-	@Cacheable(value = "AWSmarketplaceListCache")
-	public List<Marketplace> findAWSMarketplaceList() {
-		QueryWrapper<Marketplace> query = new QueryWrapper<Marketplace>();
-		 query.isNotNull("devAccountNum");
-		 query.orderByAsc("findex");
-		List<Marketplace> marketlist = this.list(query);
-		return marketlist;
-	}
+ 
 
 	@Cacheable(value = "marketplaceListCache")
 	public List<Marketplace> findMarketplaceByRegion(String region) {
@@ -295,9 +290,7 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 		return this.baseMapper.findByRole(roleid, shopid);
 	}
 
-	public List<Marketplace> findMarketplaceBySku(Map<String, String> param) {
-		return this.baseMapper.findMarketplaceBySku(param);
-	}
+ 
 
 	@Override
 	public List<Marketplace> findByShopid(String companyid) {
@@ -314,5 +307,14 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 		return this.baseMapper.selectById(id);
 	}
  
+	public List<Marketplace> getMarketPointBySkuGroup(String groupid,String sku){
+		return this.baseMapper.getMarketPointBySkuGroup(sku, groupid);
+	}
+
+	@Override
+	public List<Marketplace> getMarketPointByMSku(String shopid, String msku) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.getMarketPointByMSku(msku, shopid);
+	}
      
 }

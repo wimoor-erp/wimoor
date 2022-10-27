@@ -97,7 +97,7 @@
 		from t_amazon_group g
 		left join t_amazon_auth a on a.groupid=g.id
 		left join t_amazonseller_market b on a.sellerid=b.sellerid
-		left join t_marketplace c on b.marketplace_id = c.marketplaceId
+		inner join t_marketplace c on b.marketplace_id = c.marketplaceId
 		left join t_amz_region re on re.code = case when a.region in('JP','AU') then 'FE' else a.region end  
 		where a.shop_id = #{shopid,jdbcType=CHAR}
 			and g.id = #{groupid,jdbcType=CHAR}

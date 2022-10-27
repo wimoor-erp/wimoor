@@ -33,9 +33,7 @@ import com.wimoor.erp.purchase.mapper.PurchasePlanMapper;
 import com.wimoor.erp.ship.mapper.ShipPlanMapper;
 import com.wimoor.erp.ship.pojo.entity.ShipPlan;
 import com.wimoor.erp.warehouse.mapper.StockCycleMapper;
-import com.wimoor.erp.warehouse.mapper.WareHouseFBAMapper;
 import com.wimoor.erp.warehouse.mapper.WarehouseMapper;
-import com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
@@ -64,8 +62,6 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	final ChangeWhFormMapper changeWhFormMapper;
 	 
 	final DispatchFormMapper dispatchFormMapper;
-	 
-	final WareHouseFBAMapper wareHouseFBAMapper;
 
 	
 	public IPage<Map<String, Object>> findByCondition(Page<?> page,String search, String shopid, String ftype ) {
@@ -80,30 +76,6 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	}
  
 
-	// 添加默认FBA仓库
-	public Integer saveFBA(String shopid, String operator)     {
-		if (GeneralUtil.isEmpty(shopid)) {
-			shopid = null;
-		}
-		String sernum="";
-		try {
-			sernum = serialnumService.readSerialNumber(shopid, "FBA");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		int result = this.baseMapper.saveFBA(shopid, operator, sernum);
-		return result;
-	}
-
-	// 删除没有绑定地区的FBA仓库
-	public Integer deleteFBA(String shopid)     {
-		if (GeneralUtil.isEmpty(shopid)) {
-			shopid = null;
-		}
-		int result = this.baseMapper.deleteFBA(shopid);
-		return result;
-	}
 
 	public List<Map<String,Object>> findByType(String ftype, String shopid) {
 		return this.baseMapper.findByType(ftype, shopid);
@@ -113,21 +85,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		return this.baseMapper.selectTypeByName(ftypename);
 	}
 
-	/**
-	 * 获取所有仓库，包含自有仓和FBA仓
-	 */
-	public List<Map<String, Object>> selectAllByShopId(String shopid) {
-		List<Map<String, Object>> list = this.baseMapper.selectAllByShopId(shopid);
-		List<Map<String, Object>> list2 = wareHouseFBAMapper.selectAllByShopId(shopid);
-		if(list != null) {
-			if(list2 != null) {
-				list.addAll(list2);
-			}
-		}else {
-			list = list2;
-		}
-		return list;
-	}
+	
 
 	/**
 	 * 获取所有自有仓，精确到仓位（正品仓，废品仓，测试仓）
@@ -364,13 +322,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		return result;
 	}
 
-	public List<WareHouseFBA> selectFBAAllByShopId(String shopid) {
-		QueryWrapper<WareHouseFBA> queryWrapper = new QueryWrapper<WareHouseFBA>();
-		queryWrapper.eq("shopid", shopid);
-		queryWrapper.orderByDesc("opttime");
-		List<WareHouseFBA> list = wareHouseFBAMapper.selectList(queryWrapper);
-		return list;
-	}
+	
 
 	public Warehouse findAvailableBySelf(String warehouseid) {
 		QueryWrapper<Warehouse> queryWrapper = new QueryWrapper<Warehouse>();
@@ -394,12 +346,6 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		return warehouse;
 	}
 
-	public int refreshFBA(String shopid, String operator)   {
-		//this.deleteFBA(shopid);
-		int result = this.saveFBA(shopid, operator);
-		return result;
-	}
-
 	public LinkedList<Map<String, Object>> selectShipFbaSale(String shopid, String sku, String materialid, String planid, String groupid) {
 		return this.baseMapper.selectShipFbaSale(shopid, sku, materialid, planid,groupid);
 	}
@@ -408,10 +354,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		QueryWrapper<Warehouse> queryWrapper = new QueryWrapper<Warehouse>();
 		queryWrapper.eq("parentid", warehouseid);
 		queryWrapper.eq("disabled", 0);
-		List<String> asclist=new ArrayList<String>();
-		asclist.add("isdefault");
-		asclist.add("ftype");
-		queryWrapper.orderByDesc(asclist);
+		queryWrapper.orderByDesc("isdefault","ftype");
 		queryWrapper.orderByAsc("findex");
 		return list(queryWrapper);
 	}
@@ -466,12 +409,6 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		return this.baseMapper.getParentWarehouse(warehouseid);
 	}
 
-	public List<WareHouseFBA> findFbaMarket(String shopid,String groupid) {
-		return this.baseMapper.findFbaMarket(shopid,groupid);
-	}
-	public List<WareHouseFBA> findFbaWarehouseByShop(String shopid) {
-		return this.baseMapper.findFbaWarehouseByShop(shopid);
-	}
 
 	public void clearDefaultWare(String warehouseid,String ftype) {
 		this.baseMapper.updateWareDefault(warehouseid,ftype);

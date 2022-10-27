@@ -9,6 +9,7 @@ import com.wimoor.admin.mapper.SysDeptMapper;
 import com.wimoor.admin.pojo.entity.SysDept;
 import com.wimoor.admin.pojo.vo.DeptVO;
 import com.wimoor.admin.service.ISysDeptService;
+import com.wimoor.common.SelectVO;
 import com.wimoor.common.TreeSelectVO;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -43,6 +44,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         List<SysDept> deptList = this.list(
                 new LambdaQueryWrapper<SysDept>()
                         .like(StrUtil.isNotBlank(name), SysDept::getName, name)
+                        .eq(SysDept::getStatus, status)
                         .orderByAsc(SysDept::getSort)
         );
         return recursion(deptList);
@@ -197,5 +199,39 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         return treePath;
     }
 
+	@Override
+	public List<SelectVO> listSelect() {
+		// TODO Auto-generated method stub
+		  List<SysDept> deptList = this.list(new LambdaQueryWrapper<SysDept>()
+	                .eq(SysDept::getStatus, GlobalConstants.STATUS_YES)
+	                .orderByAsc(SysDept::getSort)
+	        );
+	        List<SelectVO> deptSelectList = recursionSelectList(SystemConstants.ROOT_DEPT_ID, deptList);
+	        return deptSelectList;
+	}
+ 
+
+	    /**
+	     * 递归生成部门表格层级列表
+	     *
+	     * @param parentId
+	     * @param deptList
+	     * @return
+	     */
+	    public static List<SelectVO> recursionSelectList(String parentId, List<SysDept> deptList) {
+	        List<SelectVO> deptTreeSelectList = new ArrayList<>();
+	        Optional.ofNullable(deptList).orElse(new ArrayList<>())
+	                .stream()
+	                .filter(dept -> dept.getParentId().equals(parentId))
+	                .forEach(dept -> {
+	                	SelectVO treeSelectVO = new SelectVO(dept.getId(), dept.getName());
+	                    List<SelectVO> children = recursionSelectList(dept.getId(), deptList);
+	                    if (CollectionUtil.isNotEmpty(children)) {
+	                        treeSelectVO.setChildren(children);
+	                    }
+	                    deptTreeSelectList.add(treeSelectVO);
+	                });
+	        return deptTreeSelectList;
+	    }
 
 }

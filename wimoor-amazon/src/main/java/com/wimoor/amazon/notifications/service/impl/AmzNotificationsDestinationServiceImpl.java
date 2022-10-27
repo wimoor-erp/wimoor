@@ -3,6 +3,7 @@ package com.wimoor.amazon.notifications.service.impl;
 import com.wimoor.amazon.notifications.pojo.entity.AmzNotifications;
 import com.wimoor.amazon.notifications.pojo.entity.AmzNotificationsDestination;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
 import com.wimoor.amazon.notifications.mapper.AmzNotificationsDestinationMapper;
 import com.wimoor.amazon.notifications.service.IAmzNotificationsDestinationService;
@@ -10,16 +11,21 @@ import com.amazon.spapi.api.NotificationsApi;
 import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.notifications.CreateDestinationRequest;
 import com.amazon.spapi.model.notifications.CreateDestinationResponse;
+import com.amazon.spapi.model.notifications.DeleteDestinationResponse;
 import com.amazon.spapi.model.notifications.Destination;
 import com.amazon.spapi.model.notifications.DestinationList;
 import com.amazon.spapi.model.notifications.DestinationResource;
 import com.amazon.spapi.model.notifications.DestinationResourceSpecification;
 import com.amazon.spapi.model.notifications.GetDestinationsResponse;
 import com.amazon.spapi.model.notifications.SqsResource;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,17 +44,18 @@ public class AmzNotificationsDestinationServiceImpl extends ServiceImpl<AmzNotif
 
 	@Autowired
 	ApiBuildService apiBuildService;
+	@Autowired
+	IAmazonAuthorityService amazonAuthorityService;
 	
     @Value("${aws.sqsStandArn}")
     String sqsStandArn;
     
-	void handlerCreateDestinationResponse(AmazonAuthority amazonAuthority,	CreateDestinationResponse createResponse) {
-		Destination rs = createResponse.getPayload();
+	void handlerCreateDestinationResponse(AmazonAuthority amazonAuthority,		Destination rs ) {
 		AmzNotificationsDestination newobj=new AmzNotificationsDestination();
     	newobj.setDestinationid(rs.getDestinationId());
     	newobj.setName(rs.getName());
     	newobj.setRefreshtime(new Date());
-    	newobj.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
+    	newobj.setAwsregion(amazonAuthority.getAWSRegion());
     	DestinationResource myresource = rs.getResource();
     	if(myresource.getSqs()!=null&&myresource.getSqs().getArn()!=null) {
     		newobj.setResourceSqsArn(myresource.getSqs().getArn());
@@ -62,7 +69,10 @@ public class AmzNotificationsDestinationServiceImpl extends ServiceImpl<AmzNotif
 	}
 	
     void handlerGetDestinationsResponse(AmazonAuthority amazonAuthority,GetDestinationsResponse response){
-    	DestinationList result = response.getPayload();
+    	DestinationList result = null;
+    	if(response!=null) {
+          result=response.getPayload();
+    	}
     	Boolean hasSQS=false;
 		if(result!=null&&result.size()>0) {
 			for(Destination rs:result) {
@@ -106,20 +116,17 @@ public class AmzNotificationsDestinationServiceImpl extends ServiceImpl<AmzNotif
                                 }
 		                }
 			    	}
-			    	if(amazonAuthority.getId()!=null) {
-			    		if(old.getAmazonauthid()==null||!old.getAmazonauthid().toString().equals(amazonAuthority.getId())) {
-			    			old.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
-			    			needupdate=true;
-			    		}
-			    	}
 			    	if(needupdate) {
 			    		this.baseMapper.updateById(old);
 			    	}
+			    }else {
+			    	hasSQS=true;
+					handlerCreateDestinationResponse(amazonAuthority,rs);
 			    }
 			}
 		}
        if(!hasSQS) {
-    	    NotificationsApi api = apiBuildService.getNotificationsApi(amazonAuthority);
+    	    NotificationsApi api = apiBuildService.getNotificationsApiGrantless(amazonAuthority);
 			CreateDestinationRequest body=new CreateDestinationRequest();
 			body.setName(AmzNotifications.sqsname);
 			DestinationResourceSpecification resource=new DestinationResourceSpecification();
@@ -129,23 +136,72 @@ public class AmzNotificationsDestinationServiceImpl extends ServiceImpl<AmzNotif
 			body.setResourceSpecification(resource);
 			try {
 				CreateDestinationResponse createResponse = api.createDestination(body);
-				handlerCreateDestinationResponse(amazonAuthority,createResponse);
+				Destination rs = createResponse.getPayload();
+				handlerCreateDestinationResponse(amazonAuthority,rs);
 			} catch (ApiException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
     }
+    
+    public void delete(AmzNotificationsDestination item) {
+    	List<AmazonAuthority> amazonAuthorityList = amazonAuthorityService.getAllAuth();
+    	for(AmazonAuthority amazonAuthority:amazonAuthorityList) {
+    		 if(amazonAuthority.getAWSRegion().equals(item.getAwsregion())) {
+    			 NotificationsApi api = apiBuildService.getNotificationsApiGrantless(amazonAuthority);
+	     			try {
+	     					DeleteDestinationResponse response = api.deleteDestination(item.getDestinationid());
+	     					if(response.getErrors().isEmpty()) {
+	     						this.baseMapper.deleteById(item.getDestinationid());
+	     						return;
+	     					}
+	     			 
+	     			}catch(ApiException e) {
+	     				System.out.println(e.getResponseBody());
+	     				e.printStackTrace();
+	     			}
+    		 }
+    		
+    	}
+	   
+    }
+    
+    public void deleteNotificationsDestination(AmazonAuthority amazonAuthority) {
+	    QueryWrapper<AmzNotificationsDestination> queryWrapper=new QueryWrapper<AmzNotificationsDestination>();
+	    queryWrapper.eq("name",AmzNotifications.sqsname);
+		List<AmzNotificationsDestination> list = this.baseMapper.selectList(queryWrapper);
+		for(AmzNotificationsDestination item:list) {
+			delete(item);
+		}
+    }
+    
 	@Override
-	public void runApi(AmazonAuthority amazonAuthority) {
-		// TODO Auto-generated method stub
-		  NotificationsApi api = apiBuildService.getNotificationsApi(amazonAuthority);
-		   try {
-				GetDestinationsResponse response = api.getDestinations();
-				handlerGetDestinationsResponse(amazonAuthority,response);
-			} catch (ApiException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	public void executTask() {
+		  List<AmazonAuthority> amazonAuthorityList = amazonAuthorityService.getAllAuth();
+		  Set<String> region=new HashSet<String>();
+		  for(AmazonAuthority amazonAuthority : amazonAuthorityList) {
+			    if(region.contains(amazonAuthority.getAWSRegion())) {
+			    	continue;
+			    }
+			    QueryWrapper<AmzNotificationsDestination> queryWrapper=new QueryWrapper<AmzNotificationsDestination>();
+			    queryWrapper.eq("name",AmzNotifications.sqsname);
+			    queryWrapper.eq("awsregion",amazonAuthority.getAWSRegion());
+				List<AmzNotificationsDestination> list = this.baseMapper.selectList(queryWrapper);
+			    if(list!=null&&list.size()>0) {
+			    	  region.add(amazonAuthority.getAWSRegion());
+			    	  continue;
+			    }
+			    NotificationsApi api = apiBuildService.getNotificationsApiGrantless(amazonAuthority);
+				   try {
+						GetDestinationsResponse response = api.getDestinations();
+						handlerGetDestinationsResponse(amazonAuthority,response);
+					} catch (ApiException e) {
+						// TODO Auto-generated catch block
+					   e.printStackTrace();
+				   }
+				  
+		  }
+		
 	}
 }

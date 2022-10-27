@@ -2,16 +2,12 @@ package com.wimoor.amazon.product.pojo.entity;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Date;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.common.pojo.entity.BaseEntity;
 
-import java.time.LocalDate;
-import java.util.Date;
-
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableField;
-import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

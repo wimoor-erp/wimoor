@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
+import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 @Mapper
 public interface InventoryMapper extends BaseMapper<Inventory> {
 	Inventory selectNowInv(@Param("warehouse")String warehouse,@Param("material")String material,@Param("shopid")String shopid,@Param("status")String status);
@@ -43,7 +44,10 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	IPage<Map<String, Object>> findNotFBA(Page<?>  page,Map<String, Object> param);
 	
 	IPage<Map<String, Object>> findFBAWithStockCycle(Page<?>  page,@Param("id")String id, @Param("shopid")String shopid);
+	List<Map<String, Object>> findFBAWithStockCycle(String id, String shopid);
 	IPage<Map<String, Object>> findNotFBAWithStockCycle(Page<?>  page,@Param("id")String id, @Param("shopid")String shopid);
+	
+	List<Map<String, Object>> findNotFBAWithStockCycle(@Param("id")String id, @Param("shopid")String shopid);
 	
 	IPage<Map<String, Object>> findInventoryDetail(Page<?>  page,Map<String,Object> map);
 	List<Map<String, Object>> findInventoryDetail(Map<String,Object> map);
@@ -58,7 +62,7 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	IPage<Map<String,Object>> selectInventoryDetail(Page<?>  page,Map<String, Object> param);
 
 	List<Map<String, Object>> getSelfInvDetail(@Param("warehouseid") String warehouseid,@Param("stocktakingid") String stocktakingid);
-	Map<String, Object> getSelfInvBySKU(@Param("warehouseid") BigInteger warehouseid, @Param("materialid") BigInteger materialid);
+	Map<String, Object> getSelfInvBySKU(@Param("warehouseid") String warehouseid, @Param("materialid") String materialid);
 	List<Map<String,Object>>  getInvChangeRate(Map<String, Object> param);
 	List<Map<String,Object>> findNotFBABySku(@Param("whparentid")String warehouseid,@Param("skuid") String skuid,@Param("shopid")String shopid);
 	
@@ -77,4 +81,7 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	List<Map<String, Object>> findFulByMaterial(String id);
 	List<Map<String, Object>> getInventorydetail(@Param("materialid") String materialid,@Param("warehouseid") String warehouseid);
 	IPage<Map<String,Object>> findLocalInventory(Page<?>  page,Map<String, Object> param);
+
+	List<Map<String, Object>> getInvDayDetail(Map<String, Object> parameter);
+	List<MaterialInventoryVo> findLocalWarehouseInventory(@Param("shopid") String shopid,@Param("materialid") String materialid);
 }

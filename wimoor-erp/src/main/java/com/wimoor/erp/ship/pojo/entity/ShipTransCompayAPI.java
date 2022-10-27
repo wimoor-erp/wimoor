@@ -28,5 +28,6 @@ public class ShipTransCompayAPI {
     @TableField(value= "url")
     private String url;
      
-    
+    @TableField(value= "`system`")
+    private String system;
 }

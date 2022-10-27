@@ -13,11 +13,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.threeten.bp.OffsetDateTime;
 
 import com.amazon.spapi.api.ReportsApi;
 import com.amazon.spapi.client.ApiCallback;
@@ -27,6 +27,7 @@ import com.amazon.spapi.model.reports.CreateReportResponse;
 import com.amazon.spapi.model.reports.CreateReportSpecification;
 import com.amazon.spapi.model.reports.Report;
 import com.amazon.spapi.model.reports.ReportDocument;
+import com.amazon.spapi.model.reports.ReportOptions;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
@@ -40,7 +41,10 @@ import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
 import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
+import com.wimoor.amazon.report.pojo.entity.ReportRequestType;
+import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.report.service.IReportRequestRecordService;
+import com.wimoor.amazon.report.service.IReportRequestTypeService;
 import com.wimoor.amazon.report.service.IReportService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
@@ -59,8 +63,9 @@ public abstract class ReportServiceImpl  implements IReportService {
 	AmazonGroupMapper amazonGroupMapper;
 	@Autowired
 	ApiBuildService apiBuildService;
+	@Autowired
+	IReportRequestTypeService iReportRequestTypeService;
 	final DownloadHelper downloadHelper = new DownloadHelper.Builder().build();
-	
 	/**
 	 * 获取子类中的具体报表类型
 	 * 
@@ -87,36 +92,67 @@ public abstract class ReportServiceImpl  implements IReportService {
 	}
 
 	public void getReport(ReportRequestRecord record) {
-		AmazonAuthority auth = amazonAuthorityService.selectBySellerId(record.getSellerid());
-		auth.setMarketPlace(marketplaceService.getById(record.getMarketplaceid()));
-		ReportsApi api = apiBuildService.getReportsApi(auth);
 		try {
-			ApiCallback<Report> response = new ApiCallbackGetReport(this,auth,record);
-			api.getReportAsync(record.getReportid(), response);
-		} catch (ApiException e) {
+			AmazonAuthority auth = amazonAuthorityService.selectBySellerId(record.getSellerid());
+			auth.setMarketPlace(marketplaceService.selectByPKey(record.getMarketplaceid()));
+			auth.setUseApi("getReport");
+			ReportsApi api = apiBuildService.getReportsApi(auth);
+			if(auth.apiNotRateLimit()) {
+				ApiCallback<Report> response = new ApiCallbackGetReport(this,auth,record);
+				api.getReportAsync(record.getReportid(), response);
+			}
+		} catch (Exception e) {
 				// TODO Auto-generated catch block
+			System.out.println(record.getSellerid());
 			e.printStackTrace();
 		}
 	}
 	
 	public void refreshReport(ReportRequestRecord record) {
-			if(record.getReportDocumentId()==null) {
+		if(record.getReportDocumentId()==null) {
 				getReport(record);
-			}else {
-				getReportDocument(record);
-			}
-			 
+		}
 	}
+	
+	public boolean downloadProcessReport(ReportRequestRecord record) {
+		if(record.getReportDocumentId()!=null) {
+			getReportDocument(record);
+			return true;
+		}else {
+			return false;
+		}
+		 
+}
 	
 	public  void getReportDocument(ReportRequestRecord record) {
 		AmazonAuthority amazonAuthority = amazonAuthorityService.selectBySellerId(record.getSellerid());
 		ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
-		amazonAuthority.setMarketPlace(marketplaceService.getById(record.getMarketplaceid()));
-		ApiCallback<ReportDocument> response=new ApiCallbackGetReportDocument(this,amazonAuthority,record);
-		try {
-			api.getReportDocumentAsync(record.getReportDocumentId(), response);
-		} catch (ApiException e) {
+		amazonAuthority.setMarketPlace(marketplaceService.getById(record.getMarketplaceid())); 
+		 ApiCallback<ReportDocument> callback=new ApiCallbackGetReportDocument(this,amazonAuthority,record);
+		try { 
+ 			if(record.getReporttype().equals(ReportType.SettlementReport)
+ 					||record.getReporttype().equals(ReportType.InventoryReport)
+ 					||record.getReporttype().equals(ReportType.FbaStorageFeeReport)
+ 				    ||record.getReporttype().equals(ReportType.FbaStorageFeeReport)
+ 					) {
+				ReportDocument response = api.getReportDocument(record.getReportDocumentId());
+				downloadReport(amazonAuthority,record,response);
+			}else {
+				api.getReportDocumentAsync(record.getReportDocumentId(),callback);
+			}
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			 if(record!=null&&record.getTreatnumber()!=null) {
+	    		  record.setTreatnumber(record.getTreatnumber()+2);
+	    	 }else {
+	    		 record.setTreatnumber(1);
+	    	 }
+			record.setReportProcessingStatus("DONE");
+			record.setIsrun(false);
+			record.setLog(e.getMessage());
+			record.setLastupdate(new Date());
+			iReportRequestRecordService.updateById(record);
+			System.out.println(e.getMessage()); 
 			e.printStackTrace();
 		}
 	}
@@ -132,12 +168,20 @@ public abstract class ReportServiceImpl  implements IReportService {
 	  public String download(AmazonAuthority amazonAuthority,String url, String compressionAlgorithm,ReportRequestRecord record) throws IOException, IllegalArgumentException {
 	    OkHttpClient httpclient = new OkHttpClient();
 	    Request request = new Request.Builder().url(url).get().build();
+	    httpclient.setConnectTimeout(30, TimeUnit.MINUTES);
+	    httpclient.setReadTimeout(30, TimeUnit.MINUTES);
 	    Response response = httpclient.newCall(request).execute();
-	    String mlog=null;
+	    String mlog="wait down Response";
 	    if (!response.isSuccessful()) {
-	    	return String.format("Call to download content was unsuccessful with response code: %d and message: %s",response.code(), response.message());
+	    	mlog= String.format("Call to download content was unsuccessful with response code: %d and message: %s",response.code(), response.message());
+			record.setReportProcessingStatus("DONE");
+			record.setIsrun(false);
+			record.setLog(mlog);
+			iReportRequestRecordService.updateById(record);
+			return mlog;
 	    }
 	    try (ResponseBody responseBody = response.body()) {
+	      mlog="";
 	      MediaType mediaType = MediaType.parse(response.header("Content-Type"));
 	      Charset charset = mediaType.charset();
 	      if (charset == null) {
@@ -154,20 +198,53 @@ public abstract class ReportServiceImpl  implements IReportService {
 	        }
 	        // This example assumes that the download content has a charset in the content-type header, e.g.
 	        // text/plain; charset=UTF-8
-	        if ("text".equals(mediaType.type()) && "plain".equals(mediaType.subtype())) {
-	          InputStreamReader inputStreamReader = new InputStreamReader(inputStream, charset);
-	          closeThis = inputStreamReader;
-	          BufferedReader reader = new BufferedReader(inputStreamReader);
-	          mlog=treatResponse(amazonAuthority, reader);
-	        } else {
-	            InputStreamReader inputStreamReader = new InputStreamReader(inputStream,charset);
-		        closeThis = inputStreamReader;
-		        BufferedReader reader = new BufferedReader(inputStreamReader);
-		        mlog=treatResponse(amazonAuthority, reader);
-	        }
+	            if ("text".equals(mediaType.type()) && "plain".equals(mediaType.subtype())) {
+			          InputStreamReader inputStreamReader = new InputStreamReader(inputStream, charset);
+			          closeThis = inputStreamReader;
+			          BufferedReader reader = new BufferedReader(inputStreamReader);
+			          record.setReportProcessingStatus("treat");
+					  record.setIsrun(true);
+					  iReportRequestRecordService.updateById(record);
+			           mlog=treatResponse(amazonAuthority, reader);
+		        } else {
+		            InputStreamReader inputStreamReader = new InputStreamReader(inputStream,charset);
+			        closeThis = inputStreamReader;
+			        BufferedReader reader = new BufferedReader(inputStreamReader);
+		    		record.setReportProcessingStatus("treat");
+					record.setIsrun(true);
+					iReportRequestRecordService.updateById(record);
+		            mlog=treatResponse(amazonAuthority, reader);
+		        }
+	      }catch(Exception e) {
+	    	  if(StrUtil.isNotBlank(mlog)) {
+	    		  mlog=mlog+e.getMessage();
+	    	  }else {
+	    		  mlog=e.getMessage();
+	    	  }
+	    	  throw e;
 	      } finally {
+	    	  if(record!=null&&record.getTreatnumber()!=null) {
+	    		  record.setTreatnumber(record.getTreatnumber()+1);
+	    	  }
+	    	  if(mlog==null||StrUtil.isEmpty(mlog)||(record.getReporttype().equals(ReportType.SettlementReport)&&!mlog.contains("error"))) {
+					record.setReportProcessingStatus("success");
+					record.setIsrun(false);
+					record.setIsnewest(false);
+					record.setLog(mlog);
+					record.setLastupdate(new Date());
+					iReportRequestRecordService.updateById(record);
+				}else {
+					record.setReportProcessingStatus("DONE");
+					record.setIsrun(false);
+					record.setLog(mlog);
+					record.setLastupdate(new Date());
+					iReportRequestRecordService.updateById(record);
+				}
 	        if (closeThis != null) {
 	          closeThis.close();
+	        }
+	        if(responseBody!=null) {
+	        	responseBody.close();
 	        }
 	      }
 	    }
@@ -176,46 +253,38 @@ public abstract class ReportServiceImpl  implements IReportService {
  
 	  
 	public  void downloadReport(AmazonAuthority amazonAuthority, ReportRequestRecord record,ReportDocument doc) {
-			record.setReportProcessingStatus("treat");
-			record.setIsrun(true);
-			iReportRequestRecordService.updateById(record);
 			String url =doc.getUrl();
 		    String compressionAlgorithm = doc.getCompressionAlgorithm()!=null?doc.getCompressionAlgorithm().getValue():null;
-		    String mlog=null;
 		    try {
-		    	  mlog=download(amazonAuthority,url, compressionAlgorithm,record);
+		    	   download(amazonAuthority,url, compressionAlgorithm,record);
 		    } catch (IOException e) {
 		      //Handle exception here.
-		    	mlog=e.getMessage();
+		       e.printStackTrace();
 		    } catch (IllegalArgumentException e) {
 		      //Handle exception here.
-		    	mlog=e.getMessage();
+		       e.printStackTrace();
 		    }
-		    if(mlog==null||StrUtil.isEmpty(mlog)) {
-				record.setReportProcessingStatus("success");
-				record.setIsrun(false);
-				record.setIsnewest(false);
-				iReportRequestRecordService.updateById(record);
-			}else {
-				record.setReportProcessingStatus("DONE");
-				record.setIsrun(false);
-				record.setLog(mlog);
-				iReportRequestRecordService.updateById(record);
-			}
 	}
 	
 	public abstract String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br);
 	
-
+    public ReportOptions getMyOptions() {
+    	return null;
+    }
 	 
 	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
+		          amazonAuthority.setUseApi("createReport");
 				  ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
 				  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
 				  for(Marketplace market:marketlist) {
 					  CreateReportSpecification body=new CreateReportSpecification();
 					  body.setReportType(myReportType());
-					  body.setDataStartTime(AmzDateUtils.getOffsetDateTime(cstart));
-					  body.setDataEndTime(AmzDateUtils.getOffsetDateTime(cend));
+					  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
+					  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
+					  ReportOptions reportOptions=getMyOptions();
+					  if(reportOptions!=null) {
+						body.setReportOptions(reportOptions);  
+					  }
 					  List<String> list=new ArrayList<String>();
 					  list.add(market.getMarketplaceid());
 					  amazonAuthority.setMarketPlace(market);
@@ -225,30 +294,21 @@ public abstract class ReportServiceImpl  implements IReportService {
 						  param.put("reporttype", this.myReportType());
 						  param.put("marketplacelist", list);
 						  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
-						  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<10) {
+						  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
 							  continue;
 						  }
 					  }
 					  body.setMarketplaceIds(list);
 					  try {
-							  ApiCallback<CreateReportResponse> response = new ApiCallbackReportCreate(this,amazonAuthority,market,cstart.getTime(),cend.getTime());
-						      api.createReportAsync(body,response);
+							  ApiCallback<CreateReportResponse> callback = new ApiCallbackReportCreate(this,amazonAuthority,market,cstart.getTime(),cend.getTime());
+						      api.createReportAsync(body,callback);
 						  } catch (ApiException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							  amazonAuthority.setApiRateLimit( null,e);
+							  e.printStackTrace();
 					    }
 				  }
 	     }
     
-	protected   Date convertDate(OffsetDateTime dataStartTime) {
-		Calendar c=Calendar.getInstance();
-		if(dataStartTime==null) {
-			return c.getTime();
-		}
-		c.set(dataStartTime.getYear(), dataStartTime.getMonth().getValue(), dataStartTime.getDayOfMonth(),
-				dataStartTime.getHour(), dataStartTime.getMinute(), dataStartTime.getSecond());
-		return c.getTime();
-	}
 	
 	public ReportRequestRecord recordReportRequest(AmazonAuthority amazonAuthority, ReportRequestRecord record, ApiException arg0) {
 		record.setLog(arg0.getMessage());
@@ -265,27 +325,35 @@ public abstract class ReportServiceImpl  implements IReportService {
 		query.eq("sellerid", amazonAuthority.getSellerid());
 		query.eq("reportId", reportid);
 		query.eq("reportType", report.getReportType());
-		ReportRequestRecord report_requestinfo =iReportRequestRecordService.getOne(query);
+		List<ReportRequestRecord> list = iReportRequestRecordService.list(query);
+		ReportRequestRecord report_requestinfo =null;
+		if(list!=null&&list.size()>0) {
+				report_requestinfo=list.get(0);
+		}
 		if(report_requestinfo!=null) {
 			if(report_requestinfo.getReportProcessingStatus()!=null&&report_requestinfo.getReportProcessingStatus().equals("success")) {
 				return report_requestinfo;
 			}
-			
 			if(report.getProcessingStatus().getValue().equals("DONE")) {
 				report_requestinfo.setTreatnumber(report_requestinfo.getTreatnumber()==null?1:report_requestinfo.getTreatnumber()+1);
 			}else {
 				report_requestinfo.setGetnumber(report_requestinfo.getGetnumber()==null?1:report_requestinfo.getGetnumber()+1);
 			}
-			report_requestinfo.setStartdate(convertDate(report.getDataStartTime()));
-			report_requestinfo.setEndDate(convertDate(report.getDataEndTime()));
+			report_requestinfo.setStartdate(AmzDateUtils.getUTCToDate(report.getDataStartTime()));
+			report_requestinfo.setEndDate(AmzDateUtils.getUTCToDate(report.getDataEndTime()));
 			report_requestinfo.setIsrun(false);
+			if(report_requestinfo.getReportProcessingStatus()!=null
+					&&(report_requestinfo.getReportProcessingStatus().equals("success")||
+							report_requestinfo.getReportProcessingStatus().equals("treat")||
+							report_requestinfo.getReportProcessingStatus().equals("error"))) {
+				return report_requestinfo;
+			}
 			report_requestinfo.setReportProcessingStatus(report.getProcessingStatus().getValue());
 			report_requestinfo.setReportDocumentId(report.getReportDocumentId());
 			report_requestinfo.setLastupdate(new Date());
 			iReportRequestRecordService.updateById(report_requestinfo);
 		}else {
 			report_requestinfo = new ReportRequestRecord();
-			
 			report_requestinfo.setMarketplaceid(report.getMarketplaceIds().get(0));
 			report_requestinfo.setSellerid(amazonAuthority.getSellerid());
 			report_requestinfo.setIsnewest(true);
@@ -294,8 +362,8 @@ public abstract class ReportServiceImpl  implements IReportService {
 			report_requestinfo.setTreatnumber(0);
 			report_requestinfo.setIsrun(false);
 			report_requestinfo.setGetnumber(1);
-			report_requestinfo.setStartdate(convertDate(report.getDataStartTime()));
-			report_requestinfo.setEndDate(convertDate(report.getDataEndTime()));
+			report_requestinfo.setStartdate(AmzDateUtils.getUTCToDate(report.getDataStartTime()));
+			report_requestinfo.setEndDate(AmzDateUtils.getUTCToDate(report.getDataEndTime()));
 			report_requestinfo.setReportDocumentId(report.getReportDocumentId());
 			report_requestinfo.setReportProcessingStatus(report.getProcessingStatus().getValue());
 			if(report.getProcessingStatus().getValue().toUpperCase().equals("DONE")) {

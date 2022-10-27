@@ -16,13 +16,15 @@ package com.amazon.spapi.model.solicitations;
 import java.util.Objects;
 import java.util.Arrays;
 import io.swagger.annotations.ApiModel;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A JSON schema document describing the expected payload of the action. This object can be validated against &lt;a href&#x3D;http://json-schema.org/draft-04/schema&gt;http://json-schema.org/draft-04/schema&lt;/a&gt;.
  */
 @ApiModel(description = "A JSON schema document describing the expected payload of the action. This object can be validated against <a href=http://json-schema.org/draft-04/schema>http://json-schema.org/draft-04/schema</a>.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T21:00:32.319+08:00")
-public class Schema {
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:35:06.645+08:00")
+public class Schema extends HashMap<String, Object> {
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -32,12 +34,12 @@ public class Schema {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    return true;
+    return super.equals(o);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash();
+    return Objects.hash(super.hashCode());
   }
 
 
@@ -45,7 +47,7 @@ public class Schema {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class Schema {\n");
-    
+    sb.append("    ").append(toIndentedString(super.toString())).append("\n");
     sb.append("}");
     return sb.toString();
   }

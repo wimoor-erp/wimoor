@@ -25,10 +25,10 @@
 		warehouseid, shopid, plansubid,auditstatus, remark,createdate, creator, opttime, operator
 	</sql>
 
-	<select id="findByCondition" parameterType="java.util.Map" resultType="java.util.Map">
+	<select id="findByCondition" parameterType="com.wimoor.amazon.inbound.pojo.dto.ShipPlanListDTO" resultType="com.wimoor.amazon.inbound.pojo.vo.ShipPlanVo">
 		select form.name shipname,form.*,DATE_FORMAT(form.createdate, '%Y/%m/%d') createdate2,
 			addre.id addressid,max(wh.name) warename,
-			addre.countryCode country,u.name creatorname,form.skunum skucount,
+			tm.market country,u.name creatorname,form.skunum skucount,
 			sum(entry.Quantity) sumquantity, tm.name destination, ag.name groupname
 		from t_erp_ship_inboundplan form
 		left join t_amazon_group ag on ag.id=form.amazongroupid
@@ -37,64 +37,58 @@
 		left join t_userinfo u on u.id=form.creator
 		left join t_marketplace tm on tm.marketplaceId=form.marketplaceid
 		left join t_erp_warehouse wh on wh.id=form.warehouseid
-		where form.shopid =#{shopid,jdbcType=CHAR}
-		<if test="auditstatus!=null and auditstatus!=''">
-			and form.auditstatus=#{auditstatus,jdbcType=INTEGER}
+		where form.shopid =#{param.shopid,jdbcType=CHAR}
+		<if test="param.auditstatus!=null and param.auditstatus!=''">
+			and form.auditstatus=#{param.auditstatus,jdbcType=INTEGER}
 		</if>
-		<if test="toDate!=null">
-			and form.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
-			and form.createdate &lt;= #{toDate,jdbcType=TIMESTAMP}
+		<if test="param.toDate!=null and param.toDate!=''">
+			and form.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
 		</if>
-		<if test="groupid!=null">
-			and form.amazongroupid= #{groupid,jdbcType=CHAR}
+		<if test="param.groupid!=null and param.groupid!='all' and param.groupid!=''">
+			and form.amazongroupid= #{param.groupid,jdbcType=CHAR}
 		</if>
-		<if test="parentid!=null">
-			and wh.parentid= #{parentid,jdbcType=CHAR}
+		<if test="param.warehouseid!=null and param.warehouseid!=''">
+			and wh.id= #{param.warehouseid,jdbcType=CHAR}
 		</if>
-		<if test="marketplaceid!=null">
-			and form.marketplaceid= #{marketplaceid,jdbcType=CHAR}
+		<if test="param.marketplaceid !=null and param.marketplaceid!=''">
+			and form.marketplaceid= #{param.marketplaceid,jdbcType=CHAR}
 		</if>
-		<if test="planid!=null">
-			and form.id= #{planid,jdbcType=CHAR}
+		<if test="param.planid !=null and param.planid!=''">
+			and form.id= #{param.planid,jdbcType=CHAR}
 		</if>
-		<if test="search!=null">
-			and (entry.SellerSKU like #{search,jdbcType=CHAR} or form.remark like #{search,jdbcType=CHAR}
-			or form.name like #{search,jdbcType=CHAR} or form.number like #{search,jdbcType=CHAR})
+		<if test="param.search!=null and param.search!=''">
+			<if test="param.searchtype=='number'">
+			 and form.number like #{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype=='remark'">
+			 and form.remark like #{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype=='sku'">
+			and  entry.SellerSKU like #{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype=='plan'">
+			 and  form.name like #{param.search,jdbcType=CHAR}
+			</if>
 		</if>
 		group by form.id
 	</select>
 
-	<select id="selectShipInfoByformid" resultType="java.util.Map" parameterType="java.lang.String">
-		select sf.id planid,sf.AreCasesRequired,sf.number,g.name,sf.name
-			shipname,sf.creator,sf.createdate,sf.opttime,si.LabelPrepType,sf.warehouseid,
-			wh.name warename ,u.name creatname,sum(si.TotalFee) readyfee,
-			tm.name destination,sf.auditstatus,si.DestinationFulfillmentCenterId centerid,
-			sf.plansubid subid,sf.remark, addre.countryCode,addre.addressLine1,
-			addre.addressLine2,addre.city, addre.name addrname,addre.phone ,addre.stateOrProvinceCode,addre.countryCode,
-			sf.amazongroupid,sf.marketplaceid,sf.AreCasesRequired,sf.shipFromAddressID
-		from t_erp_ship_inboundplan sf
-		left join t_amazon_group g on g.id=sf.amazongroupid
-		left join t_erp_warehouse wh on wh.id=sf.warehouseid
-		left join t_userinfo u on u.id=sf.creator
-		left join t_erp_ship_address addre on addre.id=sf.shipFromAddressID
-		left join t_erp_ship_inboundshipment si on si.inboundplanid=sf.id
-		left join t_marketplace tm on tm.marketplaceId=sf.marketplaceid
-		where sf.id=#{planid,jdbcType=CHAR}
-	</select>
+
+
 	
-	<select id="selectitemListByPlanid" parameterType="java.lang.String" resultType="java.util.Map">
-		select addre.city arrivecity, addre.addressLine1, addre.addressLine2,
-			addre.name addrname,addre.phone ,addre.stateOrProvinceCode,addre.countryCode,
+	<select id="selectitemListByPlanid" parameterType="java.lang.String" resultType="com.wimoor.amazon.inbound.pojo.vo.SummaryShipmentVo">
+		select sm.ShipToAddressID ,
 			sm.DestinationFulfillmentCenterId, count(si.SellerSKU) skucount,
 			sum(si.Quantity) toquantity, si.ShipmentId, max(sm.name) name,
 			sum(dd.weight*si.Quantity) readweight, dd.weight_units readunit, max(sm.status) status,
 			sum(case when ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0)/5000 > dd.weight
-			then ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0)/5000*si.Quantity
-			else dd.weight*si.Quantity end) weight,
-			case when ifnull(m.boxnum,0) > 0 and ifnull(dm2.id,0) > 0
-			then ifnull(SUM(ifnull(si.Quantity/m.boxnum,0)*(dm2.length*dm2.width*dm2.height)),0)/1000000
-			else ifnull(SUM(si.Quantity*(dd.length*dd.width*dd.height)),0)/1000000 end boxweight,
-			dd.weight_units weightunit,sum(m.price*si.Quantity) itemprice ,sm.remark,
+			         then ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0)/5000*si.Quantity
+			         else dd.weight*si.Quantity end) weight,
+			SUM(case when ifnull(m.boxnum,0) > 0 and ifnull(dm2.id,0) > 0
+			         then ifnull(ifnull(si.Quantity/m.boxnum,0)*(dm2.length*dm2.width*dm2.height),0)/1000000
+			         else ifnull(si.Quantity*(dd.length*dd.width*dd.height),0)/1000000 end) boxvolume,
+			max(dd.weight_units) weightunit,sum(m.price*si.Quantity) itemprice ,sm.remark,
 			max(tc.name) company,max(td.channame) channel,max(tc.id) companyid,max(td.id) channelid
 		from t_erp_ship_inbounditem si
 		left join t_erp_ship_inboundplan sp on sp.id=si.inboundplanid
@@ -120,31 +114,7 @@
 		group by sm.ShipmentId
 	</select>
 
-	<select id="selectPlanItemByShipmentid" parameterType="java.lang.String" resultType="java.util.Map">
-		select ifnull(p.location,p2.location) image,m.color skucolor,pro.sku,
-			s.avgsales,pro.name proname,sk.stockingCycle skucycle,m.id materialid,
-			wh.stocking_cycle whcycle,ifnull(iv.quantity,0)
-			fulfillquantity,si.Quantity,
-			ifnull(dim.weight,0) weight,
-			ROUND(ifnull(dim.length,0)*ifnull(dim.width,0)*ifnull(dim.height,0)/5000.0,2) dimweight,
-			m.sku msku
-		from t_erp_ship_inbounditem si
-		left join t_erp_ship_inboundplan sp on sp.id=si.inboundplanid
-		left join t_erp_ship_inboundshipment sm on sm.ShipmentId=si.ShipmentId
-		left join t_marketplace mkt on mkt.marketplaceid=sp.marketplaceid
-		left join t_amazon_auth auth on auth.groupid=sp.amazongroupid and auth.region=case when mkt.region='UK' then 'EU' ELSE mkt.region end
-		left join t_product_info pro on pro.marketplaceid=sp.marketplaceid and pro.sku=si.SellerSKU and pro.amazonAuthId=auth.id
-		left join t_product_in_opt o on o.pid=pro.id
-		left join t_erp_material m on m.sku=ifnull(o.msku,pro.sku) and m.shopid=sp.shopid 	and m.isDelete = 0
-		left join t_picture p on p.id=m.image
-		left join t_dimensions dim on dim.id=m.pkgDimensions
-		left join t_picture p2 on p2.id=pro.image
-		left join t_product_in_order s on pro.id=s.pid
-		left join t_erp_stockcycle sk on sk.warehouseid=sp.warehouseid and sk.materialid=m.id
-		left join t_erp_warehouse wh on wh.id=sp.warehouseid
-		left join t_erp_inventory iv on iv.shopid=sp.shopid and iv.warehouseid=sp.warehouseid and iv.materialid=m.id and iv.`status`='fulfillable'
-		where sm.ShipmentId=#{shipmentid,jdbcType=CHAR} 
-	</select>
+ 
 
 	<select id="getShipRecord" parameterType="java.lang.String" resultType="java.util.Map">
 		SELECT b.ShipmentId shipmentid,a.marketplaceid,b.SellerSKU,chan.channame
@@ -211,7 +181,7 @@
 	</select>
 	
 	<select id="getShipArrivalTimeRecord" parameterType="java.lang.String" resultType="java.util.Map">
-		SELECT ts.arrivalTime,ts.shipmentid,a.createdate, c.shiped_date ,
+		SELECT ts.arrivalTime,ts.shipmentid,a.createdate, c.shiped_date ,b.SellerSKU sku,
 			ifnull(ifnull(b.QuantityShipped,b.Quantity),0)
 			Quantity,detail.channame channame, 
 			ifnull(ifnull(b.QuantityShipped,b.Quantity),0) - ifnull(b.QuantityReceived,0) shipQuantity
@@ -226,31 +196,6 @@
 			and c.status &lt;= 5 and c.status &gt;= 2
 			and (m.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR})
 			and a.shopid=#{shopid,jdbcType=CHAR}
-		ORDER BY ts.arrivalTime asc
-	</select>
-
-	<select id="getShipArrivalTimeRecordForShip" parameterType="java.util.Map" resultType="java.util.Map">
-		SELECT ts.arrivalTime,ts.shipmentid,a.createdate, c.shiped_date ,b.SellerSKU sku,
-			ifnull(ifnull(b.QuantityShipped,b.Quantity),0) Quantity,detail.channame channame,
-			ifnull(ifnull(b.QuantityShipped,b.Quantity),0) -
-			ifnull(b.QuantityReceived,0) shipQuantity
-		from t_erp_ship_inboundplan a
-		LEFT JOIN t_erp_ship_inbounditem b on a.id=b.inboundplanid
-		LEFT JOIN t_erp_ship_inboundshipment c on a.id=c.inboundplanid and c.ShipmentId = b.ShipmentId
-		LEFT JOIN t_erp_ship_inboundtrans ts on ts.shipmentid=c.shipmentid
-		LEFT JOIN t_erp_ship_status d on c.ShipmentStatus=d.`status`
-		left join t_marketplace m on m.marketplaceid=a.marketplaceid
-		left join t_erp_ship_transdetail detail on detail.id = ts.channel
-		where a.shopid=#{shopid,jdbcType=CHAR}
-		<if test="skuList != null and skuList.size>0 ">
-			and b.SellerSKU in
-			<foreach collection="skuList" item="adv" index="index" open="(" close=")" separator=",">
-				#{adv,jdbcType=CHAR}
-			</foreach>
-		</if>
-			and c.status &lt;= 5
-			and c.status &gt;= 2
-			and (m.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR})
 		ORDER BY ts.arrivalTime asc
 	</select>
 

@@ -19,17 +19,21 @@
   
    <!-- 在售商品数量 -->
    <select id="refreshProNum"  >
-        delete from t_erp_summary_data where ftype='main-2-pro';
         insert into t_erp_summary_data
-        select uuid_short(),'main-2-pro',count(0),null,ifnull(shop_id,0) shopid,now()
-   		from t_product_info t
-		left join t_amazon_auth a on a.id=t.amazonAuthId
-        where  t.invalid=0 and t.isparent=0 
+        SELECT uuid_short(),'main-2-pro-new',SUM(v.quantity),d.value,ifnull(shop_id,0) shopid,NOW() 
+        from
+        (SELECT amazonAuthId,sum(case when t.invalid=0 and t.isparent=0  then 1 ELSE 0 END) quantity
+        FROM t_product_info t
+        GROUP BY t.amazonAuthId) v
+         left join t_amazon_auth a on a.id=v.amazonAuthId
+		 left join t_erp_summary_data d on d.shopid=a.shop_id and d.ftype='main-2-pro'           
         group by a.shop_id;
+        delete from t_erp_summary_data where ftype='main-2-pro';
+        update t_erp_summary_data SET ftype='main-2-pro' where ftype='main-2-pro-new';
    </select>
       <!-- 在售商品数量 -->
    <select id="findProNum" parameterType="java.lang.String" resultType="java.lang.Integer" >
-     select COUNT(0)  
+       select COUNT(0)  
    		from t_product_info t
 		left join t_amazon_auth a on t.amazonAuthId=a.id
 	    where a.shop_id=#{shopid,jdbcType=CHAR} and t.invalid=0 and t.isparent=0
@@ -37,13 +41,16 @@
    </select>
    
    <select id="refreshProRate" >
-        delete from t_erp_summary_data where ftype='main-2-protosel';
         insert into t_erp_summary_data
-		select uuid_short(),'main-2-protosel', ifnull(sum(case when ifnull(f.flownumber,ifnull(t.totalOfferCount,1))=1  then 0 else 1 end )/count(0)*100,0),NULL,ifnull(a.shop_id,0),NOW()
+		select uuid_short(),'main-2-protosel-new', ifnull(sum(case when ifnull(f.flownumber,ifnull(t.totalOfferCount,1))=1 or
+		ifnull(f.flownumber,ifnull(t.totalOfferCount,1))=0  then 0 else 1 end )/count(0)*100,0),d.value,ifnull(a.shop_id,0),NOW()
    	    from t_product_info t
 	  	left join t_amazon_auth a on t.amazonAuthId=a.id
+	  	left join t_erp_summary_data d on d.shopid=a.shop_id and d.ftype='main-2-protosel' 
         left join t_product_follow f on f.asin=t.asin and f.marketplaceid=t.marketplaceid and f.amazonAuthId=a.id
 	    group by a.shop_id;
+	    delete from t_erp_summary_data where ftype='main-2-protosel' ;
+	    update t_erp_summary_data SET ftype='main-2-protosel' where ftype='main-2-protosel-new';
    </select>
    
    <select id="monthSalesOrders"    resultType="java.util.Map" >
@@ -52,7 +59,14 @@
       where a.shop_id=#{shopid,jdbcType=CHAR}
       and o.purchase_date>=#{oneday,jdbcType=DATE}
    </select>
-   
+   <select id="returnOrders"   resultType="java.lang.Integer" >
+		SELECT  SUM(quantity) quantity 
+		from t_amz_returns_report r
+		LEFT JOIN t_amazon_auth a ON  a.sellerid=r.sellerid
+		WHERE a.shop_id=#{shopid,jdbcType=CHAR}
+		AND return_date>=#{oneday,jdbcType=DATE}
+   </select>
+ 
  
    
   

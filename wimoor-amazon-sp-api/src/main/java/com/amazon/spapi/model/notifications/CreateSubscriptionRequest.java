@@ -1,6 +1,6 @@
 /*
  * Selling Partner API for Notifications
- * The Selling Partner API for Notifications lets you subscribe to notifications that are relevant to a selling partner's business. Using this API you can create a destination to receive notifications, subscribe to notifications, delete notification subscriptions, and more.
+ * The Selling Partner API for Notifications lets you subscribe to notifications that are relevant to a selling partner's business. Using this API you can create a destination to receive notifications, subscribe to notifications, delete notification subscriptions, and more.  For more information, see the [Notifications Use Case Guide](doc:notifications-api-v1-use-case-guide).
  *
  * OpenAPI spec version: v1
  * 
@@ -22,19 +22,23 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.notifications.ProcessingDirective;
 import java.io.IOException;
 
 /**
  * The request schema for the createSubscription operation.
  */
 @ApiModel(description = "The request schema for the createSubscription operation.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:51:27.111+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-01T14:03:31.230+08:00")
 public class CreateSubscriptionRequest {
   @SerializedName("payloadVersion")
   private String payloadVersion = null;
 
   @SerializedName("destinationId")
   private String destinationId = null;
+
+  @SerializedName("processingDirective")
+  private ProcessingDirective processingDirective = null;
 
   public CreateSubscriptionRequest payloadVersion(String payloadVersion) {
     this.payloadVersion = payloadVersion;
@@ -72,6 +76,24 @@ public class CreateSubscriptionRequest {
     this.destinationId = destinationId;
   }
 
+  public CreateSubscriptionRequest processingDirective(ProcessingDirective processingDirective) {
+    this.processingDirective = processingDirective;
+    return this;
+  }
+
+   /**
+   * Get processingDirective
+   * @return processingDirective
+  **/
+  @ApiModelProperty(value = "")
+  public ProcessingDirective getProcessingDirective() {
+    return processingDirective;
+  }
+
+  public void setProcessingDirective(ProcessingDirective processingDirective) {
+    this.processingDirective = processingDirective;
+  }
+
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -83,12 +105,13 @@ public class CreateSubscriptionRequest {
     }
     CreateSubscriptionRequest createSubscriptionRequest = (CreateSubscriptionRequest) o;
     return Objects.equals(this.payloadVersion, createSubscriptionRequest.payloadVersion) &&
-        Objects.equals(this.destinationId, createSubscriptionRequest.destinationId);
+        Objects.equals(this.destinationId, createSubscriptionRequest.destinationId) &&
+        Objects.equals(this.processingDirective, createSubscriptionRequest.processingDirective);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(payloadVersion, destinationId);
+    return Objects.hash(payloadVersion, destinationId, processingDirective);
   }
 
 
@@ -99,6 +122,7 @@ public class CreateSubscriptionRequest {
     
     sb.append("    payloadVersion: ").append(toIndentedString(payloadVersion)).append("\n");
     sb.append("    destinationId: ").append(toIndentedString(destinationId)).append("\n");
+    sb.append("    processingDirective: ").append(toIndentedString(processingDirective)).append("\n");
     sb.append("}");
     return sb.toString();
   }

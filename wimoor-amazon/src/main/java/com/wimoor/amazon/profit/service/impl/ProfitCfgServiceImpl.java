@@ -3,6 +3,8 @@ package com.wimoor.amazon.profit.service.impl;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,18 +13,31 @@ import javax.annotation.Resource;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.amazon.api.AdminClientOneFeign;
+
+import com.wimoor.amazon.profit.mapper.IndividualFeeMapper;
+import com.wimoor.amazon.profit.mapper.InplaceFeeMapper;
+import com.wimoor.amazon.profit.mapper.ManualProcessingFeeMapper;
 import com.wimoor.amazon.profit.mapper.ProfitConfigMapper;
+import com.wimoor.amazon.profit.pojo.entity.InplaceFee;
+import com.wimoor.amazon.profit.pojo.entity.ManualProcessingFee;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.service.IProfitCfgCountryService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
+import com.wimoor.common.result.Result;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.util.UUIDUtil;
 
 import lombok.RequiredArgsConstructor;
- 
 
 @Service("profitCfgService")
 @RequiredArgsConstructor
@@ -30,57 +45,58 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 	@Resource
 	IProfitCfgCountryService profitCfgCountryService;
 	@Resource
+	@Lazy
 	IProfitService profitService;
+	final AdminClientOneFeign adminClientOneFeign;
+	final IndividualFeeMapper individualFeeMapper;
+	final InplaceFeeMapper inplaceFeeMapper;
+	final ManualProcessingFeeMapper manualProcessingFeeMapper;
 	
-	public List<ProfitConfigCountry> getProfitConfigCountryList(ProfitConfig config) {
-		List<ProfitConfigCountry> list = new ArrayList<ProfitConfigCountry>();
-		list.add(config.getUs());
-		list.add(config.getUk());
-		list.add(config.getDe());
-		list.add(config.getFr());
-		list.add(config.getIt());
-		list.add(config.getEs());
-		list.add(config.getNl());
-		list.add(config.getJp());
-		list.add(config.getCa());
-		list.add(config.getAu());
-		list.add(config.getIn());
-		list.add(config.getMx());
-		list.add(config.getAe());
-		list.add(config.getSa());
-		list.add(config.getPl());
-		list.add(config.getSe());
-		return list;
-	}
-	
-	@CacheEvict(value = "profitCfgCache", allEntries = true)
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+            @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public String update(ProfitConfig config) {
 		String msg = null;
 		int a = updateSelective(config);
 		if (a > 0) {
-			ProfitConfigCountry uk = config.getUk();
+			ProfitConfigCountry uk = config.getProfitConfigCountry("UK");
 			uk.setFenpeiType("PAN_EU");
 			uk.setVatRate(new BigDecimal("20"));
 			uk.setWarehousesite("uk");
 			uk.setCountry("UK");
 			uk.setProfitid(config.getId());
-			ProfitConfigCountry temp =config.getDe();
+			ProfitConfigCountry temp =config.getProfitConfigCountry("DE");
 			if(temp.getLabelService()==null) {
 				temp.setLabelService(Boolean.FALSE);
 			}
-			List<ProfitConfigCountry> list = getProfitConfigCountryList(config);
+			  Collection<ProfitConfigCountry> list = config.getCountryMap().values();
 			int b = 0;
-			for (int i = 0; i < list.size(); i++) {
-				if (list.get(i) == null) {
-					continue;
+			for (ProfitConfigCountry one:list) {
+				LambdaQueryWrapper<ProfitConfigCountry> query=new LambdaQueryWrapper<ProfitConfigCountry>();
+				query.eq(ProfitConfigCountry::getProfitid,config.getId());
+				query.eq(ProfitConfigCountry::getCountry,one.getCountry());
+				ProfitConfigCountry oldone =null;
+				List<ProfitConfigCountry> oldlist = profitCfgCountryService.list(query);
+				if(oldlist!=null&&oldlist.size()>0) {
+					oldone=oldlist.get(0);
 				}
-					if (isEU(list.get(i).getCountry())) {
-					temp.setId(list.get(i).getId());
-					temp.setCountry(list.get(i).getCountry());
-					temp.setVatRate(list.get(i).getVatRate());//VAT增值税费率按国家分开设置
-					b += profitCfgCountryService.update(temp);
+				if(oldone!=null) {
+					one.setId(oldone.getId());
+				}
+			   if (isEU(one.getCountry())) {
+					temp.setId(one.getId());
+					temp.setCountry(one.getCountry());
+					temp.setVatRate(one.getVatRate());//VAT增值税费率按国家分开设置
+					if(oldone!=null) {
+						b += profitCfgCountryService.update(temp);
+					}else {
+						b += profitCfgCountryService.insert(temp);
+					}
 				} else {
-					b += profitCfgCountryService.update(list.get(i));
+					if(oldone!=null) {
+						b += profitCfgCountryService.update(one);
+					}else {
+						b += profitCfgCountryService.insert(one);
+					}
 				}
 			}
 			if (b >0) {
@@ -95,33 +111,33 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 		return msg;
 	}
 
-	@CacheEvict(value = "profitCfgCache", allEntries = true)
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+            @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public String insert(ProfitConfig config) {
 		String msg = null;
 		if (this.save(config)) {
-			ProfitConfigCountry uk = config.getUk();
+			ProfitConfigCountry temp = config.getProfitConfigCountry("DE");
+			if(temp.getLabelService()==null) {
+				temp.setLabelService(Boolean.FALSE);
+			}
+			Collection<ProfitConfigCountry> list = config.getCountryMap().values();
+			ProfitConfigCountry uk = config.getProfitConfigCountry("UK");
 			uk.setFenpeiType("PAN_EU");
 			uk.setVatRate(new BigDecimal("20"));
 			uk.setWarehousesite("uk");
 			uk.setCountry("UK");
-			ProfitConfigCountry temp = config.getDe();
-			if(temp.getLabelService()==null) {
-				temp.setLabelService(Boolean.FALSE);
-			}
-			List<ProfitConfigCountry> list = getProfitConfigCountryList(config);
+			uk.setProfitid(config.getId());
 			int b = 0;
-			for (int i = 0; i < list.size(); i++) {
-				if (list.get(i) == null) {
-					continue;
-				}
-				if (isEU(list.get(i).getCountry())) {
+			for (ProfitConfigCountry one:list) {
+				if (isEU(one.getCountry())) {
+					temp.setId(UUIDUtil.getUUIDshort());
 					temp.setProfitid(config.getId());
-					temp.setCountry(list.get(i).getCountry());
-					temp.setVatRate(list.get(i).getVatRate());//VAT增值税费率按国家分开设置 
+					temp.setCountry(one.getCountry());
+					temp.setVatRate(one.getVatRate());//VAT增值税费率按国家分开设置 
 					b += profitCfgCountryService.insert(temp);
 				} else {
-					list.get(i).setProfitid(config.getId());
-					b += profitCfgCountryService.insert(list.get(i));
+					one.setProfitid(config.getId());
+					b += profitCfgCountryService.insert(one);
 				}
 			}
 			if (b == list.size()) {
@@ -144,6 +160,9 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 			EUlist.add("IT");
 			EUlist.add("ES");
 			EUlist.add("NL");
+			EUlist.add("PL");
+			EUlist.add("DE");
+			EUlist.add("SE");
 		}
 		return EUlist.contains(country);
 	}
@@ -156,28 +175,9 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 		} else {
 			profitCfg = selectByPKey(id);
 		}
-		List<ProfitConfigCountry> profitCfgCountryList = profitCfgCountryService.findByProfitId(profitCfg.getId());
-		Map<String, ProfitConfigCountry> countryConfigMap = new HashMap<String, ProfitConfigCountry>();
-		if (profitCfgCountryList != null && profitCfgCountryList.size() > 0) {
-			for (int i = 0; i < profitCfgCountryList.size(); i++) {
-				countryConfigMap.put(profitCfgCountryList.get(i).getCountry().toLowerCase(), (profitCfgCountryList.get(i)));
-			}
-			profitCfg.setUs(countryConfigMap.get("us"));
-			profitCfg.setUk(countryConfigMap.get("uk"));
-			profitCfg.setDe(countryConfigMap.get("de"));
-			profitCfg.setFr(countryConfigMap.get("fr"));
-			profitCfg.setIt(countryConfigMap.get("it"));
-			profitCfg.setEs(countryConfigMap.get("es"));
-			profitCfg.setNl(countryConfigMap.get("nl"));
-			profitCfg.setJp(countryConfigMap.get("jp"));
-			profitCfg.setCa(countryConfigMap.get("ca"));
-			profitCfg.setAu(countryConfigMap.get("au"));
-			profitCfg.setIn(countryConfigMap.get("in"));
-			profitCfg.setMx(countryConfigMap.get("mx"));
-			profitCfg.setSa(countryConfigMap.get("sa"));
-			profitCfg.setAe(countryConfigMap.get("ae"));
-			profitCfg.setPl(countryConfigMap.get("pl"));
-			profitCfg.setSe(countryConfigMap.get("se"));
+		if(profitCfg.getCountryList()==null) {
+			List<ProfitConfigCountry> profitCfgCountryList = profitCfgCountryService.findByProfitId(profitCfg.getId());
+			profitCfg.setCountryList(profitCfgCountryList);
 		}
 		return profitCfg;
 	}
@@ -192,7 +192,9 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 		return id;
 	}
 
-	@CacheEvict(value = "defaultProfitCfgCache", allEntries = true)
+	
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+                    @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public String setDefaultPlan(String id) {
 		String msg;
 		int result = this.baseMapper.setDefaultPlanById(id);
@@ -204,7 +206,8 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 		return msg;
 	}
 	
-	@CacheEvict(value = "defaultProfitCfgCache", allEntries = true)
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+                    @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public int setNotDefault(String shopId) {
 		return  this.baseMapper.updateAllByShopId(shopId);
 	}
@@ -221,18 +224,35 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 
 	@Cacheable(value = "profitCfgCache")
 	public ProfitConfig getSystemProfitCfg() {
-		return  this.baseMapper.findSystemProfitCfg();
+		ProfitConfig cfg=  this.baseMapper.findSystemProfitCfg();
+		List<ProfitConfigCountry> profitCfgCountryList = profitCfgCountryService.findByProfitId(cfg.getId());
+		cfg.setCountryList(profitCfgCountryList);
+		return  cfg;
 	}
 	
 	@Cacheable(value = "profitCfgCache", key = "#shopId")
 	public List<ProfitConfig> findProfitCfgName(String shopId) {
 		List<ProfitConfig> plans =  this.baseMapper.findPlanNames(shopId);
+		for(ProfitConfig cfg:plans) {
+			List<ProfitConfigCountry> profitCfgCountryList = profitCfgCountryService.findByProfitId(cfg.getId());
+			cfg.setCountryList(profitCfgCountryList);
+			if(cfg.getOperator()!=null) {
+				Result<UserInfo> result = adminClientOneFeign.getUserByUserId(cfg.getOperator().toString());
+				if(Result.isSuccess(result)&&result.getData()!=null) {
+					cfg.setOperatorName(result.getData().getUserinfo().get("name").toString());
+				}
+			}
+		
+		}
 		return plans;
 	}
 
 	@Cacheable(value = "profitCfgCache", key = "#id")
 	public ProfitConfig selectByPKey(String id) {
-		return  this.baseMapper.selectById(id);
+		ProfitConfig cfg  =this.baseMapper.selectById(id);
+		List<ProfitConfigCountry> profitCfgCountryList = profitCfgCountryService.findByProfitId(cfg.getId());
+		cfg.setCountryList(profitCfgCountryList);
+		return  cfg;
 	}
 
 	public int getProfitPlanCountByShopId(String shopId) {
@@ -257,9 +277,30 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 	}
 
 	public ProfitConfig findSysProfitCfg() {
-		return  this.baseMapper.findSystemProfitCfg();
+		ProfitConfig cfg= this.baseMapper.findSystemProfitCfg();
+		List<ProfitConfigCountry> profitCfgCountryList = profitCfgCountryService.findByProfitId(cfg.getId());
+		cfg.setCountryList(profitCfgCountryList);
+		return  cfg;
 	}
 
- 
+	public List<InplaceFee> findInplacefee(String country) {
+		List<InplaceFee> inplacefees = inplaceFeeMapper.findByCountry(country);
+		return inplacefees;
+	}
+
+	public List<ManualProcessingFee> findManualProcessingFee() {
+		List<ManualProcessingFee> manualProcessingFees = manualProcessingFeeMapper.findByCountry("US");
+		return manualProcessingFees;
+	}
+
+	@Override
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+            @CacheEvict(value = "profitCfgCache", allEntries = true)})
+	public boolean updateById(ProfitConfig entity) {
+		// TODO Auto-generated method stub
+		return super.updateById(entity);
+	}
+	
+	
 
 }

@@ -7,10 +7,10 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.erp.inventory.mapper.DispatchFormEntryMapper;
 import com.wimoor.erp.inventory.pojo.entity.DispatchFormEntry;
 import com.wimoor.erp.inventory.service.IDispatchFormEntryService;
-import com.wimoor.erp.util.FileUpload;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 @Service("dispatchFormEntryService")
 @RequiredArgsConstructor
 public class DispatchFormEntryServiceImpl extends  ServiceImpl<DispatchFormEntryMapper,DispatchFormEntry> implements IDispatchFormEntryService {
-
+	final FileUpload fileUpload;
 	public List<Map<String, Object>> selectByFormid(String formid) {
 		return this.baseMapper.selectByFormid(formid);
 	}
@@ -37,7 +37,7 @@ public class DispatchFormEntryServiceImpl extends  ServiceImpl<DispatchFormEntry
 				 String image=null; 
 				Map<String, Object> map = list.get(i);
 				if(map.get("image")!=null)image=map.get("image").toString();
-				if(map.get("image")!=null)list.get(i).put("image",FileUpload.getPictureImage(image));
+				if(map.get("image")!=null)list.get(i).put("image",fileUpload.getPictureImage(image));
 				else list.get(i).put("image","images/systempicture/noimage40.png");
 			}
 		}

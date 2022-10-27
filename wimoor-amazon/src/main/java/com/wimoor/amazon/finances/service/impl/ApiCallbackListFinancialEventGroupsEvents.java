@@ -5,11 +5,7 @@ import java.util.Map;
 
 import com.amazon.spapi.client.ApiCallback;
 import com.amazon.spapi.client.ApiException;
-import com.amazon.spapi.model.finances.FinancialEventGroupList;
-import com.amazon.spapi.model.finances.ListFinancialEventGroupsPayload;
 import com.amazon.spapi.model.finances.ListFinancialEventGroupsResponse;
-import com.amazon.spapi.model.finances.ListFinancialEventsPayload;
-import com.amazon.spapi.model.finances.ListFinancialEventsResponse;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.finances.service.IAmzFinAccountService;
 
@@ -26,13 +22,18 @@ public class ApiCallbackListFinancialEventGroupsEvents implements ApiCallback<Li
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-
+		amazonAuthority.setApiRateLimit(responseHeaders, e);
 	}
 
 	@Override
 	public void onSuccess(ListFinancialEventGroupsResponse result, int statusCode,
 			Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
+		String nexttoken="";
+		if(result!=null&&result.getPayload()!=null&&result.getPayload().getNextToken()!=null) {
+			nexttoken=result.getPayload().getNextToken();
+		}
+		amazonAuthority.setApiRateLimit(responseHeaders, nexttoken);
 	    amzFinAccountService.handler(amazonAuthority,result);
 	}
 
