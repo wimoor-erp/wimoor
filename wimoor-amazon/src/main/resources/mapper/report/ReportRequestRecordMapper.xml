@@ -21,7 +21,7 @@
 	</resultMap>
 	<sql id="Base_Column_List">
 		id, sellerid, marketPlaceId, reportId, reportType, reportRequestId, startDate, isnewest,lastupdate,
-		availableDate,getnumber,treatnumber, report_processing_status,endDate,isrun,reportOptions
+		availableDate,getnumber,treatnumber, report_processing_status,endDate,isrun,reportOptions,reportDocumentId
 	</sql>
 	
 	<select id="oldestRequestByType" resultType="java.util.Date" parameterType="java.lang.String">
@@ -55,7 +55,12 @@
 			</foreach>
 			)
 		</if>
-		and report_processing_status!='_CANCELLED_' 
+		and (report_processing_status is null or report_processing_status='DONE' 
+		or report_processing_status='SUBMITTED' 
+		or report_processing_status='success' 
+		or report_processing_status='treat' 
+		or  report_processing_status='IN_QUEUE' 
+		or  report_processing_status='IN_PROGRESS' )
 		<if test="reporttype=='_GET_FBA_STORAGE_FEE_CHARGES_DATA_' || reporttype=='_GET_FBA_FULFILLMENT_LONGTERM_STORAGE_FEE_CHARGES_DATA_'">
 			and report_processing_status!='DONE_NO_DATA'
 		</if>
@@ -75,7 +80,16 @@
 			and sellerid=#{sellerid,jdbcType=CHAR}
 			and lastupdate>date_add(curdate(), interval -3 day)
 	</select>
-
+	<select id="selectNeedTreatPageViewReport" resultMap="BaseResultMap">
+		select * 
+		from t_report_requestrecord
+		where reportType='GET_SALES_AND_TRAFFIC_REPORT' 
+			and isnewest=true 
+			and ifnull(treatnumber,0) &lt;10
+	        and (report_processing_status is null or report_processing_status='DONE' or report_processing_status='treat' or  report_processing_status='IN_QUEUE' or  report_processing_status='IN_PROGRESS' )
+			and sellerid=#{sellerid,jdbcType=CHAR}
+			and lastupdate>date_add(curdate(), interval -3 day)
+	</select>
 	<select id="hasNeedTreatInventoryReportList" resultMap="BaseResultMap">
 		select * 
 		from t_report_requestrecord
@@ -86,17 +100,14 @@
 			and lastupdate>date_add(curdate(), interval -3 day)
 	</select>
  
-
-
-
-	<select id="selectNoProcessRequest" resultMap="BaseResultMap" parameterType="java.lang.String">
+	<select id="selectNeedRefreshRequest" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select
 		<include refid="Base_Column_List" />
 		from t_report_requestrecord r
 		inner join  (
 			select max(id) vid from t_report_requestrecord
 			where isnewest=true 
-				and treatnumber &lt;10
+				and treatnumber &lt;50
 				and isrun=0
 				and lastupdate>date_add(curdate(), interval -3 day)
 			<if test="reporttype != null">
@@ -108,7 +119,35 @@
 			<if test="marketplaceid != null">
 				and marketPlaceId=#{marketplaceid,jdbcType=CHAR}
 			</if>
-			and (report_processing_status is null or report_processing_status='DONE' or  report_processing_status='IN_QUEUE' or  report_processing_status='IN_PROGRESS' )
+			and (report_processing_status is null 
+			or  report_processing_status='SUBMITTED' 
+			or  report_processing_status='IN_QUEUE' 
+			or  report_processing_status='IN_PROGRESS' )
+			group by sellerid,marketPlaceId
+		) v on r.id=v.vid
+		order by availableDate asc,ifnull(treatnumber,0) asc
+	</select>
+
+
+	<select id="selectNeedProcessRequest" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_report_requestrecord r
+		inner join  (
+			select max(id) vid from t_report_requestrecord
+			where isnewest=true 
+				and ( treatnumber &lt;10 
+				       and lastupdate>date_add(curdate(), interval -3 day) 
+				         or (treatnumber &lt;30 and reportType='GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2')
+				     )
+			<if test="reporttype != null">
+				and reportType=#{reporttype,jdbcType=CHAR}
+			</if>
+			<if test="marketplaceid != null">
+				and marketPlaceId=#{marketplaceid,jdbcType=CHAR}
+			</if>
+		    AND ((report_processing_status='DONE' and isrun=0) or 
+		    (report_processing_status='treat' and isrun=1 and lastupdate&lt;DATE_SUB(NOW(),INTERVAL 2 hour) and lastupdate>DATE_SUB(NOW(),INTERVAL 1 day))  )
 			group by sellerid,marketPlaceId
 		) v on r.id=v.vid
 		order by availableDate asc,ifnull(treatnumber,0) asc
@@ -141,6 +180,7 @@
 			where isnewest=true 
 				and reportid is not null  
 				and ifnull(treatnumber,0) &lt;10 and isrun!=1
+				and lastupdate>curdate()
 			<if test="reporttype != null">
 				and reportType=#{reporttype,jdbcType=CHAR}
 			</if>

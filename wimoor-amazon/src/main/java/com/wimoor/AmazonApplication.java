@@ -7,17 +7,19 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.github.jeffreyning.mybatisplus.conf.EnableMPP;
 import com.wimoor.util.SpringUtil;
 
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
 @EnableCaching
-@EnableMPP
+@EnableScheduling
 @ComponentScan
-public class AmazonApplication {
+@EnableTransactionManagement
+public class AmazonApplication { 
 
     public static void main(String[] args) {
     	ConfigurableApplicationContext context = SpringApplication.run(AmazonApplication.class, args);

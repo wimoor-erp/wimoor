@@ -15,10 +15,6 @@ package com.amazon.spapi.model.finances;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.finances.ChargeComponentList;
-import com.amazon.spapi.model.finances.Currency;
-import com.amazon.spapi.model.finances.FeeComponentList;
-import com.amazon.spapi.model.finances.TaxWithheldComponentList;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -26,13 +22,17 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.finances.ChargeComponentList;
+import com.amazon.spapi.model.finances.Currency;
+import com.amazon.spapi.model.finances.FeeComponentList;
+import com.amazon.spapi.model.finances.TaxWithheldComponentList;
 import java.io.IOException;
 
 /**
  * An event related to a rental transaction.
  */
 @ApiModel(description = "An event related to a rental transaction.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class RentalTransactionEvent {
   @SerializedName("AmazonOrderId")
   private String amazonOrderId = null;

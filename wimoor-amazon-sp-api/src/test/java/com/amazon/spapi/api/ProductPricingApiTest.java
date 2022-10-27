@@ -13,16 +13,18 @@
 
 package com.amazon.spapi.api;
 
+import java.util.List;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.model.productpricing.GetItemOffersBatchRequest;
+import com.amazon.spapi.model.productpricing.GetItemOffersBatchResponse;
+import com.amazon.spapi.model.productpricing.GetListingOffersBatchRequest;
+import com.amazon.spapi.model.productpricing.GetListingOffersBatchResponse;
 import com.amazon.spapi.model.productpricing.GetOffersResponse;
 import com.amazon.spapi.model.productpricing.GetPricingResponse;
-import org.junit.Test;
-import org.junit.Ignore;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * API tests for ProductPricingApi
@@ -36,7 +38,7 @@ public class ProductPricingApiTest {
     /**
      * 
      *
-     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns competitive pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      *
      * @throws ApiException
      *          if the Api call fails
@@ -47,7 +49,8 @@ public class ProductPricingApiTest {
         String itemType = null;
         List<String> asins = null;
         List<String> skus = null;
-        GetPricingResponse response = api.getCompetitivePricing(marketplaceId, itemType, asins, skus);
+        String customerType = null;
+        GetPricingResponse response = api.getCompetitivePricing(marketplaceId, itemType, asins, skus, customerType);
 
         // TODO: test validations
     }
@@ -55,7 +58,7 @@ public class ProductPricingApiTest {
     /**
      * 
      *
-     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a single item based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      *
      * @throws ApiException
      *          if the Api call fails
@@ -65,7 +68,8 @@ public class ProductPricingApiTest {
         String marketplaceId = null;
         String itemCondition = null;
         String asin = null;
-        GetOffersResponse response = api.getItemOffers(marketplaceId, itemCondition, asin);
+        String customerType = null;
+        GetOffersResponse response = api.getItemOffers(marketplaceId, itemCondition, asin, customerType);
 
         // TODO: test validations
     }
@@ -73,7 +77,23 @@ public class ProductPricingApiTest {
     /**
      * 
      *
-     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a batch of items based on ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void getItemOffersBatchTest() throws ApiException {
+        GetItemOffersBatchRequest getItemOffersBatchRequestBody = null;
+        GetItemOffersBatchResponse response = api.getItemOffersBatch(getItemOffersBatchRequestBody);
+
+        // TODO: test validations
+    }
+    
+    /**
+     * 
+     *
+     * Returns the lowest priced offers for a single SKU listing.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 5 | 10 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      *
      * @throws ApiException
      *          if the Api call fails
@@ -83,7 +103,8 @@ public class ProductPricingApiTest {
         String marketplaceId = null;
         String itemCondition = null;
         String sellerSKU = null;
-        GetOffersResponse response = api.getListingOffers(marketplaceId, itemCondition, sellerSKU);
+        String customerType = null;
+        GetOffersResponse response = api.getListingOffers(marketplaceId, itemCondition, sellerSKU, customerType);
 
         // TODO: test validations
     }
@@ -91,7 +112,23 @@ public class ProductPricingApiTest {
     /**
      * 
      *
-     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 1 | 1 |  For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns the lowest priced offers for a batch of listings by SKU.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | .5 | 1 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void getListingOffersBatchTest() throws ApiException {
+        GetListingOffersBatchRequest getListingOffersBatchRequestBody = null;
+        GetListingOffersBatchResponse response = api.getListingOffersBatch(getListingOffersBatchRequestBody);
+
+        // TODO: test validations
+    }
+    
+    /**
+     * 
+     *
+     * Returns pricing information for a seller&#39;s offer listings based on seller SKU or ASIN.  **Usage Plan:**  | Rate (requests per second) | Burst | | ---- | ---- | | 10 | 20 |  The &#x60;x-amzn-RateLimit-Limit&#x60; response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](doc:usage-plans-and-rate-limits-in-the-sp-api).
      *
      * @throws ApiException
      *          if the Api call fails
@@ -103,7 +140,8 @@ public class ProductPricingApiTest {
         List<String> asins = null;
         List<String> skus = null;
         String itemCondition = null;
-        GetPricingResponse response = api.getPricing(marketplaceId, itemType, asins, skus, itemCondition);
+        String offerType = null;
+        GetPricingResponse response = api.getPricing(marketplaceId, itemType, asins, skus, itemCondition, offerType);
 
         // TODO: test validations
     }

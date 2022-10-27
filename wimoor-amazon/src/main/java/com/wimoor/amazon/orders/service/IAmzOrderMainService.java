@@ -22,6 +22,7 @@ public interface IAmzOrderMainService extends IService<AmzOrderMain>,IRunAmazonS
 
 	
 	public int saveAddress(AmzOrderBuyerShipAddress entity);
-	public void handlerOrderResponse(AmazonAuthority auth,AmzAuthApiTimelimit apilimit,Date startDate,GetOrdersResponse response) ;
+	public void handlerOrderResponse(AmazonAuthority auth,AmzAuthApiTimelimit apilimit,GetOrdersResponse response) ;
+	public void removeDataArchive();
  
 }

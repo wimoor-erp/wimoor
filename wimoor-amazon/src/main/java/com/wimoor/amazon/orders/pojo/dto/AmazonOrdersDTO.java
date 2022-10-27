@@ -65,4 +65,10 @@ public class AmazonOrdersDTO extends BasePageQuery{
 	@ApiModelProperty(value = "客户类型['true','false']")
 	String isbusiness;
 	
+	@ApiModelProperty(value = "公司ID[系统填充]")
+	String shopid;
+	
+	@ApiModelProperty(value = "[系统填充]")
+	String isarchive="false";
+	
 }

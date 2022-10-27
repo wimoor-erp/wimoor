@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.auth.mapper.WareHouseFBAMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.WareHouseFBA" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="number" property="number" jdbcType="CHAR" />
+    <result column="stocking_cycle" property="stockingCycle" jdbcType="INTEGER" />
+    <result column="min_cycle" property="minCycle" jdbcType="INTEGER" />
+    <result column="put_on_days" property="putOnDays" jdbcType="INTEGER" />
+    <result column="first_leg_days" property="firstLegDays" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, marketplaceid, name, number, stocking_cycle, min_cycle, put_on_days, remark, first_leg_days, 
+    operator, opttime
+  </sql>
+  
+  
+	<!-- 假如第一次添加仓库，默认插入该ShopId下的的FBA仓库 -->
+	<insert id="saveFBA" parameterType="java.lang.String">
+		insert ignore into
+		t_erp_warehouse_fba (
+		`id` , `name` , `number` , `shopid` , `marketplaceid`, `operator` , `opttime`
+		)
+		select UUID_SHORT() id,CONCAT('FBA-', m.market) name,CONCAT(m.market,#{sernum,jdbcType=CHAR}) number,
+			#{shopid,jdbcType=CHAR}, m.marketplaceid, #{operator,jdbcType=CHAR},now()
+		from t_marketplace m
+		left join t_erp_warehouse_fba w on m.marketplaceid=w.marketplaceid and w.shopid=#{shopid,jdbcType=CHAR}
+		where w.id is null 
+			and m.region!='EU'
+			and m.marketplaceid in 
+				(
+				select marketplace_id
+				from t_amazonseller_market
+				where sellerid in 
+					(
+					select sellerid
+					from t_amazon_auth
+					where shop_id=#{shopid,jdbcType=CHAR}
+					)
+				)
+		union all
+		select * 
+		from 
+			(
+			select UUID_SHORT() id,CONCAT('FBA-', m.region) name,
+				CONCAT(m.region,#{sernum,jdbcType=CHAR}) number,
+				#{shopid,jdbcType=CHAR}, m.region, #{operator,jdbcType=CHAR},now()
+			from t_marketplace m
+			left join t_erp_warehouse_fba w on m.region=w.marketplaceid and w.shopid=#{shopid,jdbcType=CHAR}
+			where w.id is null 
+				and m.region='EU'
+				and m.marketplaceid in 
+					(
+					select marketplace_id
+					from t_amazonseller_market
+					where sellerid in 
+						(
+						select sellerid
+						from t_amazon_auth
+						where shop_id=#{shopid,jdbcType=CHAR}
+						) 
+					)
+		group by m.region,m.region_name ) V
+	</insert>
+	<!-- 删除没有绑定地区的FBA仓库 -->
+	<delete id="deleteFBA" parameterType="java.lang.String">
+		delete
+		from t_erp_warehouse_fba
+		where shopid=#{shopid,jdbcType=CHAR}
+			and marketplaceid not in
+				(
+				select marketplace_id 
+				from t_amazonseller_market
+				where sellerid in 
+					(
+					select sellerid 
+					from t_amazon_auth
+					where shop_id=#{shopid,jdbcType=CHAR}
+					)
+				union all
+				select region 
+				from t_amazon_auth
+				where shop_id=#{shopid,jdbcType=CHAR} 
+					and region='EU'
+				)
+	</delete>
+	
+  	<select id="selectAllByShopId" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.* from t_erp_warehouse_fba w 
+		left join t_marketplace m on w.marketplaceid=m.marketplaceId or w.marketplaceid=m.region 
+		where w.shopid=#{shopid,jdbcType=CHAR} 
+		GROUP BY w.id order by m.findex;
+	</select>
+   
+  <select id="getDaysByMarketplaceid" resultMap="BaseResultMap" parameterType="java.lang.String" >
+   	select * from t_erp_warehouse_fba where shopid= #{shopid,jdbcType=CHAR} and 
+   	 marketplaceid= #{marketplaceid,jdbcType=CHAR} 
+  </select>
+   
+  <select id="findByCondition" resultType="java.util.Map" parameterType="java.lang.String">
+   	select v.marketplaceid ,v.name regionname,
+   	 ifnull(rn.put_on_days,0) putdays,
+   	 ifnull(rn.first_leg_days,0) legdays,
+   	 ifnull(rn.stocking_cycle,0) stockcycle,
+   	 ifnull(rn.min_cycle,0) mincycle,
+   	 CAST(rn.id AS CHAR)  id, 
+   	 v.market, v.region, rn.operator, rn.opttime, tu.name username  
+	from  (
+   		select case when ti.region='EU' then 'EU' else  ti.marketplaceid end marketplaceid,
+   		       case when ti.region='EU' then '欧洲' else ti.name end name, ti.region,ti.market
+   		from t_amazon_auth au 
+   		left join t_amazonseller_market am on am.sellerid=au.sellerid
+   		left join t_marketplace ti  on am.marketplace_id=ti.marketplaceId
+   		where  au.shop_id=#{shopid,jdbcType=CHAR}  and am.disable=false AND ti.marketplaceId IS NOT NULL 
+   		group by case when ti.region='EU' then 'EU' else  ti.marketplaceid end
+       ) v
+		left join t_erp_warehouse_fba rn on rn.marketplaceid=v.marketplaceId and rn.shopid=#{shopid,jdbcType=CHAR} 
+		left join t_userinfo tu on tu.id = rn.operator
+   <if test="search!=null">
+   		where  v.name like #{search,jdbcType=CHAR}
+   </if>
+   </select>
+   
+   <select id="findBySerch" resultType="java.util.Map" parameterType="java.lang.String">
+		select CAST(w.id AS CHAR) id, w.name,'fba' ftype, w.number,w.marketplaceid parentid, 
+			w.shopid,w.marketplaceid,u.name operator,w.opttime,w.stocking_cycle 
+		from t_erp_warehouse_fba w
+		left join t_userinfo u on u.id=w.operator
+		where w.shopid=#{shopid,jdbcType=CHAR}  
+		<if test="search != null">
+			and (w.name like #{search,jdbcType=CHAR} or w.number like #{search,jdbcType=CHAR})
+		</if>
+		order by w.name
+	</select>
+	
+	<select id="getWarehouseFBA" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.marketplaceid,CAST(w.id AS CHAR) id, w.operator, w.opttime, tu.name username,
+		   	 ifnull(w.put_on_days,0) putdays,
+		   	 ifnull(w.first_leg_days,0) legdays,
+		   	 ifnull(w.stocking_cycle,0) stockcycle,
+		   	 ifnull(w.min_cycle,0) mincycle
+		from t_erp_warehouse_fba w
+		left join t_userinfo tu on tu.id = w.operator
+		where w.shopid=#{shopid,jdbcType=CHAR}  
+		 and w.marketplaceid= #{marketplaceid,jdbcType=CHAR} 
+	</select>
+	
+	<select id="selectFbaWareSelfById" resultType="java.util.Map" parameterType="java.lang.String">
+	SELECT v2.* FROM t_erp_warehouse v
+	LEFT JOIN t_erp_warehouse v2 ON v2.parentid=v.id
+	 WHERE v2.ftype='self_usable' AND  v.id =(
+	SELECT t.id FROM t_erp_warehouse t 
+	WHERE t.fbawareid=#{fbawareid,jdbcType=CHAR} LIMIT 1)
+	AND v2.disabled=0
+	 ORDER BY v2.findex DESC LIMIT 1
+	</select>
+	
+   	<select id="findFbaMarket" resultType="com.wimoor.amazon.auth.pojo.entity.WareHouseFBA" parameterType="java.lang.String">
+		select w.* 
+		from t_erp_warehouse_fba w
+		left join t_erp_market_priority p on p.marketplaceid=w.marketplaceid and p.groupid=#{groupid,jdbcType=CHAR}
+		left join t_marketplace m on case when w.marketplaceid='EU' then m.marketplaceid='A1PA6795UKMFR9' else m.marketplaceid=w.marketplaceid end
+		where shopid=#{shopid,jdbcType=CHAR}
+		order by p.priority asc, m.findex asc
+	</select>
+
+	<select id="findFbaWarehouseByShop" resultType="com.wimoor.amazon.auth.pojo.entity.WareHouseFBA" parameterType="java.lang.String">
+		select distinct w.* 
+		from t_erp_warehouse_fba w
+		left join t_erp_market_priority p on p.marketplaceid=w.marketplaceid
+		left join t_marketplace m on m.marketplaceid=w.marketplaceid
+		where shopid=#{shopid,jdbcType=CHAR}
+		order by p.priority asc, m.findex asc
+	</select>
+</mapper>

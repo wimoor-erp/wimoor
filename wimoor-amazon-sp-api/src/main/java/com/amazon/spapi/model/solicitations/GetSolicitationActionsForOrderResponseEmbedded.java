@@ -22,6 +22,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.solicitations.GetSolicitationActionResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.List;
 /**
  * GetSolicitationActionsForOrderResponseEmbedded
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T21:00:32.319+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:35:06.645+08:00")
 public class GetSolicitationActionsForOrderResponseEmbedded {
   @SerializedName("actions")
   private List<GetSolicitationActionResponse> actions = new ArrayList<GetSolicitationActionResponse>();

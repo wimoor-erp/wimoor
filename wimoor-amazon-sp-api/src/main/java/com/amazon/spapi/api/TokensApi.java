@@ -1,6 +1,6 @@
 /*
  * Selling Partner API for Tokens 
- * The Selling Partner API for Tokens provides a secure way to access a customers's PII (Personally Identifiable Information). You can call the Tokens API to get a Restricted Data Token (RDT) for one or more restricted resources that you specify. The RDT authorizes you to make subsequent requests to access these restricted resources.
+ * The Selling Partner API for Tokens provides a secure way to access a customer's PII (Personally Identifiable Information). You can call the Tokens API to get a Restricted Data Token (RDT) for one or more restricted resources that you specify. The RDT authorizes subsequent calls to restricted operations that correspond to the restricted resources that you specified.  For more information, see the [Tokens API Use Case Guide](doc:tokens-api-use-case-guide).
  *
  * OpenAPI spec version: 2021-03-01
  * 
@@ -13,6 +13,13 @@
 
 package com.amazon.spapi.api;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentials;
 import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentialsProvider;
 import com.amazon.spapi.SellingPartnerAPIAA.AWSSigV4Signer;
@@ -20,22 +27,19 @@ import com.amazon.spapi.SellingPartnerAPIAA.LWAAccessTokenCache;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAAccessTokenCacheImpl;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationCredentials;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationSigner;
-import com.amazon.spapi.client.*;
-
-import com.google.gson.reflect.TypeToken;
-
-import java.io.IOException;
-
-
+import com.amazon.spapi.SellingPartnerAPIAA.RateLimitConfiguration;
+import com.amazon.spapi.client.ApiCallback;
+import com.amazon.spapi.client.ApiClient;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.client.ApiResponse;
+import com.amazon.spapi.client.Configuration;
+import com.amazon.spapi.client.Pair;
+import com.amazon.spapi.client.ProgressRequestBody;
+import com.amazon.spapi.client.ProgressResponseBody;
+import com.amazon.spapi.client.StringUtil;
 import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenRequest;
 import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenResponse;
-import com.amazon.spapi.model.ErrorList;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.gson.reflect.TypeToken;
 
 public class TokensApi {
     private ApiClient apiClient;
@@ -92,7 +96,7 @@ public class TokensApi {
         if(progressListener != null) {
             apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
                 @Override
-                public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
                     com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
                     return originalResponse.newBuilder()
                     .body(new ProgressResponseBody(originalResponse.body(), progressListener))
@@ -121,7 +125,7 @@ public class TokensApi {
 
     /**
      * 
-     * Returns a Restricted Data Token (RDT) for one or more restricted resources that you specify. A restricted resource is the HTTP method and path from a restricted operation that returns Personally Identifiable Information (PII). See the Tokens API Use Case Guide for a list of restricted operations. Use the RDT returned here as the access token in subsequent calls to the corresponding restricted operations.  The path of a restricted resource can be: - A specific path containing a seller&#39;s order ID, for example &#x60;&#x60;&#x60;/orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60;. The returned RDT authorizes a subsequent call to the getOrderAddress operation of the Orders API for that specific order only. For example, &#x60;&#x60;&#x60;GET /orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60;. - A generic path that does not contain a seller&#39;s order ID, for example&#x60;&#x60;&#x60;/orders/v0/orders/{orderId}/address&#x60;&#x60;&#x60;). The returned RDT authorizes subsequent calls to the getOrderAddress operation for *any* of a seller&#39;s order IDs. For example, &#x60;&#x60;&#x60;GET /orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60; and &#x60;&#x60;&#x60;GET /orders/v0/orders/483-3488972-0896720/address&#x60;&#x60;&#x60;  **Usage Plans:**  | Plan type | Rate (requests per second) | Burst | | ---- | ---- | ---- | |Default| 1 | 10 | |Selling partner specific| Variable | Variable |  The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns a Restricted Data Token (RDT) for one or more restricted resources that you specify. A restricted resource is the HTTP method and path from a restricted operation that returns Personally Identifiable Information (PII), plus a dataElements value that indicates the type of PII requested. See the Tokens API Use Case Guide for a list of restricted operations. Use the RDT returned here as the access token in subsequent calls to the corresponding restricted operations.  **Usage Plans:**  | Plan type | Rate (requests per second) | Burst | | ---- | ---- | ---- | |Default| 1 | 10 | |Selling partner specific| Variable | Variable |  The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
      * @param body The restricted data token request details. (required)
      * @return CreateRestrictedDataTokenResponse
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -133,7 +137,7 @@ public class TokensApi {
 
     /**
      * 
-     * Returns a Restricted Data Token (RDT) for one or more restricted resources that you specify. A restricted resource is the HTTP method and path from a restricted operation that returns Personally Identifiable Information (PII). See the Tokens API Use Case Guide for a list of restricted operations. Use the RDT returned here as the access token in subsequent calls to the corresponding restricted operations.  The path of a restricted resource can be: - A specific path containing a seller&#39;s order ID, for example &#x60;&#x60;&#x60;/orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60;. The returned RDT authorizes a subsequent call to the getOrderAddress operation of the Orders API for that specific order only. For example, &#x60;&#x60;&#x60;GET /orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60;. - A generic path that does not contain a seller&#39;s order ID, for example&#x60;&#x60;&#x60;/orders/v0/orders/{orderId}/address&#x60;&#x60;&#x60;). The returned RDT authorizes subsequent calls to the getOrderAddress operation for *any* of a seller&#39;s order IDs. For example, &#x60;&#x60;&#x60;GET /orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60; and &#x60;&#x60;&#x60;GET /orders/v0/orders/483-3488972-0896720/address&#x60;&#x60;&#x60;  **Usage Plans:**  | Plan type | Rate (requests per second) | Burst | | ---- | ---- | ---- | |Default| 1 | 10 | |Selling partner specific| Variable | Variable |  The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns a Restricted Data Token (RDT) for one or more restricted resources that you specify. A restricted resource is the HTTP method and path from a restricted operation that returns Personally Identifiable Information (PII), plus a dataElements value that indicates the type of PII requested. See the Tokens API Use Case Guide for a list of restricted operations. Use the RDT returned here as the access token in subsequent calls to the corresponding restricted operations.  **Usage Plans:**  | Plan type | Rate (requests per second) | Burst | | ---- | ---- | ---- | |Default| 1 | 10 | |Selling partner specific| Variable | Variable |  The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
      * @param body The restricted data token request details. (required)
      * @return ApiResponse&lt;CreateRestrictedDataTokenResponse&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -146,7 +150,7 @@ public class TokensApi {
 
     /**
      *  (asynchronously)
-     * Returns a Restricted Data Token (RDT) for one or more restricted resources that you specify. A restricted resource is the HTTP method and path from a restricted operation that returns Personally Identifiable Information (PII). See the Tokens API Use Case Guide for a list of restricted operations. Use the RDT returned here as the access token in subsequent calls to the corresponding restricted operations.  The path of a restricted resource can be: - A specific path containing a seller&#39;s order ID, for example &#x60;&#x60;&#x60;/orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60;. The returned RDT authorizes a subsequent call to the getOrderAddress operation of the Orders API for that specific order only. For example, &#x60;&#x60;&#x60;GET /orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60;. - A generic path that does not contain a seller&#39;s order ID, for example&#x60;&#x60;&#x60;/orders/v0/orders/{orderId}/address&#x60;&#x60;&#x60;). The returned RDT authorizes subsequent calls to the getOrderAddress operation for *any* of a seller&#39;s order IDs. For example, &#x60;&#x60;&#x60;GET /orders/v0/orders/902-3159896-1390916/address&#x60;&#x60;&#x60; and &#x60;&#x60;&#x60;GET /orders/v0/orders/483-3488972-0896720/address&#x60;&#x60;&#x60;  **Usage Plans:**  | Plan type | Rate (requests per second) | Burst | | ---- | ---- | ---- | |Default| 1 | 10 | |Selling partner specific| Variable | Variable |  The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
+     * Returns a Restricted Data Token (RDT) for one or more restricted resources that you specify. A restricted resource is the HTTP method and path from a restricted operation that returns Personally Identifiable Information (PII), plus a dataElements value that indicates the type of PII requested. See the Tokens API Use Case Guide for a list of restricted operations. Use the RDT returned here as the access token in subsequent calls to the corresponding restricted operations.  **Usage Plans:**  | Plan type | Rate (requests per second) | Burst | | ---- | ---- | ---- | |Default| 1 | 10 | |Selling partner specific| Variable | Variable |  The x-amzn-RateLimit-Limit response header returns the usage plan rate limits that were applied to the requested operation. Rate limits for some selling partners will vary from the default rate and burst shown in the table above. For more information, see \&quot;Usage Plans and Rate Limits\&quot; in the Selling Partner API documentation.
      * @param body The restricted data token request details. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -186,6 +190,7 @@ public class TokensApi {
         private LWAAccessTokenCache lwaAccessTokenCache;
         private Boolean disableAccessTokenCache = false;
         private AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider;
+        private RateLimitConfiguration rateLimitConfiguration;
 
         public Builder awsAuthenticationCredentials(AWSAuthenticationCredentials awsAuthenticationCredentials) {
             this.awsAuthenticationCredentials = awsAuthenticationCredentials;
@@ -214,6 +219,16 @@ public class TokensApi {
         
         public Builder awsAuthenticationCredentialsProvider(AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider) {
             this.awsAuthenticationCredentialsProvider = awsAuthenticationCredentialsProvider;
+            return this;
+        }
+        
+        public Builder rateLimitConfigurationOnRequests(RateLimitConfiguration rateLimitConfiguration){
+            this.rateLimitConfiguration = rateLimitConfiguration;
+            return this;
+        }
+        
+        public Builder disableRateLimitOnRequests() {
+            this.rateLimitConfiguration = null;
             return this;
         }
         
@@ -253,7 +268,8 @@ public class TokensApi {
             return new TokensApi(new ApiClient()
                 .setAWSSigV4Signer(awsSigV4Signer)
                 .setLWAAuthorizationSigner(lwaAuthorizationSigner)
-                .setBasePath(endpoint));
+                .setBasePath(endpoint)
+                .setRateLimiter(rateLimitConfiguration));
         }
     }
 }

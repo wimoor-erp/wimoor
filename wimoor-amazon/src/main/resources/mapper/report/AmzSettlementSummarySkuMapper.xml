@@ -932,15 +932,17 @@
 			and mt.owner = #{myself,jdbcType=CHAR}
 		</if>
 	</select>
- 
-	<delete id="refreshSummary" parameterType="java.util.Map">
+    <select id="summaryData" resultType="java.lang.Double" parameterType="java.lang.String">
+		 SELECT 
+			(SELECT sum(ifnull(amount,0)) from t_amz_settlement_report r   WHERE  r.settlement_id= #{settlementid,jdbcType=CHAR}) 
+			 -
+			ifnull((SELECT 
+			 SUM(ifnull(r.principal,0)+IFNULL(r.commission,0)+IFNULL(r.fbafee,0)+IFNULL(r.refund,0)+IFNULL(r.otherfee,0)+IFNULL(r.tax,0)) amount
+			from t_amz_settlement_summary_sku r WHERE r.settlementid= #{settlementid,jdbcType=CHAR}),0)
+    </select>
+	<delete id="refreshSummary"  parameterType="java.util.Map">
 		delete from t_amz_settlement_summary_sku
-		where marketplace_name = #{marketplace_name,jdbcType=CHAR}
-			and posted_date >= #{beginDate,jdbcType=DATE}
-			and posted_date &lt;= #{endDate,jdbcType=DATE}
-			and amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
-			 and settlementid=#{settlement_id,jdbcType=CHAR}
-			;
+		where  settlementid=#{settlement_id,jdbcType=CHAR};
 			
 		insert into t_amz_settlement_summary_sku
 		select UUID_SHORT(), r.settlement_id,r.amazonauthid,IFNULL(r.sku,'*'),rt.marketplace_name,posted_date,
@@ -960,11 +962,7 @@
 			sum(case when amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' then amount else 0 end) tax
 		from t_amz_settlement_report r
 		left JOIN t_amz_settlement_acc_report rt ON r.settlement_id=rt.settlement_id
-		where rt.marketplace_name = #{marketplace_name,jdbcType=CHAR}
-			and r.posted_date >= #{beginDate,jdbcType=DATE}
-			and r.posted_date &lt;= #{endDate,jdbcType=DATE}
-			and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
-			and r.settlement_id=#{settlement_id,jdbcType=CHAR}
+		where  r.settlement_id=#{settlement_id,jdbcType=CHAR}
 		group BY r.amazonAuthId,sku,rt.marketplace_name ,r.posted_date
 	</delete>
 	

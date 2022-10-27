@@ -2,22 +2,35 @@ package com.wimoor.amazon.report.service.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.amazon.spapi.api.ReportsApi;
+import com.amazon.spapi.client.ApiCallback;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.model.reports.CreateReportResponse;
+import com.amazon.spapi.model.reports.CreateReportSpecification;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
-import com.wimoor.amazon.product.pojo.entity.ProductInfo;
+import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.product.service.IProductInOptService;
 import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.amazon.report.mapper.InventoryReportMapper;
+import com.wimoor.amazon.report.pojo.dto.InvDayDetailDTO;
 import com.wimoor.amazon.report.pojo.entity.InventoryReport;
+import com.wimoor.amazon.report.service.IInventoryService;
+import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 
 import cn.hutool.core.util.StrUtil;
@@ -26,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  
 @Slf4j
 @Service("reportAmzInventoryService")
-public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
+public class ReportAmzInventoryServiceImpl extends ReportServiceImpl implements IInventoryService{
  
 	@Resource
 	private IProductInfoService iProductInfoService;
@@ -34,11 +47,50 @@ public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
 	private InventoryReportMapper inventoryReportMapper;
 	@Resource
 	private IProductInOptService iProductInOptService;
-	
+	 
+	public  void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
+		  ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
+		  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
+		  boolean iseu=false;
+		  for(Marketplace market:marketlist) {
+			  CreateReportSpecification body=new CreateReportSpecification();
+			  body.setReportType(myReportType());
+			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
+			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
+			  if(market.getRegion().equals("EU")) {
+				  if(iseu) {
+					  return;
+				  }else {
+					  iseu=true;
+				  }
+			  }
+			  List<String> list=new ArrayList<String>();
+			  list.add(market.getMarketplaceid());
+			  amazonAuthority.setMarketPlace(market);
+			  if(ignore==null||ignore==false) {
+				  Map<String,Object> param=new HashMap<String,Object>();
+				  param.put("sellerid", amazonAuthority.getSellerid());
+				  param.put("reporttype", this.myReportType());
+				  param.put("marketplacelist", list);
+				  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
+				  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<5) {
+					  continue;
+				  }
+			  }
+			  body.setMarketplaceIds(list);
+			  try {
+					  ApiCallback<CreateReportResponse> response = new ApiCallbackReportCreate(this,amazonAuthority,market,cstart.getTime(),cend.getTime());
+				      api.createReportAsync(body,response);
+				  } catch (ApiException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+			    }
+		  }
+}
 	/**
 	 * afn-researching-quantity	afn-reserved-future-supply	afn-future-supply-buyable
 	 */
-	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
+	public synchronized String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
 		String mlog="";
 		int lineNumber = 0;
 		InventoryReport record = null;
@@ -54,16 +106,6 @@ public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
 					}
 				}
 				if (lineNumber != 0) {
-					if(lineNumber==1){
-						QueryWrapper<InventoryReport> query =new QueryWrapper<InventoryReport>();
-						query.eq("amazonAuthId",amazonAuthority.getId());
-						if ("EU".equals(amazonAuthority.getMarketPlace().getRegion())) {
-							query.eq("marketplaceid","EU");
-						}else {
-							query.eq("marketplaceid",amazonAuthority.getMarketPlace().getMarketplaceid());
-						}
-						inventoryReportMapper.delete(query);
-					}
 					record = new InventoryReport();
 					int i = 0;
 					String sku = i < length ? info[i++] : null;
@@ -101,7 +143,7 @@ public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
 					if(condition.length()>19)condition.substring(0, 18);
 					record.setPcondition(condition);
 					if(StrUtil.isEmpty(your_price)||"Unknown".equals(your_price)) {
-						if((StrUtil.isEmpty(condition)||"Unknown".equals(condition))&&(afn_total_quantity==null||"0".equals(afn_total_quantity))) {
+						if((StrUtil.isEmpty(condition)||"Unknown".equals(condition))&&(afn_total_quantity==null)) {
 							lineNumber++;
 							continue;
 						}
@@ -135,31 +177,17 @@ public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
 					}
 					record.setByday(amazonAuthority.getCaptureDateTime());
 					try {
-						List<ProductInfo> infolist = iProductInfoService.selectBySku(record.getSku(), record.getMarketplaceid(), record.getAmazonAuthId());
-						if(infolist!=null && infolist.size()>0) {
-							ProductInfo infos = infolist.get(0);
-							if(infos!=null) {
-								String pid = infos.getId();
-								ProductInOpt opt = iProductInOptService.getById(pid);
-								if(opt!=null) {
-									opt.setFnsku(fnsku);
-									iProductInOptService.updateById(opt);
-								}else {
-									ProductInOpt opts =new ProductInOpt(); 
-									opts.setPid(new BigInteger(pid));
-									opts.setDisable(false);
-									opts.setFnsku(fnsku);
-									opts.setLastupdate(LocalDateTime.now());
-									iProductInOptService.save(opts);
-								}
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						mlog+="SKU:"+sku+","+e.getMessage();
-					} 
-					try {
 						record.setIsnewest(true);
+						QueryWrapper<InventoryReport> query=new QueryWrapper<InventoryReport>();
+						query.eq("sku", record.getSku());
+						query.eq("marketplaceid", record.getMarketplaceid());
+						query.eq("amazonAuthId", record.getAmazonAuthId());
+						InventoryReport oldone = inventoryReportMapper.selectOne(query);
+						if(oldone!=null) {
+							inventoryReportMapper.update(record, query);
+						}else {
+							inventoryReportMapper.insert(record);
+						}
 						inventoryReportMapper.newestInsert(record);
 					}catch(Exception e) {
 						e.printStackTrace();
@@ -169,6 +197,7 @@ public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			log.info("ReportAmzInventoryService:"+e.getMessage());
 			e.printStackTrace();
 		}  finally {
 				if(br!=null) {
@@ -183,7 +212,70 @@ public class ReportAmzInventoryServiceImpl extends ReportServiceImpl{
       return mlog;
 	}
 	
+
  
+	
+	public List<Map<String, String>> getInvDaySumField(Map<String, Date> parameter) {
+		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+		Calendar calendar = Calendar.getInstance();
+		Date endDate = parameter.get("endDate");
+		Date beginDate = parameter.get("beginDate");
+		calendar.setTime(beginDate);
+		Date end = endDate;
+		for (Date step = calendar.getTime(); step.before(end) || step.equals(end); calendar.add(Calendar.DATE, 1), step = calendar.getTime()) {
+			String field = GeneralUtil.formatDate(step, GeneralUtil.FMT_YMD);
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("byday", field);
+			map.put("field", "v" + field);
+			list.add(map);
+		}
+		return list;
+	}
+
+	public IPage<Map<String, Object>> getFBAInvDayDetail(Page<?> page,Map<String, Object> parameter) {
+		Map<String, Date> pmap = new HashMap<String, Date>();
+		String endDateStr = (String) parameter.get("endDate");
+		String beginDateStr = (String) parameter.get("beginDate");
+		Date endDate = null;
+		Date beginDate = null;
+		if (endDateStr != null && beginDateStr != null) {
+			endDate = GeneralUtil.getDatez(endDateStr);
+			beginDate = GeneralUtil.getDatez(beginDateStr);
+		}
+		pmap.put("beginDate", beginDate);
+		pmap.put("endDate", endDate);
+		List<Map<String, String>> fieldlist = getInvDaySumField(pmap);
+		parameter.put("fieldlist", fieldlist);
+
+		IPage<Map<String, Object>> pagelist = inventoryReportMapper.getFBAInvDayDetail(page,parameter);
+//		Map<String, Object> map = inventoryReportMapper.getFBAInvDayTotal(parameter);
+		if (pagelist != null && pagelist.getTotal() > 0) {
+			String marketplaceid = null;
+			String groupid = null;
+			if (parameter.get("warehouse") != null) {
+				marketplaceid = parameter.get("warehouse").toString();
+			}
+			if (parameter.get("groupid") != null) {
+				groupid = parameter.get("groupid").toString();
+			}
+			for (Map<String, Object> pagemap : pagelist.getRecords()) {
+				String sku_p = pagemap.get("sku").toString();
+				Map<String, Object> product = iProductInfoService.findNameAndPicture(sku_p, marketplaceid, groupid);
+				if (product != null) {
+					String image_location =null;
+					if ( product.get("image") != null) {
+						image_location = product.get("image").toString();
+					}else {
+						image_location = "images/systempicture/noimage40.png";
+					}
+					pagemap.put("pname", product.get("name"));
+				}
+			}
+//			pagelist.get(0).putAll(map);
+		}
+		return pagelist;
+	}
+
 
 	@Override
 	public String myReportType() {

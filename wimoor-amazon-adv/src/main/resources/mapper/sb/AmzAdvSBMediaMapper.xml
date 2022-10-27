@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sb.dao.AmzAdvSBMediaMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sb.pojo.AmzAdvSBMedia" >
+    <id column="mediaId" property="mediaid" jdbcType="CHAR" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="statusMetadata" property="statusmetadata" jdbcType="VARCHAR" />
+    <result column="publishedMediaUrl" property="publishedmediaurl" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    mediaId, profileid,campaignId, status, statusMetadata, publishedMediaUrl,operator,opttime
+  </sql>
+  <select id="loadOldMedia" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_media_hsa
+    where profileid = #{profileid,jdbcType=BIGINT}
+    and opttime>date_sub(curdate(),interval 3 day)
+    order by opttime desc
+    limit 1
+  </select>
+</mapper>

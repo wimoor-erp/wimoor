@@ -15,8 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.MoneyType;
-import com.amazon.spapi.model.productpricing.Points;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -24,18 +22,31 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.MoneyType;
+import com.amazon.spapi.model.productpricing.OfferCustomerType;
+import com.amazon.spapi.model.productpricing.Points;
+import com.amazon.spapi.model.productpricing.QuantityDiscountType;
 import java.io.IOException;
 
 /**
  * LowestPriceType
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class LowestPriceType {
   @SerializedName("condition")
   private String condition = null;
 
   @SerializedName("fulfillmentChannel")
   private String fulfillmentChannel = null;
+
+  @SerializedName("offerType")
+  private OfferCustomerType offerType = null;
+
+  @SerializedName("quantityTier")
+  private Integer quantityTier = null;
+
+  @SerializedName("quantityDiscountType")
+  private QuantityDiscountType quantityDiscountType = null;
 
   @SerializedName("LandedPrice")
   private MoneyType landedPrice = null;
@@ -83,6 +94,60 @@ public class LowestPriceType {
 
   public void setFulfillmentChannel(String fulfillmentChannel) {
     this.fulfillmentChannel = fulfillmentChannel;
+  }
+
+  public LowestPriceType offerType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+    return this;
+  }
+
+   /**
+   * Indicates the type of customer that the offer is valid for.
+   * @return offerType
+  **/
+  @ApiModelProperty(value = "Indicates the type of customer that the offer is valid for.")
+  public OfferCustomerType getOfferType() {
+    return offerType;
+  }
+
+  public void setOfferType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+  }
+
+  public LowestPriceType quantityTier(Integer quantityTier) {
+    this.quantityTier = quantityTier;
+    return this;
+  }
+
+   /**
+   * Indicates at what quantity this price becomes active.
+   * @return quantityTier
+  **/
+  @ApiModelProperty(value = "Indicates at what quantity this price becomes active.")
+  public Integer getQuantityTier() {
+    return quantityTier;
+  }
+
+  public void setQuantityTier(Integer quantityTier) {
+    this.quantityTier = quantityTier;
+  }
+
+  public LowestPriceType quantityDiscountType(QuantityDiscountType quantityDiscountType) {
+    this.quantityDiscountType = quantityDiscountType;
+    return this;
+  }
+
+   /**
+   * Indicates the type of quantity discount this price applies to.
+   * @return quantityDiscountType
+  **/
+  @ApiModelProperty(value = "Indicates the type of quantity discount this price applies to.")
+  public QuantityDiscountType getQuantityDiscountType() {
+    return quantityDiscountType;
+  }
+
+  public void setQuantityDiscountType(QuantityDiscountType quantityDiscountType) {
+    this.quantityDiscountType = quantityDiscountType;
   }
 
   public LowestPriceType landedPrice(MoneyType landedPrice) {
@@ -169,6 +234,9 @@ public class LowestPriceType {
     LowestPriceType lowestPriceType = (LowestPriceType) o;
     return Objects.equals(this.condition, lowestPriceType.condition) &&
         Objects.equals(this.fulfillmentChannel, lowestPriceType.fulfillmentChannel) &&
+        Objects.equals(this.offerType, lowestPriceType.offerType) &&
+        Objects.equals(this.quantityTier, lowestPriceType.quantityTier) &&
+        Objects.equals(this.quantityDiscountType, lowestPriceType.quantityDiscountType) &&
         Objects.equals(this.landedPrice, lowestPriceType.landedPrice) &&
         Objects.equals(this.listingPrice, lowestPriceType.listingPrice) &&
         Objects.equals(this.shipping, lowestPriceType.shipping) &&
@@ -177,7 +245,7 @@ public class LowestPriceType {
 
   @Override
   public int hashCode() {
-    return Objects.hash(condition, fulfillmentChannel, landedPrice, listingPrice, shipping, points);
+    return Objects.hash(condition, fulfillmentChannel, offerType, quantityTier, quantityDiscountType, landedPrice, listingPrice, shipping, points);
   }
 
 
@@ -188,6 +256,9 @@ public class LowestPriceType {
     
     sb.append("    condition: ").append(toIndentedString(condition)).append("\n");
     sb.append("    fulfillmentChannel: ").append(toIndentedString(fulfillmentChannel)).append("\n");
+    sb.append("    offerType: ").append(toIndentedString(offerType)).append("\n");
+    sb.append("    quantityTier: ").append(toIndentedString(quantityTier)).append("\n");
+    sb.append("    quantityDiscountType: ").append(toIndentedString(quantityDiscountType)).append("\n");
     sb.append("    landedPrice: ").append(toIndentedString(landedPrice)).append("\n");
     sb.append("    listingPrice: ").append(toIndentedString(listingPrice)).append("\n");
     sb.append("    shipping: ").append(toIndentedString(shipping)).append("\n");

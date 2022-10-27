@@ -15,8 +15,8 @@ package com.amazon.spapi.model.orders;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.orders.OrderItem;
 import io.swagger.annotations.ApiModel;
+import com.amazon.spapi.model.orders.OrderItem;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
  * A list of order items.
  */
 @ApiModel(description = "A list of order items.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:03:19.199+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:56:53.532+08:00")
 public class OrderItemList extends ArrayList<OrderItem> {
 
   @Override

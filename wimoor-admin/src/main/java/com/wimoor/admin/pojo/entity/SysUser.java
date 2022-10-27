@@ -73,6 +73,13 @@ public class SysUser   implements Serializable{
 	@TableField(value="hasEmail")
 	private Boolean hasEmail;
  
+	@TableField(value="deptid")
+	private String deptid;
+	
+	@TableField(value="opttime")
+	Date opttime;
+	
+	
     @TableField(exist = false)
     String shopid;
  

@@ -68,6 +68,9 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
  
 		List<ShipInboundItemVo> itemvoList=itemsum.getItemList();
 		for(ShipInboundItemVo item:itemvoList) {
+			if(item.getMaterialid()==null) {
+				throw new BizException(item.getSellersku()+"找不到对应的本地产品无法处理");
+			}
 			List<WarehouseShelfInventoryVo> shelfinvVoList = findByMaterial(itemsum.getShopid(),itemsum.getWarehouseid(),item.getMaterialid());
 			for(WarehouseShelfInventoryVo inv:shelfinvVoList) {
 				inv.setShelfname(iWarehouseShelfService.getAllParentName(inv.getShelfid()));

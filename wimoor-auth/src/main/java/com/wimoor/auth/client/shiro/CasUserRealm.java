@@ -30,7 +30,7 @@ public class CasUserRealm extends CasRealm {
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) {
         //调用CasRealm实现的认证方法,其包含验证ticket、填充CasToken的principal等操作)
         AuthenticationInfo authc = super.doGetAuthenticationInfo(token);
-        String username = (String) authc.getPrincipals().getPrimaryPrincipal();
+        //String username = (String) authc.getPrincipals().getPrimaryPrincipal();
         return authc;
         //User user = userService.getUserAll(username);
 //        if (user != null) {

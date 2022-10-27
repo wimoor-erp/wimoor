@@ -38,14 +38,14 @@ public class ReportInventoryHealthListServiceImpl extends ReportServiceImpl impl
     @Autowired
 	IMarketplaceService iMarketplaceService;
     
-	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend) {
+	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
 		  ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
 		  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
 		  for(Marketplace market:marketlist) {
 			  CreateReportSpecification body=new CreateReportSpecification();
 			  body.setReportType(myReportType());
-			  body.setDataStartTime(AmzDateUtils.getOffsetDateTime(cstart));
-			  body.setDataEndTime(AmzDateUtils.getOffsetDateTime(cend));
+			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
+			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
 			  List<String> list=new ArrayList<String>();
 			  list.add(market.getMarketplaceid());
 			  body.setMarketplaceIds(list);
@@ -64,6 +64,9 @@ public class ReportInventoryHealthListServiceImpl extends ReportServiceImpl impl
 	@Override
 	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br) {
 		StringBuffer log = new StringBuffer();
+		if(amazonAuthority.getShopId()==null) {
+			return null;
+		}
 		/*
 		 * 1snapshot_date 2sku 3fnsku 4asin 5product_name 6condition 7sales_rank 8product_group
 		 * 9 total_quantity 10 sellable_quantity 11 unsellable_quantity 12 inv_age_0_to_90_days
@@ -177,6 +180,7 @@ public class ReportInventoryHealthListServiceImpl extends ReportServiceImpl impl
 							if(marketplaceid==null){
 								marketplaceid = amazonAuthority.getMarketPlace().getMarketplaceid();
 							}
+							newhealth.setShopid(amazonAuthority.getShopId());
 							newhealth.setMarketplaceid(marketplaceid);
 							newhealth.setAuthid(amazonAuthority.getId());
 							newhealth.setAsin(asin);newhealth.setAsinLimit(asin_limit);newhealth.setFcondition(condition);newhealth.setShopid(amazonAuthority.getShopId());
@@ -203,7 +207,16 @@ public class ReportInventoryHealthListServiceImpl extends ReportServiceImpl impl
 							newhealth.setAsinLimit(asin_limit);newhealth.setSnapshotDate(DateUtil.parse(snapshot_date));
 							newhealth.setOpttime(opttime);
 				            try {
-				            	inventoryHealthMapper.insert(newhealth);
+				            	QueryWrapper<InventoryHealth> query=new QueryWrapper<InventoryHealth>();
+				            	query.eq("authid", newhealth.getAuthid());
+				            	query.eq("marketplaceid", newhealth.getMarketplaceid());
+				            	query.eq("sku", newhealth.getSku());
+								InventoryHealth oldone = inventoryHealthMapper.selectOne(query);
+								if(oldone!=null) {
+									inventoryHealthMapper.update(newhealth, query);
+								}else {
+									inventoryHealthMapper.insert(newhealth);
+								}
 							} catch (Exception e) {
 								e.printStackTrace();
 								log.append("SKU:"+sku+","+e.getMessage());

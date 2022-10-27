@@ -15,7 +15,6 @@ package com.amazon.spapi.model.orders;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.orders.OrderList;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -23,13 +22,14 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.orders.OrderList;
 import java.io.IOException;
 
 /**
  * A list of orders along with additional information to make subsequent API calls.
  */
 @ApiModel(description = "A list of orders along with additional information to make subsequent API calls.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:03:19.199+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:56:53.532+08:00")
 public class OrdersList {
   @SerializedName("Orders")
   private OrderList orders = null;

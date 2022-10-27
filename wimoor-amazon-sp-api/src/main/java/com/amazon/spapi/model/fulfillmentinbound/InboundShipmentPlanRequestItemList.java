@@ -13,13 +13,16 @@
 
 package com.amazon.spapi.model.fulfillmentinbound;
 
-import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Arrays;
+import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentPlanRequestItem;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * InboundShipmentPlanRequestItemList
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class InboundShipmentPlanRequestItemList extends ArrayList<InboundShipmentPlanRequestItem> {
 
   @Override

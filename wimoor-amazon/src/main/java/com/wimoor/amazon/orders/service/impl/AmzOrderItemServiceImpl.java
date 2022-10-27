@@ -51,15 +51,17 @@ public class AmzOrderItemServiceImpl extends ServiceImpl<AmzOrderItemMapper,AmzO
 		// TODO Auto-generated method stub
 		   AmazonAuthority auth = amazonAuthorityService.getById(order.getAmazonauthid());
 		   if(auth!=null) {
+			  auth.setUseApi("getOrderItems");
 	          OrdersV0Api api = apiBuildService.getOrdersV0Api(auth);
 				 if(api!=null) {
 						ApiCallback<GetOrderItemsResponse> apiCallbackGetOrderItems=new ApiCallbackGetOrderItems(this,auth,order);
 						try {
-							if(auth.apiNotRateLimit("getOrderItems")) {
+							if(auth.apiNotRateLimit()) {
 								api.getOrderItemsAsync(order.getAmazonOrderId(),token,apiCallbackGetOrderItems);
 							}
 							
 						 } catch (ApiException e) {
+							 auth.setApiRateLimit(null, e);
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} 
@@ -71,6 +73,7 @@ public class AmzOrderItemServiceImpl extends ServiceImpl<AmzOrderItemMapper,AmzO
 	@Override
 	public void handlerOrderItemListResponse(AmazonAuthority auth, AmzOrderMain order, OrderItemsList itemsList) {
 		// TODO Auto-generated method stub
+		try {
 		if(itemsList!=null) {
 			OrderItemList items = itemsList.getOrderItems();
 			String orderid = itemsList.getAmazonOrderId();
@@ -120,6 +123,9 @@ public class AmzOrderItemServiceImpl extends ServiceImpl<AmzOrderItemMapper,AmzO
 				ordersItem(order,itemsList.getNextToken());
 			}
 		}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -129,25 +135,58 @@ public class AmzOrderItemServiceImpl extends ServiceImpl<AmzOrderItemMapper,AmzO
 		   //遍历auth下的marketplaceid
 		   if(marketlist!=null && marketlist.size()>0) {
 			   for(int j=0;j<marketlist.size();j++) {
-				   Marketplace marketplace = marketlist.get(j);
 				   QueryWrapper<AmzOrderMain> query=new QueryWrapper<AmzOrderMain>();
-				   query.eq("amazonauthid", amazonAuthority.getId());
-				   Calendar c=Calendar.getInstance();
-				   c.add(Calendar.HOUR, -8);
-				   GeneralUtil.getDatePlus(c, marketplace.getMarket());
-				   c.add(Calendar.MINUTE, -10);
-				   Calendar cstart=Calendar.getInstance();
-				   cstart.setTime(c.getTime());
-				   cstart.add(Calendar.HOUR, 24);
-				   query.gt("purchase_date", cstart.getTime());
-				   query.lt("purchase_date", c.getTime());
+				   query.eq("amazonAuthId", amazonAuthority.getId());
+				   Calendar cbegin=Calendar.getInstance();
+				   cbegin.add(Calendar.HOUR, -8);
+				   cbegin.add(Calendar.DATE, -1); 
+				   Calendar cend=Calendar.getInstance();
+				   cend.add(Calendar.HOUR, 3);
+				   query.gt("purchase_date", cbegin.getTime());
+				   query.lt("purchase_date", cend.getTime());
 				   query.eq("hasItem", false);
-				   query.orderByAsc("purchase_date");
+				   query.orderByDesc("purchase_date");
 				   List<AmzOrderMain> orders = amzOrderMainMapper.selectList(query);
-				   for(AmzOrderMain order:orders) {
-					  ordersItem(order,null);
+				   if(orders!=null && orders.size()>0) {
+					   for(AmzOrderMain order:orders) {
+						   ordersItem(order,null);
+					   }
 				   }
 			   }
 		   }
+	}
+
+	@Override
+	public void removeDataArchive() {
+		// TODO Auto-generated method stub
+		List<AmazonAuthority> authlist =amazonAuthorityService.getAllAuth();
+		for(AmazonAuthority auth:authlist) {
+			this.baseMapper.removeDataArchive(auth.getId());
+		}
+	}
+	
+	boolean isrun=true;
+	public void runTask() {
+		AmzOrderItemServiceImpl self = this;
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				while(isrun) {
+					try {
+						Thread.sleep(10000);
+						amazonAuthorityService.executTask(self);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			
+		}).start();
+		
+	}
+	public void stopTask() {
+		isrun=false;
 	}
 }

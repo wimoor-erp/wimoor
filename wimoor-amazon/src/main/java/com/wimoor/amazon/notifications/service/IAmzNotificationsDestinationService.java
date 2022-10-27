@@ -12,6 +12,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author wimoor team
  * @since 2022-06-27
  */
-public interface IAmzNotificationsDestinationService extends IService<AmzNotificationsDestination>,IRunAmazonService  {
+public interface IAmzNotificationsDestinationService extends IService<AmzNotificationsDestination>  {
+
+	void executTask();
 
 }

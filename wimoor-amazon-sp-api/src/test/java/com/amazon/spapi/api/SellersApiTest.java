@@ -37,15 +37,52 @@ public class SellersApiTest {
      * @throws ApiException
      *          if the Api call fails
      */
- 
+    @Test
     public void getMarketplaceParticipationsTest() throws ApiException {
-     
+        AWSAuthenticationCredentials awsAuthenticationCredentials=AWSAuthenticationCredentials.builder()
+                //IAM user的accessKeyId
+                .accessKeyId("accessKeyId")
+                //IAM user的secretKey
+                .secretKey("secretKey")
+                //这里按照amazon对不同region的分区填写，例子是北美地区的
+                .region("us-east-1")
+                .build();
+        AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider=AWSAuthenticationCredentialsProvider.builder()
+               //IAM role，特别注意：最好用IAM role当做IAM ARN去申请app
+                // 而且IAM user需要添加内联策略STS关联上IAM role，具体操作看：https://www.spapi.org.cn/cn/model2/_2_console.html
+                .roleArn("arn:aws:iam::xxxxxxxxx:role/xxxxxxxxxx")
+                .roleSessionName("myrolesessioname121231313")
+                .build();
+        LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
+                //申请app后LWA中的clientId
+                .clientId("amzn1.application-oa2-client.xxxxxxxxxx")
+                //申请app后LWA中的clientSecret
+                .clientSecret("fkdfjaskfasfksa")
+                //店铺授权时产生的refreshToken或者app自授权生成的
+                .refreshToken("Atzr|ZLo8hjtuBrYlgBh0Sd6QAfhsafsafskf98fsafhjsafhasjfhasjfhsafsafskf98fsafhjsafhasjfhasj")
+                .endpoint("https://api.amazon.com/auth/o2/token")
+                .build();
+        SellersApi sellersApi = new SellersApi.Builder()
+                .awsAuthenticationCredentials(awsAuthenticationCredentials)
+                .lwaAuthorizationCredentials(lwaAuthorizationCredentials)
+                .awsAuthenticationCredentialsProvider(awsAuthenticationCredentialsProvider)
+                .endpoint("https://sellingpartnerapi-na.amazon.com")
+                .build();
+
+        FeedsApi feedsApi = new FeedsApi.Builder()
+                .awsAuthenticationCredentials(awsAuthenticationCredentials)
+                .lwaAuthorizationCredentials(lwaAuthorizationCredentials)
+                .awsAuthenticationCredentialsProvider(awsAuthenticationCredentialsProvider)
+                .endpoint("https://sellingpartnerapi-na.amazon.com")
+                .build();
+        
+        GetMarketplaceParticipationsResponse response = sellersApi.getMarketplaceParticipations();
+
+
+        System.out.println(response.getPayload());
+
     }
     
-    @Test
-    public void mytest() throws ApiException {
-     
-   
-    }
+    
     
 }

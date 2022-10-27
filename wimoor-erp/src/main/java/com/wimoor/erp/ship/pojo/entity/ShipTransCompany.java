@@ -1,5 +1,8 @@
 package com.wimoor.erp.ship.pojo.entity;
 
+import java.math.BigInteger;
+import java.util.List;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -41,24 +44,15 @@ public class ShipTransCompany extends ErpBaseEntity{
     @TableField(value= "uploadpath")
     private String uploadpath;
     
+    @TableField(value= "location")
+    private BigInteger location;
+    
 	@TableField(value="isdelete")
 	private Boolean isdelete;
-	
-    @TableField(exist = false)
-	private String mname;
     
     @TableField(exist = false)
-	private String cname;
+    List<ShipTransDetail> detaillist;
     
-    @TableField(exist = false)
-    private String tname;
-    
-    @TableField(exist = false)
-    private String priceu ;
-    
-    @TableField(exist = false)
-    private String  channeltype;
-
     public Boolean getIsdelete() {
     	if(isdelete==null) {
     		return false;

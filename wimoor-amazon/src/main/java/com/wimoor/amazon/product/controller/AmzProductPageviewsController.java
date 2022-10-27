@@ -4,18 +4,24 @@ package com.wimoor.amazon.product.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.api.AdminClientOneFeign;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
+import com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO;
+import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo;
 import com.wimoor.amazon.product.service.IAmzProductPageviewsService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +36,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Api(tags = "产品任务接口")
 @RestController
+@Component("amzProductPageviewsController")
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/report/product/amzProductPageviews")
 public class AmzProductPageviewsController {
@@ -54,16 +61,40 @@ public class AmzProductPageviewsController {
 		return resultMap;
  
     }
+	@PostMapping("/getPageViewsList") 
+	public Result<IPage<AmzProductPageviewsVo>> getPageViewsListAction(@RequestBody AmzProductPageviewsDTO dto){
+		UserInfo user = new UserInfo();
+		dto.setShopid(user.getCompanyid());
+		if(StrUtil.isEmpty(dto.getSearch())) {
+			dto.setSearch(null);
+		}else {
+			dto.setSearch("%"+dto.getSearch().trim()+"%");
+		}
+		IPage<AmzProductPageviewsVo> result=iAmzProductPageviewsService.getPageViewsList(dto);
+		return Result.success(result) ; 
+	}
 	
 	@GetMapping("/refreshDownload")  
 	public Result<?> refreshDownloadAction()  {
-				iAmzProductPageviewsService.refreshDownload();
+		   new Thread(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					iAmzProductPageviewsService.refreshDownload();
+				}
+		   }).start();
 	        return Result.success();
     }
 	
 	@GetMapping("/refreshSummary")  
 	public Result<?> refreshSummaryAction()  {
-		iAmzProductPageviewsService.refreshSummary();
+		   new Thread(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					iAmzProductPageviewsService.refreshSummary();
+				}
+		   }).start();
 	        return Result.success();
     }
 }

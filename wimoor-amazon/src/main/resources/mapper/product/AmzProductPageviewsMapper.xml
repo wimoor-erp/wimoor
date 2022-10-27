@@ -61,28 +61,29 @@
    <insert id="downloadRefresh" parameterType="com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsConditionVo">
       delete from t_amz_product_pageviews
       where byday = #{byday,jdbcType=DATE}
-      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
-      and amazonAuthid = #{amazonAuthid,jdbcType=CHAR};
-      
-      insert into t_amz_product_pageviews(byday, marketplaceid, SKU, 
-      amazonAuthid, parent_asin, child_asin, 
-      Sessions, Session_Percentage, Page_Views, 
-      Page_Views_Percentage, Buy_Box_Percentage, 
-      Units_Ordered, Units_Ordered_B2B, Unit_Session_Percentage, 
-      Unit_Session_Percentage_B2B, Ordered_Product_Sales, 
-      Ordered_Product_Sales_B2B, Total_Order_Items, 
-      Total_Order_Items_B2B)
-      select byday, marketplaceid, SKU, 
-      amazonAuthid, parent_asin, child_asin, 
-      Sessions, Session_Percentage, Page_Views, 
-      Page_Views_Percentage, Buy_Box_Percentage, 
-      Units_Ordered, Units_Ordered_B2B, Unit_Session_Percentage, 
-      Unit_Session_Percentage_B2B, Ordered_Product_Sales, 
-      Ordered_Product_Sales_B2B, Total_Order_Items, 
-      Total_Order_Items_B2B from t_amz_product_pageviews_download
+	        and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+	        and amazonAuthid = #{amazonAuthid,jdbcType=CHAR};
+	      
+      insert ignore into t_amz_product_pageviews(byday, marketplaceid, SKU, 
+		      amazonAuthid, parent_asin, child_asin, 
+		      Sessions, Session_Percentage, Page_Views, 
+		      Page_Views_Percentage, Buy_Box_Percentage, 
+		      Units_Ordered, Units_Ordered_B2B, Unit_Session_Percentage, 
+		      Unit_Session_Percentage_B2B, Ordered_Product_Sales, 
+		      Ordered_Product_Sales_B2B, Total_Order_Items, 
+		      Total_Order_Items_B2B)
+	  select  byday, marketplaceid, SKU, 
+		      amazonAuthid, parent_asin, child_asin, 
+		      Sessions, Session_Percentage, Page_Views, 
+		      Page_Views_Percentage, Buy_Box_Percentage, 
+		      Units_Ordered, Units_Ordered_B2B, Unit_Session_Percentage, 
+		      Unit_Session_Percentage_B2B, Ordered_Product_Sales, 
+		      Ordered_Product_Sales_B2B, Total_Order_Items, 
+		      Total_Order_Items_B2B 
+      from t_amz_product_pageviews_download
       where byday = #{byday,jdbcType=DATE}
-      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
-      and amazonAuthid = #{amazonAuthid,jdbcType=CHAR};
+       		and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+            and amazonAuthid = #{amazonAuthid,jdbcType=CHAR};
   </insert>
   
   <insert id="saveBatch" parameterType="com.wimoor.amazon.product.pojo.entity.AmzProductPageviews" >
@@ -189,16 +190,29 @@
 		GROUP BY amazonAuthid,marketplaceid,DATE_ADD(byday,interval -day(byday)+1 day),sku ;
   </select>
   
-  <select id="getPageViewsList" parameterType="java.util.Map" resultType="java.util.Map">
-  	SELECT t.`*`,IFNULL(p.location,p.url) image,info.name,info.asin asin FROM t_amz_product_pageviews t
-	LEFT JOIN t_product_info info ON info.amazonAuthId=t.amazonAuthid AND t.SKU=info.sku AND t.marketplaceid=info.marketplaceid
-	LEFT JOIN t_picture p ON p.id=info.image
-	LEFT JOIN t_product_in_opt o ON o.pid=info.id
-	LEFT JOIN t_erp_material m ON m.sku=ifnull(o.msku,info.sku) AND m.shopid=#{shopid,jdbcType=CHAR} AND m.isDelete=0
-	WHERE t.amazonAuthid=#{authid,jdbcType=CHAR}
-	AND t.byday &gt;=#{startDate,jdbcType=CHAR} AND t.byday &lt;=#{endDate,jdbcType=CHAR} and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
-	<if test="search!=null">
-	and t.sku like #{search,jdbcType=CHAR}
+  <select id="getPageViewsList"  resultType="com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo" parameterType="com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO">
+  	SELECT  t.byday, t.marketplaceid, t.SKU, t.amazonAuthid, t.parent_asin parentasin, t.child_asin childAsin, t.Sessions, t.Session_Percentage SessionPercentage, 
+		    t.Page_Views PageViews,t.Page_Views_Percentage PageViewsPercentage,t.Buy_Box_Percentage BuyBoxPercentage,t.Units_Ordered UnitsOrdered, 
+		    t.Units_Ordered_B2B UnitsOrderedB2B, 
+		    t.Unit_Session_Percentage UnitSessionPercentage,
+		    t.Unit_Session_Percentage_B2B UnitSessionPercentageB2B,t.Ordered_Product_Sales OrderedProductSales,
+		    t.Ordered_Product_Sales_B2B OrderedProductSalesB2B, 
+		    t.Total_Order_Items TotalOrderItems,t.Total_Order_Items_B2B TotalOrderItemsB2B
+		    ,IFNULL(p.location,p.url) image,
+	  	    info.name,
+	  	    info.asin asin 
+	  	FROM t_amz_product_pageviews t
+		LEFT JOIN t_product_info info ON info.amazonAuthId=t.amazonAuthid AND t.SKU=info.sku AND t.marketplaceid=info.marketplaceid
+		LEFT JOIN t_picture p ON p.id=info.image
+		LEFT JOIN t_product_in_opt o ON o.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(o.msku,info.sku) AND m.shopid=#{dto.shopid,jdbcType=CHAR} AND m.isDelete=0
+		WHERE t.marketplaceid=#{dto.marketplaceid,jdbcType=CHAR}
+		AND t.byday &gt;=#{dto.startDate,jdbcType=CHAR} AND t.byday &lt;=#{dto.endDate,jdbcType=CHAR}  
+	<if test="dto.amazonauthid!=null">
+	and t.amazonAuthid=#{dto.amazonauthid,jdbcType=CHAR}
+	</if>
+	<if test="dto.search!=null">
+	and t.sku like #{dto.search,jdbcType=CHAR}
 	</if>
   </select>
 </mapper>

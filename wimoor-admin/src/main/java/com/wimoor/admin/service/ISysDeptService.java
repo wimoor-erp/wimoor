@@ -3,6 +3,7 @@ package com.wimoor.admin.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.admin.pojo.entity.SysDept;
 import com.wimoor.admin.pojo.vo.DeptVO;
+import com.wimoor.common.SelectVO;
 import com.wimoor.common.TreeSelectVO;
 
 import java.util.List;
@@ -45,4 +46,6 @@ public interface ISysDeptService extends IService<SysDept> {
      * @return
      */
     boolean deleteByIds(String ids);
+
+	List<SelectVO> listSelect();
 }

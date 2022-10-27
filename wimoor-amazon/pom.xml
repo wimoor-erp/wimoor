@@ -31,10 +31,10 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
  
-         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
+		 <dependency>
+		   <groupId>org.springframework.cloud</groupId>
+		   <artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
@@ -74,38 +74,17 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
- 
 		 <!--mysql-->
          <dependency>  
             <groupId>mysql</groupId>  
             <artifactId>mysql-connector-java</artifactId>  
-            <version>8.0.21</version> 
         </dependency> 
-       <!--mybatis-plus-->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.3.2</version>
-        </dependency>
 	   <dependency>
 	        <groupId>com.github.jeffreyning</groupId>
 	        <artifactId>mybatisplus-plus</artifactId>
 	        <version>1.5.1-RELEASE</version>
 	    </dependency>
  
-		<!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus -->
-		<dependency>
-		    <groupId>com.baomidou</groupId>
-		    <artifactId>mybatis-plus</artifactId>
-		    <version>3.4.3.1</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-generator</artifactId>
-			<version>3.3.2</version>
-		</dependency>
-		
 		<dependency>
 		   <groupId>com.lowagie</groupId>
 		   <artifactId>itext</artifactId>
@@ -221,7 +200,6 @@
 		    <artifactId>springfox-boot-starter</artifactId>
 		    <version>3.0.0</version>
 		  </dependency>
-
 		<dependency>
 		    <groupId>com.wimoor</groupId>
 		    <artifactId>wimoor-common</artifactId>
@@ -255,11 +233,6 @@
 			    <version>3.16</version>
          </dependency>
        <dependency>
-            <groupId>com.penghaiping</groupId>
-            <artifactId>amazon-sp-api</artifactId>
-            <version>1.0</version>
-      </dependency>
-       <dependency>
        	<groupId>org.springframework.boot</groupId>
        	<artifactId>spring-boot-configuration-processor</artifactId>
        	<optional>true</optional>
@@ -276,6 +249,34 @@
 	    <artifactId>aws-java-sdk-sqs</artifactId>
 	    <version>1.11.368</version>
 	</dependency>
+	
+	<!--seata-->
+		<dependency>
+		    <groupId>com.alibaba.cloud</groupId>
+		    <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+		    <exclusions>
+		        <!-- 排除依赖 指定版本和服务器端一致 -->
+		        <exclusion>
+		            <groupId>io.seata</groupId>
+		            <artifactId>seata-all</artifactId>
+		        </exclusion>
+		        <exclusion>
+		            <groupId>io.seata</groupId>
+		            <artifactId>seata-spring-boot-starter</artifactId>
+		        </exclusion>
+		    </exclusions>
+		</dependency>
+		
+		<dependency>
+		    <groupId>io.seata</groupId>
+		    <artifactId>seata-all</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>io.seata</groupId>
+		    <artifactId>seata-spring-boot-starter</artifactId>
+		</dependency>
+ 
 	</dependencies>
 
 	 <build>

@@ -34,6 +34,7 @@ public interface IReportService {
 	public ReportRequestRecord recordReportRequest(AmazonAuthority amazonAuthority, ReportRequestRecord record, ApiException arg0);
 	
 	public void downloadReport(AmazonAuthority amazonAuthority, ReportRequestRecord report,ReportDocument doc);
+	public boolean downloadProcessReport(ReportRequestRecord record);
 	public void getReportDocument(ReportRequestRecord report);
 
 }

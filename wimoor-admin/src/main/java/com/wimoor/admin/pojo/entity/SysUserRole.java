@@ -6,13 +6,20 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 @TableName("t_user_role")
-public class SysUserRole {
+public class SysUserRole extends com.wimoor.common.pojo.entity.BaseEntity {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7907120392687249943L;
+
 	@TableField(value= "user_id")
     private BigInteger userId;
 

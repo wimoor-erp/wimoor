@@ -22,6 +22,10 @@ public interface AmzProductRefreshMapper extends BaseMapper<AmzProductRefresh> {
 
 	void insertDefault();
 
-	List<AmzProductRefresh> findForDetailRefresh(@Param("amazonauthid") String amazonauthid);
+	AmzProductRefresh findForDetailRefresh(@Param("amazonauthid") String amazonauthid);
+	
+	List<AmzProductRefresh> findForCatalogRefresh(@Param("amazonauthid") String amazonauthid);
+
+	List<AmzProductRefresh> findForPriceRefresh(@Param("amazonauthid")String amazonauthid);
 
 }

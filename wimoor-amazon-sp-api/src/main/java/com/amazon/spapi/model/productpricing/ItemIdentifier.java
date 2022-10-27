@@ -15,7 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.ConditionType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -23,13 +22,14 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.ConditionType;
 import java.io.IOException;
 
 /**
  * Information that identifies an item.
  */
 @ApiModel(description = "Information that identifies an item.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class ItemIdentifier {
   @SerializedName("MarketplaceId")
   private String marketplaceId = null;

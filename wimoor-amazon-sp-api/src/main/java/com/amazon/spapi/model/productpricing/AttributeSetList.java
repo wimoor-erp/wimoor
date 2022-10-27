@@ -23,7 +23,7 @@ import java.util.List;
  * A list of product attributes if they are applicable to the product that is returned.
  */
 @ApiModel(description = "A list of product attributes if they are applicable to the product that is returned.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class AttributeSetList extends ArrayList<Object> {
 
   @Override

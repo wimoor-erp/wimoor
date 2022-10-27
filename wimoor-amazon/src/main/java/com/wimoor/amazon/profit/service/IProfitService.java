@@ -12,7 +12,6 @@ import com.wimoor.amazon.profit.pojo.vo.CostDetail;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
 import com.wimoor.common.mvc.BizException;
-import com.wimoor.common.user.UserInfo;
 
 public interface IProfitService {
 
@@ -53,7 +52,7 @@ public interface IProfitService {
 
 	public BigDecimal getLabelServiceFee(boolean isStandard, String country, boolean isSmlAndLight);
 
-	//public List<String> findCategoryList();
+	public List<String> findCategoryList();
 
 	public Map<String, String> jsonToMap(String costDetail_);
 
@@ -93,6 +92,4 @@ public interface IProfitService {
 			BigDecimal outboundWeight, ProfitConfigCountry profitConfigCountry);
 
 	public void clearUnitMap();
- 
-    public Map<String, Object> calculateAmazonCostDetail(UserInfo user,String marketplaceid,String sku,  String profitCfgId, BigDecimal cost, String type,BigDecimal price,BigDecimal shipment); 
 }

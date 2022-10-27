@@ -27,7 +27,7 @@ public class ApiCallbackGetReport  implements ApiCallback<Report>{
 	@Override
 	public void onFailure(ApiException arg0, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackGetReport----onFailure"+arg2.get("x-amzn-RateLimit-Limit"));
+		amazonAuthority.setApiRateLimit(arg2, arg0);
         if(record!=null) {
         	reportService.recordReportRequest(amazonAuthority,record,arg0);
         }
@@ -36,13 +36,10 @@ public class ApiCallbackGetReport  implements ApiCallback<Report>{
 	@Override
 	public void onSuccess(Report result, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackGetReport----onSuccess");
+		amazonAuthority.setApiRateLimit(arg2, "");
 		if(amazonAuthority!=null&&result!=null) {
 			if(result!=null) {
 			  record=reportService.recordReportRequest(amazonAuthority,result);
-			  if(result.getProcessingStatus().getValue().equals("DONE")) {
-					reportService.getReportDocument(record);
-			   }
 		  }
 	   }
 	}

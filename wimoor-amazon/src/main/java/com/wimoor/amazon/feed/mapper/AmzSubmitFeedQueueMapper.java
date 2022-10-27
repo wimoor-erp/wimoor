@@ -13,11 +13,14 @@ public interface AmzSubmitFeedQueueMapper extends BaseMapper<AmzSubmitFeedQueue>
 
    
 
-	List<AmzSubmitFeedQueue> findByMarket(@Param("shopid")String shopId,@Param("authid") String authid,@Param("marketplaceid") String marketplaceid);
+	AmzSubmitFeedQueue findByMarket(@Param("shopid")String shopId,@Param("authid") String authid,@Param("marketplaceid") String marketplaceid);
 
 	AmzSubmitFeedQueue selectByKey(String id);
 
 	Map<String, Object> selectByFeedTypeAndFileName(@Param("authorityid") String authorityid,
 			@Param("marketplaceid") String marketplaceid, @Param("feedtype") String feedtype,
 			@Param("shipmentid") String shipmentid);
+	
+	List<AmzSubmitFeedQueue> findQueue(@Param("authorityid") String authid,@Param("marketplaceid") String marketplaceid);
+	 
 }

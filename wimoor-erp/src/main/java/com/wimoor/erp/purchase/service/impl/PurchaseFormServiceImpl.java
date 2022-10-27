@@ -39,6 +39,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,6 +123,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 	final IMaterialService materialService;
 
 	@Autowired
+	@Lazy
 	IPurchasePlanService purchasePlanService;
 	 
 	@Autowired
@@ -1456,8 +1458,8 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		} else {
 			invpara.setAmount(amount);
 		}
-		int optresult = inventoryService.AddStockByStatus(invpara, Status.inbound, Operate.in);
-		if (amount > 0&& optresult>0) {
+	
+		if (amount > 0) {
 			 QueryWrapper<PurchaseFormReceive> queryWrapper = new QueryWrapper<PurchaseFormReceive>();
 			 queryWrapper.eq("formentryid", purchaseFormEntry.getId());
 			 queryWrapper.orderByDesc("opttime");
@@ -1481,6 +1483,8 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 			
 			}
 		}
+		invpara.setWarehouse(ph.getWarehouseid());
+		int optresult = inventoryService.AddStockByStatus(invpara, Status.inbound, Operate.in);
 		purchaseFormEntry.setAuditstatus(2);
 		purchaseFormEntry.setInwhstatus(0);
 		purchaseFormEntry.setTotalin(0);

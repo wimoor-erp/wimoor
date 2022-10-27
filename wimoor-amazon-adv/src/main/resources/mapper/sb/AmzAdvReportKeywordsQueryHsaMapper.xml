@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sb.dao.AmzAdvReportKeywordsQueryHsaMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sb.pojo.AmzAdvReportKeywordsQueryHsa" >
+    <id     column="id" property="id" jdbcType="BIGINT" />
+    <result column="bydate" property="bydate" jdbcType="DATE" />
+    <result column="keywordId" property="keywordid" jdbcType="BIGINT" />
+    <result column="query" property="query" jdbcType="CHAR" />
+    <result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="keywordText" property="keywordtext" jdbcType="CHAR" />
+    <result column="adGroupName" property="adgroupname" jdbcType="CHAR" />
+    <result column="campaignName" property="campaignname" jdbcType="CHAR" />
+    <result column="matchType" property="matchtype" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+    <result column="attributedConversions14d" property="attributedconversions14d" jdbcType="INTEGER" />
+    <result column="attributedConversions14dSameSKU" property="attributedconversions14dsamesku" jdbcType="INTEGER" />
+    <result column="attributedSales14d" property="attributedsales14d" jdbcType="DECIMAL" />
+    <result column="attributedSales14dSameSKU" property="attributedsales14dsamesku" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+   id, bydate, keywordId, adGroupId, campaignId, query, profileid, impressions, clicks, cost, attributedConversions14d, attributedConversions14dSameSKU, 
+    attributedSales14d, attributedSales14dSameSKU
+  </sql>
+  
+  	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_hsa_keywords_query ( 
+		bydate, keywordId, queryid,adGroupId, campaignId,  profileid, 
+   	 	  impressions, clicks, cost, attributedConversions14d,
+    	attributedSales14d,opttime)
+		values
+		<foreach collection="list" item="adv" index="index"
+			separator=",">
+			(
+			 #{adv.bydate,jdbcType=DATE}, #{adv.keywordid,jdbcType=BIGINT}, #{adv.queryid,jdbcType=BIGINT},
+			 #{adv.adgroupid,jdbcType=BIGINT}, #{adv.campaignid,jdbcType=BIGINT},
+			 #{adv.profileid,jdbcType=BIGINT}, #{adv.impressions,jdbcType=INTEGER},
+			#{adv.clicks,jdbcType=INTEGER}, #{adv.cost,jdbcType=DECIMAL}, #{adv.attributedconversions14d,jdbcType=INTEGER},
+	        #{adv.attributedsales14d,jdbcType=DECIMAL},#{adv.opttime,jdbcType=DATE}
+ 
+			)
+		</foreach>
+	</insert>
+ 
+	
+ 
+    <select id="getKeywordsQueryHsa" resultType="java.util.LinkedHashMap" parameterType="java.util.Map" >
+	    select 
+			<if test="dateType == 'daily'">
+				t.bydate,
+			</if> 
+	    	c.name campaignName,c.name adGroupName,k.keywordText keywordText,k.matchType matchType, q.query query, 
+			sum(impressions) impressions, sum(clicks) clicks, sum(cost) Spend,
+			ifnull((sum(clicks) / sum(impressions)),0) 'Click Thru Rate (CTR)',
+			ifnull((sum(cost) / sum(clicks)),0) 'Cost Per Click (CPC)',
+			ifnull(sum(attributedSales14d),0) '14 Day Total Sales',  
+			case when ifnull(sum(cost),0) > 0 and 0=0 
+			then 0
+			else 
+			ifnull((sum(cost) / 1),0) 
+			end 'Total Advertising Cost of Sales (ACoS)',
+			ifnull((sum(0) / sum(cost)),0) 'Total Return on Advertising Spend (RoAS)',
+			ifnull(sum(0),0) '14 Day Total Orders', 
+			ifnull(sum(0),0) '14 Day Total Units',
+			ifnull((sum(0) / sum(clicks)),0) '14 Day Conversion Rate' 
+	    from t_amz_adv_rpt2_hsa_keywords_query t
+        left join t_amz_adv_rpt_query q on q.id=t.queryid
+	    left join t_amz_adv_keywords k on k.keywordId=t.keywordId
+		left join t_amz_adv_campaigns_hsa c  on c.campaignId=k.campaignId and c.profileid=t.profileid
+	    where t.profileid = #{profileid,jdbcType=BIGINT} 
+		    and t.bydate &lt;= #{endDate,jdbcType=CHAR} 
+		    and t.bydate &gt;= #{fromDate,jdbcType=CHAR}
+		<if test="dateType == 'daily'">
+			group by t.bydate,t.keywordId, t.queryid
+		</if>
+		<if test="dateType == 'total'">
+			group by t.keywordId, t.queryid
+		</if>
+   </select>
+  
+</mapper>

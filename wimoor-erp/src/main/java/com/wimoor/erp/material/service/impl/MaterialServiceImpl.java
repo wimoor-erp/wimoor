@@ -1,6 +1,7 @@
 package com.wimoor.erp.material.service.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.service.impl.PictureServiceImpl;
@@ -72,6 +74,7 @@ import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
 import com.wimoor.erp.material.pojo.entity.StepWisePrice;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialSupplierVO;
+import com.wimoor.erp.material.pojo.vo.MaterialVO;
 import com.wimoor.erp.material.service.IDimensionsInfoService;
 import com.wimoor.erp.material.service.IMaterialCategoryService;
 import com.wimoor.erp.material.service.IMaterialMarkService;
@@ -83,6 +86,7 @@ import com.wimoor.erp.util.UUIDUtil;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
  
  
@@ -131,6 +135,8 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	 
 	final InventoryMapper inventoryMapper;
 	
+	final FileUpload fileUpload;
+	
 	@Lazy
 	@Autowired
 	IInventoryService inventoryService;
@@ -138,7 +144,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	final MaterialCustomsMapper materialCustomsMapper;
 	 
 	final MaterialCustomsFileMapper materialCustomsFileMapper;
-	public Map<String, Object> findMaterialById(String id) {
+	public MaterialVO findMaterialById(String id) {
 		return materialMapper.findMaterialById(id);
 	}
 
@@ -768,8 +774,8 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		return materialMapper.findMaterialMapBySku(sku, shopid);
 	}
 
-	@Cacheable(value = "materialListCache")
-	public List<String> findMarterialForColorOwner(Map<String, Object> param) {
+	@Cacheable(value = "materialListCache",key="#key")
+	public List<String> findMarterialForColorOwner(String key,Map<String, Object> param) {
 		return materialMapper.findMarterialForColorOwner(param);
 	}
 
@@ -1245,7 +1251,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	     Integer mainPurchaseQty = mainSKUQty.get(sku);
 		 List<Map<String, Object>> list = null;
 		 this.selectConsumableByMainmid(mainMaterial.getId(),shopid);
-		 Map<String, Object> mainmap = inventoryMapper.getSelfInvBySKU(new BigInteger(warehouseid) ,new BigInteger(mainMaterial.getId()));
+		 Map<String, Object> mainmap = inventoryMapper.getSelfInvBySKU(warehouseid ,mainMaterial.getId());
 		 mainmap.put("material", mainMaterial);
 		 mainmap.put("mainPurchaseQty", mainPurchaseQty);
 		 for(Map<String, Object> item:list) {
@@ -1279,7 +1285,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 				 Customer supplier = customerService.getById(supplierid);
 				 conitem.put("supplier",supplier);
 			 }
-			 Map<String, Object> map = inventoryMapper.getSelfInvBySKU(new BigInteger(warehouseid),new BigInteger(submaterial.getId()));
+			 Map<String, Object> map = inventoryMapper.getSelfInvBySKU(warehouseid,submaterial.getId());
 			 conitem.putAll(map);
 		 }
 	 }
@@ -1406,5 +1412,57 @@ public Map<String, Object> updateMaterialCustoms(String id, String addfee, Strin
 public Map<String, Object> getRealityPrice(String materialid){
 	return materialMapper.getRealityPrice(materialid);
 }
+
+	@Override
+	public int uploadMaterialImg(UserInfo userinfo, String materialid, InputStream inputStream, String filename) {
+		int result=0;
+		Picture picture =null;
+		try {
+			if(StrUtil.isNotEmpty(filename)) {
+				Material material = this.baseMapper.selectById(materialid);
+				if(material!=null) {
+					String filePath = PictureServiceImpl.materialImgPath + userinfo.getCompanyid();
+					int len = filename.lastIndexOf(".");
+					String filenames = filename.substring(0, len);
+					String imgtype=filename.substring(len, filename.length());
+					filename=filenames+System.currentTimeMillis()+imgtype;
+					picture = pictureService.uploadPicture(inputStream, null, filePath, filename, material.getImage());
+					if(picture!=null) {
+						material.setImage(picture.getId());
+						this.updateById(material);
+						result=1;
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	@Override
+	public List<Material> getMaterialByInfo(String shopid, String sku, String name) {
+		QueryWrapper<Material> queryWrapper=new QueryWrapper<Material>();
+		queryWrapper.eq("shopid", shopid);
+		queryWrapper.eq("isDelete", false);
+		if(StrUtil.isNotEmpty(name)) {
+			queryWrapper.like("name", "%"+name+"%");
+		}
+		if(StrUtil.isNotEmpty(sku)) {
+			queryWrapper.eq("sku", sku);
+		}
+		List<Material> list = this.baseMapper.selectList(queryWrapper);
+		if(list!=null && list.size()>0) {
+			for(int i=0;i<list.size();i++) {
+				String picid = list.get(i).getImage();
+				Picture picture = pictureService.getById(picid);
+				if(picture!=null && picture.getLocation()!=null) {
+					String value=picture.getLocation();
+					list.get(i).setImage(fileUpload.getPictureImage(value)); 
+				}
+			}
+		}
+		return list;
+	}
 
 }

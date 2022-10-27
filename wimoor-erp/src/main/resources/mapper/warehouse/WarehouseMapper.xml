@@ -47,75 +47,6 @@
 		order by ifnull(w.findex,9999) asc,w.name
 	</select>
 
-	<!-- 假如第一次添加仓库，默认插入该ShopId下的的FBA仓库 -->
-	<insert id="saveFBA" parameterType="java.lang.String">
-		insert into
-		t_erp_warehouse_fba (
-		`id` , `name` , `number` , `shopid` , `marketplaceid`, `operator` , `opttime`
-		)
-		select UUID_SHORT() id,CONCAT('FBA-', m.market) name,CONCAT(m.market,#{sernum,jdbcType=CHAR}) number,
-			#{shopid,jdbcType=CHAR}, m.marketplaceid, #{operator,jdbcType=CHAR},now()
-		from t_marketplace m
-		left join t_erp_warehouse_fba w on m.marketplaceid=w.marketplaceid and w.shopid=#{shopid,jdbcType=CHAR}
-		where w.id is null 
-			and m.region!='EU'
-			and m.marketplaceid in 
-				(
-				select marketplace_id
-				from t_amazonseller_market
-				where sellerid in 
-					(
-					select sellerid
-					from t_amazon_auth
-					where shop_id=#{shopid,jdbcType=CHAR}
-					)
-				)
-		union all
-		select * 
-		from 
-			(
-			select UUID_SHORT() id,CONCAT('FBA-', m.region) name,
-				CONCAT(m.region,#{sernum,jdbcType=CHAR}) number,
-				#{shopid,jdbcType=CHAR}, m.region, #{operator,jdbcType=CHAR},now()
-			from t_marketplace m
-			left join t_erp_warehouse_fba w on m.region=w.marketplaceid and w.shopid=#{shopid,jdbcType=CHAR}
-			where w.id is null 
-				and m.region='EU'
-				and m.marketplaceid in 
-					(
-					select marketplace_id
-					from t_amazonseller_market
-					where sellerid in 
-						(
-						select sellerid
-						from t_amazon_auth
-						where shop_id=#{shopid,jdbcType=CHAR}
-						) 
-					)
-		group by m.region,m.region_name ) V
-	</insert>
-	<!-- 删除没有绑定地区的FBA仓库 -->
-	<delete id="deleteFBA" parameterType="java.lang.String">
-		delete
-		from t_erp_warehouse_fba
-		where shopid=#{shopid,jdbcType=CHAR}
-			and marketplaceid not in
-				(
-				select marketplace_id 
-				from t_amazonseller_market
-				where sellerid in 
-					(
-					select sellerid 
-					from t_amazon_auth
-					where shop_id=#{shopid,jdbcType=CHAR}
-					)
-				union all
-				select region 
-				from t_amazon_auth
-				where shop_id=#{shopid,jdbcType=CHAR} 
-					and region='EU'
-				)
-	</delete>
 	<!-- 查询当前ftypeid -->
 	<select id="selectTypeByName" resultType="java.lang.String">
 		SELECT tt.id 
@@ -274,7 +205,7 @@
 		order by v2.groupname asc, v2.findex asc, v2.psku asc
 	</select>
 
-	<select id="selectShipFbaSale" resultType="java.util.Map" parameterType="java.lang.String">
+		<select id="selectShipFbaSale" resultType="java.util.Map" parameterType="java.lang.String">
 		select 
 		    w.name, 
 		    w.id id, 
@@ -301,8 +232,9 @@
 			plan.pamount,plan.selfamount,
 			ifnull(afn_fulfillable_quantity,0)+ifnull(afn_inbound_working_quantity,0)+
 			ifnull(afn_inbound_shipped_quantity,0)+ifnull(afn_inbound_receiving_quantity,0)+
-			ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) quantity,
-			ifnull(afn_fulfillable_quantity,0)+ ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) localquantity,
+			case when rr.id is null then ifnull(afn_reserved_quantity,0) else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) end quantity,
+			ifnull(afn_fulfillable_quantity,0)+ 
+			case when rr.id is null then ifnull(afn_reserved_quantity,0) else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) end localquantity,
 			ifnull(w.put_on_days,0) putondays, ifnull(w.first_leg_days,0) firstlegdays,
 			ifnull(ifnull(sc.stockingCycle,w.stocking_cycle),0) safeinvdays,
 			ifnull(ifnull(sc.stockingCycle,w.stocking_cycle),0)+ ifnull(w.put_on_days,0)+ifnull(w.first_leg_days,0) stocking_cycle,
@@ -468,23 +400,7 @@
 		where w.id=#{warehouseid,jdbcType=CHAR}
 	</select>
 
-	<select id="findFbaMarket" resultType="com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA" parameterType="java.lang.String">
-		select w.* 
-		from t_erp_warehouse_fba w
-		left join t_erp_market_priority p on p.marketplaceid=w.marketplaceid and p.groupid=#{groupid,jdbcType=CHAR}
-		left join t_marketplace m on case when w.marketplaceid='EU' then m.marketplaceid='A1PA6795UKMFR9' else m.marketplaceid=w.marketplaceid end
-		where shopid=#{shopid,jdbcType=CHAR}
-		order by p.priority asc, m.findex asc
-	</select>
 
-	<select id="findFbaWarehouseByShop" resultType="com.wimoor.erp.warehouse.pojo.entity.WareHouseFBA" parameterType="java.lang.String">
-		select distinct w.* 
-		from t_erp_warehouse_fba w
-		left join t_erp_market_priority p on p.marketplaceid=w.marketplaceid
-		left join t_marketplace m on m.marketplaceid=w.marketplaceid
-		where shopid=#{shopid,jdbcType=CHAR}
-		order by p.priority asc, m.findex asc
-	</select>
 
 	<update id="updateWareDefault" parameterType="java.lang.String">
 		update t_erp_warehouse t 

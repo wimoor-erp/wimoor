@@ -56,7 +56,7 @@ public class DictController {
         return Result.success(result.getRecords(), result.getTotal());
     }
 
-
+    
     @ApiOperation(value = "字典列表")
     @GetMapping
     public Result<List<SysDict>> list() {
@@ -112,7 +112,7 @@ public class DictController {
         List<String> idList = Arrays.asList(ids.split(","));
         List<String> codeList = iSysDictService.listByIds(idList).stream().map(item -> item.getCode()).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(codeList)) {
-            int count = iSysDictItemService.count(new LambdaQueryWrapper<SysDictItem>().in(SysDictItem::getDictCode, codeList));
+            long count = iSysDictItemService.count(new LambdaQueryWrapper<SysDictItem>().in(SysDictItem::getDictCode, codeList));
             Assert.isTrue(count == 0, "删除字典失败，请先删除关联字典数据");
         }
         boolean status = iSysDictService.removeByIds(idList);

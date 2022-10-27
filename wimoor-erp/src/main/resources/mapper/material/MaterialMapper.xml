@@ -184,19 +184,19 @@
 	
 	<select id="findMaterialMapBySku" resultType="java.util.Map" parameterType="java.lang.String">
 		select max(u.name) ownername, max(ifnull(p.location,p.url)) image,
-			max(ifnull(m.name,i.name)) name, min(i.openDate) openDate, ifnull(max(opt.msku),max(i.sku)) sku
-		from t_product_info i
-		left join t_product_in_opt opt on opt.pid = i.id
-		left join t_amazon_auth a on a.id=i.amazonAuthId
-		left join t_erp_material m on m.sku=ifnull(opt.msku,i.sku) and m.shopid=#{shopid,jdbcType=CHAR} and m.isDelete = 0
-		left join t_picture p on p.id=ifnull(m.image,i.image)
+			   max(m.name) name,      max(m.sku) msku
+		from t_erp_material m 
+		left join t_picture p on p.id=m.image
 		left join t_userinfo u on u.id=m.owner
-		where i.sku=#{sku,jdbcType=CHAR}
-			and a.shop_id=#{shopid,jdbcType=CHAR}
+		where  m.sku=#{sku,jdbcType=CHAR} and m.shopid=#{shopid,jdbcType=CHAR} and m.isDelete = 0
 	</select>
 
-	<select id="findMaterialById" resultType="java.util.Map" parameterType="java.lang.String">
-		select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image, m.*
+	<select id="findMaterialById" resultType="com.wimoor.erp.material.pojo.vo.MaterialVO" parameterType="java.lang.String">
+		select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image,
+		 m.id, m.sku,m.name,m.shopid,m.upc,m.brand,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
+		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
+	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
+	     m.createdate, m.creator,m.parentid,m.isSmlAndLight,m.assembly_time,m.isDelete
 		from t_erp_material m
 		left join t_erp_material_category g on g.id=m.categoryid
 		left join t_picture p on m.image=p.id
@@ -322,30 +322,14 @@
 	</select>
 
 	<select id="findMarterialForColorOwner" resultType="java.lang.String" parameterType="java.util.Map">
-		select i.sku
-		from 
-		t_product_info i 
-		left join t_amazon_auth a on a.id=i.amazonauthid
-		left join t_product_in_opt o on o.pid=i.id
-		left join t_erp_material t on t.shopid=a.shop_id and t.sku=ifnull(o.msku,i.sku) and t.isDelete = 0 
-		where a.shop_id = #{shopid,jdbcType=CHAR}  and t.shopid=#{shopid,jdbcType=CHAR} 
+		select t.sku
+		from t_erp_material t 
+		where  t.shopid=#{shopid,jdbcType=CHAR}  and t.isDelete = 0 
 		<if test="color != null">
 			and t.color = #{color,jdbcType=CHAR}
 		</if>
 		<if test="owner != null">
 			and t.owner = #{owner,jdbcType=CHAR}
-		</if>
-		<if test="groupid != null">
-			and a.groupid=#{groupid,jdbcType=CHAR}
-		</if>
-		<if test="region != null">
-			and a.region = #{region,jdbcType=CHAR}
-		</if>
-		<if test="marketplaceid != null">
-			and i.marketplaceid = #{marketplaceid,jdbcType=CHAR}
-		</if>
-		<if test="search != null">
-			and i.sku like #{search,jdbcType=CHAR}
 		</if>
 	</select>
 

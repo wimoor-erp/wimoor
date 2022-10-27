@@ -15,11 +15,13 @@ public interface ReportRequestRecordMapper  extends BaseMapper<ReportRequestReco
 
 	Date lastUpdateRequestByType(Map<String, Object> map);
 
-	List<ReportRequestRecord> selectNoProcessRequest(@Param("reporttype") String reporttype, @Param("marketplaceid") String marketplaceid);
-
+	List<ReportRequestRecord> selectNeedProcessRequest(@Param("reporttype") String reporttype, @Param("marketplaceid") String marketplaceid);
+	List<ReportRequestRecord> selectNeedRefreshRequest(@Param("reporttype") String reporttype, @Param("marketplaceid") String marketplaceid);
+	
 	List<ReportRequestRecord> selectByReportType(@Param("sellerid") String sellerid, @Param("reporttype") String reporttype);
 
 	List<ReportRequestRecord> selectNeedTreatOrderReport(String sellerid);
+	List<ReportRequestRecord> selectNeedTreatPageViewReport(String sellerid);
 
 	List<ReportRequestRecord> hasNeedTreatInventoryReportList();
 	

@@ -6,12 +6,14 @@ import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -42,7 +44,9 @@ public class AmazonGroupController {
 	    public Result<List<AmazonGroup>> getAmazonGroupAction() {
 	    	UserInfo userinfo = UserInfoContext.get();
 	    	List<AmazonGroup> result =iAmazonGroupService.list(
-	    			new LambdaQueryWrapper<AmazonGroup>().eq(AmazonGroup::getShopid, userinfo.getCompanyid()));
+	    			new LambdaQueryWrapper<AmazonGroup>().eq(AmazonGroup::getShopid, userinfo.getCompanyid())
+	    			.eq(AmazonGroup::getIsdelete, false)
+	    			);
 	        return Result.success(result);
 	    }
 	    
@@ -60,13 +64,35 @@ public class AmazonGroupController {
 	    	List<AmazonAuthority> list = iAmazonAuthorityService.list(
 	    			new LambdaQueryWrapper<AmazonAuthority>()
 	    			.eq(AmazonAuthority::getShopId, userinfo.getCompanyid())
+	    			.eq(AmazonAuthority::getGroupid, id)
 	    			.eq(AmazonAuthority::getDisable, Boolean.FALSE));
 	    	if(list.size()>0) {
 	    		throw new BizException("该店铺下存在授权无法删除");
 	    	}
-	    	boolean result = iAmazonGroupService.removeById(id);
+	    	boolean result=false;
+	    	AmazonGroup group = iAmazonGroupService.getById(id);
+	    	if(group!=null) {
+	    		group.setIsdelete(true);
+	    		group.setOpttime(new Date());
+	    		group.setOperator(userinfo.getId());
+	    		result = iAmazonGroupService.updateById(group);
+	    	}
 	        return Result.judge(result);
 	    }
+	    
+	    @ApiOperation("店铺更新")
+		@SystemControllerLog("店铺利润计算方案更新")
+	    @PostMapping("/updateBatch")
+	    public Result<List<AmazonGroup>> updateAmazonGroupConfigAction(@RequestBody List<AmazonGroup> groups) {
+	    	UserInfo userinfo = UserInfoContext.get();
+	        boolean flag=false;
+	        for(AmazonGroup group:groups) {
+	        	group.setOpttime(new Date());
+				group.setOperator(userinfo.getId());
+				flag=iAmazonGroupService.updateById(group);
+	        }
+	        return Result.judge(flag);
+	    }  
 	    
 		@ApiOperation("保存")
 		@SystemControllerLog("保存")
@@ -74,17 +100,28 @@ public class AmazonGroupController {
 	    public Result<List<AmazonGroup>> saveAmazonGroupAction(@RequestBody AmazonGroup group) {
 	    	UserInfo userinfo = UserInfoContext.get();
 	        boolean flag=false;
-	        if(group.idIsNULL()) {
-	        	group.setCreator(userinfo.getId());
-	        	group.setOperator(userinfo.getId());
-	        	group.setOpttime(new Date());
-	        	group.setCreatetime(new Date());
-	        	flag=iAmazonGroupService.save(group);
-	        }else {
-	        	group.setOpttime(new Date());
-	        	group.setOperator(userinfo.getId());
-	        	flag=iAmazonGroupService.updateById(group);
-	        }
+	        QueryWrapper<AmazonGroup> queryWrapper=new QueryWrapper<AmazonGroup>();
+	        queryWrapper.eq("shopid", userinfo.getCompanyid());
+	        queryWrapper.eq("name", group.getName());
+			AmazonGroup oldgroup = iAmazonGroupService.getOne(queryWrapper);
+			if(oldgroup!=null) {
+				group.setId(oldgroup.getId());
+			}  
+			if(group.idIsNULL()) {
+				group.setCreator(userinfo.getId());
+				group.setOperator(userinfo.getId());
+				group.setOpttime(new Date());
+				group.setShopid(userinfo.getCompanyid());
+				group.setCreatetime(new Date());
+				group.setIsdelete(false);
+				flag=iAmazonGroupService.save(group);
+			}else {
+				group.setOpttime(new Date());
+				group.setOperator(userinfo.getId());
+				group.setIsdelete(false);
+				group.setShopid(userinfo.getCompanyid());
+				flag=iAmazonGroupService.updateById(group);
+			}
 	        return Result.judge(flag);
 	    }  
 }

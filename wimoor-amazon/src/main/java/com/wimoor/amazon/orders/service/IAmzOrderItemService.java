@@ -21,4 +21,7 @@ public interface IAmzOrderItemService extends IService<AmzOrderItem>,IRunAmazonS
 	public void ordersItem(AmzOrderMain order,String token);
 	public void handlerOrderItemListResponse( AmazonAuthority auth,
 			AmzOrderMain order, OrderItemsList items);
+	public void removeDataArchive();
+	public void runTask() ;
+	public void stopTask() ;
 }

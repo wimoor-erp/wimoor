@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.vo.AmazonGroupVO;
  
 @Mapper
 public interface AmazonAuthorityMapper extends BaseMapper<AmazonAuthority> {
@@ -41,4 +42,15 @@ public interface AmazonAuthorityMapper extends BaseMapper<AmazonAuthority> {
 	List<AmazonAuthority> selectByRegion(String region);
 	
     String uuid();
+
+	List<AmazonAuthority> getAvailableAuthority(@Param("region")String region);
+	
+	List<AmazonGroupVO> selectBindAuth(@Param("param") Map<String,Object> param);
+	
+    int deleteByLogic(@Param("param") Map<String,Object> param);
+
+	
+	List<Map<String, Object>> selectAdvByGroupId(String id);
+	List<Map<String, Object>> selectAdvMarketByAdvAuthId(String id);
+	 
 }

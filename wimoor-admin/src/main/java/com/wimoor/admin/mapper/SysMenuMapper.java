@@ -15,5 +15,5 @@ import java.util.List;
 public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
     List<SysMenu> listRoute(String userid);
-
+    List<SysMenu> listRouteAll();
 }

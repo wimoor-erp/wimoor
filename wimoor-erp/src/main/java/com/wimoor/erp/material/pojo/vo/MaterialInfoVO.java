@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.wimoor.api.erp.assembly.pojo.vo.AssemblyVO;
+import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
 import com.wimoor.erp.material.pojo.entity.StepWisePrice;
@@ -21,7 +22,7 @@ import lombok.experimental.Accessors;
 public class MaterialInfoVO {
 
 	@ApiModelProperty(value = "产品基础数据")
-	Map<String,Object> material;
+	MaterialVO material;
 	
 	@ApiModelProperty(value = "产品item尺寸重量对象")
 	DimensionsInfo itemDim;
@@ -47,4 +48,9 @@ public class MaterialInfoVO {
 	@ApiModelProperty(value = "产品海关数据")
 	MaterialCustoms customs;
 	
+	@ApiModelProperty(value = "可用库存")
+	Inventory fulfillable;
+	
+	@ApiModelProperty(value = "可组装库存")
+	Integer canAssembly;
 }

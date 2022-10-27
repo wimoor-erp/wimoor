@@ -202,5 +202,15 @@
 		 WHERE t.sku=#{sku,jdbcType=CHAR} AND g.id=#{groupid,jdbcType=CHAR}  AND t.invalid=0
 		 GROUP BY t.marketplaceid ORDER BY m.findex asc
 	</select>
+	
+		<select id="getMarketPointByMSku" parameterType="java.lang.String" resultMap="BaseResultMap">
+		SELECT m.* FROM t_product_info t
+		left join t_product_in_opt o on o.pid=t.id
+		LEFT JOIN t_amazon_auth auth ON auth.id=t.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=auth.groupid 
+		LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
+		 WHERE ifnull(o.msku,t.sku)=#{sku,jdbcType=CHAR} AND g.shopid=#{shopid,jdbcType=CHAR}  AND t.invalid=0
+		 GROUP BY t.marketplaceid ORDER BY m.findex asc
+	</select>
 
 </mapper>

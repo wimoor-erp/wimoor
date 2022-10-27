@@ -5,12 +5,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletContext;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,24 +26,26 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.EnumByInventory;
 import com.wimoor.erp.common.pojo.entity.Operate;
 import com.wimoor.erp.common.pojo.entity.Status;
 import com.wimoor.erp.inventory.mapper.InventoryMapper;
 import com.wimoor.erp.inventory.mapper.InventoryRecordMapper;
+import com.wimoor.erp.inventory.pojo.dto.InvDayDetailDTO;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.pojo.entity.InventoryHis;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.pojo.entity.InventoryRecord;
 import com.wimoor.erp.inventory.pojo.entity.StockTaking;
+import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 import com.wimoor.erp.inventory.service.IInventoryHisService;
 import com.wimoor.erp.inventory.service.IInventoryRecordService;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.inventory.service.IStockTakingService;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
-import com.wimoor.erp.util.FileUpload;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
@@ -55,7 +57,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory> implements IInventoryService {
 	 
-	final InventoryMapper inventoryMapper;
+	 
 	 
 	@Lazy
 	@Autowired
@@ -70,7 +72,8 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	final IInventoryHisService inventoryHisService;
 	 
 	final IInventoryRecordService inventoryRecordService;
-  
+	
+	final FileUpload fileUpload;  
 
 	// 设置初始化信息
 	private InventoryRecord setInitRecord(InventoryParameter para, Status status, Operate operate) {
@@ -132,7 +135,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 //			throw new BizException("系统繁忙，请刷新后再试！");
 //		}
 		try {
-			Inventory addinv = inventoryMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
+			Inventory addinv = this.baseMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
 			if (addinv != null) {
 				Integer oldQuantity = addinv.getQuantity();
 				oldQuantity = oldQuantity + quantity;
@@ -179,19 +182,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		if (quantity == 0)
 			return 0;
 		Warehouse warehouseobj = isOkForOperate(para.getWarehouse(), para.getStatus());
-//		ServletContext session = para.getSession();
-//		if (session == null) {
-//			throw new BizException("系统繁忙，请刷新后再试！");
-//		}
-//		Object flag = session.getAttribute("inventory" + para.getWarehouse() + para.getMaterial() + para.getShopid() + para.getInvStatus(status));
-//		if (flag != null) {
-//			session.setAttribute("inventory" + para.getWarehouse() + para.getMaterial() + para.getShopid() + para.getInvStatus(status), Integer.parseInt(flag.toString())+1);
-//			throw new BizException("系统繁忙，请稍后再试！");
-//		} else {
-//			session.setAttribute("inventory" + para.getWarehouse() + para.getMaterial() + para.getShopid() + para.getInvStatus(status), 1);
-//		}
-		try {
-			Inventory subinv = inventoryMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
+		Inventory subinv = this.baseMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
 			if (subinv != null) {
 				Integer oldQuantity = subinv.getQuantity();
 				oldQuantity = oldQuantity - quantity;
@@ -210,6 +201,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 					}
 				}
 				subinv.setQuantity(oldQuantity);
+				subinv.setOpttime(new Date());
 				if(updateById(subinv)) {
 					count++ ;
 				}
@@ -236,9 +228,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			InventoryRecord record = setInitRecord(para, status, operate);
 			inventoryRecordService.save(record);
 			insertHis(subinv);
-		} finally {
-			//session.removeAttribute("inventory" + para.getWarehouse() + para.getMaterial() + para.getShopid() + para.getInvStatus(status));
-		}
+	 
 		return count;
 	}
 
@@ -272,7 +262,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	public Inventory selectNowInv(String warehouseid, String materialid, String shopid, Status status) {
-		Inventory inv = inventoryMapper.selectNowInv(warehouseid, materialid, shopid, status.getValue());
+		Inventory inv = this.baseMapper.selectNowInv(warehouseid, materialid, shopid, status.getValue());
 		return inv;
 	}
 
@@ -361,19 +351,15 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 
  
 	public boolean updateById(Inventory entity) throws BizException {
-		if (entity.getQuantity() == 0) {
-			return this.removeById(entity.getId());
-		} else {
 			return this.baseMapper.updateById(entity)>0?true:false;
-		}
 	}
 
 	public IPage<Map<String, Object>> findByTypeWithStockCycle(Page<?> page,String ftype, String id, String shopid) {
 		IPage<Map<String, Object>> list = null;
 		if (ftype.equals("FBA")) {
-			list = inventoryMapper.findFBAWithStockCycle(page,id, shopid);
+			list = this.baseMapper.findFBAWithStockCycle(page,id, shopid);
 		} else {
-			list = inventoryMapper.findNotFBAWithStockCycle(page,id, shopid);
+			list = this.baseMapper.findNotFBAWithStockCycle(page,id, shopid);
 		}
 		return list;
 	}
@@ -381,7 +367,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
  
  
 	public IPage<Map<String,Object>> findLocalInventory(Page<?> page,Map<String,Object> param) {
-		return inventoryMapper.findLocalInventory(page,param);
+		return this.baseMapper.findLocalInventory(page,param);
 	}
 	public Map<String, Object> findSumByType(Map<String,Object> param) {
 		Map<String, Object> map = null;
@@ -390,54 +376,54 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			ftype=param.get("ftype").toString();
 		}
 		if (ftype != null && ftype.equals("FBA")) {
-			map = inventoryMapper.findFBASum(param);
+			map = this.baseMapper.findFBASum(param);
 		} else {
-			map = inventoryMapper.findNotFBASum(param);
+			map = this.baseMapper.findNotFBASum(param);
 		}
 		return map;
 	}
 
 	public IPage<Map<String, Object>> findInventoryDetail(Page<?> page,Map<String, Object> warehouseMap) {
-		return inventoryMapper.findInventoryDetail(page,warehouseMap);
+		return this.baseMapper.findInventoryDetail(page,warehouseMap);
 	}
 
 	public List<Map<String, Object>> findInventoryDetailForExport(Map<String, Object> warehouseMap) {
-		return inventoryMapper.findInventoryDetail(warehouseMap);
+		return this.baseMapper.findInventoryDetail(warehouseMap);
 	}
 
 	public Map<String, Object> findInvDetailById(String materialid, String warehouseid, String shopid) {
-		return inventoryMapper.findInvDetailById(materialid, warehouseid, shopid);
+		return this.baseMapper.findInvDetailById(materialid, warehouseid, shopid);
 	}
 
 	public Map<String, Object> findFBAInvDetailById(String sku, String warehouseid, String shopid,String groupid) {
-		return inventoryMapper.findFBAInvDetailById(sku, warehouseid, shopid,groupid);
+		return this.baseMapper.findFBAInvDetailById(sku, warehouseid, shopid,groupid);
 	}
 
 	public List<Map<String, Object>> findInboundDetail(String materialid, String warehouseid, String shopid) {
-		return inventoryMapper.findInboundDetail(materialid, warehouseid, shopid);
+		return this.baseMapper.findInboundDetail(materialid, warehouseid, shopid);
 	}
 
 	public List<Map<String, Object>> findOutboundDetail(String materialid, String warehouseid, String shopid) {
-		return inventoryMapper.findOutboundDetail(materialid, warehouseid, shopid);
+		return this.baseMapper.findOutboundDetail(materialid, warehouseid, shopid);
 	}
 
 	public IPage<Map<String, Object>> selectInventoryDetail(Page<?> page,Map<String, Object> param) {
-		IPage<Map<String, Object>> list = inventoryMapper.selectInventoryDetail(page,param);
+		IPage<Map<String, Object>> list = this.baseMapper.selectInventoryDetail(page,param);
 		return list;
 	}
 
 	public List<Map<String, Object>> getSelfInvDetail(String warehouseid, String stocktakingid) {
-		return inventoryMapper.getSelfInvDetail(warehouseid, stocktakingid);
+		return this.baseMapper.getSelfInvDetail(warehouseid, stocktakingid);
 	}
 
 	public Map<String, Object> getSelfInvBySKU(String warehouseid, String materialid) {
-		Map<String, Object> maps = inventoryMapper.getSelfInvBySKU(new BigInteger(warehouseid),new BigInteger( materialid));
+		Map<String, Object> maps = this.baseMapper.getSelfInvBySKU(warehouseid,materialid);
 		if (maps != null) {
 			String image = null;
 			if (maps.get("image") != null)
 				image = maps.get("image").toString();
 			if (maps.get("image") != null)
-				maps.put("image", FileUpload.getPictureImage(image));
+				maps.put("image", fileUpload.getPictureImage(image));
 			else
 				maps.put("image", "images/systempicture/noimage40.png");
 		}
@@ -445,19 +431,19 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	public List<Map<String, Object>> findInvChgRateReport(Map<String, Object> param) {
-		return inventoryMapper.getInvChangeRate(param);
+		return this.baseMapper.getInvChangeRate(param);
 	}
 
 	public List<Map<String, Object>> localInventoryByDay(Map<String, Object> param) {
-		return inventoryMapper.localInventoryByDay(param);
+		return this.baseMapper.localInventoryByDay(param);
 	}
 
 	public List<Map<String, Object>> localOutInventoryByRange(Map<String, Object> param) {
-		return inventoryMapper.localOutInventoryByRange(param);
+		return this.baseMapper.localOutInventoryByRange(param);
 	}
 
 	public List<Map<String, Object>> findNotFbaBySku(String warehouseid, String skuid, String shopid) {
-		return inventoryMapper.findNotFBABySku(warehouseid, skuid, shopid);
+		return this.baseMapper.findNotFBABySku(warehouseid, skuid, shopid);
 	}
 
 	@Transactional
@@ -529,11 +515,11 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			Date mbyday = fmt.parse(byday);
 			Date today = GeneralUtil.getDateNoTime(new Date());
 			if (byday.equals(fmt.format(today)) || mbyday.after(today)) {
-				pagelist = inventoryMapper.findInventoryNowCost(page,warehouseid, sku, shopid);
-				map = inventoryMapper.findInventoryNowCostTotal(warehouseid, sku, shopid);
+				pagelist = this.baseMapper.findInventoryNowCost(page,warehouseid, sku, shopid);
+				map = this.baseMapper.findInventoryNowCostTotal(warehouseid, sku, shopid);
 			} else {
-				pagelist = inventoryMapper.findInventoryCost(page,warehouseid, sku, shopid, byday);
-				map = inventoryMapper.findInventoryCostTotal(warehouseid, sku, shopid, byday);
+				pagelist = this.baseMapper.findInventoryCost(page,warehouseid, sku, shopid, byday);
+				map = this.baseMapper.findInventoryCostTotal(warehouseid, sku, shopid, byday);
 			}
 		} catch (ParseException e) {
 			throw new BizException("库存日期解析失败");
@@ -558,12 +544,12 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return pagelist;
 	}
 	public Map<String, Object> findInvTUDetailByParentId(String materialid,  String shopid) {
-		return inventoryMapper.findInvTUDetailByParentId(materialid, null, shopid);
+		return this.baseMapper.findInvTUDetailByParentId(materialid, null, shopid);
 	}
 	public Map<String, Object> findInvTUDetailByParentId(String materialid, String warehouseid, String shopid) {
 		String[] warehouseidArray = warehouseid.split(",");
 		if (warehouseidArray.length == 1) {
-			return inventoryMapper.findInvTUDetailByParentId(materialid, warehouseid, shopid);
+			return this.baseMapper.findInvTUDetailByParentId(materialid, warehouseid, shopid);
 		} else {
 			Map<String, Object> maps = new HashMap<String, Object>();
 			Integer inbound = 0;
@@ -571,7 +557,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			Integer fulfillable = 0;
 			for (int i = 0; i < warehouseidArray.length; i++) {
 				String wareid = warehouseidArray[i];
-				Map<String, Object> result = inventoryMapper.findInvTUDetailByParentId(materialid, wareid, shopid);
+				Map<String, Object> result = this.baseMapper.findInvTUDetailByParentId(materialid, wareid, shopid);
 				if (result == null) {
 					continue;
 				}
@@ -762,9 +748,9 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			Date mbyday = fmt.parse(byday);
 			Date today = GeneralUtil.getDateNoTime(new Date());
 			if (byday.equals(fmt.format(today)) || mbyday.after(today)) {
-				pagelist = inventoryMapper.findInventoryNowCost(warehouseid, sku, shopid);
+				pagelist = this.baseMapper.findInventoryNowCost(warehouseid, sku, shopid);
 			} else {
-				pagelist = inventoryMapper.findInventoryCost(warehouseid, sku, shopid, byday);
+				pagelist = this.baseMapper.findInventoryCost(warehouseid, sku, shopid, byday);
 			}
 		} catch (ParseException e) {
 			throw new BizException("库存日期解析失败");
@@ -809,17 +795,157 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 
 
 	public List<Map<String, Object>> findFulByMaterial(String materialid) {
-		return inventoryMapper.findFulByMaterial(materialid);
+		return this.baseMapper.findFulByMaterial(materialid);
 	}
 
 	public List<Map<String, Object>> getInventorydetail(String materialid, String warehouseid) {
-		return inventoryMapper.getInventorydetail(materialid,warehouseid);
+		return this.baseMapper.getInventorydetail(materialid,warehouseid);
 	}
 
  
 	public Inventory selectAllInvSubWarehouse(String warehouseid, String materialid, String shopid,Status fulfillable) {
 		// TODO Auto-generated method stub
-		return inventoryMapper.selectAllInvSubWarehouse(warehouseid, materialid, shopid, fulfillable.getValue());
+		return this.baseMapper.selectAllInvSubWarehouse(warehouseid, materialid, shopid, fulfillable.getValue());
 	}
 
+	public List<Map<String, Object>> findByType(Map<String,Object> param) {
+		List<Map<String, Object>> list = null;
+		String ftype=null;
+		if(param.get("ftype")!=null) {
+			ftype=param.get("ftype").toString();
+		}
+		if (ftype != null && ftype.equals("FBA")) {
+			list = this.baseMapper.findFBA(param);
+		} else {
+			list = this.baseMapper.findNotFBA(param);
+		}
+		if (list != null && list.size() > 0) {
+			for (int i = 0; i < list.size(); i++) {
+				Map<String, Object> map = list.get(i);
+				if (map.get("image") == null) {
+					map.put("image", "images/systempicture/noimage40.png");
+				}
+				String value = fileUpload.getPictureImage(map.get("image"));
+				map.put("image", value);
+			}
+		}
+		return list;
+	}
+
+	@Override
+	public List<Map<String, Object>> findByTypeWithStockCycle(String ftype, String id, String shopid) {
+		// TODO Auto-generated method stub
+		List<Map<String, Object>> list = null;
+		if (ftype.equals("FBA")) {
+			list = this.baseMapper.findFBAWithStockCycle(id, shopid);
+		} else {
+			list = this.baseMapper.findNotFBAWithStockCycle(id, shopid);
+		}
+		return list;
+	}
+	
+
+	public IPage<Map<String, Object>> getInvDayDetail(InvDayDetailDTO query,Map<String, Object> parameter) {
+		IPage<Map<String, Object>> pageList = null;
+		// 整理日期参数
+		Map<String, Date> pmap = new HashMap<String, Date>();
+		String endDateStr = (String) parameter.get("endDate");
+		String beginDateStr = (String) parameter.get("beginDate");
+		Date endDate = null;
+		Date beginDate = null;
+		if (endDateStr != null && beginDateStr != null) {
+			endDate = GeneralUtil.getDatez(endDateStr);
+			beginDate = GeneralUtil.getDatez(beginDateStr);
+		}
+		pmap.put("beginDate", beginDate);
+		pmap.put("endDate", endDate);
+		List<String> fieldlist = getInvDayField(pmap);
+		Collections.reverse(fieldlist);
+
+		List<Map<String, Object>> list = this.baseMapper.getInvDayDetail(parameter);
+		List<Map<String, Object>> sumList = new ArrayList<Map<String, Object>>();
+		Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+		if (list != null && list.size() > 0) {
+			// 将竖表按照sku变成横表
+			for (Map<String, Object> item : list) {
+				String sku = item.get("sku").toString();
+				String date = "v" + item.get("modifyday");
+				String status = item.get("status").toString();
+				if (status.contains("outbound")) {
+					status = "outbound";
+				}
+				int dateSum = item.get("quantity") == null ? 0 : Integer.parseInt(item.get("quantity").toString());
+				if (map.get(sku) == null) {
+					if (item.get("image") == null) {
+						item.put("image", "images/systempicture/noimage40.png");
+					}
+					item.put(date + status, dateSum);
+					List<String> keylist = new ArrayList<String>();
+					keylist.add(date);
+					item.put("keylist", keylist);
+					map.put(sku, item);
+				} else {
+					if (map.get(sku).get(date + status) != null) {
+						map.get(sku).put(date + status, dateSum + Integer.parseInt(map.get(sku).get(date + status).toString()));
+					} else {
+						map.get(sku).put(date + status, dateSum);
+					}
+					List<String> keylist = (List<String>) map.get(sku).get("keylist");
+					if (!keylist.contains(date)) {
+						keylist.add(date);
+					}
+					map.get(sku).put("keylist", keylist);
+				}
+			}
+
+			for (String key : map.keySet()) {
+				Map<String, Object> map2 = map.get(key);
+				sumList.add(map2);
+			}
+
+			pageList = query.getListPage(sumList);
+			for (Map<String, Object> pagemap : pageList.getRecords()) {
+				for (String field : fieldlist) {
+					int fulfillable = 0;
+					int outbound = 0;
+					if (pagemap.containsKey("v" + field + "fulfillable") && pagemap.containsKey("v" + field + "outbound")) {
+						fulfillable = Integer.parseInt(pagemap.get("v" + field + "fulfillable").toString());
+						outbound = Integer.parseInt(pagemap.get("v" + field + "outbound").toString());
+					} else {
+						// 补全没有库存的日期
+						boolean isfind_ful = false;
+						boolean isfind_out = false;
+						List<String> keylist = (List<String>) pagemap.get("keylist");
+						Date date1 = GeneralUtil.getDatez(field);
+						for (String key : keylist) {
+							Date date2 = GeneralUtil.getDatez(key.replace("v", ""));
+							if (date1.after(date2) || date1.compareTo(date2) == 0) {
+								if (!isfind_ful) {
+									if (pagemap.containsKey(key + "fulfillable")) {
+										fulfillable = Integer.parseInt(pagemap.get(key + "fulfillable").toString());
+										isfind_ful = true;
+									}
+								}
+								if (!isfind_out) {
+									if (pagemap.containsKey(key + "outbound")) {
+										outbound = Integer.parseInt(pagemap.get(key + "outbound").toString());
+										isfind_out = true;
+									}
+								}
+								if (isfind_ful && isfind_out) {
+									break;
+								}
+							}
+						}
+					}
+					pagemap.put("v" + field, fulfillable + outbound);
+				}
+			}
+		}
+		return pageList;
+	}
+	
+	public List<MaterialInventoryVo> findLocalWarehouseInventory(String shopid,String materialid) {
+		return this.baseMapper.findLocalWarehouseInventory(shopid, materialid);
+	}
 }

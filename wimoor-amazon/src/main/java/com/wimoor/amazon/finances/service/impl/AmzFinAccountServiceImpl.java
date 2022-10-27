@@ -3,7 +3,9 @@ package com.wimoor.amazon.finances.service.impl;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +13,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.threeten.bp.LocalTime;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.ZoneId;
 
 import com.amazon.spapi.api.FinancesApi;
 import com.amazon.spapi.client.ApiCallback;
@@ -29,6 +33,7 @@ import com.amazon.spapi.model.finances.ShipmentItemList;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.entity.AmzAuthApiTimelimit;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
@@ -39,6 +44,8 @@ import com.wimoor.amazon.finances.service.IAmzFinAccountService;
 import com.wimoor.amazon.finances.service.IOrdersFinancialService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
+
+import cn.hutool.core.util.StrUtil;
 
 /**
  * <p>
@@ -62,18 +69,32 @@ public class AmzFinAccountServiceImpl extends ServiceImpl<AmzFinAccountMapper, A
 	@Override
 	public void runApi(AmazonAuthority amazonAuthority) {
 		// TODO Auto-generated method stub
+		amazonAuthority.setUseApi("listFinancialEventGroups");
 		FinancesApi api = apiBuildService.getFinancesApi(amazonAuthority);
 		try {
-			ApiCallback<ListFinancialEventGroupsResponse> callback=new ApiCallbackListFinancialEventGroupsEvents(this,amazonAuthority);;
-			api.listFinancialEventGroupsAsync(100, null, null,null, callback);
+			AmzAuthApiTimelimit limit = amazonAuthority.getApiRateLimit();
+			if(limit.apiNotRateLimit()) {
+				if(!StrUtil.isBlank(limit.getNexttoken())) {
+					runApiNextToken(amazonAuthority,limit.getNexttoken());
+				}else {
+					Calendar c = Calendar.getInstance();
+					c.set(Calendar.DATE, -30);
+					ApiCallback<ListFinancialEventGroupsResponse> callback=new ApiCallbackListFinancialEventGroupsEvents(this,amazonAuthority);;
+					OffsetDateTime financialEventGroupStartedAfter=AmzDateUtils.getOffsetDateTimeUTC(c);
+					api.listFinancialEventGroupsAsync(100, null, financialEventGroupStartedAfter,null, callback);
+				}
+		
+			}
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			amazonAuthority.setApiRateLimit( null, e);
 		}
 	}
  
 	public void runApiNextToken(AmazonAuthority amazonAuthority,String nexttoken) {
 		// TODO Auto-generated method stub
+		amazonAuthority.setUseApi("listFinancialEventGroups");
 		FinancesApi api = apiBuildService.getFinancesApi(amazonAuthority);
 		try {
 			ApiCallback<ListFinancialEventGroupsResponse> callback=new ApiCallbackListFinancialEventGroupsEvents(this,amazonAuthority);;
@@ -81,6 +102,7 @@ public class AmzFinAccountServiceImpl extends ServiceImpl<AmzFinAccountMapper, A
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			amazonAuthority.setApiRateLimit( null, e);
 		}
 	}
 
@@ -108,15 +130,27 @@ public class AmzFinAccountServiceImpl extends ServiceImpl<AmzFinAccountMapper, A
 			fin.setFinancialEventGroupStart(AmzDateUtils.getLocalTime(item.getFinancialEventGroupStart()));
 			fin.setFinancialEventGroupEnd(AmzDateUtils.getLocalTime(item.getFinancialEventGroupEnd()));
 			fin.setFundTransferDate(AmzDateUtils.getLocalTime(item.getFundTransferDate()));
-			fin.setBeginningBalance(item.getBeginningBalance().getCurrencyAmount());
-			if(item.getConvertedTotal()!=null) {
-				fin.setCurrency(item.getConvertedTotal().getCurrencyCode());
+			if(item.getBeginningBalance()!=null) {
+				fin.setBeginningBalance(item.getBeginningBalance().getCurrencyAmount());
+				if(fin.getCurrency()==null) {
+					fin.setCurrency(item.getBeginningBalance().getCurrencyCode());
+				}
 			}
-			fin.setConvertedTotal(item.getConvertedTotal().getCurrencyAmount());
+			if(item.getConvertedTotal()!=null) {
+				fin.setConvertedTotal(item.getConvertedTotal().getCurrencyAmount());
+				if(fin.getCurrency()==null) {
+					fin.setCurrency(item.getConvertedTotal().getCurrencyCode());
+				}
+			}
 			fin.setAccountTail(item.getAccountTail());
 			fin.setTraceId(item.getTraceId());
 			fin.setFundTransferStatus(item.getFundTransferStatus());
-			fin.setOriginalTotal(item.getOriginalTotal().getCurrencyAmount());
+			if(item.getOriginalTotal()!=null) {
+				fin.setOriginalTotal(item.getOriginalTotal().getCurrencyAmount());
+				if(fin.getCurrency()==null) {
+					fin.setCurrency(item.getOriginalTotal().getCurrencyCode());
+				}
+			}
 			fin.setProcessingStatus(item.getProcessingStatus());
 			if(oldfin!=null) {
 				this.baseMapper.update(fin, query);

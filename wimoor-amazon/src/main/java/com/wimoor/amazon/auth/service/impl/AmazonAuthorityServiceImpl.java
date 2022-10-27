@@ -1,15 +1,22 @@
 package com.wimoor.amazon.auth.service.impl;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+
+import javax.annotation.Resource;
 
 import org.apache.http.HttpException;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -19,18 +26,30 @@ import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.authorization.AuthorizationCode;
 import com.amazon.spapi.model.authorization.GetAuthorizationCodeResponse;
 import com.amazonaws.regions.Regions;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.mapper.AmazonAuthorityMapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
+import com.wimoor.amazon.auth.pojo.entity.AmazonSellerMarket;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
+import com.wimoor.amazon.auth.pojo.vo.AmazonGroupVO;
+import com.wimoor.amazon.auth.pojo.vo.AmazonMarketVO;
+import com.wimoor.amazon.auth.pojo.vo.AmazonRegionVO;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
+import com.wimoor.amazon.auth.service.IAmazonGroupService;
+import com.wimoor.amazon.auth.service.IAmazonSellerMarketService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.auth.service.IRunAmazonService;
+import com.wimoor.amazon.report.mapper.AmazonAuthMarketPerformanceMapper;
+import com.wimoor.amazon.report.pojo.entity.AmazonAuthMarketPerformance;
+import com.wimoor.amazon.report.pojo.entity.ReportType;
+import com.wimoor.amazon.report.service.IHandlerReportService;
+import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.HttpClientUtil;
+import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.user.UserInfo;
 
 import lombok.RequiredArgsConstructor;
  
@@ -43,12 +62,19 @@ import lombok.RequiredArgsConstructor;
 public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMapper, AmazonAuthority> implements IAmazonAuthorityService {
     
     final IMarketplaceService iMarketplaceService;
-	@Autowired
+	@Resource
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
- 
+	@Autowired
+    AmazonAuthMarketPerformanceMapper amazonAuthMarketPerformanceMapper;
 	@Autowired
 	ApiBuildService apiBuildService;
-	 
+	@Autowired
+	@Lazy
+	IHandlerReportService handlerReportService;
+	@Autowired
+    IAmazonSellerMarketService iAmazonSellerMarketService;
+	
+	final IAmazonGroupService iAmazonGroupService;
 	
 	public AmazonAuthority selectByGroupAndMarket(String groupid,String marketplaceid) {
 		return this.baseMapper.selectByGroupAndMarket(groupid, marketplaceid);
@@ -74,36 +100,50 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 	        return refresh_token;
 	}
 	
+	public Runnable refreshTokenByAuth(IAmazonAuthorityService self,AmazonAuthority auth) {
+	   	 Runnable runnable = new Runnable() {
+ 			public void run() { 
+		          	List<Marketplace> marketlist = iMarketplaceService.findbyauth(auth.getId());
+		          	auth.setUseApi("getAuthorizationApiGrantless");
+		          	AuthorizationApi api = apiBuildService.getAuthorizationApiGrantless(auth);
+		          	String sellingPartnerId=auth.getSellerid();
+		          	String developerId=marketlist.get(0).getDevAccountNum();
+		          	String mwsAuthToken=auth.getMwsauthtoken();
+		       		try {
+		       			developerId=developerId.replace("-", "");
+		       			developerId=developerId.replace("\n", "");
+		  				GetAuthorizationCodeResponse codeResult = api.getAuthorizationCode(sellingPartnerId,developerId, mwsAuthToken);
+		  				AuthorizationCode authCode = codeResult.getPayload();
+		  				String code=authCode.getAuthorizationCode();
+		  			    auth.setRefreshToken(getRefreshTokenByCode(code));
+		  			    auth.setRefreshTokenTime(new Date());
+		  			    self.updateById(auth);
+		  			} catch (ApiException e) {
+		  				// TODO Auto-generated catch block
+		  				auth.setApiRateLimit(null, e);
+		  				e.printStackTrace();
+		  			} catch (HttpException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+ 			}
+  		};
+       return runnable;
+	}
+	
 	public void getRefreshTokenByRegion(String region) {
         List<AmazonAuthority> authlist = this.baseMapper.selectByRegion(region);
+    	List<Runnable> runlist=new ArrayList<Runnable>();
         for(AmazonAuthority auth:authlist) {
         	if(auth.getRefreshToken()!=null) {
-        		 continue;
-        	}else {
-        		auth.setRefreshToken(region);
-        	}
-          	List<Marketplace> marketlist = iMarketplaceService.findbyauth(auth.getId());
-          	
-          	AuthorizationApi api = apiBuildService.getAuthorizationApi(auth);
-          	String sellingPartnerId=auth.getSellerid();
-          	String developerId=marketlist.get(0).getDevAccountNum();
-          	String mwsAuthToken=auth.getMwsauthtoken();
-       		try {
-       			developerId=developerId.replace("-", "");
-  				GetAuthorizationCodeResponse codeResult = api.getAuthorizationCode(sellingPartnerId,developerId, mwsAuthToken);
-  				AuthorizationCode authCode = codeResult.getPayload();
-  				String code=authCode.getAuthorizationCode();
-  			    auth.setRefreshToken(getRefreshTokenByCode(code));
-  		        this.updateById(auth);
-  			} catch (ApiException e) {
-  				// TODO Auto-generated catch block
-  				e.printStackTrace();
-  			} catch (HttpException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-          }
-       
+       		     continue;
+	       	}else {
+	       		auth.setRefreshToken(region);
+	       	}
+        	Runnable runnable = refreshTokenByAuth(this,auth);
+        	runlist.add(runnable);
+        }
+		executThread(runlist,"RefreshTokenByRegion"+region);
 	}
 	
 	public List<String> getAllRegion() {
@@ -115,32 +155,33 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 	}
 	
 	public 	List<AmazonAuthority> getAllAuth(String region) {
-		List<AmazonAuthority> list = list(new LambdaQueryWrapper<AmazonAuthority>()
-                .eq(AmazonAuthority::getAWSRegion, region)
-                .eq(AmazonAuthority::getDisable, false)
-                .isNotNull(AmazonAuthority::getRefreshToken)
-                 );
-		return list;
+		return this.baseMapper.getAvailableAuthority(region);
 	}
 	
 	public 	List<AmazonAuthority> getAllAuth() {
-		List<AmazonAuthority> list = list(new LambdaQueryWrapper<AmazonAuthority>()
-                .eq(AmazonAuthority::getDisable, false)
-                .isNotNull(AmazonAuthority::getRefreshToken)
-                 );
-		return list;
+		return this.baseMapper.getAvailableAuthority(null);
 	}
 	
 	public void executTask(IRunAmazonService apiService) {
-	    List<String> region = getAllRegion() ;
+	    List<String> regions = getAllRegion() ;
 		List<Runnable> runlist=new ArrayList<Runnable>();
-		for(String item:region) {
-			runlist.add(getRunnable(apiService,item));
+		for(String region:regions) { 
+			   List<AmazonAuthority> list = getAllAuth(region);
+			      for(AmazonAuthority auth:list) { 
+			    	  runlist.add(getRunnable(apiService,auth));
+			      }
 		}
-		executThread(runlist,60);
+		String type=apiService.toString().split("@")[0];
+		executThread(runlist,type);
 	}
 	
-
+	public  Runnable getRunnable(IRunAmazonService apiService,AmazonAuthority auth) {
+		return new Runnable() {
+			public void run() { 
+				  apiService.runApi(auth);
+			}
+		};
+	}
 	public  Runnable getRunnable(IRunAmazonService apiService,String region) {
 		return new Runnable() {
 			public void run() { 
@@ -153,50 +194,74 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 	}
 
  
-
-	public   void executThread(List<Runnable> runnables, int waitMinute) {
-		if (runnables == null) {
+	ConcurrentHashMap<String,Integer> runMap=new ConcurrentHashMap<String,Integer>();
+	public   void executThread(List<Runnable> runnables, String type) {
+		Integer numberObject=runMap.get(type);
+		Integer runnumber=0;
+		if(numberObject!=null) {
+			runnumber=numberObject;
+		}
+		runMap.put(type, runnumber+1);
+		if (runnables == null||(runnumber>0&&runnumber<5)){
 			return;
 		}
-		List<Future<?>> threadList = new ArrayList<Future<?>>();
-		for (int i = 0; i < runnables.size(); i++) {
-			if (runnables.get(i) != null) {
-				threadList.add(threadPoolTaskExecutor.submit(runnables.get(i)));
-			}
-		}
-		int time = 1;
-		boolean alldone = false;
-		while (alldone == false && time < waitMinute*60) {
-			alldone = true;
-			for (int i = 0; i < threadList.size(); i++) {
-				if (!threadList.get(i).isDone()) {
-					alldone = false;
-					break;
-				}
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			};
-			time++;
-		}
-		for (int i = 0; i < threadList.size(); i++) {
-			if (!threadList.get(i).isDone()) {
-				threadList.get(i).cancel(true);
-			}
-		}
-		BlockingQueue<Runnable> que = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue();
-		if (que != null && que.size() > 0) {
+			// TODO Auto-generated method stub
+			List<Future<?>> threadList = new ArrayList<Future<?>>();
 			for (int i = 0; i < runnables.size(); i++) {
-				Runnable runnable = runnables.get(i);
-				if (i<threadList.size()&&!threadList.get(i).isDone()) {
-					threadList.get(i).cancel(true);
-					que.remove(runnable);
+				if (runnables.get(i) != null) {
+					threadList.add(threadPoolTaskExecutor.submit(runnables.get(i)));
 				}
 			}
-		}
+		
+			new Thread(new Runnable(){
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					try {
+							int time = 1;
+							boolean alldone = false;
+							while (alldone == false && time < 20) {
+								alldone = true;
+								for (int i = 0; i < threadList.size(); i++) {
+									if (!threadList.get(i).isDone()) {
+										alldone = false;
+										break;
+									}
+								}
+								try {
+									Thread.sleep(6000);
+								} catch (InterruptedException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								};
+								time++;
+							}
+							for (int i = 0; i < threadList.size(); i++) {
+								if (!threadList.get(i).isDone()) {
+									threadList.get(i).cancel(true);
+								}
+							}
+							BlockingQueue<Runnable> que = threadPoolTaskExecutor.getThreadPoolExecutor().getQueue();
+							if (que != null && que.size() > 0) {
+								for (int i = 0; i < runnables.size(); i++) {
+									Runnable runnable = runnables.get(i);
+									if (i<threadList.size()&&!threadList.get(i).isDone()) {
+										threadList.get(i).cancel(true);
+										que.remove(runnable);
+									}
+								}
+							}
+					}catch(Exception e) {
+						e.printStackTrace();
+					}finally {
+						runMap.put(type, 0);
+					}
+					
+				}
+				
+			}).start();
+			
+		
 	}
 
 	@Override
@@ -216,26 +281,65 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 			String spapi_oauth_code) {
 		// TODO Auto-generated method stub
 		AmazonAuthority auth=new AmazonAuthority();
+		AmazonAuthority oldAuth=null;
+		oldAuth=this.selectBySellerId(selling_partner_id);
 		auth.setSellerid(selling_partner_id);
 		auth.setMwsauthtoken(mws_auth_token);
 		String[] groupRegion = state.split("@");
 		auth.setGroupid(groupRegion[0]);
 		auth.setAWSRegion(groupRegion[1]);
+		auth.setRegion(apiBuildService.getRegion(auth.getAWSRegion()));
+		AmazonGroup group = this.iAmazonGroupService.getById(auth.getGroupid());
+		if(group==null) {
+			throw new BizException("未找到对应店铺");
+		}
+		auth.setShopId(group.getShopid());
 		try {
 			String refreshcode = this.getRefreshTokenByCode(spapi_oauth_code);
 			auth.setRefreshToken(refreshcode);
-			this.save(auth);
-			
-			return auth;
+			if(oldAuth!=null) {
+				oldAuth.setGroupid(auth.getGroupid());
+				oldAuth.setAWSRegion(auth.getAWSRegion());
+				oldAuth.setMwsauthtoken(auth.getMwsauthtoken());
+				oldAuth.setRefreshToken(auth.getRefreshToken());
+				oldAuth.setRefreshTokenTime(new Date());
+				oldAuth.setDisable(false);
+				oldAuth.setOpttime(new Date());
+				oldAuth.setStatus(null);
+				oldAuth.setStatusupdate(null);
+				this.updateById(oldAuth);
+				iAmazonSellerMarketService.refreshMarketByAuth(auth);
+				return oldAuth;
+			}else {
+				auth.setRefreshTokenTime(new Date());
+				auth.setOpttime(new Date());
+				auth.setCreatetime(new Date());
+				auth.setDisable(false);
+				auth.setStatus(null);
+				auth.setStatusupdate(null);
+				this.save(auth);
+				iAmazonSellerMarketService.refreshMarketByAuth(auth);
+				Calendar cstart = Calendar.getInstance();
+				cstart.add(Calendar.DATE, -30);
+				Calendar cend = Calendar.getInstance();
+				handlerReportService.requestReport(auth.getId(),ReportType.OrdersByOrderDateReport,cstart,cend,false); 
+				handlerReportService.requestAuthReport("id",auth.getId(),ReportType.ProductListings,false); 
+				handlerReportService.requestAuthReport("id",auth.getId(),ReportType.InventoryReport,false); 
+				return auth;
+			}
 		} catch (HttpException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			if(e!=null&&e.getMessage()!=null) {
+				throw new BizException("授权异常:"+e.getMessage());
+			}else {
+				throw new BizException("授权异常");
+			}
 		}
-		return null;
 	}
 
 	@Override
-	public String getAuthUrl(String groupid, String marketplaceid) {
+	public String getAuthUrl(String groupid, String marketplaceid,String redirecturl) {
 		// TODO Auto-generated method stub
     	Marketplace market = iMarketplaceService.getById(marketplaceid);
     	String result="";
@@ -245,9 +349,176 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
     		result="https://sellercentral."+market.getPointName().toLowerCase();
     	}
     	result+="/apps/authorize/consent?application_id="+apiBuildService.getAppid()+"&state="+groupid+"@"+market.getAwsRegion()+"&version=beta";
-    	result+="&redirect_uri=https://app.wimoor.com/amazon/auth";
+    	result+="&redirect_uri="+redirecturl;
 		return result;
 	}
+
+	@Override
+	@CacheEvict(value = { "AWSmarketplaceListCache", "ApiCache"}, allEntries = true)
+	public boolean updateById(AmazonAuthority entity) {
+		// TODO Auto-generated method stub
+		return super.updateById(entity);
+	}
+
+	@Override
+	public AmazonAuthMarketPerformance getPerformance(AmazonAuthority auth, String marketplaceid) {
+		QueryWrapper<AmazonAuthMarketPerformance> query= new QueryWrapper<AmazonAuthMarketPerformance>();
+		query.eq("amazonauthid", auth.getId());
+		query.eq("marketplaceid", marketplaceid);
+		AmazonAuthMarketPerformance perf = amazonAuthMarketPerformanceMapper.selectOne(query);
+		return perf;
+	}
    
-     
+
+	@Override
+	public List<AmazonGroupVO> selectBindAuth(UserInfo user) {
+		String shopid=user.getCompanyid();
+		QueryWrapper<AmazonGroup> queryWrapper=new QueryWrapper<AmazonGroup>();
+		queryWrapper.eq("shopid", shopid);
+		queryWrapper.eq("isdelete", false);
+		List<AmazonGroup> grouplist=iAmazonGroupService.list(queryWrapper);
+		List<AmazonGroupVO> result=new ArrayList<AmazonGroupVO>();
+		Map<String, Marketplace> marketMap = iMarketplaceService.findMapByMarketplaceId();
+		if(grouplist!=null&&grouplist.size()>0) {
+           for(AmazonGroup groupitem:grouplist) {
+        	   List<AmazonAuthority> authlist = this.selectByGroupId(groupitem.getId());
+        	   List<Map<String,Object>> authAdvlist = this.baseMapper.selectAdvByGroupId(groupitem.getId());
+        	   Map<String,AmazonRegionVO> regions=new HashMap<String,AmazonRegionVO>(); 
+        	   for(AmazonAuthority authItem:authlist) {
+                   String regionName="";
+                   String regionCode="";
+        		   //
+        		   Map<String,AmazonMarketVO> countrys=new HashMap<String,AmazonMarketVO>();
+        		   QueryWrapper<AmazonSellerMarket> querymarket =new QueryWrapper<AmazonSellerMarket>();
+        		   querymarket.eq("sellerid", authItem.getSellerid());
+        		   querymarket.eq("disable", false);
+				   List<AmazonSellerMarket> marketlist =iAmazonSellerMarketService.list(querymarket);
+				   for(AmazonSellerMarket marketItem:marketlist) {
+					   AmazonMarketVO country = new AmazonMarketVO();
+					   Marketplace marketplace = marketMap.get(marketItem.getMarketplaceId());
+					   if(marketplace==null)continue;
+					   country.setCountrycode(marketplace.getMarket());
+					   country.setCountryname(marketplace.getName());
+					   regionName=marketplace.getRegionName();
+					   country.setMarketplaceid(marketItem.getMarketplaceId());
+					   countrys.put(marketItem.getMarketplaceId()+authItem.getSellerid(), country);
+				   }
+        		    if(countrys.size()>0) {
+        				AmazonRegionVO region=new AmazonRegionVO();
+        				region.setAuthid(authItem.getId());
+        				region.setCountrys(countrys);
+        				region.setRegion(regionCode);
+        				if(authItem.getStatus()==null) {
+        					region.setSellerauth("1");
+        				}else {
+        					region.setSellerauth("0");
+        				}
+        				region.setRegionname(regionName);
+        				region.setSellerid(authItem.getSellerid());
+        				region.setTime(authItem.getRefreshTokenTime());
+        				region.setAdauth("2");
+        				region.setAdvid(null);
+        		    	regions.put(authItem.getSellerid(),region);
+        		    }
+        	   }
+         	   for(Map<String,Object> authAdvItem:authAdvlist) {
+         		   String key=null;
+         		   if(authAdvItem.get("region")==null) {
+         			   continue;
+         		   }
+         		   key=authAdvItem.get("region").toString();
+         		   String regionName=null;
+         		   if(key.equals("NA")) {
+         			   key="us-east-1";
+         		   }else if(key.equals("EU")) {
+         			   key="eu-west-1";
+         		   }else {
+         			   key="us-west-2";
+         		   }
+         		  AmazonRegionVO region=null;
+         		
+         		   String sellerid=null;
+         		   List<Map<String, Object>> advmarketList = this.baseMapper.selectAdvMarketByAdvAuthId(authAdvItem.get("id").toString());
+       		       for(Map<String, Object> advcountry:advmarketList) {
+       		    	   String marketplaceid=advcountry.get("marketplaceId").toString();
+       		    	   String countrykey=advcountry.get("marketplaceId").toString()+advcountry.get("sellerId").toString();
+       		    	   sellerid=advcountry.get("sellerId").toString();
+       		    	   Marketplace marketplace = marketMap.get(marketplaceid);
+       		    	   regionName=marketplace.getRegionName();
+       		    	     AmazonMarketVO country =null;
+       		    	     region=regions.get(sellerid);
+       		    	    	 if(region!=null) {
+    	          			     region.setAdvid(authAdvItem.get("id").toString());
+    	          				 region.setAdauth(authAdvItem.get("adauth").toString());
+    	          		     }else {
+    	          			    region=new AmazonRegionVO();
+    	        				region.setRegion(authAdvItem.get("region").toString());
+    	        				region.setSellerauth("2");
+    	        				region.setRegionname(null);
+    	        				region.setSellerid(null);
+    	        			    region.setAdvid(authAdvItem.get("id").toString());
+    	  				        region.setAdauth(authAdvItem.get("adauth").toString());
+    	        				region.setTime(AmzDateUtils.getDate(authAdvItem.get("opttime")));
+    	        				regions.put(sellerid, region);
+    	          		     }
+       		    	   
+	       		    	 
+       		    	   if(region.getCountrys()!=null) {
+       		    		    country =region.getCountrys().get(countrykey);
+         		    	  }
+       		    	     if(country==null) {
+       		    	    	country=new AmazonMarketVO();
+  					        country.setCountrycode(marketplace.getMarket());
+  					        country.setCountryname(marketplace.getName());
+  					        country.setMarketplaceid(countrykey);
+  					        country.setSellerid(advcountry.get("sellerId").toString());
+  					        if(region.getCountrys()!=null) {
+  					        	region.getCountrys().put(countrykey, country);
+  					        }else {
+  					        	Map<String,AmazonMarketVO> countrys=new HashMap<String,AmazonMarketVO>();
+  					        	countrys.put(countrykey, country);
+  					        	region.setCountrys(countrys);
+  					        }
+       		    	     } 
+       		       }
+       		      if(region.getSellerid()==null) {
+       		    	region.setSellerid(sellerid);
+       		      }
+       		      if(region.getRegionname()==null) {
+       		    	  region.setRegionname(regionName);
+       		      }
+         		  
+       	        }
+        	   if(regions.size()>0) {
+        		   AmazonGroupVO groupvo=new AmazonGroupVO();
+        		   groupvo.setGname(groupitem.getName());
+        		   groupvo.setGroupid(groupitem.getId());
+        		   groupvo.setRegions(regions);
+        		   result.add(groupvo);
+        	   }
+           }
+		 }
+		return result;
+	}
+
+
+	@Override
+	public int deleteByLogic(Map<String, Object> param) {
+		int result=0;
+		QueryWrapper<AmazonSellerMarket> queryWrapper=new QueryWrapper<AmazonSellerMarket>();
+		queryWrapper.eq("sellerid", param.get("sellerid").toString());
+		List<AmazonSellerMarket> list = iAmazonSellerMarketService.list(queryWrapper);
+		if(list!=null && list.size()>0) {
+			for(AmazonSellerMarket item:list) {
+				param.put("sellerid", item.getSellerid());
+				param.put("marketplaceId", item.getMarketplaceId());
+				result+=this.baseMapper.deleteByLogic(param);
+			}
+		}
+		return result;
+	}
+	
+	
+
+
 }

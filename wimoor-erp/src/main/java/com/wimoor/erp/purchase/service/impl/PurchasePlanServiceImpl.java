@@ -27,7 +27,6 @@ import com.wimoor.erp.api.AdminClientOneFeign;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
 import com.wimoor.erp.assembly.service.IAssemblyFormService;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
-import com.wimoor.erp.common.service.IProductInPresaleService;
 import com.wimoor.erp.inventory.service.IStockCycleService;
 import com.wimoor.erp.material.mapper.MaterialMarkMapper;
 import com.wimoor.erp.material.pojo.entity.Material;
@@ -116,8 +115,6 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
  
 	final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 	 
-	final IProductInPresaleService productInPresaleService;
-	 
 	final PurchasePlanModelItemsubMapper purchasePlanModelItemsubMapper;
 	 
 	final IPurchaseWareHouseStatusService purchaseWareHouseStatusService;
@@ -161,7 +158,7 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
 			Map<String, Object> item = fbasale.get(j);
 			String pid = item.get("pid").toString();
 			//计算日均销量，欧洲站点需要重新计算
-			calculationPresales(user, item, fbasale, sumpresaleMap, param);
+			//calculationPresales(user, item, fbasale, sumpresaleMap, param);
 		}
 		//获取所有入库仓库的总库存
 		int selfsale_quantity_sum = 0;
@@ -200,9 +197,8 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
 			for(Map<String, Object> map : salf) {
 				int cycle = Integer.parseInt(map.get("stocking_cycle").toString());
 				//计算建议补货量
-				int plan = calculationSuggessPlan(map, param, cycle, fbasale, sumpresaleMap);
-				//根据仓库选择建议补货量
-				calculationPurchasePlan(map, choseWareHouse, defoutWarehouse, param, plan);
+				int plan =0; //calculationSuggessPlan(map, param, cycle, fbasale, sumpresaleMap);
+			
 				map.put("delivery_cycle", param.get("delivery_cycle2"));
 				map.put("assembly_time", param.get("assembly_time"));
 				map.put("safeinvdays", cycle);
@@ -260,166 +256,7 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
 		return fbasale;
 	}
 	
-	public void calculationPresales(UserInfo user, Map<String, Object> item ,List<Map<String, Object>> fbasale, Map<String, Map<String, Integer>> sumpresaleMap ,Map<String, Object> param) {
-		//对于欧洲站点，重新计算日均销量
-		Integer salesummary = param.get("salesummary") == null ? 0 : (Integer) param.get("salesummary");
-		Integer fbaplannumber = param.get("fbaplannumber") == null ? 0 : (Integer) param.get("fbaplannumber");
-		if(item.get("marketplaceid")!=null && item.get("marketplaceid").toString().equals("EU")){
-			int summonth = item.get("salesmonth") == null ? 0 : Integer.parseInt(item.get("salesmonth").toString());
-			int sumseven = item.get("salesweek") == null ? 0 : Integer.parseInt(item.get("salesweek").toString());
-			int sum15 = item.get("salesfifteen") == null ? 0 : Integer.parseInt(item.get("salesfifteen").toString());
-			String openDate = item.get("openDate") == null ? null : item.get("openDate").toString();
-			//DaysalesFormula formula = daysalesFormulaService.selectByShopid(user.getCompanyid());
-			int qty = 0;//DaysalesFormulaServiceImpl.getAvgSales(formula, summonth, sumseven, sum15, GeneralUtil.parseDate(openDate));
-			item.put("sales", qty);
-		} 
-		if(item.get("sales")==null){
-			item.put("sales", 0);
-		}
-		//如果预估销量没有修改过，用系统计算的日均销量
-		if(item.get("presales")==null){
-			item.put("presales", item.get("sales"));
-		}
-		int presale = item.get("presales") == null ? 0:Integer.parseInt(item.get("presales").toString());
-		salesummary += presale;
-		int mincycle = item.get("mincycle") ==null ? 0 :Integer.parseInt(item.get("mincycle").toString());
-		int stocking_cycle = item.get("stocking_cycle") == null ? 0:Integer.parseInt(item.get("stocking_cycle").toString());
-		int quantity = 0;
-		if (item.get("quantity") != null) {
-			quantity = Integer.parseInt(item.get("quantity").toString());//FBA库存
-		}
-		int salesday = 0;
-		int aftersalesday = stocking_cycle;
-		int planquantity = 0;//计算FBA仓库建议发货货量=备货周期内建议发货库存-FBA库存>最小发货库存？备货周期内建议发货库存-FBA库存：最小发货库存
-		Map<String,Integer> presaleMap = productInPresaleService.selectBySKUMarket(item.get("sku").toString(),
-				item.get("marketplaceid").toString(),item.get("groupid").toString());
-		if (presaleMap != null) {
-			item.put("hasfullcalendar", true);
-			if (sumpresaleMap == null) {
-				sumpresaleMap = new HashMap<String, Map<String, Integer>>();
-			}
-			sumpresaleMap.put(item.get("marketplaceid").toString(), presaleMap);
-			// 计算备货周期内总销量
-			int sumpresales_stocking = productInPresaleService.getTotalPreSales(presaleMap, stocking_cycle, presale);
-			int sumpresales_mincycle = productInPresaleService.getTotalPreSales(presaleMap, mincycle, presale);
-			if(sumpresales_stocking - quantity>0){
-				planquantity = sumpresales_stocking - quantity > sumpresales_mincycle ? sumpresales_stocking - quantity : sumpresales_mincycle;
-			}
-			salesday = productInPresaleService.getSalesday(presaleMap, quantity, presale);// 根据销量分摊库存，求可售天数
-		} else {
-			if(stocking_cycle * presale - quantity>0){
-				planquantity = stocking_cycle * presale - quantity > mincycle * presale ? stocking_cycle * presale - quantity : mincycle * presale;
-			}
-			if(presale != 0){
-				salesday = quantity / presale;
-			}
-		}
-		item.put("planquantity", planquantity);
-		fbaplannumber += planquantity;
-		if (presale != 0) {
-			item.put("salesday", salesday);
-			if (salesday > aftersalesday) {
-				item.put("aftersalesday", salesday);
-			} else {
-				item.put("aftersalesday", aftersalesday);
-			}
-		}
-		item.put("ftype", "fba");
-		item.put("materialid", param.get("materialid"));
-		item.put("assembly_time", param.get("assembly_time"));
-		item.put("delivery_cycle", param.get("delivery_cycle2"));
-		param.put("salesummary", salesummary);
-		param.put("fbaplannumber", fbaplannumber);
-	}
 	
-	public void calculationPurchasePlan(Map<String, Object> map, List<Map<String, Object>> choseWareHouse, List<PurchaseWareHouseMaterial> defoutWarehouse,Map<String, Object> param,int plan) {
-		Integer defoutPlan = param.get("defoutPlan") == null ? 0 : (Integer) param.get("defoutPlan");
-		Integer maxPlan = param.get("maxPlan") == null ? 0 : (Integer) param.get("maxPlan");
-		String checkedwarehouesid = param.get("checkedwarehouesid") == null ? null : param.get("checkedwarehouesid").toString();
-		//如果该sku有默认入库仓库，则建议补货量以默认入库仓库为准，否则取补货规划中所有入库仓库的建议补货量最大值
-		map.put("isdefoutWarehouse", false);
-		String wid = map.get("id").toString();
-		//如果该产品选中了入库仓库并加入了计划，则以选中的入库仓库计算建议补货值
-		if(choseWareHouse != null && choseWareHouse.size() > 0) {
-			String choseWarehouseid = choseWareHouse.get(0).get("warehouseid").toString();
-			if(choseWarehouseid.equals(wid)) {
-				defoutPlan = plan;
-				map.put("isdefoutWarehouse", true);
-				checkedwarehouesid = wid;
-			}
-		} else {
-			//如果当前产品有默认仓库则用默认仓库来计算建议补货值，否则取当前计划里所有的仓库建议补货值中的最大值来计算
-			if(defoutWarehouse != null && defoutWarehouse.size() > 0) {
-				PurchaseWareHouseMaterial mydefoutWarehouse = defoutWarehouse.get(0);
-				String defoutWarehouseid = mydefoutWarehouse.getWarehouseid();
-				if(defoutWarehouseid.equals(wid)) {
-					defoutPlan = plan;
-					map.put("isdefoutWarehouse", true);
-					checkedwarehouesid = wid;
-				}
-			} else {
-				if(plan >= maxPlan) {
-					maxPlan = plan;
-					defoutPlan = plan;
-					//checkedwarehouesid = wid;
-				}
-			}
-		}
-		param.put("defoutPlan", defoutPlan);
-		param.put("maxPlan", maxPlan);
-		param.put("checkedwarehouesid", checkedwarehouesid);
-	}
-	
-	public int calculationSuggessPlan(Map<String, Object> map, Map<String, Object> param, int cycle, List<Map<String, Object>> fbasale,Map<String, Map<String, Integer>> sumpresaleMap) {
-		Integer salesummary = param.get("salesummary") == null ? 0 : (Integer) param.get("salesummary");
-		Integer fbaplannumber = param.get("fbaplannumber") == null ? 0 : (Integer) param.get("fbaplannumber");
-		Integer selfsale_quantity_sum = param.get("selfsale_quantity_sum") == null ? 0 : (Integer) param.get("selfsale_quantity_sum");
-		int plan = 0;
-		int min_cycle = Integer.parseInt(map.get("min_cycle").toString());
-		int sumplan = fbaplannumber;// 各个站点在FBA备货周期后的建议发货量之和 
-		// 本地仓库缺货量 = 各个站点在FBA备货周期后的建议发货量之和 - (本地库存数量 + inbound库存数量)
-		int salfplan = sumplan - selfsale_quantity_sum;
-		// 本地仓库安全库存
-		int safeplan = cycle * salesummary;
-		// 最小补货周期 * 销量
-		int min_plan = min_cycle * salesummary;
-		if(sumpresaleMap != null){
-			safeplan = productInPresaleService.getLocalTotalPreSales(sumpresaleMap, cycle, fbasale);
-			min_plan = productInPresaleService.getLocalTotalPreSales(sumpresaleMap, min_cycle, fbasale);
-		}
-		if (salfplan > 0) {
-			if ((salfplan + safeplan) > min_plan) {
-				plan = salfplan + safeplan;
-			} else {
-				plan = min_plan;
-			}
-		} else {
-			if (salfplan + safeplan > 0) {
-				plan = min_plan;
-			} else {
-				plan = 0;
-			}
-		}
-		//可售天数
-		int salesday = 0;
-		//发货后可售天数
-		int aftersalesday = 0;
-		if (sumpresaleMap != null) {//根据销量分摊库存，求可售天数
-			salesday = productInPresaleService.getLocalSalesday(sumpresaleMap,selfsale_quantity_sum,fbasale);
-			aftersalesday = productInPresaleService.getLocalSalesday(sumpresaleMap,selfsale_quantity_sum + plan,fbasale);
-		} else if (salesummary != 0) {
-			salesday = selfsale_quantity_sum / salesummary;
-			aftersalesday = (selfsale_quantity_sum + plan) / salesummary;
-		}
-		if (salesummary != 0) {
-			map.put("salesday", salesday);
-			map.put("aftersalesday", aftersalesday);
-		} else {
-			map.put("salesday", "--");
-			map.put("aftersalesday", "--");
-		}
-		return plan;
-	}
 
 	@Transactional
 	public void changePurchasePlanModelItem(Map<String, Object> param) {

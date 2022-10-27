@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
  
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value="MaterialSupplierStepwise对象", description="产品对于供应商的阶梯采购价")
+@ApiModel(value="MaterialSupplierStepwise对象", description="产品对应供应商的阶梯采购价")
 @TableName("t_erp_material_supplier_stepwise")
 public class MaterialSupplierStepwise extends BaseEntity{
 

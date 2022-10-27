@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.report.mapper.AmzInventoryCountryReportMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.report.pojo.entity.AmzInventoryCountryReport">
+        <id column="id" property="id" />
+        <result column="sku" property="sku" />
+        <result column="fnsku" property="fnsku" />
+        <result column="asin" property="asin" />
+        <result column="condition" property="condition" />
+        <result column="country" property="country" />
+        <result column="quantity" property="quantity" />
+        <result column="authid" property="authid" />
+    </resultMap>
+
+</mapper>

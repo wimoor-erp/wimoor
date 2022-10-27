@@ -11,19 +11,22 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.googlecode.aviator.AviatorEvaluator;
-import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
-import com.wimoor.amazon.product.service.IProductCaptureListingsItemService;
+import com.wimoor.amazon.product.service.IProductCaptureCatalogItemService;
 import com.wimoor.amazon.profit.mapper.FixedClosingFeeMapper;
+import com.wimoor.amazon.profit.mapper.IndividualFeeMapper;
+import com.wimoor.amazon.profit.mapper.PrepServiceFeeMapper;
 import com.wimoor.amazon.profit.mapper.VariableClosingFeeMapper;
 import com.wimoor.amazon.profit.pojo.entity.FBALabelingFee;
 import com.wimoor.amazon.profit.pojo.entity.FixedClosingFee;
+import com.wimoor.amazon.profit.pojo.entity.IndividualFee;
 import com.wimoor.amazon.profit.pojo.entity.ProductTier;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
@@ -45,12 +48,7 @@ import com.wimoor.amazon.profit.service.IReferralFeeService;
 import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
 import com.wimoor.common.StringFormat;
 import com.wimoor.common.mvc.BizException;
-import com.wimoor.common.user.UserInfo;
-import com.wimoor.amazon.profit.pojo.vo.*;
 import com.wimoor.util.SpringUtil;
-import cn.hutool.core.util.StrUtil;
-import com.amazon.spapi.model.listings.Item; 
-
 @Service("profitService")  
 public class ProfitServiceImpl implements IProfitService{
 	@Resource
@@ -71,7 +69,8 @@ public class ProfitServiceImpl implements IProfitService{
 	IOutBoundWeightFormatService outboundWeightFormatService;
 	@Resource
 	IFbaLabelingFeeService fbaLabelingFeeService;
- 
+	@Resource
+	PrepServiceFeeMapper prepServiceFeeMapper;
 	@Resource
 	IInventoryStorageFeeService inventoryStorageFeeService;
 	@Resource
@@ -80,13 +79,15 @@ public class ProfitServiceImpl implements IProfitService{
 	public IReferralFeeService referralFeeService;
 	@Resource
 	public IAmazonAuthorityService amazonAuthorityService;
- 	@Resource
- 	public IProductCaptureListingsItemService productCaptureService;
+	@Resource
+	@Lazy
+ 	public IProductCaptureCatalogItemService iProductCaptureCatalogItemService;
 	@Resource
 	IProfitCfgService  profitCfgService;
+	@Resource
+	IndividualFeeMapper individualFeeMapper;
 	
 	DecimalFormat df = new DecimalFormat("0.00");// 保留2位小数
-	private static final String mws_groupId = "26138972975530147";
 	public Map<String, Map<String, String>> unitMap = null;
 	
 	public void clearUnitMap(){
@@ -544,7 +545,17 @@ public class ProfitServiceImpl implements IProfitService{
 
 	List<String> categoryList = new ArrayList<String>();
 
- 
+
+	public List<String> findCategoryList() {
+		if (categoryList.size() == 0) {
+			List<Map<String, String>> categoryMap = prepServiceFeeMapper.getAllCategory();
+			for (int i = 0; i < categoryMap.size(); i++) {
+				String category = categoryMap.get(i).get("category");
+				categoryList.add(category);
+			}
+		}
+		return categoryList;
+	}
 	
 	
 	public static List<String> eulist = null;
@@ -666,7 +677,19 @@ public class ProfitServiceImpl implements IProfitService{
 		}
 		return result;
 	}
-	
+	Map<String, BigDecimal> individualFeeMap = new HashMap<String, BigDecimal>();
+
+	public BigDecimal getIndividualFee(String country) {
+		if (individualFeeMap.get(country) == null) {
+			IndividualFee individualFee = individualFeeMapper.getByCountry(country);
+			if (individualFee != null) {
+				individualFeeMap.put(country, individualFee.getPeritemfee());
+			} else {
+				individualFeeMap.put(country, new BigDecimal("0"));
+			}
+		}
+		return individualFeeMap.get(country);
+	}
 
 	//初步计算产品成本
 	public CostDetail initCostDetail(String country, ProfitConfig profitCfgAll, InputDimensions inputDimension,
@@ -798,8 +821,11 @@ public class ProfitServiceImpl implements IProfitService{
 		}
 		
 		String sellerPlan = profitCfgAll.getSellerplan();//分为：个人卖家，专业卖家
- 
-		
+		BigDecimal perItemFee = new BigDecimal("0");
+		if (sellerPlan.equals("person")) {//个人卖家
+			perItemFee = getIndividualFee(country);
+			costDetail.setPerItemFee(perItemFee);
+		}
 		//对于比率类费用，除以100转换成小数，四舍五入
 		if (referralrate!=null) {
 			referralrate = referralrate.divide(new BigDecimal("100"),4,BigDecimal.ROUND_HALF_UP);
@@ -1189,12 +1215,15 @@ public class ProfitServiceImpl implements IProfitService{
 				edfba = new BigDecimal("0");
 			if (efnfba == null)
 				efnfba = new BigDecimal("0");
-			String fenpeiType = profitConfigX.getFenpeiType();
+			if(profitConfigX==null)return null;
 			BigDecimal fba = null;
-			if ("EFN".equals(fenpeiType) && !"UK".equals(country)) {
-				fba  = fba_report.subtract(edfba).add(efnfba);
-			} else {
-				fba = fba_report;
+			if(profitConfigX!=null) {
+				String fenpeiType = profitConfigX.getFenpeiType();
+				if ("EFN".equals(fenpeiType) && !"UK".equals(country)) {
+					fba  = fba_report.subtract(edfba).add(efnfba);
+				} else {
+					fba = fba_report;
+				}
 			}
 			costDetail.setFBA(fba);// 来自亚马逊报表
 			
@@ -1217,8 +1246,10 @@ public class ProfitServiceImpl implements IProfitService{
 			}
 			
 			ProductTier productTier = productTierService.selectByPKey(productTierId);
-			boolean isStandard = productTier.getIsstandard();
-			
+			boolean isStandard =true;
+			if(productTier!=null) {
+				 isStandard = productTier.getIsstandard();
+			}
 			BigDecimal manualProcessingFee = profitConfigX.getManualProcessing();// 只有美国有这笔费用
 			costDetail.setManualProcessingFee(manualProcessingFee);
 
@@ -1577,124 +1608,6 @@ public class ProfitServiceImpl implements IProfitService{
 		}
 
 	}
-	
-	public Map<String, Object> calculateAmazonCostDetail(UserInfo user,String marketplaceid,String sku, String profitCfgId, BigDecimal cost,String type,BigDecimal price, BigDecimal shipment) {
-			Marketplace marketPlace = marketplaceService.findMapByMarketplaceId().get(marketplaceid);
-			AmazonAuthority amazonAuthority = null;
-	        amazonAuthority = amazonAuthorityService.selectByGroupAndMarket(mws_groupId, marketPlace.getMarketplaceid());
-			amazonAuthority.setMarketPlace(marketPlace);
-			List<String> asinList = new ArrayList<String>();
  
-		
-			Item response = productCaptureService.captureListMatchingProduct(amazonAuthority, sku,Arrays.asList(marketPlace.getMarketplaceid()));
-//			List<GetMatchingProductResult> list = response.getGetMatchingProductResult();
-		//	Dimensions pkgdimensions = null;
-			String amztype=null;
-//			for (int i = 0; i < list.size(); i++) {
-//				GetMatchingProductResult result = list.get(i);
-//				Product product = result.getProduct();
-//				if (product == null) {
-//					continue;
-//				}
-//				AttributeSetList attributeSet = product.getAttributeSets();
-//				if (attributeSet != null && attributeSet.getAny() != null) {
-//					String xml = attributeSet.toXMLFragment();
-//					JAXBContext context = null;
-//					try {
-//						context = JAXBContext.newInstance(ItemAttributes.class);
-//						Unmarshaller unmarsheller = context.createUnmarshaller();
-//						ItemAttributes itemAttributeses = (ItemAttributes) unmarsheller.unmarshal(new StringReader(xml));
-//						amztype=itemAttributeses.getProductGroup();
-//						if (itemAttributeses != null && itemAttributeses.getPackageDimensions() != null) {
-//							   pkgdimensions = itemAttributeses.getPackageDimensions();
-//						}
-//					} catch (JAXBException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					
-//				}
-//			}
-			 
-
-		
-		Map<String, Object> map = new HashMap<String, Object>();
-
-		if(StrUtil.isEmpty(profitCfgId)) {
-			profitCfgId="26138972982277800";
-		}
-		ProfitConfig profitcfg = profitCfgService.findConfigAction(profitCfgId);
-		if (price==null || price.compareTo(BigDecimal.ZERO)==-1) {
-			map.put("costDetail", null);
-			map.put("msg", "产品暂时没有售价信息，不符合计算条件！");
-			return map;
-		}
-		Marketplace marketplace = marketplaceService.selectByPKey(marketplaceid);
-		String currency = marketplace.getCurrency();
-		String country = marketplace.getMarket();
-		InputDimensions inputDimensions=null;//InputDimensions.getTrueInputDimesions(pkgdimensions); 
-		if (inputDimensions==null||inputDimensions.getWeight() == null) {
-			map.put("costDetail", null);
-			map.put("msg", "产品没有重量信息，不符合计算条件！");
-			return map;
-		}
-		int typeId = 41;
-		List<ReferralFee> typelist = referralFeeService.findAllType();
-		List<String> typeall =new ArrayList<String>();
-		if(type!=null&&type.contains("-")) {
-			typeall.addAll(Arrays.asList(type.split("-")));
-		}else if(type!=null&&type.contains("&")) {
-			typeall.addAll(Arrays.asList(type.split("&")));
-		}else if(type!=null&&type.contains(" ")) {
-			typeall.addAll(Arrays.asList(type.split(" ")));
-		}else  if(type!=null){
-			typeall.add(type);
-		} 
-		if(amztype!=null&&amztype.contains("-")) {
-			typeall.addAll( Arrays.asList(amztype.split("-")));
-		}else if(amztype!=null&&amztype.contains("&")) {
-			typeall.addAll( Arrays.asList(amztype.split("&")));
-		}else  if(amztype!=null){
-			typeall.add(amztype);
-		} 
-		for(String typeitem:typeall) {
-		for(ReferralFee item:typelist) {
-				if(typeitem!=null&&item.getType().toLowerCase().indexOf(typeitem.toLowerCase().trim())>=0) {
-					typeId=item.getId(); break;
-				}
-			}
-			if(typeId!=41) {break;}
-		}
-		String isMedia = isMedia(typeId);// 是否为媒介
-		CostDetail costDetail = null;
-		if(!"manually".equals(profitcfg.getShipmentstyle())&&shipment!=null&&shipment.floatValue()==0.0) {
-			shipment=null;
-		}
-		try {
-			costDetail = initCostDetail(country, profitcfg, inputDimensions, isMedia, type, typeId, cost,
-					shipment, currency, null, "national", null, "", null, null, null, null, false);
-		} catch (BizException e) {
-			e.printStackTrace();
-			map.put("costDetail", null);
-			map.put("msg", e);
-			return map;
-		}
-		costDetail.setSellingPrice(price);
-		costDetail =  getCostDetail(costDetail, typeId, null, false,profitcfg);
-		List<ProfitConfig> lists=null;
-		if(user!=null) {
-			lists=profitCfgService.findProfitCfgName(user.getCompanyid());
-		}else {
-			lists=new ArrayList<ProfitConfig>();
-			lists.add(profitcfg);
-		}
-		map.put("costDetail", costDetail);
-		map.put("profitCfgList", lists);
-		map.put("profitCfgId", profitCfgId);
-		map.put("inputDimensions", inputDimensions);
-		
-		map.put("msg", "ok");
-		return map;
-	}
 
 }

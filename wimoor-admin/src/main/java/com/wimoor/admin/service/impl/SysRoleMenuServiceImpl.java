@@ -19,19 +19,19 @@ import cn.hutool.core.collection.CollectionUtil;
 public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRoleMenu> implements ISysRoleMenuService {
 
     @Override
-    public List<Long> listMenuIds(BigInteger roleId) {
+    public List<BigInteger> listMenuIds(BigInteger roleId) {
         return this.baseMapper.listMenuIds(roleId);
     }
 
     @Override
-    public boolean update(BigInteger roleId, List<Long> menuIds) {
+    public boolean update(BigInteger roleId, List<BigInteger> menuIds) {
         boolean result = true;
-        List<Long> dbMenuIds = this.list(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, roleId))
+        List<BigInteger> dbMenuIds = this.list(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, roleId))
                 .stream().map(item -> item.getMenuId()).collect(Collectors.toList());
 
         // 删除数据库存在此次提交不存在的
         if (CollectionUtil.isNotEmpty(dbMenuIds)) {
-            List<Long> removeMenuIds = dbMenuIds.stream().filter(id -> !menuIds.contains(id)).collect(Collectors.toList());
+            List<BigInteger> removeMenuIds = dbMenuIds.stream().filter(id -> !menuIds.contains(id)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(removeMenuIds)) {
                 this.remove(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, roleId)
                         .in(SysRoleMenu::getMenuId, removeMenuIds));
@@ -40,10 +40,10 @@ public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRo
 
         // 插入数据库不存在的
         if (CollectionUtil.isNotEmpty(menuIds)) {
-            List<Long> insertMenuIds = menuIds.stream().filter(id -> !dbMenuIds.contains(id)).collect(Collectors.toList());
+            List<BigInteger> insertMenuIds = menuIds.stream().filter(id -> !dbMenuIds.contains(id)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(insertMenuIds)) {
                 List<SysRoleMenu> roleMenus = new ArrayList<>();
-                for (Long insertMenuId : insertMenuIds) {
+                for (BigInteger insertMenuId : insertMenuIds) {
                     SysRoleMenu roleMenu = new SysRoleMenu().setRoleId(roleId).setMenuId(insertMenuId);
                     roleMenus.add(roleMenu);
                 }

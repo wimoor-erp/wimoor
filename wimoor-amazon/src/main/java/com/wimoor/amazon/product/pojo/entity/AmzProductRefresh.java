@@ -51,5 +51,10 @@ public class AmzProductRefresh implements Serializable {
     @TableField(value="marketplaceid")
     private String marketplaceid;
 
-
+    @TableField(value="isparent")
+    private Boolean isparent;
+    
+    @TableField(value="notfound")
+    private Boolean notfound;
+    
 }

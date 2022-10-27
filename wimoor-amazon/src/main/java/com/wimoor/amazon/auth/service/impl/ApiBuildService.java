@@ -1,24 +1,42 @@
 package com.wimoor.amazon.auth.service.impl;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentials;
 import com.amazon.spapi.SellingPartnerAPIAA.AWSAuthenticationCredentialsProvider;
+import com.amazon.spapi.SellingPartnerAPIAA.AWSSigV4Signer;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationCredentials;
 import com.amazon.spapi.SellingPartnerAPIAA.ScopeConstants;
 import com.amazon.spapi.api.AuthorizationApi;
 import com.amazon.spapi.api.CatalogApi;
 import com.amazon.spapi.api.FbaInboundApi;
+import com.amazon.spapi.api.FbaInventoryApi;
 import com.amazon.spapi.api.FeedsApi;
 import com.amazon.spapi.api.FinancesApi;
 import com.amazon.spapi.api.ListingsApi;
 import com.amazon.spapi.api.NotificationsApi;
 import com.amazon.spapi.api.OrdersV0Api;
+import com.amazon.spapi.api.ProductPricingApi;
 import com.amazon.spapi.api.ReportsApi;
 import com.amazon.spapi.api.SellersApi;
+import com.amazon.spapi.api.SolicitationsApi;
 import com.amazon.spapi.api.TokensApi;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenRequest;
+import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenResponse;
+import com.amazon.spapi.model.tokens.RestrictedResource;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 
 import cn.hutool.core.lang.Assert;
@@ -160,25 +178,38 @@ public class ApiBuildService implements InitializingBean {
 		return endpoint;
 	}
 	
+	public String getRegion(String awsregion) {
+		String region="";
+			if("us-east-1".equals(awsregion)) {
+				region="NA";
+			}else if("eu-west-1".equals(awsregion)) {
+				region="EU";
+			}else if("us-west-2".equals(awsregion)){
+				region="FE";
+			}
+		return region;
+	}
+	
 	public ReportsApi  getReportsApi(AmazonAuthority auth) {
-	                     ReportsApi api = new ReportsApi.Builder()
+	                    ReportsApi api = new ReportsApi.Builder()
 			                 .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 			                 .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 			                 .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
 			                 .endpoint(getEndPoint(auth.getAWSRegion()))
+			                 .rateLimitConfigurationOnRequests(auth)
 			                 .build();
 	                     return api;
 	     }
 	
-	
 	public ListingsApi  getProductApi(AmazonAuthority auth) {
-		           ListingsApi api = new ListingsApi.Builder()
-			            .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-			            .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-			            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
-			            .endpoint(getEndPoint(auth.getAWSRegion()))
-			            .build();
-			        return api;
+        ListingsApi api = new ListingsApi.Builder()
+	            .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
+	            .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
+	            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+	            .endpoint(getEndPoint(auth.getAWSRegion()))
+	            .rateLimitConfigurationOnRequests(auth)
+	            .build();
+		return api;
     }
 	
 	public OrdersV0Api  getOrdersV0Api(AmazonAuthority auth) {
@@ -187,39 +218,74 @@ public class ApiBuildService implements InitializingBean {
             .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
             .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
             .endpoint(getEndPoint(auth.getAWSRegion()))
+            .rateLimitConfigurationOnRequests(auth)
             .build();
         return api;
 	}
-	
+    
 	public FeedsApi  getFeedApi(AmazonAuthority auth) {
 		  FeedsApi api = new FeedsApi.Builder()
             .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
             .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
             .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
             .endpoint(getEndPoint(auth.getAWSRegion()))
+            .rateLimitConfigurationOnRequests(auth)
             .build();
         return api;
 	}
 	
 	public FbaInboundApi  getInboundApi(AmazonAuthority auth) {
-		   FbaInboundApi api = new FbaInboundApi.Builder()
+		 FbaInboundApi api = new FbaInboundApi.Builder()
            .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
            .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
            .endpoint(getEndPoint(auth.getAWSRegion()))
+           .rateLimitConfigurationOnRequests(auth)
            .build();
           return api;
 	}
+
+	public FbaInventoryApi  getFbaInventoryApi(AmazonAuthority auth) {
+		FbaInventoryApi api = new FbaInventoryApi.Builder()
+          .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
+          .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
+          .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+          .endpoint(getEndPoint(auth.getAWSRegion()))
+          .rateLimitConfigurationOnRequests(auth)
+          .build();
+         return api;
+	}
 	
-	public AuthorizationApi  getAuthorizationApi(AmazonAuthority auth) {
+	public AuthorizationApi  getAuthorizationApiGrantless(AmazonAuthority auth) {
+		/*********************Grantless operations**************
+		 *  createDestination	POST /notifications/v1/destinations
+		 *	deleteDestination	DELETE /notifications/v1/destinations/{destinationId}
+		 *	deleteSubscriptionById	DELETE /notifications/v2/subscriptions/{notificationType}/{subscriptionId}
+		 *	getDestination	GET /notifications/v1/destinations/{destinationId}
+		 *	getDestinations	GET /notifications/v1/destinations
+		 *	getSubscriptionById	GET /notifications/v1/subscriptions/{notificationType}/{subscriptionId}
+		 *	getAuthorizationCode
+		 */
 		AuthorizationApi api=new AuthorizationApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentialsWithScope(auth,ScopeConstants.SCOPE_MIGRATION_API))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
 				.build();
         return api;
 	}
+	
+	public NotificationsApi getNotificationsApiGrantless(AmazonAuthority auth) {
+	       NotificationsApi api=new NotificationsApi.Builder()
+			.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
+			.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+			.lwaAuthorizationCredentials(getLWAAuthorizationCredentialsWithScope(auth,ScopeConstants.SCOPE_NOTIFICATIONS_API))
+	        .endpoint(getEndPoint(auth.getAWSRegion()))
+	        .rateLimitConfigurationOnRequests(auth)
+			.build();
+           return api;
+   }
 
 	public CatalogApi  getCatalogApi(AmazonAuthority auth) {
 		CatalogApi api=new CatalogApi.Builder()
@@ -227,51 +293,144 @@ public class ApiBuildService implements InitializingBean {
 				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
 				.build();
         return api;
 	}
 	
 	public NotificationsApi getNotificationsApi(AmazonAuthority auth) {
-		      NotificationsApi api=new NotificationsApi.Builder()
+		NotificationsApi api=new NotificationsApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
-				.lwaAuthorizationCredentials(getLWAAuthorizationCredentialsWithScope(auth,ScopeConstants.SCOPE_NOTIFICATIONS_API))
+				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
 				.build();
-        return api;
+		return api;
 	}
-	
+
 	public FinancesApi getFinancesApi(AmazonAuthority auth) {
 			FinancesApi api=new FinancesApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
 				.build();
 		  return api;
 	 }
 	
+
 	public TokensApi getTokensApi(AmazonAuthority auth) {
-		// TODO Auto-generated method stub
 		TokensApi api=new TokensApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
 				.build();
         return api;
 	}
 	
+
 	public SellersApi getSellersApi(AmazonAuthority auth){
-		// TODO Auto-generated method stub
 		SellersApi api=new SellersApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
 				.build();
         return api;
 	}
 
+	public ProductPricingApi getProductPricingApi(AmazonAuthority auth){
+		ProductPricingApi api=new ProductPricingApi.Builder()
+				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
+		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
+				.build();
+        return api;
+	}
 
+	public SolicitationsApi getSolicitationsApi(AmazonAuthority auth){
+		SolicitationsApi api=new SolicitationsApi.Builder()
+				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
+		        .endpoint(getEndPoint(auth.getAWSRegion()))
+		        .rateLimitConfigurationOnRequests(auth)
+				.build();
+        return api;
+	}
+
+ 
+	 public   RestrictedResource buildRestrictedResource(RestrictedResource.MethodEnum method, String path, List<String> dataElements){
+	     RestrictedResource resource = buildRestrictedResource(method,path);
+	     resource.dataElements(dataElements);
+	     return resource;
+	 }
+	 public   RestrictedResource buildRestrictedResource(RestrictedResource.MethodEnum method, String path){
+	     RestrictedResource resource = new RestrictedResource();
+	     resource.setMethod(method);
+	     resource.setPath(path);
+	     return resource;
+	 }
+	 
+	 public   JsonObject getRestrictedData(AmazonAuthority amazonAuthority,String resourcePath,List<String> dataElements) throws ApiException, IOException  {
+	          // Initialize a CreateRestrictedDataTokenRequest object that represents the Restricted Data Token request body.
+		      RestrictedResource resource = buildRestrictedResource(RestrictedResource.MethodEnum.GET, resourcePath, dataElements);
+		     // Make a list of the RestrictedResource objects that will be included in the request to create the RDT.
+		     List<RestrictedResource> resourceList = Arrays.asList(resource);
+		     // Get an RDT for the list of restricted resources.
+		     String restrictedDataToken = getRestrictedDataToken(amazonAuthority,resourceList);
+			 Response restrictedRequestResponse  = buildAndExecuteRestrictedRequest(amazonAuthority,resource, restrictedDataToken, null);
+		     @SuppressWarnings("deprecation")
+		     JsonObject responseBodyJson = new JsonParser().parse(restrictedRequestResponse.body().string()).getAsJsonObject();
+			 return responseBodyJson;
+	 }
+	 
+	 public   String getRestrictedDataToken(AmazonAuthority auth,List<RestrictedResource> resourceList) throws ApiException {
+	     // Initialize a CreateRestrictedDataTokenRequest object that represents the Restricted Data Token request body.
+	     CreateRestrictedDataTokenRequest restrictedDataTokenRequest = new CreateRestrictedDataTokenRequest();
+	     // Add a resource list to the CreateRestrictedDataTokenRequest object.
+	     restrictedDataTokenRequest.setRestrictedResources(resourceList);
+
+	     try {
+	         CreateRestrictedDataTokenResponse response =this.getTokensApi(auth).createRestrictedDataToken(restrictedDataTokenRequest);
+	         String restrictedDataToken = response.getRestrictedDataToken();
+	         return restrictedDataToken;
+	     } catch (ApiException e) {
+	         System.out.println(e.getResponseHeaders());  // Capture the response headers when a exception is thrown.
+	         throw e;
+	     }
+	 }
+	 
+	 public   Response buildAndExecuteRestrictedRequest(AmazonAuthority auth,RestrictedResource resource, String restrictedDataToken, RequestBody requestBody) throws IOException {
+	     // Construct a request with the specified RestrictedResource, RDT, and RequestBody.
+	     Request signedRequest = new Request.Builder()
+	             .url(getEndPoint(auth.getAWSRegion()) + resource.getPath())  // Define the URL for the request, based on the endpoint and restricted resource path.
+	             .method(resource.getMethod().getValue(), requestBody)  // Define the restricted resource method value, and requestBody, if required by the restricted operation.
+	             .addHeader("x-amz-access-token", restrictedDataToken) // Sign the request with the RDT by adding it to the "x-amz-access-token" header.
+	             .build(); // Build the request.
+
+	     // Initiate an AWSSigV4Signer instance using your AWS credentials. This example is for an application registered using an AIM Role.
+	     AWSSigV4Signer awsSigV4Signer = new AWSSigV4Signer(getAwsAuthenticationCredentials(auth), getAWSAuthenticationCredentialsProvider());
+
+	     /*
+	     // Or, if the application was registered using an IAM User, use the following example:
+	     AWSSigV4Signer awsSigV4Signer = new AWSSigV4Signer(awsAuthenticationCredentials);
+	     */
+
+	     // Sign the request with the AWSSigV4Signer.
+	     signedRequest = awsSigV4Signer.sign(signedRequest);
+
+	     // Execute the signed request.
+	     OkHttpClient okHttpClient = new OkHttpClient();
+	     Response response = okHttpClient.newCall(signedRequest).execute();
+
+	     return response;
+	 }
 }

@@ -82,15 +82,8 @@
     <!-- 生产环境输出至文件 -->
     <springProfile name="prod">
         <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-            <appender-ref ref="FILE" />
+              <appender-ref ref="FILE" />
         </root>
     </springProfile>
-    
- 
-<!--    <root level="INFO">
-            <appender-ref ref="CONSOLE" />
-        </root>   
--->
- 
+
 </configuration>

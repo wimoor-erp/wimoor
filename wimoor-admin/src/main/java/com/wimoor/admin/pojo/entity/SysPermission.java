@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Data
@@ -20,8 +21,7 @@ public class SysPermission extends BaseEntity {
 
     private String name;
 
-    private String menuId;
-
+    private BigInteger menuId;
     private String urlPerm;
 
     private String btnPerm;

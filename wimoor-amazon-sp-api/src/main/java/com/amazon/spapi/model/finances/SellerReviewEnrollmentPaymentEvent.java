@@ -15,9 +15,6 @@ package com.amazon.spapi.model.finances;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.finances.ChargeComponent;
-import com.amazon.spapi.model.finances.Currency;
-import com.amazon.spapi.model.finances.FeeComponent;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -25,13 +22,16 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.finances.ChargeComponent;
+import com.amazon.spapi.model.finances.Currency;
+import com.amazon.spapi.model.finances.FeeComponent;
 import java.io.IOException;
 
 /**
  * A fee payment event for the Early Reviewer Program.
  */
 @ApiModel(description = "A fee payment event for the Early Reviewer Program.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class SellerReviewEnrollmentPaymentEvent {
   @SerializedName("PostedDate")
   private String postedDate = null;

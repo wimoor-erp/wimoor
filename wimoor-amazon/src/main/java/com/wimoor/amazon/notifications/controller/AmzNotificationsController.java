@@ -35,7 +35,7 @@ public class AmzNotificationsController {
 	@ApiOperation(value = "刷新接受信息的Destination")
 	@GetMapping("/refreshDestination")
 	public Result<?> refreshDestinationAction(){
-		amazonAuthorityService.executTask(iAmzNotificationsDestinationService);
+		iAmzNotificationsDestinationService.executTask();
 		return Result.judge(true);
 	}
 	

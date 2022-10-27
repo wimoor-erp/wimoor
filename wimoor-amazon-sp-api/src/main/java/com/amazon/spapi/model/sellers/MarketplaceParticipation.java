@@ -14,22 +14,15 @@
 package com.amazon.spapi.model.sellers;
 
 import java.util.Objects;
-import java.util.Arrays;
-import com.amazon.spapi.model.sellers.Marketplace;
-import com.amazon.spapi.model.sellers.Participation;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
+
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import io.swagger.annotations.ApiModel;
+
 import io.swagger.annotations.ApiModelProperty;
-import java.io.IOException;
 
 /**
  * MarketplaceParticipation
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T19:59:39.171+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:43:40.699+08:00")
 public class MarketplaceParticipation {
   @SerializedName("marketplace")
   private Marketplace marketplace = null;

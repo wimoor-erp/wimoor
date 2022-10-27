@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.amazon.auth.service.IAmzAuthApiTimelimitService;
 import com.wimoor.common.GeneralUtil;
@@ -41,9 +42,11 @@ public class AmzAuthApiTimelimit extends BaseEntity implements Serializable {
     private String nexttoken;
 
     @ApiModelProperty(value = "API调用的开始时间")
+    @TableField(value="start_time")
     private Date startTime;
 
     @ApiModelProperty(value = "API调用的结束时间")
+    @TableField(value="end_time")
     private Date endTime;
 
     @ApiModelProperty(value = "本次调用的页数")
@@ -55,6 +58,10 @@ public class AmzAuthApiTimelimit extends BaseEntity implements Serializable {
     @ApiModelProperty(value = "最后更新时间")
     private Date lastuptime;
 
+    @ApiModelProperty(value = "保存时间")
+    @TableField(exist=false)
+    private Date savetime;
+    
     @ApiModelProperty(value = "异常log")
     private String log;
 

@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.wimoor.amazon.report.pojo.entity.AmzSettlementAccReport;
 import com.wimoor.amazon.report.pojo.entity.AmzSettlementReport;
  
 @Mapper
@@ -40,4 +41,10 @@ public interface AmzSettlementReportMapper extends BaseMapper<AmzSettlementRepor
 	List<Map<String, Object>> getDetailDaySKUOther(Map<String, Object> param);
 	
 	List<Map<String, Object>> getDescNotSKU(Map<String, Object> param);
+
+	void moveData(AmzSettlementAccReport acc);
+    Integer hasData(AmzSettlementAccReport acc);
+    Integer hasDataArchive(AmzSettlementAccReport acc);
+    void moveDataArchive(AmzSettlementAccReport acc);
+    
 }

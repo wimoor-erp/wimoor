@@ -36,19 +36,22 @@ public class ApiCallbackReportCreate  implements ApiCallback<CreateReportRespons
 	@Override
 	public void onDownloadProgress(long arg0, long arg1, boolean arg2) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackReportCreate----onDownloadProgress");
+		//System.out.println("ApiCallbackReportCreate----onDownloadProgress");
 	}
 
 	@Override
 	public void onFailure(ApiException arg0, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackReportCreate----onFailure"+arg0.getResponseBody());
-		System.out.println("ApiCallbackReportCreate----onFailure"+arg2);
+		//System.out.println("ApiCallbackReportCreate----onFailure"+arg0.getResponseBody());
+		//System.out.println("ApiCallbackReportCreate----onFailure"+arg2);
+		amazonAuthority.setApiRateLimit(arg2,arg0);
 	}
 
 	@Override
 	public void onSuccess(CreateReportResponse result, int arg1, Map<String, List<String>> arg2) {
 		// TODO Auto-generated method stub
+		String token="";
+		amazonAuthority.setApiRateLimit( arg2,token);
 		if(amazonAuthority!=null&&result!=null) {
 			if(result!=null) {
 				reportService.createRecordRequest(amazonAuthority,result.getReportId(),market,start,end);
@@ -59,7 +62,7 @@ public class ApiCallbackReportCreate  implements ApiCallback<CreateReportRespons
 	@Override
 	public void onUploadProgress(long arg0, long arg1, boolean arg2) {
 		// TODO Auto-generated method stub
-		System.out.println("ApiCallbackReportCreate----onUploadProgress");
+		//System.out.println("ApiCallbackReportCreate----onUploadProgress");
 	}
 
 }

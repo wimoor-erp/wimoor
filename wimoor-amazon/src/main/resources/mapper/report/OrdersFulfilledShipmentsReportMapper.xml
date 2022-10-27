@@ -50,6 +50,7 @@
     <result column="fulfillment_center_id" property="fulfillmentCenterId" jdbcType="CHAR" />
     <result column="fulfillment_channel" property="fulfillmentChannel" jdbcType="CHAR" />
     <result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+    <result column="amazonauthid" property="amazonauthid" jdbcType="CHAR" />
   </resultMap>
   <sql id="Base_Column_List" >
     amazon_order_id, shipment_item_id, amazon_order_item_id, merchant_order_id, shipment_id, 
@@ -60,7 +61,7 @@
     ship_city, ship_state, ship_postal_code, ship_country, ship_phone_number, bill_address_1, 
     bill_address_2, bill_address_3, bill_city, bill_state, bill_postal_code, bill_country, 
     item_promotion_discount, ship_promotion_discount, carrier, tracking_number, estimated_arrival_date, 
-    fulfillment_center_id, fulfillment_channel, sales_channel
+    fulfillment_center_id, fulfillment_channel, sales_channel,amazonauthid
   </sql>
   	<insert id="insertBatch" parameterType="java.util.List">
 		replace into t_orders_fulfilled_shipments_report (
@@ -72,7 +73,7 @@
 	    ship_city, ship_state, ship_postal_code, ship_country, ship_phone_number, bill_address_1, 
 	    bill_address_2, bill_address_3, bill_city, bill_state, bill_postal_code, bill_country, 
 	    item_promotion_discount, ship_promotion_discount, carrier, tracking_number, estimated_arrival_date, 
-	    fulfillment_center_id, fulfillment_channel, sales_channel)
+	    fulfillment_center_id, fulfillment_channel, sales_channel,amazonauthid)
 		values
 		<foreach collection="list" item="adv" index="index" separator=",">
 			(
@@ -123,7 +124,8 @@
 	 	    #{adv.estimatedArrivalDate,jdbcType=DATE},  
 	 	    #{adv.fulfillmentCenterId,jdbcType=CHAR},  
 	 	    #{adv.fulfillmentChannel,jdbcType=CHAR},  
-	 	    #{adv.salesChannel,jdbcType=CHAR})
+	 	    #{adv.salesChannel,jdbcType=CHAR},
+	 	    #{adv.amazonauthid,jdbcType=CHAR})
 		</foreach>
 	</insert>
 </mapper>

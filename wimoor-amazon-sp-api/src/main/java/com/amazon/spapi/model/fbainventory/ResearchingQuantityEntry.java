@@ -28,7 +28,7 @@ import java.io.IOException;
  * The misplaced or warehouse damaged inventory that is actively being confirmed at our fulfillment centers.
  */
 @ApiModel(description = "The misplaced or warehouse damaged inventory that is actively being confirmed at our fulfillment centers.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:24:28.343+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-09-22T17:58:32.274+08:00")
 public class ResearchingQuantityEntry {
   /**
    * The duration of the research.

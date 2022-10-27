@@ -13,7 +13,7 @@ public class DeptVO implements Serializable{
 	 */
 	private static final long serialVersionUID = -5253368756977859991L;
 
-	private Integer id;
+	private String id;
 
     private String name;
 

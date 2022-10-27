@@ -230,7 +230,8 @@ public class ReportAmzProductAllListServiceImpl extends ReportServiceImpl {
 								&& "ATVPDKIKX0DER".equals(amazonAuthority.getMarketPlace().getMarketplaceid())	) {
 								productInfo.setName("TUPARKA 18 Pcs Cable Protector for iPhone/ipad USB Cable, Plastic Cable Protectors Cute Fish Dinosaur Animals Charging Cable Saver, Phone Accessory Protect USB Charger");	
 							} 
-							productInfo.setOpenDate(LocalDateTime.ofInstant(null, null));
+							ZoneId zoneid=ZoneId.of("Asia/Shanghai");
+							productInfo.setOpenDate(LocalDateTime.ofInstant(openDate.toInstant(), zoneid));
 						}
 						if (StrUtil.isNotEmpty(price)) {
 							BigDecimal buyprice = new BigDecimal(price.trim().toString());
@@ -256,10 +257,6 @@ public class ReportAmzProductAllListServiceImpl extends ReportServiceImpl {
 						productInfo.setMarketplaceid(amazonAuthority.getMarketPlace().getMarketplaceid());
 						productInfo.setInvalid(Boolean.FALSE);
 						productInfo.setRefreshtime(LocalDateTime.now());
-						if("B07ZCV7SJZ".equalsIgnoreCase(asin) && "A2095TKJYA".equalsIgnoreCase(sku) 
-								&& "ATVPDKIKX0DER".equals(amazonAuthority.getMarketPlace().getMarketplaceid())	) {
-							productInfo.setName("TUPARKA 18 Pcs Cable Protector for iPhone/ipad USB Cable, Plastic Cable Protectors Cute Fish Dinosaur Animals Charging Cable Saver, Phone Accessory Protect USB Charger");	
-						} 
 						if (StrUtil.isNotEmpty(price)) {
 							BigDecimal buyprice = new BigDecimal(price.trim().toString());
 							productInfo.setPrice(buyprice);

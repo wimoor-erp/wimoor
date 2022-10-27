@@ -11,8 +11,6 @@ import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 public interface IMarketplaceService  extends IService<Marketplace> {
 	public  Marketplace  findMarketplaceByCountry(String country);
 
-	public List<Marketplace> findAWSMarketplaceList();
-
 	public List<Marketplace> findMarketplaceByRegion(String region);
 	
 	public List<Marketplace> findMarketplaceByGroup(String groupid);
@@ -43,7 +41,6 @@ public interface IMarketplaceService  extends IService<Marketplace> {
 	
 	List<Marketplace> findByRole(String roleid,String shopid);
 
-	public List<Marketplace> findMarketplaceBySku(Map<String, String> param);
 
 	public int updateEntity(Marketplace entity);
 
@@ -56,5 +53,7 @@ public interface IMarketplaceService  extends IService<Marketplace> {
 	public   String getMarketPlaceId(String mcurrency) ;
 
 	public List<Marketplace> findByShopid(String companyid);
+	List<Marketplace> getMarketPointBySkuGroup(String groupid,String sku);
 
+	public List<Marketplace> getMarketPointByMSku(String companyid, String msku);
 }

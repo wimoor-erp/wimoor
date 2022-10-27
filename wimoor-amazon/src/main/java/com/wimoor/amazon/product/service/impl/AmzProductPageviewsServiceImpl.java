@@ -1,7 +1,9 @@
 package com.wimoor.amazon.product.service.impl;
 
+import com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductPageviews;
 import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsConditionVo;
+import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -9,7 +11,9 @@ import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.product.mapper.AmzProductPageviewsMapper;
 import com.wimoor.amazon.product.mapper.ProductInOptMapper;
 import com.wimoor.amazon.product.service.IAmzProductPageviewsService;
+import com.wimoor.amazon.report.service.IHandlerReportService;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 
 import cn.hutool.core.util.StrUtil;
@@ -17,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.math.BigInteger;
@@ -26,6 +31,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
@@ -42,11 +49,19 @@ import org.springframework.stereotype.Service;
 public class AmzProductPageviewsServiceImpl extends ServiceImpl<AmzProductPageviewsMapper, AmzProductPageviews> implements IAmzProductPageviewsService {
 	final IAmazonAuthorityService amazonAuthorityService;
 	final IMarketplaceService marketplaceServcie;
+	@Resource
+	IHandlerReportService handlerReportService;
     final ProductInOptMapper productInOptMapper;
+    
 	public void refreshDownload() {
 		List<AmzProductPageviewsConditionVo> list = this.baseMapper.downloadAuth();
 		for(AmzProductPageviewsConditionVo item:list) {
-			   if(GeneralUtil.distanceOfMinutes(item.getOpttime(), new Date())>10) {
+			   if(GeneralUtil.distanceOfMinutes(item.getOpttime(), new Date())>5) {
+					AmazonAuthority auth = amazonAuthorityService.getById(item.getAmazonAuthid());
+					int hasNeedTreatOrder = handlerReportService.hasNeedTreatOrderReportList(auth.getSellerid());
+					if (hasNeedTreatOrder > 0) {
+						continue;
+					}
 				   this.baseMapper.downloadRefresh(item);
 				   this.baseMapper.deleteByMarketplaceid(item.getMarketplaceid(), item.getAmazonAuthid().toString(), GeneralUtil.getStrDate(item.getByday()));
 			   }
@@ -146,6 +161,20 @@ public class AmzProductPageviewsServiceImpl extends ServiceImpl<AmzProductPagevi
 		return null;
 	}
 	
+	public String uploadSessionFile(String marketplaceid, String sellerid, String day, List<AmzProductPageviews> pagelist)   {
+			AmazonAuthority auth=amazonAuthorityService.selectBySellerId(sellerid);
+			if (auth == null) {
+				 return null;
+			}
+		    this.baseMapper.deleteByMarketplaceid(marketplaceid, auth.getId(), day);
+			if (pagelist.size() > 0) {
+				this.baseMapper.saveBatch(pagelist);
+				pagelist.clear();
+				pagelist = null;
+			}
+		return null;
+	}
+	
 	private String getSessionRecord(JSONArray record, Integer integer) {
 		if (integer != null) {
 			return record.getString(integer);
@@ -171,5 +200,14 @@ public class AmzProductPageviewsServiceImpl extends ServiceImpl<AmzProductPagevi
 				productInOptMapper.updateBySessionRpt(market.getMarketplaceid(), amazonAuthority.getId());
 			}
 		}
+	}
+	@Override
+	public IPage<AmzProductPageviewsVo> getPageViewsList(AmzProductPageviewsDTO dto) {
+		// TODO Auto-generated method stub
+		AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(dto.getGroupid(), dto.getMarketplaceid());
+		if(auth!=null) {
+			dto.setAmazonauthid(auth.getId());
+		}
+		return this.baseMapper.getPageViewsList(dto.getPage(), dto);
 	}
 }

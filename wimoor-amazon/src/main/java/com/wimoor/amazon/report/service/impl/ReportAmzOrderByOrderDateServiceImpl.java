@@ -15,12 +15,11 @@ import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.report.mapper.OrdersReportMapper;
 import com.wimoor.amazon.report.pojo.entity.OrdersReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
+import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;
 
 import cn.hutool.core.util.StrUtil;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service("reportAmzOrderByOrderDateService")
 public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 
@@ -41,6 +40,7 @@ public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 			try {
 				while ((line = br.readLine()) != null) {
 					String[] info = line.split("\t");
+					System.out.println(line);
 					int length = info.length;
 					if (lineNumber == 0) {
 						for (int i = 0; i < length; i++) {
@@ -78,7 +78,7 @@ public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 						String ship_promotion_discount = GeneralUtil.getStrValue(info, titleList, "ship-promotion-discount");
 //					    address-type
 						String ship_city = GeneralUtil.getStrValue(info, titleList, "ship-city");
-						String ship_state = GeneralUtil.getStrValue(info, titleList, "ship-state");
+						String ship_state = EmojiFilterUtils.filterEmoji(GeneralUtil.getStrValue(info, titleList, "ship-state"));
 						String ship_postal_code = GeneralUtil.getStrValue(info, titleList, "ship-postal-code");
 						String ship_country = GeneralUtil.getStrValue(info, titleList, "ship-country");
 						String promotion_ids = GeneralUtil.getStrValue(info, titleList, "promotion-ids");
@@ -140,13 +140,11 @@ public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 						record.setPriceDesignation(price_designation);
 						record.setAmazonauthid(amazonAuthority.getId());
 						record.setMarketplaceId(marketPlace.getMarketplaceid());
-
 						record.getId();
 						param.put("amazonOrderId", amazon_order_id);
 						param.put("purchaseDate", record.getPurchaseDate());
 						param.put("sku", record.getSku());
 						//都是操作t_orders_report_download表
-						ordersReportMapper.deleteItem(param);
 						try {
 							ordersReportMapper.insertIntoDownload(record);
 						} catch (Exception e) {

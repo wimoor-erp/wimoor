@@ -26,7 +26,7 @@ public class ApiCallbackGetOrderItems implements ApiCallback<GetOrderItemsRespon
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-		  auth.setApiRateLimit("getOrderItems", responseHeaders, e);
+		  auth.setApiRateLimit(responseHeaders, e);
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class ApiCallbackGetOrderItems implements ApiCallback<GetOrderItemsRespon
 		  if(items.getNextToken()!=null) {
 			  nexttoken=items.getAmazonOrderId()+":"+items.getNextToken();
 		  } 
-		  auth.setApiRateLimit("getOrderItems", responseHeaders,nexttoken);
+		  auth.setApiRateLimit(responseHeaders,nexttoken);
 		  handlerService.handlerOrderItemListResponse(auth,order,items);
 	}
 

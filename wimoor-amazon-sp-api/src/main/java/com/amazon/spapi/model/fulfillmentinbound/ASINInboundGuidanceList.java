@@ -22,7 +22,7 @@ import io.swagger.annotations.ApiModel;
  * A list of ASINs and their associated inbound guidance.
  */
 @ApiModel(description = "A list of ASINs and their associated inbound guidance.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class ASINInboundGuidanceList extends ArrayList<ASINInboundGuidance> {
 
   @Override

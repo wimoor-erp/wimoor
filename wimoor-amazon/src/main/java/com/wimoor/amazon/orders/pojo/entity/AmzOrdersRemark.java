@@ -23,6 +23,9 @@ public class AmzOrdersRemark  implements Serializable{
 	@TableField(value="feed_queueid")
     private String feedQueueid;
 	
+	@TableField(value="review_send_time")
+    private Date reviewSendTime;
+	
 	@TableField(value="remark")
     private String remark;
 	

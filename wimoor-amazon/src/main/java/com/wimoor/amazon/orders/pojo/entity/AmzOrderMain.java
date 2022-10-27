@@ -3,6 +3,7 @@ package com.wimoor.amazon.orders.pojo.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import com.amazon.spapi.model.orders.Order;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -123,12 +124,6 @@ public class AmzOrderMain  implements Serializable{
 	@ApiModelProperty(value = "替换的订单ID")
     private String replacedOrderid;
 	
-	@ApiModelProperty(value = "公司ID")
-    private String shopid;
-	
-	@ApiModelProperty(value = "店铺ID")
-    private String groupid;
-	
 	@TableField(value="amazonAuthId")
     private String amazonauthid;
 
@@ -138,6 +133,9 @@ public class AmzOrderMain  implements Serializable{
 	@TableField(exist=false)
     public AmzOrderBuyerShipAddress buyerAdress;
 
+	@TableField(exist=false)
+	public List<AmzOrderItem> OrderItemList;
+	
 	public String getId() {
 		if (null == id) {
 			id = UUIDUtil.getUUIDshort();
@@ -173,22 +171,24 @@ public class AmzOrderMain  implements Serializable{
 		this.setCbadisplayableshippinglabel(order.getCbaDisplayableShippingLabel());
 		this.setOrdertype(order.getOrderType().getValue());
 		this.setHasItem(false);
-		if(order.getAssignedShipFromLocationAddress()!=null){
+		if(order.getShippingAddress()!=null){
 			AmzOrderBuyerShipAddress buyerAdress = new AmzOrderBuyerShipAddress();
 			buyerAdress.setAmazonOrderid(order.getAmazonOrderId().toString());
 			buyerAdress.setMarketplaceid(order.getMarketplaceId());
 			buyerAdress.setOpttime(new Date());
-			buyerAdress.setAddressLine1(order.getAssignedShipFromLocationAddress().getAddressLine1());
-			buyerAdress.setAddressLine2(order.getAssignedShipFromLocationAddress().getAddressLine2());
-			buyerAdress.setAddressLine3(order.getAssignedShipFromLocationAddress().getAddressLine3());
-			buyerAdress.setCity(order.getAssignedShipFromLocationAddress().getCity());
-			buyerAdress.setCounty(order.getAssignedShipFromLocationAddress().getCounty());
-			buyerAdress.setDistrict(order.getAssignedShipFromLocationAddress().getDistrict());
-			buyerAdress.setStateOrRegion(order.getAssignedShipFromLocationAddress().getStateOrRegion());
-			buyerAdress.setPostalCode(order.getAssignedShipFromLocationAddress().getPostalCode());
-			buyerAdress.setCountryCode(order.getAssignedShipFromLocationAddress().getCountryCode());
-			buyerAdress.setPhone(order.getAssignedShipFromLocationAddress().getPhone());
-			this.setBuyerShippingAddressId(buyerAdress.getId());
+			buyerAdress.setAddressLine1(order.getShippingAddress().getAddressLine1());
+			buyerAdress.setAddressLine2(order.getShippingAddress().getAddressLine2());
+			buyerAdress.setAddressLine3(order.getShippingAddress().getAddressLine3());
+			buyerAdress.setCity(order.getShippingAddress().getCity());
+			buyerAdress.setCounty(order.getShippingAddress().getCounty());
+			buyerAdress.setDistrict(order.getShippingAddress().getDistrict());
+			buyerAdress.setStateOrRegion(order.getShippingAddress().getStateOrRegion());
+			buyerAdress.setPostalCode(order.getShippingAddress().getPostalCode());
+			buyerAdress.setCountryCode(order.getShippingAddress().getCountryCode());
+			buyerAdress.setPhone(order.getShippingAddress().getPhone());
+			if(order.getShippingAddress().getAddressType()!=null) {
+				buyerAdress.setAddressType(order.getShippingAddress().getAddressType().getValue());
+			}
 			this.setBuyerAdress(buyerAdress);
 		}
 		
@@ -210,7 +210,7 @@ public class AmzOrderMain  implements Serializable{
 		if(order.getLatestDeliveryDate()!=null){
 			this.setLatestdeliverydate(GeneralUtil.getDatePlus(order.getLatestDeliveryDate().toString(),market));
 		}
-	
+	   this.hasItem=true;
 	}
 
 	public AmzOrderMain() {

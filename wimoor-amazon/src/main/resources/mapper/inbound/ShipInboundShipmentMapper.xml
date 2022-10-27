@@ -16,12 +16,12 @@
 		ShipmentStatus, inboundplanid,name,status
 	</sql>
 	
-	<select id="findByTraceCondition" resultType="com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundShipmenSummarytVo" parameterType="java.lang.String">
+	<select id="findByTraceCondition" resultType="com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundShipmenSummarytVo" parameterType="com.wimoor.amazon.inbound.pojo.dto.ShipInboundShipmenSummaryDTO">
 		select * 
 		from (
 			select inbound.shipmentId , inbound.name , form.id planid,
 				max(form.marketplaceid) marketplaceid, max(mp.market) countryCode ,
-				count(item.SellerSKU) skuamount, sum(item.Quantity) sumquantity,
+				count(item.SellerSKU) skuamount, sum(item.Quantity) sumQuantity,
 				case when stat.`status`='WORKING' and inbound.status>=5 then '异常单据' else
 				stat.name end shipmentstatus, inbound.DestinationFulfillmentCenterId centerId,
 				sum(ifnull(item.QuantityShipped,0)) sumshipped, sum(ifnull(item.QuantityReceived,0)) sumrec,
@@ -33,8 +33,8 @@
 				trans.arrivalTime, stat.`status` shipstatus,
 				max(case when item.SellerSKU like ifnull(#{param.search,jdbcType=CHAR},'') then 1 else 0 end) hassku ,
 				status0date,status1date,status2date,status3date,status4date,status5date,
-				status6date,start_receive_date receivedate,inbound.sync_inv,max(form.number) number,
-				trans.company,ty.name transtypename
+				status6date,start_receive_date receivedate,inbound.sync_inv syncinv,max(form.number) number,
+				c.name company,c.id companyid,ty.name transtypename,trans.ordernum,form.warehouseid,form.amazongroupid groupid
 			from t_erp_ship_inboundshipment inbound
 			left join t_erp_ship_inboundtrans trans on trans.shipmentid=inbound.shipmentid
 			left join t_erp_ship_status stat on stat.`status`=inbound.ShipmentStatus
@@ -42,6 +42,7 @@
 			left join t_erp_ship_inbounditem item on item.ShipmentId=inbound.ShipmentId
 			left join t_erp_ship_inboundplan form on form.id=inbound.inboundplanid
 			left join t_erp_ship_transdetail detail on detail.id = trans.channel
+			left join t_erp_ship_transcompany c on c.id=detail.company
 			left join t_marketplace mp on mp.marketplaceid=form.marketplaceid
 			left join t_erp_warehouse_fba rt on rt.shopid=form.shopid and (rt.marketplaceid=mp.region or rt.marketplaceid=mp.marketplaceId)
 			left join t_amazon_group ag on ag.id=form.amazongroupid
@@ -75,30 +76,27 @@
 				and  form.createdate &gt;= #{param.fromdate,jdbcType=TIMESTAMP}
 				and  form.createdate &lt;= #{param.enddate,jdbcType=TIMESTAMP}
 			</if>
-			<if test="param.marketplaceid!=null">
+			<if test="param.marketplaceid!=null and param.marketplaceid!=''">
 				and form.marketplaceid = #{param.marketplaceid,jdbcType=CHAR}
 			</if>
-			<if test="param.groupid!=null">
+			<if test="param.groupid!=null  and param.groupid!=''">
 				and form.amazongroupid= #{param.groupid,jdbcType=CHAR}
 			</if>
-			<if test="param.warehouseid!=null">
-				and w.parentid= #{param.warehouseid,jdbcType=CHAR}
+			<if test="param.warehouseid!=null and param.warehouseid!=''">
+				and w.id= #{param.warehouseid,jdbcType=CHAR}
 			</if>
-			<if test="param.hasexceptionnum != null">
-				and inbound.status = 6
-			</if>
-			 <if test="param.company != null">
+			 <if test="param.company != null and param.company!=''">
 				and trans.company = #{param.company,jdbcType=CHAR}
 			</if>
-		    <if test="param.channel != null">
+		    <if test="param.channel != null and param.channel!=''">
 				and trans.channel = #{param.channel,jdbcType=CHAR}
 			</if>
-			<if test="param.transtype!=null">
+			<if test="param.transtype!=null and param.transtype!=''">
 		   		and ty.id=#{param.transtype,jdbcType=CHAR}
 		   	</if>
-			 <if test="param.search != null">
-			    <if test="param.searchtype == 'number'">
-			         and inbound.ShipmentId like #{param.search,jdbcType=CHAR}
+			 <if test="param.search != null and param.search!=''">
+			    <if test="param.searchtype == 'number'"> 
+			       and (inbound.ShipmentId like #{param.search,jdbcType=CHAR})
 			   	</if>
 		 	    <if test="param.searchtype == 'remark'">
 			         and inbound.remark like #{param.search,jdbcType=CHAR}
@@ -106,7 +104,13 @@
 			    <if test="param.searchtype == 'formnumber'">
 			         and form.number like #{param.search,jdbcType=CHAR}
 			   	</if>
+			   	 <if test="param.searchtype == 'name'">
+			         and inbound.name like #{param.search,jdbcType=CHAR}
+			   	</if>
 		    </if>
+		    <if test="param.hasexceptionnum != null">
+		         and inbound.ignorerec=0 and inbound.status = 6
+		   </if>
 			group by inbound.ShipmentId
 		 <if test="param.hasexceptionnum != null">
 		   having  ((sum(ifnull(item.QuantityShipped,0))-sum(ifnull(item.QuantityReceived,0))>=10) or
@@ -135,22 +139,22 @@
 		from t_erp_ship_inboundshipment sm
 		left join t_erp_ship_inboundplan pl on sm.inboundplanid=pl.id
 		where pl.id is not null 
-			and ifnull(refreshtime,'1991-01-01') &lt; curdate()
+			and (ifnull(refreshtime,'1991-01-01') &lt; curdate() or pl.createdate>curdate())
 			and sm.`status`=5
 			and pl.amazongroupid= #{amazongroupid,jdbcType=CHAR}
 			and pl.marketplaceid=#{marketplaceid,jdbcType=CHAR}
 		union
 		select pl.shopid,ship.ShipmentId,1 isover,ship.refreshtime
-		from t_erp_ship_inbounditem item
-		left join t_erp_ship_inboundshipment ship on item.ShipmentId=ship.ShipmentId
+		from  t_erp_ship_inboundshipment ship
+		left join t_erp_ship_inbounditem item  on item.ShipmentId=ship.ShipmentId
 		left join t_erp_ship_inboundplan pl on ship.inboundplanid=pl.id
 		where ship.`status`=6 
-			and ship.refreshtime &lt; curdate()
+	        and (ship.refreshtime &lt; curdate() or pl.createdate>curdate())
 			and ship.shiped_date>DATE_ADD(CURDATE(), INTERVAL -60 DAY)
 			and pl.amazongroupid= #{amazongroupid,jdbcType=CHAR}
 			and pl.marketplaceid=#{marketplaceid,jdbcType=CHAR}
 		group by pl.amazongroupid,pl.marketplaceid,pl.shopid,ship.ShipmentId
-		having sum(item.QuantityShipped!=item.QuantityReceived) >0
+        having sum(ifnull(item.QuantityShipped,1)!=ifnull(item.QuantityReceived,0)) >0
 		order by isover,refreshtime limit 49
 	</select>
 
@@ -226,4 +230,8 @@
 			and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
 	</select>
 
+	<select id="findhasAssemblyFormNum" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT count(0) from  t_erp_assembly_from_instock s
+		where s.shipmentid=#{shipmentid,jdbcType=CHAR} 
+	</select>	
 </mapper>

@@ -15,8 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.ASINIdentifier;
-import com.amazon.spapi.model.productpricing.SellerSKUIdentifier;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -24,13 +22,15 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.ASINIdentifier;
+import com.amazon.spapi.model.productpricing.SellerSKUIdentifier;
 import java.io.IOException;
 
 /**
  * Specifies the identifiers used to uniquely identify an item.
  */
 @ApiModel(description = "Specifies the identifiers used to uniquely identify an item.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class IdentifierType {
   @SerializedName("MarketplaceASIN")
   private ASINIdentifier marketplaceASIN = null;

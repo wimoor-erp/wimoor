@@ -30,6 +30,7 @@ public class ApiCallbackCreateFeedDocument implements ApiCallback<CreateFeedDocu
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
+		amazonAuthority.setApiRateLimit(responseHeaders, e);
 		e.printStackTrace();
 	}
 
@@ -37,6 +38,7 @@ public class ApiCallbackCreateFeedDocument implements ApiCallback<CreateFeedDocu
 	public void onSuccess(CreateFeedDocumentResponse result, int statusCode,
 			Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
+		amazonAuthority.setApiRateLimit(responseHeaders, "");
 		iSubmitfeedService.handlerCreateFeedDocument(result, amazonAuthority, queue, marketplace);
 	}
 

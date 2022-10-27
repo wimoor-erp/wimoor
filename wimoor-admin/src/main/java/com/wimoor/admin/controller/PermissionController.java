@@ -1,5 +1,6 @@
 package com.wimoor.admin.controller;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,14 +44,20 @@ public class PermissionController {
     })
     @GetMapping("/page")
     public Result pageList( Integer page,Integer limit, String name,  Long menuId) {
-        IPage<PermissionVO> result = iSysPermissionService.list(new Page<>(page, limit),name,menuId);
+    	IPage<PermissionVO> result = null;
+    	try {
+    		
+    		 result = iSysPermissionService.list(new Page<>(page, limit),name,menuId);
+    	}catch(Exception e) {
+    		e.printStackTrace();
+    	}
         return Result.success(result.getRecords(), result.getTotal());
     }
 
     @ApiOperation(value = "权限列表")
     @ApiImplicitParam(name = "menuId", value = "菜单ID", paramType = "query", dataType = "Long")
     @GetMapping
-    public Result list( Long menuId) {
+    public Result list(BigInteger menuId) {
         List<SysPermission> list = iSysPermissionService.list(new LambdaQueryWrapper<SysPermission>()
                 .eq(SysPermission::getMenuId, menuId));
         return Result.success(list);
@@ -59,7 +66,7 @@ public class PermissionController {
     @ApiOperation(value = "权限详情")
     @ApiImplicitParam(name = "id", value = "权限ID", required = true, paramType = "path", dataType = "Long")
     @GetMapping("/{id}")
-    public Result detail(@PathVariable Long id) {
+    public Result detail(@PathVariable BigInteger id) {
         SysPermission permission = iSysPermissionService.getById(id);
         return Result.success(permission);
     }

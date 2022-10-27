@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductFollowMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductFollow" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="amazonAuthId" property="amazonAuthId" jdbcType="CHAR" />
+    <result column="lastupdateTime" property="lastupdateTime" jdbcType="TIMESTAMP" />
+    <result column="isread" property="isread" jdbcType="BIT" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="flownumber" property="flownumber" jdbcType="INTEGER" />
+  </resultMap>
+ 
+  <sql id="Base_Column_List" >
+    id, asin, marketplaceid, amazonAuthId, lastupdateTime, isread, sku, flownumber
+  </sql>
+ 
+  <select id="selectByMarketplaceAsin" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    	<include refid="Base_Column_List" />
+    from t_product_follow
+    where asin = #{asin,jdbcType=CHAR} 
+    	and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+    	and amazonAuthId = #{amazonAuthId,jdbcType=CHAR} 
+  </select>
+  
+</mapper>

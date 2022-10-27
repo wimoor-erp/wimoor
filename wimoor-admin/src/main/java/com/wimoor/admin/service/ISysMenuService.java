@@ -84,4 +84,8 @@ public interface ISysMenuService extends IService<SysMenu> {
 	 * @Cacheable cacheNames:缓存名称，不同缓存的数据是彼此隔离； key: 缓存Key。
 	 */
 	List<RouteVO> listRoute(UserInfo user);
+
+
+	public List<MenuVO> listCompanyTreeSelect(UserInfo user);
+
 }

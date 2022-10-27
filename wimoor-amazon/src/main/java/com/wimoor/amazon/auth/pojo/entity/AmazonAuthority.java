@@ -6,11 +6,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.amazon.spapi.SellingPartnerAPIAA.RateLimitConfiguration;
 import com.amazon.spapi.client.ApiException;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.amazon.auth.service.IAmzAuthApiTimelimitService;
-import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.pojo.entity.BaseEntity;
 import com.wimoor.util.SpringUtil;
 
@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_amazon_auth")
-public class AmazonAuthority  extends  BaseEntity  {
+public class AmazonAuthority  extends  BaseEntity  implements RateLimitConfiguration{
 	/**
 	 * 
 	 */
@@ -72,6 +72,9 @@ public class AmazonAuthority  extends  BaseEntity  {
 	 @TableField(value =  "refresh_token")
 	 private String refreshToken;
 	 
+	 @TableField(value =  "refresh_token_time")
+	 private Date refreshTokenTime;
+	 
 	 @TableField(value =  "aws_region")
 	 private String AWSRegion;
 	 
@@ -85,8 +88,9 @@ public class AmazonAuthority  extends  BaseEntity  {
     String groupname;
 	@TableField(exist = false)
 	Date lastupdate;
- 
-	 
+	@TableField(exist = false)
+	String useApi;
+	
 	public Date getCaptureDateTime() {
 		if(captureDateTime==null){
 			Calendar c = Calendar.getInstance();//可以对每个时间域单独修改
@@ -96,26 +100,18 @@ public class AmazonAuthority  extends  BaseEntity  {
 	}
 
 
-	public boolean apiNotRateLimit(String api) {
-		// TODO Auto-generated method stub
-		IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
-		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), api);
-		if(limit==null||limit.apiNotRateLimit()) {
-			return true;
-		}else {
-			return false;
-		}
-	}
 
-	public AmzAuthApiTimelimit getApiRateLimit(String api) {
+	public AmzAuthApiTimelimit getApiRateLimit() {
 		// TODO Auto-generated method stub
 		IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
-		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), api);
+		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), this.getUseApi());
 		if(limit==null) {
 			limit=new AmzAuthApiTimelimit();
-			limit.setApiname(api);
+			limit.setApiname(this.getUseApi());
 			limit.setLog(null);
-			limit.setLastuptime(new Date());
+			Calendar c=Calendar.getInstance();
+			c.add(Calendar.DATE, -1);
+			limit.setLastuptime(c.getTime());
 			limit.setNexttoken(null);
 			limit.setPages(0);
 			limit.setRestore(20.00);
@@ -125,19 +121,27 @@ public class AmazonAuthority  extends  BaseEntity  {
 	}
  
 
-	public void setApiRateLimit(String api, Map<String, List<String>> responseHeaders,ApiException e) {
+	public void setApiRateLimit(Map<String, List<String>> responseHeaders,ApiException e) {
 		// TODO Auto-generated method stub
 		IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
-		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), api);
+		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(),  this.useApi);
 		if(limit==null) {
 			limit=new AmzAuthApiTimelimit();
 			limit.setAmazonauthid(new BigInteger(this.getId()));
-			limit.setApiname(api);
+			limit.setApiname( this.useApi);
 			setRateLimit(limit,responseHeaders,e);
-			amzAuthApiTimelimitService.save(limit);
+			try {
+				amzAuthApiTimelimitService.save(limit);
+			}catch(Exception me) {
+				me.printStackTrace();
+			}
 		}else {
 			setRateLimit(limit,responseHeaders,e);
-			amzAuthApiTimelimitService.updateById(limit);
+			try {
+				amzAuthApiTimelimitService.update(limit);
+			}catch(Exception me) {
+				me.printStackTrace();
+			}
 		}
 		
 	}
@@ -145,12 +149,6 @@ public class AmazonAuthority  extends  BaseEntity  {
 	private void setRateLimit(AmzAuthApiTimelimit limit ,Map<String, List<String>> responseHeaders,ApiException e) {
 		String log=null;
 		Double rateLimit=null;
-		if(e!=null) {
-			 log=e.getMessage();
-			 rateLimit=0.0006;
-		}else {
-			 rateLimit=1.00;
-		}
 		if(responseHeaders!=null) {
 			List<String> headerList = responseHeaders.get("x-amzn-RateLimit-Limit");
 			if(headerList!=null&&headerList.size()>0) {
@@ -160,6 +158,20 @@ public class AmazonAuthority  extends  BaseEntity  {
 				}
 			}
 		}
+		if(e!=null&&rateLimit==null) {
+			 log=e.getMessage();
+			 rateLimit=0.01;
+			 if(e!=null&&e.getResponseBody()!=null) {
+				 log=e.getResponseBody();
+				 if(log!=null&&!log.contains("Unauthorized")) {
+					 rateLimit=0.01;
+				  }
+				}
+			 
+		}else if(rateLimit==null) {
+			 rateLimit=1.00;
+		}
+	
 		limit.setRestore(rateLimit);
 		limit.setLog(log);
 		if(limit.getPages()!=null) {
@@ -170,46 +182,117 @@ public class AmazonAuthority  extends  BaseEntity  {
 		limit.setLastuptime(new Date());
 	}
 	
-	public void setApiRateLimit(String api, Map<String, List<String>> responseHeaders,String token) {
+	public void setApiRateLimit( Map<String, List<String>> responseHeaders,String token) {
 		// TODO Auto-generated method stub
 		IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
-		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), api);
+		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(),  this.useApi);
 		if(limit==null) {
 			limit=new AmzAuthApiTimelimit();
 			limit.setAmazonauthid(new BigInteger(this.getId()));
-			limit.setApiname(api);
+			limit.setApiname( this.useApi);
 			setRateLimit(limit,responseHeaders,null);
 			limit.setNexttoken(token);
-			amzAuthApiTimelimitService.save(limit);
+			try {
+				amzAuthApiTimelimitService.save(limit);
+			}catch(Exception me) {
+				me.printStackTrace();
+			}
 		}else {
 			setRateLimit(limit,responseHeaders,null);
+			limit.setLog("");
 			limit.setNexttoken(token);
-			amzAuthApiTimelimitService.updateById(limit);
+			try {
+				amzAuthApiTimelimitService.update(limit);
+			}catch(Exception me) {
+				me.printStackTrace();
+			}
 		}
 		
 	}
 	
-	public void setApiRateLimit(String api, Map<String, List<String>> responseHeaders,Date start,String token) {
+	public void setApiRateLimit(Map<String, List<String>> responseHeaders,Date start,String token) {
 		// TODO Auto-generated method stub
 		IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
-		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), api);
+		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), this.useApi);
 		if(limit==null) {
 			limit=new AmzAuthApiTimelimit();
 			limit.setAmazonauthid(new BigInteger(this.getId()));
-			limit.setApiname(api);
-			limit.setStartTime(start);
-			limit.setEndTime(new Date());
-			setRateLimit(limit,responseHeaders,null);
+			limit.setApiname(this.useApi);
+			if(start!=null) {
+				limit.setStartTime(start);
+				limit.setEndTime(new Date());
+			}
+			limit.setNexttoken("");
 			limit.setNexttoken(token);
-			amzAuthApiTimelimitService.save(limit);
+			limit.setLog("success");
+			setRateLimit(limit,responseHeaders,null);
+			try {
+				amzAuthApiTimelimitService.save(limit);
+			}catch(Exception me) {
+				me.printStackTrace();
+			}
 		}else {
 			setRateLimit(limit,responseHeaders,null);
-			limit.setStartTime(start);
-			limit.setEndTime(new Date());
-			limit.setNexttoken(token);
-			amzAuthApiTimelimitService.updateById(limit);
+			if(StrUtil.isBlank(token)) {
+				if(start!=null) {
+					limit.setStartTime(start);
+					limit.setEndTime(new Date());
+				}
+				limit.setNexttoken("");
+			}else {
+				if(StrUtil.isBlank(limit.getNexttoken())) {
+					if(start!=null) {
+						limit.setStartTime(start);
+						limit.setEndTime(new Date());
+					}
+				}
+				limit.setNexttoken(token);
+			}
+			limit.setLog("success");
+			try {
+				amzAuthApiTimelimitService.update(limit);
+			}catch(Exception me) {
+				me.printStackTrace();
+			}
+		
 		}
 		
 	}
+
+	public boolean apiNotRateLimit() {
+		// TODO Auto-generated method stub
+		IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
+		AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), this.getUseApi());
+		if(limit==null||limit.apiNotRateLimit()) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	@Override
+	public Double getRateLimitPermit() {
+		// TODO Auto-generated method stub
+		if(this.useApi!=null) {
+			IAmzAuthApiTimelimitService amzAuthApiTimelimitService=SpringUtil.getBean("amzAuthApiTimelimitService");
+			AmzAuthApiTimelimit limit = amzAuthApiTimelimitService.getApiLimit(this.getId(), this.useApi);
+            if(limit==null) {
+            	return 1.0;
+            }else {
+            	return limit.getRestore();
+            }
+		}else {
+			return 1.0;
+		}
+	
+	}
+
+	@Override
+	public Long getTimeOut() {
+		// TODO Auto-generated method stub
+		return 60000L;
+	}
+
+ 
 	
 }

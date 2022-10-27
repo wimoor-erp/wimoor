@@ -1,8 +1,8 @@
 package com.wimoor.amazon.report.pojo.entity;
 import java.math.BigDecimal;
 import java.util.Date;
- 
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.amazon.common.pojo.entity.BaseEntity;
 
@@ -20,25 +20,33 @@ public class OrdersReport extends BaseEntity {
 	 * 
 	 */
 	private static final long serialVersionUID = -2814977072838876644L;
-
+    @TableField(value="amazon_order_id")
 	private String amazonOrderId;
 
+    @TableField(value="merchant_order_id")
     private String merchantOrderId;
 
+    @TableField(value="purchase_date")
     private Date purchaseDate;
 
+    @TableField(value="last_updated_date")
     private Date lastUpdatedDate;
 
+    @TableField(value="order_status")
     private String orderStatus;
 
+    @TableField(value="fulfillment_channel")
     private String fulfillmentChannel;
 
+    @TableField(value="sales_channel")
     private String salesChannel;
 
+    @TableField(value="order_channel")
     private String orderChannel;
 
     private String url;
 
+    @TableField(value="ship_service_level")
     private String shipServiceLevel;
 
     private String sku;
@@ -83,9 +91,13 @@ public class OrdersReport extends BaseEntity {
 
     private String priceDesignation;
 
+    @TableField(value="amazonAuthId")
     private String amazonauthid;
 
+    @TableField(value="marketplaceId")
     private String marketplaceId;
      
+    @TableField(value="refreshtime")
+    private Date refreshtime;
 	
 }

@@ -100,7 +100,14 @@ public class AmazonOrdersVo {
 	@ApiModelProperty(value = "marketname")
 	String marketname;
 	
+	@ApiModelProperty(value = "region")
+	String region;
 	
+	@ApiModelProperty(value = "feedstatus")
+	String feedstatus;
+	
+	@ApiModelProperty(value = "feedid")
+	String feedid;
 	
 	public String getKey() {
 		return orderid+"-"+sku;

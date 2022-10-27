@@ -36,8 +36,13 @@ public class OSSApiService implements InitializingBean {
     @Setter
     private String accessKeySecret;
     
- 
-    public final static String defaultBucketName="wimoor-file";
+    @Setter
+    public  String bucketName;
+    
+    @Setter
+    public  String bucketPath;
+    
+    
     
     @Override
     public void afterPropertiesSet() {
@@ -77,10 +82,6 @@ public class OSSApiService implements InitializingBean {
 	 * 
 	 */
 	 public  Boolean putObject(String bucketName,String objectName,InputStream stream){
-		// 填写Bucket名称，例如examplebucket。
-		 if(StrUtil.isBlank(bucketName)) {
-			   bucketName = "wimoor-file";
-		 }
         // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
         OSS ossClient = getOssClient();
         try {
@@ -169,6 +170,18 @@ public class OSSApiService implements InitializingBean {
                 ossClient.shutdown();
             }
         }
+	}
+
+
+
+	public String getBucketName() {
+		return bucketName;
+	}
+
+
+
+	public String getBucketPath() {
+		return bucketPath;
 	}
 	  
 }

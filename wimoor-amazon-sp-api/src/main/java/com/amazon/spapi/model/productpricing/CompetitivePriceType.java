@@ -15,7 +15,6 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.PriceType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -23,12 +22,15 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.productpricing.OfferCustomerType;
+import com.amazon.spapi.model.productpricing.PriceType;
+import com.amazon.spapi.model.productpricing.QuantityDiscountType;
 import java.io.IOException;
 
 /**
  * CompetitivePriceType
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class CompetitivePriceType {
   @SerializedName("CompetitivePriceId")
   private String competitivePriceId = null;
@@ -41,6 +43,18 @@ public class CompetitivePriceType {
 
   @SerializedName("subcondition")
   private String subcondition = null;
+
+  @SerializedName("offerType")
+  private OfferCustomerType offerType = null;
+
+  @SerializedName("quantityTier")
+  private Integer quantityTier = null;
+
+  @SerializedName("quantityDiscountType")
+  private QuantityDiscountType quantityDiscountType = null;
+
+  @SerializedName("sellerId")
+  private String sellerId = null;
 
   @SerializedName("belongsToRequester")
   private Boolean belongsToRequester = null;
@@ -117,6 +131,78 @@ public class CompetitivePriceType {
     this.subcondition = subcondition;
   }
 
+  public CompetitivePriceType offerType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+    return this;
+  }
+
+   /**
+   * Indicates the type of customer that the offer is valid for.&lt;br&gt;&lt;br&gt;When the offer type is B2C in a quantity discount, the seller is winning the Buy Box because others do not have inventory at that quantity, not because they have a quantity discount on the ASIN.
+   * @return offerType
+  **/
+  @ApiModelProperty(value = "Indicates the type of customer that the offer is valid for.<br><br>When the offer type is B2C in a quantity discount, the seller is winning the Buy Box because others do not have inventory at that quantity, not because they have a quantity discount on the ASIN.")
+  public OfferCustomerType getOfferType() {
+    return offerType;
+  }
+
+  public void setOfferType(OfferCustomerType offerType) {
+    this.offerType = offerType;
+  }
+
+  public CompetitivePriceType quantityTier(Integer quantityTier) {
+    this.quantityTier = quantityTier;
+    return this;
+  }
+
+   /**
+   * Indicates at what quantity this price becomes active.
+   * @return quantityTier
+  **/
+  @ApiModelProperty(value = "Indicates at what quantity this price becomes active.")
+  public Integer getQuantityTier() {
+    return quantityTier;
+  }
+
+  public void setQuantityTier(Integer quantityTier) {
+    this.quantityTier = quantityTier;
+  }
+
+  public CompetitivePriceType quantityDiscountType(QuantityDiscountType quantityDiscountType) {
+    this.quantityDiscountType = quantityDiscountType;
+    return this;
+  }
+
+   /**
+   * Indicates the type of quantity discount this price applies to.
+   * @return quantityDiscountType
+  **/
+  @ApiModelProperty(value = "Indicates the type of quantity discount this price applies to.")
+  public QuantityDiscountType getQuantityDiscountType() {
+    return quantityDiscountType;
+  }
+
+  public void setQuantityDiscountType(QuantityDiscountType quantityDiscountType) {
+    this.quantityDiscountType = quantityDiscountType;
+  }
+
+  public CompetitivePriceType sellerId(String sellerId) {
+    this.sellerId = sellerId;
+    return this;
+  }
+
+   /**
+   * The seller identifier for the offer.
+   * @return sellerId
+  **/
+  @ApiModelProperty(value = "The seller identifier for the offer.")
+  public String getSellerId() {
+    return sellerId;
+  }
+
+  public void setSellerId(String sellerId) {
+    this.sellerId = sellerId;
+  }
+
   public CompetitivePriceType belongsToRequester(Boolean belongsToRequester) {
     this.belongsToRequester = belongsToRequester;
     return this;
@@ -149,12 +235,16 @@ public class CompetitivePriceType {
         Objects.equals(this.price, competitivePriceType.price) &&
         Objects.equals(this.condition, competitivePriceType.condition) &&
         Objects.equals(this.subcondition, competitivePriceType.subcondition) &&
+        Objects.equals(this.offerType, competitivePriceType.offerType) &&
+        Objects.equals(this.quantityTier, competitivePriceType.quantityTier) &&
+        Objects.equals(this.quantityDiscountType, competitivePriceType.quantityDiscountType) &&
+        Objects.equals(this.sellerId, competitivePriceType.sellerId) &&
         Objects.equals(this.belongsToRequester, competitivePriceType.belongsToRequester);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(competitivePriceId, price, condition, subcondition, belongsToRequester);
+    return Objects.hash(competitivePriceId, price, condition, subcondition, offerType, quantityTier, quantityDiscountType, sellerId, belongsToRequester);
   }
 
 
@@ -167,6 +257,10 @@ public class CompetitivePriceType {
     sb.append("    price: ").append(toIndentedString(price)).append("\n");
     sb.append("    condition: ").append(toIndentedString(condition)).append("\n");
     sb.append("    subcondition: ").append(toIndentedString(subcondition)).append("\n");
+    sb.append("    offerType: ").append(toIndentedString(offerType)).append("\n");
+    sb.append("    quantityTier: ").append(toIndentedString(quantityTier)).append("\n");
+    sb.append("    quantityDiscountType: ").append(toIndentedString(quantityDiscountType)).append("\n");
+    sb.append("    sellerId: ").append(toIndentedString(sellerId)).append("\n");
     sb.append("    belongsToRequester: ").append(toIndentedString(belongsToRequester)).append("\n");
     sb.append("}");
     return sb.toString();

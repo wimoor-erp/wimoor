@@ -18,8 +18,6 @@ import java.util.Arrays;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.IOException;
@@ -28,7 +26,7 @@ import java.io.IOException;
  * The payload schema for the getInventorySummaries operation.
  */
 @ApiModel(description = "The payload schema for the getInventorySummaries operation.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:24:28.343+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-09-22T17:58:32.274+08:00")
 public class GetInventorySummariesResult {
   @SerializedName("granularity")
   private Granularity granularity = null;

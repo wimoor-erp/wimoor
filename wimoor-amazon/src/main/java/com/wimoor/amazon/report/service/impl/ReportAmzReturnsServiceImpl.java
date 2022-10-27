@@ -13,6 +13,7 @@ import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.report.mapper.AmzOrderReturnsMapper;
 import com.wimoor.amazon.report.pojo.entity.AmzOrderReturns;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
+import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;
 
 import cn.hutool.core.util.StrUtil;
@@ -69,7 +70,7 @@ public class ReportAmzReturnsServiceImpl extends ReportServiceImpl {
 					returns.setReason(GeneralUtil.getIndexString(info, 9));
 					returns.setStatus(GeneralUtil.getIndexString(info, 10));
 					returns.setLicensePlateNumber(GeneralUtil.getIndexString(info, 11));
-					returns.setCustomerComments(GeneralUtil.getIndexString(info, 12));
+					returns.setCustomerComments(EmojiFilterUtils.filterEmoji(GeneralUtil.getIndexString(info, 12)));
 					returns.setSellerid(sellerid);
 					QueryWrapper<AmzOrderReturns> query = new QueryWrapper<AmzOrderReturns>();
 					query.eq("sku", returns.getSku());

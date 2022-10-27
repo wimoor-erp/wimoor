@@ -53,7 +53,7 @@
   	   marketplaceid = #{marketplaceid,jdbcType=CHAR}
        and sellerid = #{sellerid,jdbcType=CHAR}
        and opttime>date_add(now(), interval -10 DAY)
-  	   and feed_processing_status in('_IN_PROGRESS_','_SUBMITTED_','_UNCONFIRMED_','_AWAITING_ASYNCHRONOUS_REPLY_','_IN_SAFETY_NET_') limit 99
+  	   and feed_processing_status in('IN_PROGRESS','SUBMITTED','UNCONFIRMED','AWAITING_ASYNCHRONOUS_REPLY','IN_SAFETY_NET') limit 99
   </select>
   <select id="selectLastOneHour" resultMap="BaseResultMap" parameterType="java.lang.String" >
   	select     feed_submissionid, marketplaceid, sellerid, shopid, feed_type, submitted_date, started_processing_date, 

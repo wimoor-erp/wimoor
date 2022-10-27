@@ -17,13 +17,14 @@
 		<result column="opttime" jdbcType="TIMESTAMP" property="opttime" />
 		<result column="createtime" jdbcType="TIMESTAMP" property="createtime" />
 		<result column="refreshinvtime" jdbcType="TIMESTAMP" property="refreshinvtime" />
+		<result column="refresh_token_time" jdbcType="TIMESTAMP" property="refreshTokenTime" />
 		<result column="refresh_token" jdbcType="CHAR" property="refreshToken" />
 		<result column="aws_region" jdbcType="CHAR" property="AWSRegion" />
 	</resultMap>
 	<sql id="Base_Column_List">
 		id, shop_id, sellerid, MWSAuthToken,region,name,disable,
 		groupid,pictureId,status,statusupdate,productdate,opttime,
-		createtime,refreshinvtime,refresh_token,aws_region
+		createtime,refreshinvtime,refresh_token,aws_region,refresh_token_time
 	</sql>
 	
 	<select id="selectBySellerId" resultMap="BaseResultMap" parameterType="java.lang.String">
@@ -31,12 +32,22 @@
 		<include refid="Base_Column_List" />
 		from t_amazon_auth 
 		where sellerid = #{sellerid,jdbcType=CHAR}
-			and `disable` = false
 	</select>
 	<select id="uuid"  resultType="java.lang.String">
 		     select uuid_short()
 	</select>
-
+ 
+    <select id="getAvailableAuthority" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_amazon_auth 
+		where  `disable` = false
+		<if test="region!=null">
+			and aws_region=#{region,jdbcType=CHAR}
+		</if>
+		 and (status is null or status!='invalid')
+	</select>
+	
 	<select id="selectBySellerIdAndShopId" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.auth.pojo.entity.AmazonAuthority">
 		select
 		<include refid="Base_Column_List" />
@@ -79,9 +90,10 @@
 	<select id="selectByRegion" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select distinct a.id, a.shop_id, a.sellerid,
 		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,a.status,
-		a.statusupdate,a.productdate,a.opttime,refresh_token,aws_region
+		a.statusupdate,a.productdate,a.opttime,a.refresh_token,a.aws_region
 		from t_amazon_auth a
 		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		inner join t_marketplace c on b.marketplace_id = c.marketplaceId
 		where a.region=#{region,jdbcType=CHAR} 
 			and a.disable=0 and b.disable=0 
 		    and  ifnull(a.status,'enable') not in ('denied_acc','invalid')  
@@ -93,6 +105,7 @@
 		a.status,a.statusupdate,a.productdate,a.opttime,refresh_token,aws_region
 		from t_amazon_auth a
 		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		inner join t_marketplace c on b.marketplace_id = c.marketplaceId
 		where b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
 		<if test="shopid!=null">
 			and a.shop_id=#{shopid,jdbcType=CHAR}
@@ -161,6 +174,23 @@
 			</foreach>
 	</delete>
 	
+ 
+	<select id="selectAdvByGroupId" parameterType="java.lang.String" resultType="java.util.Map">
+	   select 
+			  case when  `disable`=0 and disableTime is not null
+			  AND   TIMESTAMPDIFF(DAY,DATE_FORMAT(disableTime, '%Y-%m-%d') ,DATE_FORMAT(NOW(), '%Y-%m-%d')) &lt; 2 
+			  then '0' ELSE '1' end  adauth,
+			  t.* from t_amz_adv_auth t where groupid=#{groupid,jdbcType=CHAR} and disable=0
+	</select>
+	<select id="selectAdvMarketByAdvAuthId" parameterType="java.lang.String" resultType="java.util.Map">
+	   select* from t_amz_adv_profile where advauthId=#{advauthId,jdbcType=CHAR}
+	</select>
+	
+	<update id="deleteByLogic"  parameterType="java.util.Map">
+		update t_amazon_auth 
+		set disable=true ,opttime=now() 
+		where sellerid = #{param.sellerid,jdbcType=CHAR};
+	</update>
  
 	 
  

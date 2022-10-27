@@ -7,21 +7,20 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.amazon.inbound.pojo.dto.ShipPlanListDTO;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundPlan;
+import com.wimoor.amazon.inbound.pojo.vo.ShipPlanVo;
+import com.wimoor.amazon.inbound.pojo.vo.SummaryShipmentVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface ShipInboundPlanMapper extends BaseMapper<ShipInboundPlan> {
 
-	IPage<Map<String, Object>> findByCondition(Page<?> page,Map<String, Object> param);
+	IPage<ShipPlanVo> findByCondition(Page<?> page,@Param("param") ShipPlanListDTO param);
 
-	Map<String, Object> selectShipInfoByformid(@Param("planid") String planid);
-
-	List<Map<String, Object>> selectitemListByPlanid(@Param("planid") String planid, @Param("shipmentid") String shipmentid);
+	List<SummaryShipmentVo> selectitemListByPlanid(@Param("planid") String planid, @Param("shipmentid") String shipmentid);
 
 	List<Map<String, Object>> getsumreport(Map<String, Object> param);
-
-	List<Map<String, Object>> selectPlanItemByShipmentid(@Param("shipmentid") String shipmentid);
 
 	List<Map<String, Object>> getShipRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
 	List<Map<String, Object>> getShipBadRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
@@ -41,7 +40,5 @@ public interface ShipInboundPlanMapper extends BaseMapper<ShipInboundPlan> {
 	List<Map<String, Object>> getShipmentReport(Map<String, Object> param);
 
 	List<Map<String, Object>> getShipArrivalTimeRecord(@Param("shopid") String shopid, @Param("marketplaceid") String marketplaceid, @Param("sku") String sku);
-
-	List<Map<String, Object>> getShipArrivalTimeRecordForShip(Map<String, Object> param);
 
 }

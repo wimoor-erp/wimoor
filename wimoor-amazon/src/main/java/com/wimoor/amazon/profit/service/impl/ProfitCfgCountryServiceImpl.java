@@ -25,8 +25,6 @@ public class ProfitCfgCountryServiceImpl extends ServiceImpl<ProfitConfigCountry
 	public List<ProfitConfigCountry> findByProfitId(String profitCfgId) {
 		return this.baseMapper.findByProfitId(profitCfgId);
 	}
-
-
 	
 	@CacheEvict(value = "profitCfgCountryCache", allEntries = true)
 	public int insert(ProfitConfigCountry entity) {

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.task.dao.AmzAdvSchedulePlanMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.task.pojo.AmzAdvSchedulePlan" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="taskName" property="taskname" jdbcType="CHAR" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="conditionsExecute" property="conditionsexecute" jdbcType="VARCHAR" />
+    <result column="executeStatus" property="executestatus" jdbcType="CHAR" />
+    <result column="startDate" property="startdate" jdbcType="DATE" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="creator" property="creator" jdbcType="CHAR" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, taskName, status, conditionsExecute, 
+    executeStatus, startDate, operator, opttime, creator, createtime,remark
+  </sql>
+  
+  <select id="selectSubitem" resultType="java.util.Map" parameterType="java.lang.String" >
+     select * from t_amz_adv_schedule_planitem where planId=#{planid,jdbcType=CHAR} order by weekdays desc
+  </select>
+  
+  <select id="selectPlanData" resultType="java.util.Map" parameterType="java.lang.String" >
+    select pdata.*,k.*,pad.*,a.groupid  from  t_amz_adv_schedule_plandata pdata
+		left join t_amz_adv_keywords k on k.keywordId=pdata.keywordId and k.adGroupId=pdata.adGroupId and k.campaignId=pdata.campaignId and k.profileid=pdata.profileid
+	    left join t_amz_adv_productads pad on pad.adId=pdata.adId and pad.adGroupId=pdata.adGroupId and pad.campaignId=pdata.campaignId and pad.profileid=pdata.profileid
+        left join t_amz_adv_profile p on pdata.profileid = p.id
+        left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+        where pdata.planid=#{planid,jdbcType=CHAR}
+  </select>
+  
+  <select id="getSchedulePlan" resultType="java.util.Map" parameterType="java.util.Map" >
+  	select  t.*,v.*
+		from  (
+		select pdata.planid,pdata.profileid,pdata.campaignId,pdata.adGroupId,
+		max(ifnull(g.name,gsd.name)) adgroupName,
+		max(m.name) market,
+		max(ifnull(ifnull(csp.name,chsa.name),csd.name)) campaignsName,
+		max(tg.name) groupname,
+		max(pdata.adId) adId,
+		max(pdata.keywordId) keywordId,
+		group_concat(ifnull(ifnull(pad.sku,padsd.sku),ifnull(pad.asin,padsd.asin))) adname,
+		group_concat(k.keywordText) keywordText
+		from  t_amz_adv_schedule_plandata pdata
+		left join t_amz_adv_campaigns csp  on csp.campaignId=pdata.campaignId and csp.profileid=pdata.profileid
+		left join t_amz_adv_campaigns_hsa  chsa on chsa.campaignId=pdata.campaignId and chsa.profileid=pdata.profileid
+		left join t_amz_adv_campaigns_sd  csd on csd.campaignId=pdata.campaignId and csd.profileid=pdata.profileid
+		left join t_amz_adv_adgroups  g on g.campaignId=pdata.campaignId and g.profileid=pdata.profileid and g.adGroupId=pdata.adGroupId
+		left join t_amz_adv_adgroups_sd  gsd on gsd.campaignId=pdata.campaignId and gsd.profileid=pdata.profileid and gsd.adGroupId=pdata.adGroupId
+		left join t_amz_adv_keywords k on k.keywordId=pdata.keywordId and k.adGroupId=pdata.adGroupId and k.campaignId=pdata.campaignId and k.profileid=pdata.profileid
+	    left join t_amz_adv_productads pad on pad.adId=pdata.adId and pad.adGroupId=pdata.adGroupId and pad.campaignId=pdata.campaignId and pad.profileid=pdata.profileid
+		left join t_amz_adv_productads_sd padsd on padsd.adId=pdata.adId and padsd.adGroupId=pdata.adGroupId and padsd.profileid=pdata.profileid
+		left join t_amz_adv_profile p on pdata.profileid = p.id
+		left join t_marketplace m on m.marketplaceid=p.marketplaceid
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+		<if test="profileid != null and profileid != 'all'">
+			and pdata.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+	    <if test="marketplaceid != null and marketplaceid != 'all'">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null  and groupid != 'all'">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		group by pdata.planid,pdata.profileid,pdata.campaignId,pdata.adGroupId
+		)v 
+        left join t_amz_adv_schedule_plan t on v.planid=t.id
+        where  1=1
+         <if test="fromDate != null and fromDate != ''">
+        	t.startDate &gt;= #{fromDate,jdbcType=DATE}
+		 </if>
+		 <if test="endDate != null and endDate != ''">
+       		  and t.startDate &lt;= #{endDate,jdbcType=DATE}
+		 </if>
+
+		<if test="name != null and name != ''">
+			and t.taskName like #{name,jdbcType=CHAR}  
+		</if>
+		<if test="state != null and state != 'all'">
+			and t.status = #{state,jdbcType=CHAR}
+		</if>
+		order by t.opttime desc
+  </select>
+  
+  <select id="selectAllPlanDate" resultType="java.util.Map">
+  		select cam.name campaigns_name, adg.name adgroups_name, pad.sku productads_sku,
+			kw.keywordText,t.profileid,t.campaignId,t.adGroupId,t.keywordId,t.adId,t.planid 
+		from t_amz_adv_schedule_plandata t
+		left join t_amz_adv_campaigns cam on cam.campaignId=t.campaignid and cam.profileid=t.profileid
+		left join t_amz_adv_adgroups adg on adg.adGroupId=t.adgroupid and adg.campaignId=t.campaignid and adg.profileid=t.profileid
+		left join t_amz_adv_productads pad on pad.adId=t.adid and pad.adGroupId=t.adgroupid and pad.campaignId=t.campaignid and pad.profileid=t.profileid
+		left join t_amz_adv_keywords kw on kw.keywordId=t.keywordid and kw.adGroupId=t.adgroupid and kw.campaignId=t.campaignid and kw.profileid=t.profileid
+		left join t_amz_adv_profile f on t.profileid=f.id;
+  </select>
+  
+</mapper>

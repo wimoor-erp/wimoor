@@ -1,7 +1,9 @@
 package com.wimoor.amazon.product.mapper;
 
+import com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductPageviews;
 import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsConditionVo;
+import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo;
 
 import java.util.List;
 import java.util.Map;
@@ -30,9 +32,10 @@ public interface AmzProductPageviewsMapper extends BaseMapper<AmzProductPageview
 	void saveBatch(List<AmzProductPageviews> list);
 
 	List<AmzProductPageviewsConditionVo> downloadAuth();
-	IPage<Map<String,Object>> getPageViewsList(Page<?> page,Map<String,Object> param);
+	IPage<AmzProductPageviewsVo> getPageViewsList(Page<?> page,@Param("dto")AmzProductPageviewsDTO dto);
 	void downloadRefresh(AmzProductPageviewsConditionVo item);
 	
 	void refreshSummaryWeek(Map<String,Object> param);
 	void refreshSummaryMonth(Map<String,Object> param);
+	
 }

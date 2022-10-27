@@ -15,8 +15,8 @@ package com.amazon.spapi.model.productpricing;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.productpricing.OfferListingCountType;
 import io.swagger.annotations.ApiModel;
+import com.amazon.spapi.model.productpricing.OfferListingCountType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
  * The number of active offer listings for the item that was submitted. The listing count is returned by condition, one for each listing condition value that is returned.
  */
 @ApiModel(description = "The number of active offer listings for the item that was submitted. The listing count is returned by condition, one for each listing condition value that is returned.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class NumberOfOfferListingsList extends ArrayList<OfferListingCountType> {
 
   @Override

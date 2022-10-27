@@ -28,10 +28,14 @@
   <select id="findByCondition" resultMap="BaseResultMap"  parameterType="java.lang.String">
   	select t.id,t.name name,isfrom,t.postalCode,t.phone,t.isdefault,t.addressLine1 addressLine1,t.addressLine2 addressLine2,t.city city,
   	t.districtOrCounty districtOrCounty,t.shopid,t.opttime opttime,t.countrycode,t.stateOrProvinceCode,
-  	u.name operator from t_erp_ship_address t 
+  	u.name operator ,t.groupid 
+  	    from t_erp_ship_address t 
 		left join t_userinfo u on u.id=t.operator
-		where t.shopid=#{shopid,jdbcType=CHAR} and t.groupid=#{groupid,jdbcType=CHAR}
+		where t.shopid=#{shopid,jdbcType=CHAR} 
 		and  t.isfrom=1 
+		<if test="groupid != null">
+		    and t.groupid=#{groupid,jdbcType=CHAR}
+		</if>
 		<if test="disable == null">
 			and t.disable=0
 		</if>

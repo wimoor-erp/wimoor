@@ -146,6 +146,7 @@ public class ReportAmzFBAFeeServiceImpl extends ReportServiceImpl{
 							query.eq("sku", fBAEstimatedFee.getSku());
 							query.eq("amazonAuthId", fBAEstimatedFee.getAmazonauthid());
 							query.eq("marketplaceid", fBAEstimatedFee.getMarketplaceid());
+							query.eq("asin", fBAEstimatedFee.getAsin());
 							if(fBAEstimatedFeeMapper.selectCount(query)>0) {
 								fBAEstimatedFeeMapper.update(fBAEstimatedFee,query);
 							}else {

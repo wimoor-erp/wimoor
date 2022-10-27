@@ -212,5 +212,9 @@ public class OrdersFulfilledShipmentsReport  {
     @ApiModelProperty(value = "销售渠道")
   	@TableField(value= "sales_channel")
     private String salesChannel;
+    
+    @ApiModelProperty(value = "店铺授权ID")
+  	@TableField(value= "amazonauthid")
+    private String  amazonauthid;
 
 }

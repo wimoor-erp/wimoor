@@ -1,6 +1,6 @@
 /*
  * Selling Partner API for Tokens 
- * The Selling Partner API for Tokens provides a secure way to access a customers's PII (Personally Identifiable Information). You can call the Tokens API to get a Restricted Data Token (RDT) for one or more restricted resources that you specify. The RDT authorizes you to make subsequent requests to access these restricted resources.
+ * The Selling Partner API for Tokens provides a secure way to access a customer's PII (Personally Identifiable Information). You can call the Tokens API to get a Restricted Data Token (RDT) for one or more restricted resources that you specify. The RDT authorizes subsequent calls to restricted operations that correspond to the restricted resources that you specified.  For more information, see the [Tokens API Use Case Guide](doc:tokens-api-use-case-guide).
  *
  * OpenAPI spec version: 2021-03-01
  * 
@@ -14,21 +14,17 @@
 package com.amazon.spapi.model.tokens;
 
 import java.util.Objects;
-import java.util.Arrays;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
+
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.io.IOException;
 
 /**
  * The response schema for the createRestrictedDataToken operation.
  */
 @ApiModel(description = "The response schema for the createRestrictedDataToken operation.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2021-04-06T16:48:46.313+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:49:33.528+08:00")
 public class CreateRestrictedDataTokenResponse {
   @SerializedName("restrictedDataToken")
   private String restrictedDataToken = null;
@@ -42,10 +38,10 @@ public class CreateRestrictedDataTokenResponse {
   }
 
    /**
-   * A Restricted Data Token (RDT). This is a short-lived access token that authorizes you to access the restricted resources that you specified. Pass this value with the x-amzn-access-token header when making subsequent calls to these restricted resources.
+   * A Restricted Data Token (RDT). This is a short-lived access token that authorizes calls to restricted operations. Pass this value with the x-amz-access-token header when making subsequent calls to these restricted resources.
    * @return restrictedDataToken
   **/
-  @ApiModelProperty(value = "A Restricted Data Token (RDT). This is a short-lived access token that authorizes you to access the restricted resources that you specified. Pass this value with the x-amzn-access-token header when making subsequent calls to these restricted resources.")
+  @ApiModelProperty(value = "A Restricted Data Token (RDT). This is a short-lived access token that authorizes calls to restricted operations. Pass this value with the x-amz-access-token header when making subsequent calls to these restricted resources.")
   public String getRestrictedDataToken() {
     return restrictedDataToken;
   }
@@ -74,7 +70,7 @@ public class CreateRestrictedDataTokenResponse {
 
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(java.lang.Object o) {
     if (this == o) {
       return true;
     }
@@ -107,7 +103,7 @@ public class CreateRestrictedDataTokenResponse {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(Object o) {
+  private String toIndentedString(java.lang.Object o) {
     if (o == null) {
       return "null";
     }

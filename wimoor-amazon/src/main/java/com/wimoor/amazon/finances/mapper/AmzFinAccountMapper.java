@@ -1,10 +1,15 @@
 package com.wimoor.amazon.finances.mapper;
 
-import com.wimoor.amazon.finances.pojo.entity.AmzFinAccount;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.amazon.finances.pojo.entity.AmzFinAccount;
 
 /**
  * <p>
@@ -16,5 +21,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 @Mapper
 public interface AmzFinAccountMapper extends BaseMapper<AmzFinAccount> {
+	
+	List<Map<String,Object>> selectUnclosedFinByShopid(String shopid);
+	
+	List<Map<String,Object>> selectFinByShopid(@Param("shopid")String shopid, @Param("beginDate")String beginDate, @Param("endDate")String endDate);
 
+	IPage<Map<String, Object>> getFinancial(Page<Map<String, Object>> page,Map<String, Object> maps);
+
+	List<Map<String, Object>> getFinancialSum(Map<String, Object> map);
 }

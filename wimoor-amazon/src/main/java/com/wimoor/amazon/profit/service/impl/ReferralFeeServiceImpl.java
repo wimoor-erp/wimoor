@@ -7,6 +7,7 @@ import javax.annotation.Resource;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class ReferralFeeServiceImpl extends ServiceImpl<ReferralFeeMapper, ReferralFee> implements IReferralFeeService {
     
 	@Resource
+	@Lazy
 	IProfitService profitService;
 	
 	// Everything Else*的id为41，其他国家的Everything Else类型都是它的子类

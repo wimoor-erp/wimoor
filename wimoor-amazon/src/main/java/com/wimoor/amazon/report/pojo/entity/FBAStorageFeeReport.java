@@ -3,8 +3,7 @@ package com.wimoor.amazon.report.pojo.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
- 
-
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -17,7 +16,7 @@ import lombok.Data;
 @TableName("t_fba_storage_fee_report")  
 @ApiModel(value="FBAStorageFeeReport对象", description="SKU 仓储费")
 public class FBAStorageFeeReport {
-	@TableId(value="id")
+	@TableId(value="id",type=IdType.AUTO)
     private Integer id;
 
 	@TableField(value="asin")

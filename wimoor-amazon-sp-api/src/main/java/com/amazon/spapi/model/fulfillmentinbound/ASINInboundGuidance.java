@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiModelProperty;
  * Reasons why a given ASIN is not recommended for shipment to Amazon&#39;s fulfillment network.
  */
 @ApiModel(description = "Reasons why a given ASIN is not recommended for shipment to Amazon's fulfillment network.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-06-01T11:30:31.304+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
 public class ASINInboundGuidance {
   @SerializedName("ASIN")
   private String ASIN = null;

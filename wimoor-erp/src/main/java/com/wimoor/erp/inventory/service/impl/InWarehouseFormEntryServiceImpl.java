@@ -6,16 +6,15 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.erp.inventory.mapper.InWarehouseFormEntryMapper;
 import com.wimoor.erp.inventory.pojo.entity.InWarehouseFormEntry;
 import com.wimoor.erp.inventory.service.IInWarehouseFormEntryService;
-import com.wimoor.erp.util.FileUpload;
-
 import lombok.RequiredArgsConstructor;
 @Service("inWarehouseFormEntryService")
 @RequiredArgsConstructor
 public class InWarehouseFormEntryServiceImpl extends ServiceImpl<InWarehouseFormEntryMapper,InWarehouseFormEntry> implements IInWarehouseFormEntryService {
-	  
+	 final FileUpload fileUpload;  
 
 	public List<Map<String, Object>> selectByFormid(String formid) {
 		return this.baseMapper.selectByFormid(formid);
@@ -28,7 +27,7 @@ public class InWarehouseFormEntryServiceImpl extends ServiceImpl<InWarehouseForm
 				 String image=null; 
 				Map<String, Object> map = list.get(i);
 				if(map.get("image")!=null)image=map.get("image").toString();
-				if(map.get("image")!=null)list.get(i).put("image",FileUpload.getPictureImage(image));
+				if(map.get("image")!=null)list.get(i).put("image",fileUpload.getPictureImage(image));
 				else list.get(i).put("image","images/systempicture/noimage40.png");
 			}
 		}

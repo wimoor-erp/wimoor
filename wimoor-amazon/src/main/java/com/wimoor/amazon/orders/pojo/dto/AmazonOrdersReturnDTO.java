@@ -21,11 +21,11 @@ public class AmazonOrdersReturnDTO extends BasePageQuery{
 	@ApiModelProperty(value = "站点ID")
 	String marketplaceid;
 	
-	@ApiModelProperty(value = "产品颜色")
-	String color;
-	
 	@ApiModelProperty(value = "店铺ID")
 	String groupid;
+	
+	@ApiModelProperty(value = "sellerID")
+	String sellerid;
 	
 	@ApiModelProperty(value = "查询类型[sku,asin,number]")
 	String searchtype;

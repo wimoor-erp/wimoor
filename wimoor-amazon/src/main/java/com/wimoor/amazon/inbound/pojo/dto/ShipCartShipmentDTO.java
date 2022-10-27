@@ -23,6 +23,9 @@ public class ShipCartShipmentDTO {
  	@ApiModelProperty(value = "配送方式[非必填，仅在装箱时需要]")
 	private String  transtyle;
  	
+ 	@ApiModelProperty(value = "配送商[非必填，仅在装箱时需要]")
+	private String  carrier;
+ 	
  	@ApiModelProperty(value = "操作类型[save:不提交亚马逊，仅本地保存；submit:保存并提交箱子信息到亚马逊")
     private String opttype;
 	

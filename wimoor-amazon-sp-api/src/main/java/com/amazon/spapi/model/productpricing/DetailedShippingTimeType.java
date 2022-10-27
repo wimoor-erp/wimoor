@@ -23,13 +23,12 @@ import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.IOException;
-import java.math.BigDecimal;
 
 /**
  * The time range in which an item will likely be shipped once an order has been placed.
  */
 @ApiModel(description = "The time range in which an item will likely be shipped once an order has been placed.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:54:01.888+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:39:05.731+08:00")
 public class DetailedShippingTimeType {
   @SerializedName("minimumHours")
   private Long minimumHours = null;
@@ -38,7 +37,7 @@ public class DetailedShippingTimeType {
   private Long maximumHours = null;
 
   @SerializedName("availableDate")
-  private BigDecimal availableDate = null;
+  private String availableDate = null;
 
   /**
    * Indicates whether the item is available for shipping now, or on a known or an unknown date in the future. If known, the availableDate property indicates the date that the item will be available for shipping. Possible values: NOW, FUTURE_WITHOUT_DATE, FUTURE_WITH_DATE.
@@ -128,7 +127,7 @@ public class DetailedShippingTimeType {
     this.maximumHours = maximumHours;
   }
 
-  public DetailedShippingTimeType availableDate(BigDecimal availableDate) {
+  public DetailedShippingTimeType availableDate(String availableDate) {
     this.availableDate = availableDate;
     return this;
   }
@@ -138,11 +137,11 @@ public class DetailedShippingTimeType {
    * @return availableDate
   **/
   @ApiModelProperty(value = "The date when the item will be available for shipping. Only displayed for items that are not currently available for shipping.")
-  public BigDecimal getAvailableDate() {
+  public String getAvailableDate() {
     return availableDate;
   }
 
-  public void setAvailableDate(BigDecimal availableDate) {
+  public void setAvailableDate(String availableDate) {
     this.availableDate = availableDate;
   }
 

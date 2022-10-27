@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InventoryFormAgentServiceImpl implements IInventoryFormAgentService {
 	 
-	IInventoryService inventoryService;
+	final IInventoryService inventoryService;
  
 
 	public Integer inStockByDirect(InventoryParameter invpara) throws BizException {

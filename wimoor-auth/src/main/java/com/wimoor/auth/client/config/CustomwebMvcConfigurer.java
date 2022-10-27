@@ -1,16 +1,8 @@
 package com.wimoor.auth.client.config;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
  
@@ -25,9 +17,11 @@ public class CustomwebMvcConfigurer extends WebMvcConfigurerAdapter {
         pathMatchConfigurer.setUseSuffixPatternMatch(true);
     }
  
-    
-   
-  
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+         registry.addResourceHandler("/**").addResourceLocations("classpath:/resources/");
+    }
+ 
     
     
 

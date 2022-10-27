@@ -13,6 +13,7 @@ public interface ISysRolePermissionService extends IService<SysRolePermission> {
     List<BigInteger> listPermissionId(BigInteger moduleId,BigInteger roleId);
     List<BigInteger> listPermissionId(BigInteger roleId);
     boolean update(RolePermissionDTO rolePermission);
+	List<BigInteger> listMenuPermissionId(BigInteger menuId);
 
 
 }

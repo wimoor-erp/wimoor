@@ -15,7 +15,6 @@ package com.amazon.spapi.model.solicitations;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.ErrorList;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -23,13 +22,18 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+
+import com.amazon.spapi.model.ErrorList;
+import com.amazon.spapi.model.solicitations.GetSolicitationActionResponseEmbedded;
+import com.amazon.spapi.model.solicitations.GetSolicitationActionResponseLinks;
+import com.amazon.spapi.model.solicitations.SolicitationsAction;
 import java.io.IOException;
 
 /**
  * Describes a solicitation action that can be taken for an order. Provides a JSON Hypertext Application Language (HAL) link to the JSON schema document that describes the expected input.
  */
 @ApiModel(description = "Describes a solicitation action that can be taken for an order. Provides a JSON Hypertext Application Language (HAL) link to the JSON schema document that describes the expected input.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T21:00:32.319+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T13:35:06.645+08:00")
 public class GetSolicitationActionResponse {
   @SerializedName("_links")
   private GetSolicitationActionResponseLinks links = null;

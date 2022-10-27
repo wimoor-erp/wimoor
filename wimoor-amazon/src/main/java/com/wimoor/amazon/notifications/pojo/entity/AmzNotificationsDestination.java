@@ -57,6 +57,6 @@ public class AmzNotificationsDestination implements Serializable {
     private Date refreshtime;
     
     @ApiModelProperty(value = "授权ID")
-    @TableField(value="amazonauthid")
-    private BigInteger amazonauthid;
+    @TableField(value="awsregion")
+    private String awsregion;
 }

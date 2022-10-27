@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.github.jeffreyning.mybatisplus.anno.MppMultiId;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -22,19 +22,15 @@ public class Submitfeed implements Serializable {
 	 */
 	private static final long serialVersionUID = 864049913032652293L;
 
-	@MppMultiId
 	@TableField(value= "feed_submissionid")
     private String feedSubmissionid;
 
-	@MppMultiId
 	@TableField(value= "marketplaceid")
     private String marketplaceid;
 
-	@MppMultiId
 	@TableField(value= "sellerid")
     private String sellerid;
 
-	@MppMultiId
 	@TableField(value= "shopid")
     private String shopid;
 	
@@ -65,7 +61,8 @@ public class Submitfeed implements Serializable {
 	@TableField(value= "amzprocesslog")
     private String amzprocesslog;
 	
+	@TableField(value= "documentid")
+    private String documentid;
 	
-	 
     
 }

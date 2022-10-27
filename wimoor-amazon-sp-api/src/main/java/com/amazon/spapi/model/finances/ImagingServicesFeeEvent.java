@@ -15,7 +15,6 @@ package com.amazon.spapi.model.finances;
 
 import java.util.Objects;
 import java.util.Arrays;
-import com.amazon.spapi.model.finances.FeeComponentList;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -23,13 +22,14 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import com.amazon.spapi.model.finances.FeeComponentList;
 import java.io.IOException;
 
 /**
  * A fee event related to Amazon Imaging services.
  */
 @ApiModel(description = "A fee event related to Amazon Imaging services.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2020-12-15T20:01:58.583+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-25T12:05:35.712+08:00")
 public class ImagingServicesFeeEvent {
   @SerializedName("ImagingRequestBillingItemID")
   private String imagingRequestBillingItemID = null;

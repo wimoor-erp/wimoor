@@ -54,7 +54,7 @@ public class AmazonOrdersDetailVo {
 	String name;
 	
 	@ApiModelProperty(value = "Vat税率")
-	BigDecimal vat_rate;
+	BigDecimal vatRate;
 	
 	@ApiModelProperty(value = "单价")
 	BigDecimal itemprice;

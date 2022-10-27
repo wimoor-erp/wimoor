@@ -87,12 +87,13 @@ public class OrderWordHandler {
 				}
 			}
 			//拿order的数据
-			Map<String, Object> orderData=null;
+			AmzOrderMain orderMain = null;
 			Map<String, Object> paramMap=new HashMap<String, Object>();
 			paramMap.put("orderid", orderid);
 			paramMap.put("purchaseDate", postDate);
 			paramMap.put("groupid", groupid);
 			paramMap.put("shopid", shopid);
+			paramMap.put("nonfin","true");
 			List<AmazonOrdersDetailVo> listO = orderManagerService.selectOrderDetail(paramMap);
 			if (listO!=null && listO.size()>0) {
 				String amazonAuthId= listO.get(0).getAmazonAuthId();
@@ -101,27 +102,26 @@ public class OrderWordHandler {
 				AmazonAuthority amazonAuthority = amazonAuthorityService.getById(amazonAuthId);
 				Marketplace tempmarketplace = marketplaceService.getById(marketplaceId);
 				amazonAuthority.setMarketPlace(tempmarketplace);
-				orderData= orderManagerService.saveOrderDetail(orderid, amazonAuthority, itemstatus);
+				orderMain = listO.get(0).getOrderMain();
 			}
 			//处理order的数据和费用信息
-			if(orderData!=null && orderData.get("orderMain")!=null) {
+			if(orderMain!=null ) {
 				List<AmazonOrdersDetailVo>  itemlist = orderManagerService.selectOrderItemDetail(paramMap);// 从数据库拿amz_order_item里面的数据
 				if (itemlist != null && itemlist.size() > 0) {
 					listO = itemlist;
 				}
-				AmzOrderMain orderMain=(AmzOrderMain) orderData.get("orderMain");
 				if(orderMain!=null && orderMain.getBuyerAdress()!=null) {
-					dear+=orderMain.getBuyerName();
+					dear+= orderMain.getBuyerAdress().getName();
 					String state=orderMain.getBuyerAdress().getStateOrRegion();
 					if(state==null){
 						state="";
 					}
 					String adress = orderMain.getBuyerAdress().getAddressLine1();
-					if (adress == null) {
-						adress = orderMain.getBuyerAdress().getAddressLine2();
+					if (orderMain.getBuyerAdress().getAddressLine2() != null) {
+						adress =adress+","+ orderMain.getBuyerAdress().getAddressLine2();
 					}
-					if (adress == null) {
-						adress = orderMain.getBuyerAdress().getAddressLine3();
+					if (orderMain.getBuyerAdress().getAddressLine3() != null) {
+						adress =adress+"," +orderMain.getBuyerAdress().getAddressLine3();
 					}
 					address1+=adress+", "+state;
 					address2+=(orderMain.getBuyerAdress().getCity()+

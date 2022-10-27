@@ -2,9 +2,15 @@ package com.wimoor.amazon.report.service.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,12 +18,22 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.amazon.spapi.api.ReportsApi;
+import com.amazon.spapi.client.ApiCallback;
+import com.amazon.spapi.client.ApiException;
+import com.amazon.spapi.model.reports.CreateReportResponse;
+import com.amazon.spapi.model.reports.CreateReportSpecification;
+import com.amazon.spapi.model.reports.ReportOptions;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.report.mapper.FBALongTermStorageFeeReportMapper;
 import com.wimoor.amazon.report.pojo.entity.FBALongTermStorageFeeReport;
+import com.wimoor.amazon.report.pojo.entity.FBAStorageFeeReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
+import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 
  
@@ -31,7 +47,67 @@ public class ReportAmzFBALongTermStorageFeeServiceImpl extends ReportServiceImpl
 	@Resource
 	private FBALongTermStorageFeeReportMapper fBALongTermStorageFeeReportMapper;
 
- 
+	@Override
+	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
+        amazonAuthority.setUseApi("createReport");
+		  ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
+		  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
+		  Set<String> region=new HashSet<String>();
+		  for(Marketplace market:marketlist) {
+			  CreateReportSpecification body=new CreateReportSpecification();
+			  body.setReportType(myReportType());
+			  cstart.set(Calendar.DATE, 1);
+			  cend.setTime(cstart.getTime());
+			  cend.add(Calendar.MONTH, 1);
+			  cend.add(Calendar.DATE, -1);
+			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
+			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
+			  QueryWrapper<FBALongTermStorageFeeReport> query=new QueryWrapper<FBALongTermStorageFeeReport>();
+			  query.eq("amazonauthid", amazonAuthority.getId());
+			  query.eq("country", market.getMarket());
+			  query.gt("snapshot_date",cstart.getTime());
+			  query.lt("snapshot_date",cend.getTime());
+			  Date today = new Date();
+			  double days = Math.floor((today.getTime() - cend.getTime().getTime()) / 1000 / 3600 / 24); 
+			  if(days<8) {
+				  continue;
+			  }
+			   Long count = fBALongTermStorageFeeReportMapper.selectCount(query);
+			   if(count!=null&&count>0) {
+				   continue;
+			   }
+			   if(region.contains(market.getRegion())) {
+				   continue;
+			   }else {
+				   region.add(market.getRegion());
+			   }
+			  ReportOptions reportOptions=getMyOptions();
+			  if(reportOptions!=null) {
+				body.setReportOptions(reportOptions);  
+			  }
+			  List<String> list=new ArrayList<String>();
+			  list.add(market.getMarketplaceid());
+			  amazonAuthority.setMarketPlace(market);
+			  if(ignore==null||ignore==false) {
+				  Map<String,Object> param=new HashMap<String,Object>();
+				  param.put("sellerid", amazonAuthority.getSellerid());
+				  param.put("reporttype", this.myReportType());
+				  param.put("marketplacelist", list);
+				  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
+				  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
+					  continue;
+				  }
+			  }
+			  body.setMarketplaceIds(list);
+			  try {
+					  ApiCallback<CreateReportResponse> callback = new ApiCallbackReportCreate(this,amazonAuthority,market,cstart.getTime(),cend.getTime());
+				      api.createReportAsync(body,callback);
+				  } catch (ApiException e) {
+					  amazonAuthority.setApiRateLimit( null,e);
+					  e.printStackTrace();
+			    }
+		  }
+    }
 
 	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br )   {
  
@@ -89,7 +165,7 @@ public class ReportAmzFBALongTermStorageFeeServiceImpl extends ReportServiceImpl
 					fBALongTermStorageFee.setIsSl(GeneralUtil.getBooleanValue(info,titleList,"enrolled-in-small-and-light"));
 					fBALongTermStorageFee.setLastupdate(new Date());
 					try {
-						fBALongTermStorageFeeReportMapper.insert(fBALongTermStorageFee);
+							fBALongTermStorageFeeReportMapper.insert(fBALongTermStorageFee);
 					} catch (Exception e) {
 						e.printStackTrace();
 						if(log.length()==0){

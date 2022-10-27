@@ -45,7 +45,7 @@ public class WarehouseShelfInventoryOptPro extends BaseEntity{
     @ApiModelProperty(value = "操作数量")
     private Integer quantity;
 
-    @ApiModelProperty(value = "操作数量对于的体积(系统生成)")
+    @ApiModelProperty(value = "操作数量对应的体积(系统生成)")
     private Float size;
 
     @ApiModelProperty(value = "操作前结余重量(系统生成)")
