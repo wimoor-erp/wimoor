@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -13,9 +14,9 @@ import com.wimoor.amazon.finances.pojo.entity.AmzFinUserItemData;
 @Mapper
 public interface AmzFinUserItemDataMapper  extends BaseMapper<AmzFinUserItemData>{
 
-	IPage<Map<String, Object>> getFinDataList(Page<?>page,Map<String, Object> params);
+	IPage<Map<String, Object>> getFinDataList(Page<?>page,@Param("param") Map<String, Object> params);
 	
-	List<Map<String, Object>> getFinDataList(Map<String, Object> params);
+	List<Map<String, Object>> getFinDataList(@Param("param")Map<String, Object> params);
 	
 	List<Map<String, Object>> getFinDataLastWeek(Map<String, Object> params);
 	
