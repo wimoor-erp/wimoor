@@ -51,4 +51,6 @@ public interface IAmzFinConfigService extends IService<AmzFinUserItem>{
 	
 	public List<Map<String, Object>> getFinDataList(UserInfo user, Map<String, Object> params);
 	public void setExcelBookOverall(SXSSFWorkbook workbook, List<Map<String, Object>> list) ;
+
+	public List<AmzFinUserItem> getFinItemList(String companyid);
 }

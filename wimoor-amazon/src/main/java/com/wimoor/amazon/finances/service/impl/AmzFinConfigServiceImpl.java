@@ -8,9 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.Resource;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -18,12 +16,10 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
- 
 import com.googlecode.aviator.AviatorEvaluator;
 import com.wimoor.amazon.finances.mapper.AmzFinSettlementFormulaMapper;
 import com.wimoor.amazon.finances.mapper.AmzFinUserItemDataMapper;
@@ -32,12 +28,9 @@ import com.wimoor.amazon.finances.pojo.entity.AmzFinSettlementFormula;
 import com.wimoor.amazon.finances.pojo.entity.AmzFinUserItem;
 import com.wimoor.amazon.finances.pojo.entity.AmzFinUserItemData;
 import com.wimoor.amazon.finances.service.IAmzFinConfigService;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzSettlementReport;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
-
 import cn.hutool.core.util.StrUtil;
  
 
@@ -520,6 +513,15 @@ public class AmzFinConfigServiceImpl extends  ServiceImpl<AmzFinUserItemMapper, 
 
 	public List<Map<String, Object>> getFinDataForSku(Map<String, Object> params) {
 		return amzFinUserItemDataMapper.getFinDataForSku(params);
+	}
+
+	@Override
+	public List<AmzFinUserItem> getFinItemList(String companyid) {
+		LambdaQueryWrapper<AmzFinUserItem> queryWrapper=new LambdaQueryWrapper<AmzFinUserItem>();
+		queryWrapper.eq(AmzFinUserItem::getShopid,companyid);
+		queryWrapper.eq(AmzFinUserItem::getDisable, false);
+		List<AmzFinUserItem> list = amzFinUserItemMapper.selectList(queryWrapper);
+		return list;
 	}
 
 }

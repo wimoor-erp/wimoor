@@ -36,25 +36,25 @@
 		left join t_amazon_group g on g.id=t.groupid
 		left join t_marketplace m on m.marketplaceid=t.marketplaceid
 		LEFT JOIN t_amz_fin_user_item it ON it.id=t.itemid
-		where t.shopid = #{shopid,jdbcType=CHAR}
-		<if test="groupid!=null">
-			and t.groupid=#{groupid,jdbcType=CHAR}
+		where t.shopid = #{param.shopid,jdbcType=CHAR}
+		<if test="param.groupid!=null">
+			and t.groupid=#{param.groupid,jdbcType=CHAR}
 		</if>
-		<if test="fromDate!=null">
-			and t.byday>=#{fromDate,jdbcType=CHAR}
-			and t.byday&lt;=#{endDate,jdbcType=CHAR}
+		<if test="param.fromDate!=null">
+			and t.byday>=#{param.fromDate,jdbcType=CHAR}
+			and t.byday&lt;=#{param.endDate,jdbcType=CHAR}
 		</if>
-		<if test="marketplaceid!=null">
-			and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		<if test="param.marketplaceid!=null">
+			and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
 		</if>
-		<if test="itemid!=null">
-			and t.itemid=#{itemid,jdbcType=CHAR}
+		<if test="param.itemid!=null">
+			and t.itemid=#{param.itemid,jdbcType=CHAR}
 		</if>
-		<if test="sku!=null">
-			and t.sku like #{sku,jdbcType=CHAR}
+		<if test="param.sku!=null">
+			and t.sku like #{param.sku,jdbcType=CHAR}
 		</if>
-	   <if test="osku!=null">
-			and t.sku = #{osku,jdbcType=CHAR}
+	   <if test="param.osku!=null">
+			and t.sku = #{param.osku,jdbcType=CHAR}
 		</if>
 	</select>
 

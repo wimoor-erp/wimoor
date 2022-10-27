@@ -105,8 +105,7 @@ public class SecurityGlobalFilter implements GlobalFilter, Ordered {
             return true;
         }
 
-        String roles=user.getRoles();
-        List<String> list = Arrays.asList(roles.split(","));
+        List<String> list =user.getRoles();
         for(String roleCode:list) {
             if ("1".equals(roleCode)) {
                 return true; // 如果是超级管理员则放行
