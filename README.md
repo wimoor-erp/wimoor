@@ -17,7 +17,6 @@ UI框架: element plus, uni-app
 开发环境
 ====
 建议开发者使用以下环境，可以避免版本带来的问题
-
 IDE: eclipse
 DB: Mysql5.7+
 JDK: JDK1.8
