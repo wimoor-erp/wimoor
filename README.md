@@ -1,7 +1,11 @@
 项目总述
 ====
-* Wimoor erp是目前唯一一款百分百开源、支持商用的亚马逊erp系统
+* Wimoor erp是国内首款百分百开源、支持商用的亚马逊erp系统
 * 不仅现有系统免费，系统源码也都是公之于众的，可以任意安装、卸载和升级，没有用户数量限制。
+* 除了为跨境卖家提供一站式服务，我们也提供系统源代码搭建，成品系统部署搭建，支持功能定制开发等相关服务。
+* 官网地址：https://wimoor.com/ 商务或技术交流请联系客服QQ：1874049814 微信：wimoorerp
+* 系统注册地址：https://erp.wimoor.com/toRegister.do 大家可免费使用
+* 欢迎加入Wimoor ERP开源项目交流群（可联系客服QQ或微信拉你入群）
 
 开源协议
 ====
@@ -26,15 +30,16 @@
 * JDK: JDK1.8
 * Maven: Maven3.2.3+
 
-部署系统需要：
+部署系统需要
+====
 * mysql 数据库
 * redis 数据库
 * nacos 微服务中心
 * seata 微服务事务（用于分库之后）
 * cas-server 中央登录模块（非必要）
 建议使用开发工具：eclipse
-建议使用JDK1.8
-每次启动需要提前开启nacos 和seata
+建议使用Java语言的软件开发工具包：JDK1.8
+每次启动需要提前开启：nacos 和seata
 
 系统支持
 ====
@@ -47,15 +52,15 @@
 
 部署说明
 ====
-第一步：下载项目
-第二步：看readme
-第三步：打开config
-第四步：看所有文件对应的readme
-第五步：配置redis,nacos,seata,mysql,node,jdk1.8导入对应配置
-第六步：导入数据到mysql
-第七步：用eclipse打开wimoor
-第八步：运行wimoor-admin,wimoor-gateway,wimoor-auth,wimoor-amazon,wimoor-erp,wimoor-amazon-adv
-第九步：用前端开发工具hbuild或者VSCode 打开wimoorUI
-第十步：修改config里面的路由改成127.0.0.1 然后npm run serve
+* 第一步：下载项目
+* 第二步：看readme
+* 第三步：打开config
+* 第四步：看所有文件对应的readme
+* 第五步：配置redis,nacos,seata,mysql,node,jdk1.8导入对应配置
+* 第六步：导入数据到mysql
+* 第七步：用eclipse打开wimoor
+* 第八步：运行wimoor-admin,wimoor-gateway,wimoor-auth,wimoor-amazon,wimoor-erp,wimoor-amazon-adv
+* 第九步：用前端开发工具hbuild或者VSCode 打开wimoorUI
+* 第十步：修改config里面的路由改成127.0.0.1 然后npm run serve
 
 
