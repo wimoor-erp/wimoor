@@ -2,11 +2,9 @@
 ====
 * Wimoor erp是目前唯一一款百分百开源、支持商用的亚马逊erp系统
 * 不仅现有系统免费，系统源码也都是公之于众的，可以任意安装、卸载和升级，没有用户数量限制。<br>
-开源协议<br>
-====<br>
+#开源协议<br>
 本系统100%开源，支持商用，遵守MIT协议，采用微服务+前后端分离+中央登录的模式，可支持新旧系统无缝对接。<br>
-技术栈<br>
-====<br>
+#技术栈<br>
 核心框架：SpringBoot 2.0.0
 持久层框架：Mybatis 1.3.2,Mybatis plus
 日志管理：Log4j 2.10.0
@@ -14,15 +12,13 @@ JS框架：Es6，vue3, nodejs
 UI框架: element plus, uni-app
 后台框架: spring cloud , alibaba colud, nacos, quartz,oss
 项目管理框架: Maven 3.2.3
-开发环境
-====
+#开发环境
 建议开发者使用以下环境，可以避免版本带来的问题
 IDE: eclipse
 DB: Mysql5.7+
 JDK: JDK1.8
 Maven: Maven3.2.3+
 部署说明
-====
 第一步：下载项目
 第二步：看readme
 第三步：打开config
