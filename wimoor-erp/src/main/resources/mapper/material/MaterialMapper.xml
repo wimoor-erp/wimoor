@@ -18,6 +18,8 @@
 		<result column="delivery_cycle" property="deliveryCycle" jdbcType="INTEGER" />
 		<result column="assembly_time" property="assemblyTime" jdbcType="INTEGER" />
 		<result column="other_cost" property="otherCost" jdbcType="DECIMAL" />
+		<result column="price_wavg" property="priceWavg" jdbcType="DECIMAL" />
+		<result column="price_ship_wavg" property="priceShipWavg" jdbcType="DECIMAL" />
 		<result column="MOQ" property="MOQ" jdbcType="INTEGER" />
 		<result column="badrate" property="badrate" jdbcType="FLOAT" />
 		<result column="vatrate" property="vatrate" jdbcType="FLOAT" />
@@ -31,7 +33,10 @@
 		<result column="isSmlAndLight" property="isSmlAndLight" jdbcType="BIT" />
 		<result column="isDelete" property="isDelete" jdbcType="BIT" />
 	</resultMap>
-
+    <select id="getMaterailBySku" resultType="com.wimoor.erp.material.pojo.entity.Material" parameterType="java.lang.String">
+    select *  from t_erp_material where sku= #{sku,jdbcType=CHAR} and shopid= #{shopid,jdbcType=CHAR} and isdelete=0
+    </select>
+    
 	<select id="selectCommonImage" resultType="java.util.Map" parameterType="java.lang.String">
 		SELECT count(1) count,max(m.id) id,m.image,p.location 
 			from t_erp_material m
@@ -50,6 +55,101 @@
 			LIMIT 10 ) v
 			
 	</select>
+	
+	<select id="findInventoryByMsku" resultType="java.util.Map" parameterType="com.wimoor.erp.ship.pojo.dto.ShipPlanDTO">
+	    select 
+               m.id,
+		       m.name name, 
+		       m.issfg issfg,
+		       p1.location image,
+		       ifnull(m.boxnum,0) boxnum, 
+		       m.sku,
+		       mn.mark notice,
+		       mc.material material,
+		       mc.addfee addfee,
+		       inv.fulfillable quantity,
+		       inv.fulfillable,
+		       inv.outbound,
+		       inv.inbound,
+		       v.amount canAssembly,
+		       m.issfg,
+		       m.price,
+		       ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0) pkgcm3,
+		       ifnull(dd.weight,0) pkgweight,
+		       ifnull(bd.length,0)*ifnull(bd.width,0)*ifnull(bd.height,0) boxcm3,
+		       ifnull(bd.weight,0) boxweight
+        from  t_erp_material m 
+		left join t_picture p1 on p1.id=m.image
+		left join t_dimensions dd on dd.id=m.pkgDimensions
+		left join t_dimensions bd on bd.id=m.boxDimensions
+		left join t_erp_material_mark mn on mn.materialid=m.id and mn.ftype='notice'
+		left join t_erp_material_mark mh on mh.materialid=m.id and mh.ftype='phide'
+		left join t_userinfo usi on usi.id=mn.operator 
+		left join (SELECT  e.mainmid,   min(FLOOR(case when canas>ifnull(inv.quantity,0)/(e.units)  then ifnull(inv.quantity,0)/(e.units) ELSE canas END)) amount
+		        FROM (
+				 SELECT f.mainmid,e.materialid,
+				      max(e.amount/f.amount) units,
+				      SUM(f.amount-f.amount_handle) canas
+				  from t_erp_assembly_form  f
+				  left join t_erp_assembly_form_entry e on f.id=e.formid
+				  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
+				       and f.ftype='ass'
+					   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
+				  GROUP BY  f.mainmid,e.materialid 
+				) e
+				left join t_erp_inventory inv on inv.materialid=e.materialid 	
+				and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+				group by mainmid) v on v.mainmid=m.id
+		left join (
+		  SELECT  i.materialid,
+		          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory i
+			where i.shopid=#{shopid,jdbcType=CHAR} 
+              and i.warehouseid=#{warehouseid,jdbcType=CHAR} 
+			  group by i.shopid,warehouseid,i.materialid
+		)  inv on inv.materialid=m.id  
+	  	left join t_erp_material_customs mc on mc.matreialid=m.id
+	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
+	  	<if test="mskulist!=null">
+			and m.sku in
+			<foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="mskulist==null">
+			and m.sku ='###'
+		</if>
+		<if test="owner!=null">
+			and m.owner = #{owner,jdbcType=CHAR}
+		</if>
+		  <if test="issfg==1">
+		    and m.issfg = '1'
+		  </if>
+		  <if test="issfg==0">
+		    and (m.issfg ='0' or m.issfg ='2')
+		  </if>
+		<if test="searchtype=='remark' and search!=null">
+			and mn.mark like #{search,jdbcType=CHAR}
+		</if>
+		<if test="searchtype=='name' and search!=null">
+			and m.name like #{search,jdbcType=CHAR}
+		</if>
+		<if test="categoryid!=null">
+		    and m.categoryid=#{categoryid,jdbcType=CHAR}
+		</if>
+		<if test="hasAddFee!=null">
+		   <if test="hasAddFee=='true'">
+		      and mc.addfee>0
+		   </if>
+		    <if test="hasAddFee=='false'">
+		      and ifnull(mc.addfee,0)=0
+		   </if>
+		</if>
+		
+	</select>
+	
 	<select id="selectByImage" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select * from t_erp_material t 
 		where t.image=#{image,jdbcType=CHAR} 
@@ -70,69 +170,96 @@
 			createdate,m.purchaseUrl, d.length,d.width,d.height ,d.weight
 		from t_erp_material m
 		left join t_dimensions d on d.id=m.pkgDimensions
-		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{shopid,jdbcType=CHAR}
+		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
 		left join t_picture p on m.image=p.id
-		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{shopid,jdbcType=CHAR}
-		left join ( select shopid,warehouseid,materialid ,
-					sum( case when status='inbound' then quantity else 0 end ) inbound,
-					sum( case when status='outbound' then quantity else 0 end ) outbound,
-					sum( case when status='fulfillable' then quantity else 0 end ) fulfillable
-					from t_erp_inventory 
-					where shopid=#{shopid,jdbcType=CHAR}
-							<if test="warehouseid != null">
-								and warehouseid = #{warehouseid,jdbcType=CHAR}
+		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
+		left join ( select iv.shopid,iv.warehouseid,iv.materialid ,
+					sum( case when iv.status='inbound' then iv.quantity else 0 end ) inbound,
+					sum( case when iv.status='outbound' then iv.quantity else 0 end ) outbound,
+					sum( case when iv.status='fulfillable' then iv.quantity else 0 end ) fulfillable
+					from t_erp_inventory iv
+					<if test="param.addressid!=null">
+					left join t_erp_warehouse w on w.id=iv.warehouseid
+					</if>
+					where iv.shopid=#{param.shopid,jdbcType=CHAR}
+							<if test="param.warehouseid != null">
+								and iv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
 							</if>
-					group by shopid,materialid
+							<if test="param.materialid != null">
+								and iv.materialid = #{param.materialid,jdbcType=CHAR}
+							</if>
+							<if test="param.addressid!=null">
+								and w.addressid = #{param.addressid,jdbcType=CHAR}
+							</if>
+					group by iv.materialid
 		) i on i.materialid=m.id
 		left join t_userinfo u on u.id=m.operator
-		where m.shopid=#{shopid,jdbcType=CHAR}
-		<if test='isDelete == null or isDelete == "0"'>
+		where m.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test='param.isDelete == null or param.isDelete == "0"'>
 			and m.isDelete = 0
 		</if>
-	
-		<if test='isDelete == "1"'>
+	    <if test="param.materialid != null">
+			 and m.id = #{param.materialid,jdbcType=CHAR}
+		 </if>
+		<if test='param.isDelete == "1"'>
 			and m.isDelete = 1
 		</if>
-		<if test="ftype == 'shipment'">
+		<if test="param.ftype == 'shipment'">
 			and i.fulfillable > 0
 		</if>
-		 <if test="warehouseid != null">
-			 and i.warehouseid = #{warehouseid,jdbcType=CHAR}
+		 <if test="param.warehouseid != null">
+			 and i.warehouseid = #{param.warehouseid,jdbcType=CHAR}
 		 </if>
-		<if test="search != null">
-			and (m.sku like #{search,jdbcType=CHAR} or m.name like
-			#{search,jdbcType=CHAR} or m.remark like #{search,jdbcType=CHAR})
+		<if test="param.search != null">
+			<if test="param.searchtype=='sku'">
+				and (m.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='name'">
+				and (m.name like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='remark'">
+				and (m.remark like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='supplier'">
+				and (c.name like #{param.search,jdbcType=CHAR})
+			</if>
 		</if>
-		<if test="issfglist != null">
+		<if test="param.issfglist != null">
 			and
-			<foreach collection="issfglist" item="status" index="i" open="(" separator="or" close=" )">
+			<foreach collection="param.issfglist" item="status" index="i" open="(" separator="or" close=" )">
 				m.issfg = #{status,jdbcType=INTEGER}
 			</foreach>
 		</if>
-		<if test="supplierid != null">
-			and m.supplier = #{supplierid,jdbcType=CHAR}
-		</if>
-		<if test="categoryid != null">
-			and m.categoryid = #{categoryid,jdbcType=CHAR}
-		</if>
-		<if test="name != null">
-			and m.name like #{name,jdbcType=CHAR}
-		</if>
-		<if test="owner != null">
-			and m.owner = #{owner,jdbcType=CHAR}
-		</if>
-		<if test="myself != null">
-			and m.owner = #{myself,jdbcType=CHAR}
-		</if>
-		<if test="remark != null">
-			and m.remark like #{remark,jdbcType=CHAR}
-		</if>
-		<if test="color != null">
-			and m.color like #{color,jdbcType=CHAR}
-		</if>
-		<if test="searchsku != null">
+		<if test="param.midlist!=null">
 			and
-			<foreach collection="searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+			<foreach collection="param.midlist" item="mid" index="i" open="(" separator="or" close=" )">
+				m.id = #{mid,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="param.supplierid != null">
+			and m.supplier = #{param.supplierid,jdbcType=CHAR}
+		</if>
+		<if test="param.categoryid != null">
+			and m.categoryid = #{param.categoryid,jdbcType=CHAR}
+		</if>
+		<if test="param.name != null">
+			and m.name like #{param.name,jdbcType=CHAR}
+		</if>
+		<if test="param.owner != null">
+			and m.owner = #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.myself != null">
+			and m.owner = #{param.myself,jdbcType=CHAR}
+		</if>
+		<if test="param.remark != null">
+			and m.remark like #{param.remark,jdbcType=CHAR}
+		</if>
+		<if test="param.color != null">
+			and m.color like #{param.color,jdbcType=CHAR}
+		</if>
+		<if test="param.searchsku != null">
+			and
+			<foreach collection="param.searchsku" item="sku" index="i" open="(" separator="or" close=" )">
 				m.sku like #{sku,jdbcType=CHAR}
 			</foreach>
 		</if>
@@ -193,15 +320,16 @@
 
 	<select id="findMaterialById" resultType="com.wimoor.erp.material.pojo.vo.MaterialVO" parameterType="java.lang.String">
 		select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image,
-		 m.id, m.sku,m.name,m.shopid,m.upc,m.brand,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
+		 m.id, m.sku,m.name,m.shopid,m.upc,bran.name brand,bran.id brandid,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
 		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
 	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
-	     m.createdate, m.creator,m.parentid,m.isSmlAndLight,m.assembly_time,m.isDelete
+	     m.createdate, m.creator,m.parentid,m.isSmlAndLight,m.assembly_time,m.isDelete,m.effectivedate,m.image imageid
 		from t_erp_material m
 		left join t_erp_material_category g on g.id=m.categoryid
 		left join t_picture p on m.image=p.id
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_userinfo u on u.id=m.owner
+		left join t_erp_material_brand bran on bran.id=m.brand
 		where m.id=#{id,jdbcType=CHAR}
 	</select>
 	
@@ -232,54 +360,6 @@
 		where shopid=#{shopid,jdbcType=CHAR} 
 			and sku=#{sku,jdbcType=CHAR} 
 			and isDelete = 0 limit 0,1;
-	</select>
-
-	<select id="selectMaterialSize" resultType="java.util.Map" parameterType="java.lang.String">
-		select p.sku,ifnull(p2.location,p1.location) image,m.isSmlAndLight,ps.sales_month,
-			dm.length slength,dm.length_units slength_units,
-			dm.width swidth,dm.width_units swidth_units,
-			dm.height sheight,dm.height_units sheight_units,
-			dm.weight sweight,dm.weight_units sweight_units,
-			ifnull(ef.longest_side,dp.`length`) `length` ,
-			ifnull(ef.unit_of_dimension,dp.length_units) length_units,
-			ifnull(ef.median_side,dp.width) width,
-			ifnull(ef.unit_of_dimension,dp.width_units) width_units,
-			ifnull(ef.shortest_side,dp.height) height,
-			ifnull(ef.unit_of_dimension,dp.height_units) height_units,
-			ifnull(ef.item_package_weight,dp.weight) weight,
-			ifnull(ef.unit_of_weight,dp.weight_units) weight_units,
-			ifnull(ef.your_price,pp.landed_amount) price,
-			ifnull(ef.currency,pp.landed_currency) currency,
-			ef.estimated_fee_total totalfee,
-			ef.estimated_referral_fee_per_unit referralfee,
-			ef.expected_domestic_fulfilment_fee_per_unit edfba,
-			ef.expected_efn_fulfilment_fee_per_unit_uk efnfba,
-			ef.product_size_tier productTier,
-			ifnull(p.pgroup,'') pgroup,ifnull(mc.`name`,'') category,
-			ef.estimated_fixed_closing_fee fixclosing, ef.lastupdate
-		from t_product_info p
-		left join t_amazon_auth a on a.id=p.amazonAuthId
-		left join t_product_in_opt opt on opt.pid=p.id
-		left join t_product_in_order ps on p.id=ps.pid
-		left join t_erp_material m on m.sku = ifnull(opt.msku,p.sku) and m.shopid = a.shop_id and m.isDelete = 0
-		left join t_erp_material_category mc on m.categoryid=mc.id
-		left join t_picture p1 on m.image=p1.id
-		left join t_dimensions dm on m.pkgDimensions=dm.id
-		left join t_product_price pp on p.marketplaceid=pp.MarketplaceId and pp.SellerId=a.sellerid 
-										and pp.SellerSKU=p.sku and pp.isnewest=true and pp.ptype='BUYP'
-		left join t_picture p2 on p2.id=p.image
-		left join t_fba_estimated_fees ef on p.sku=ef.sku and ef.marketplaceid=p.marketplaceid and ef.asin=p.asin
-		left join t_dimensions dp on dp.id=p.pageDimensions
-		where a.shop_id=#{shopid,jdbcType=CHAR} and p.isparent=false and p.invalid=0 and ifnull(opt.disable,0)=0
-		<if test="groupid != null">
-			and a.groupid = #{groupid,jdbcType=CHAR}
-		</if>
-		<if test="marketplaceid != null">
-			and p.marketplaceId = #{marketplaceid,jdbcType=CHAR}
-		</if>
-		<if test="skuname != null">
-			and (p.sku like #{skuname,jdbcType=CHAR} or opt.msku like #{skuname,jdbcType=CHAR})
-		</if>
 	</select>
 	
 	<select id="findDimAndAsinBymid" resultType="java.util.Map" parameterType="java.lang.String">
@@ -333,7 +413,7 @@
 		</if>
 	</select>
 
-	<select id="findSKUImageForProduct" resultType="java.util.Map" parameterType="java.util.List">
+	<select id="findSKUImageForProduct" resultType="java.util.Map" parameterType="java.util.Map">
 		select v.materialSKU,v.materialName,v.infoSKU,max(v.imageid) imageid,max(v.infoName) infoName,v.image
 		,max(v.dimid) dimid,ifnull(v.length,0) length,ifnull(v.lenunit,'cm') lenunit,ifnull(v.width,0) width,ifnull(v.wunit,'cm') wunit,
 		ifnull(v.height,0) height,ifnull(v.hunit,'cm') hunit,
@@ -350,11 +430,11 @@
 			left join t_amazon_auth auth on auth.id=info.amazonauthid
 			left join t_picture pic on pic.id = info.image
 			LEFT JOIN t_dimensions dm ON dm.id=info.pageDimensions
-			where shopid = #{shopid,jdbcType=CHAR} and auth.shop_id= #{shopid,jdbcType=CHAR} 
+			where shopid = #{maps.shopid,jdbcType=CHAR} and auth.shop_id= #{maps.shopid,jdbcType=CHAR} 
 				and info.id is not null
-			<if test="param != null and param.size>0 ">
+			<if test="maps.param != null and maps.param.size>0 ">
 				and mate.sku in
-				<foreach collection="param" item="adv" index="index"
+				<foreach collection="maps.param" item="adv" index="index"
 					open="(" close=")" separator=",">
 					#{adv,jdbcType=CHAR}
 				</foreach>
@@ -370,11 +450,11 @@
 			left join t_product_info info on info.sku = mate.sku and info.invalid = 0
 			left join t_picture pic on pic.id = info.image
 			LEFT JOIN t_dimensions dm ON dm.id=info.pageDimensions
-			where shopid = #{shopid,jdbcType=CHAR}
+			where shopid = #{maps.shopid,jdbcType=CHAR}
 				and info.id is not null
-			<if test="param != null and param.size>0 ">
+			<if test="maps.param != null and maps.param.size>0 ">
 				and mate.sku in
-				<foreach collection="param" item="adv" index="index" open="(" close=")" separator=",">
+				<foreach collection="maps.param" item="adv" index="index" open="(" close=")" separator=",">
 					#{adv,jdbcType=CHAR}
 				</foreach>
 			</if>

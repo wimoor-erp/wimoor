@@ -21,8 +21,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
-import com.wimoor.amazon.report.mapper.InventoryHealthMapper;
-import com.wimoor.amazon.report.pojo.entity.InventoryHealth;
+import com.wimoor.amazon.inventory.mapper.InventoryHealthMapper;
+import com.wimoor.amazon.inventory.pojo.entity.InventoryHealth;
 import com.wimoor.amazon.report.service.IInventoryHealthService;
 import com.wimoor.amazon.util.AmzDateUtils;
 

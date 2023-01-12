@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import com.wimoor.api.amzon.inbound.pojo.vo.WarehouseShelfInventoryOptRecordVo;
 import com.wimoor.api.erp.warehouse.pojo.vo.WarehouseShelfInventoryVo;
 
 import io.swagger.annotations.ApiModel;
@@ -30,6 +31,10 @@ public class AssemblyVO {
 	
 	@ApiModelProperty(value = "子产品需求数量[1个主产品需要的子产品量]")
 	Integer subnumber;
+	
+	
+	@ApiModelProperty(value = "子产品总需求数量")
+	Integer subamount;
 	
 	@ApiModelProperty(value = "备注")
 	String remark;
@@ -81,4 +86,5 @@ public class AssemblyVO {
 	
 	@ApiModelProperty(value = "货架库存")
 	List<WarehouseShelfInventoryVo> shelfInvList;
+	List<WarehouseShelfInventoryOptRecordVo> shelfInvRecordList;
 }

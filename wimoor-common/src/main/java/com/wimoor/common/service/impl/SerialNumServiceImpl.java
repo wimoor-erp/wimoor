@@ -23,7 +23,7 @@ public class SerialNumServiceImpl extends  ServiceImpl<SerialNumMapper,SerialNum
  
 	QueryWrapper<SerialNum> queryWrapper = new QueryWrapper<SerialNum>();
     SimpleDateFormat matter=new SimpleDateFormat("yyyy-MM-dd");
-    Date today=GeneralUtil.getDatez(matter.format(new Date()));
+    String today=matter.format(new Date());
     queryWrapper.eq("ftype", profix);
     queryWrapper.eq("shopid", shopid);
     queryWrapper.eq("prefix_date",today);
@@ -37,7 +37,7 @@ public class SerialNumServiceImpl extends  ServiceImpl<SerialNumMapper,SerialNum
     else {
     	SerialNum serialNum = new SerialNum();
     	serialNum.setFtype(profix);
-    	serialNum.setPrefixDate(today);
+    	serialNum.setPrefixDate(GeneralUtil.getDatez(today));
     	serialNum.setSeqno(1);
     	serialNum.setShopid(shopid);
     	serialNum.setOpttime(new Date());

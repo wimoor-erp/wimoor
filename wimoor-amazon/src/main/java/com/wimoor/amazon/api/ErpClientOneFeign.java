@@ -6,13 +6,16 @@ import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundShipmentDTO;
-import com.wimoor.common.mvc.BizException;
+import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.api.erp.inventory.pojo.dto.InventoryParameter;
 import com.wimoor.common.result.Result;
+
+import io.swagger.annotations.ApiParam;
 
  
 @Component
@@ -32,8 +35,17 @@ public interface ErpClientOneFeign {
 			@RequestParam String material,@RequestParam Integer amount,@RequestParam String ftype);
 
 	
-	@PostMapping("/erp/api/v1/shipForm/outbound")
-	public void outboundAction(@RequestBody ShipInboundShipmentDTO shipment) throws BizException;
+	@PostMapping("/erp/api/v1/inventory/manager/outbound")
+	public  Result<?> outbound(@ApiParam("操作DTO")@RequestBody List<InventoryParameter>   paramList) ;
+	
+	@PostMapping( "/erp/api/v1/inventory/manager/undo_outbound")
+	public Result<?> undoOutbound(@ApiParam("操作DTO")@RequestBody List<InventoryParameter>   paramList) ;
+	
+	@PostMapping("/erp/api/v1/inventory/manager/out")
+	public  Result<?> out(@ApiParam("操作DTO")@RequestBody List<InventoryParameter>   paramList) ;
+	
+	@PostMapping( "/erp/api/v1/inventory/manager/undo_out")
+	public Result<?> undoOut(@ApiParam("操作DTO")@RequestBody List<InventoryParameter>   paramList) ;
 	
 	@GetMapping("/erp/api/v1/material/getAssemblyCan")
 	public Result<Integer> getAssemblyCanAction(@RequestParam String materialid,@RequestParam String warehouseid,@RequestParam String shopid);
@@ -54,4 +66,28 @@ public interface ErpClientOneFeign {
 	public Result<List<String>> findMarterialForColorOwner(@RequestParam String shopid,
 			                                               @RequestParam String owner,
 			                                               @RequestParam String color);
+    @PostMapping("/erp/api/v1/material/getMskuByTagList")
+	public Result<List<String>> getMskuByTagList(@RequestBody List<String> taglist);
+
+    @GetMapping("/erp/api/v1/material/getTagsIdsListByMsku")
+	public Result<List<String>> getTagsIdsListByMsku(@RequestParam String msku,@RequestParam String shopid);
+    
+    
+    @GetMapping("/erp/api/v1/material/getMSkuDeliveryAndInv")
+    public Result<Map<String, Object>> getMSkuDeliveryAndInv(   @RequestParam String shopid,
+													    		@RequestParam String groupid,
+													    		@RequestParam String msku,
+													    		@RequestParam String country);
+    
+    @GetMapping("/erp/api/v1/material/getMaterialInventoryInfoApi")
+	public Result<?> getMaterialInventoryInfoAction(@RequestParam String shopid,
+			                                        @RequestParam String sku,
+			                                        @RequestParam String warehouseid);
+    
+    @PostMapping("/erp/api/v1/material/getMskuInventory")
+	public Result<List<Map<String, Object>>> getMskuInventory(@RequestBody ShipPlanDTO dto);
+
+    @PostMapping("/erp/api/v1/shipForm/afterShipInboundPlanSave")
+    public Result<?> afterShipInboundPlanSaveAction( @ApiParam("参数") @RequestBody Map<String,Object> param  )  ;
+
 }

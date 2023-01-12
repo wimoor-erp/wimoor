@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
-import com.wimoor.amazon.report.mapper.FBAEstimatedFeeMapper;
-import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
+import com.wimoor.amazon.finances.mapper.FBAEstimatedFeeMapper;
+import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.common.GeneralUtil;
 

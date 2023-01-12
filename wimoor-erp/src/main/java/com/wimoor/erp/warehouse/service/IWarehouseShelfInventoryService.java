@@ -29,7 +29,7 @@ public interface IWarehouseShelfInventoryService extends IService<WarehouseShelf
 	WarehouseShelfInventorySummaryVo sumByShelf(WarehouseShelf item);
 	public WarehouseShelfInventoryOptRecord add(WarehouseShelfInventoryOptPro inv);
 	public WarehouseShelfInventoryOptRecord sub(WarehouseShelfInventoryOptPro inv);
-	public IPage<WarehouseShelfInventoryVo> getShelfList(Page<?> page,Map<String, Object> param);
+	public IPage<WarehouseShelfInventoryVo> getUnShelfInventoryList(Page<?> page,Map<String, Object> param);
 	public IPage<WarehouseShelfInventoryVo> getShelfInventoryList(Page<?> page,Map<String, Object> param);
 	public List<WarehouseShelfInventoryVo> findByMaterial(String shopid,String warehouseid,String materialid) ;
 	public ShipInboundShipmenSummarytVo formInvAssemblyShelf(ShipInboundShipmenSummarytVo itemsum);

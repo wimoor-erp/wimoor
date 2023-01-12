@@ -14,7 +14,7 @@ public interface IExcelDownLoadService {
 	
 	void uploadMaterialFile(UserInfo user, InputStream inputStream, Row info);
 	
-	void uploadCustomerFile(UserInfo user, InputStream inputStream, Row info);
+	void uploadCustomerFile(UserInfo user, Row info);
 	
 	void uploadCategoryFile(UserInfo user, InputStream inputStream, Row info);
 	
@@ -37,4 +37,14 @@ public interface IExcelDownLoadService {
 	void uploadMaterialcustomsFile(UserInfo user, InputStream inputStream, String stockid, String fileName);
 
 	void uploadShipmentcustomsFile(UserInfo user, InputStream inputStream, String fileName);
+
+	void uploadMaterialBaseInfoFile(UserInfo user, Row info);
+
+	void uploadMaterialSupplierFile(UserInfo user, Row info);
+
+	void uploadMaterialConsumableFile(UserInfo user, Row info);
+
+	void uploadMaterialCustomsFile(UserInfo user, Row info);
+
+	void uploadMaterialAssemblyFile(UserInfo user, Row info);
 }

@@ -36,7 +36,8 @@ public class ShipInboundItemServiceImpl extends  ServiceImpl<ShipInboundItemMapp
 		}
 		
 		public List<ShipInboundItemVo> listByShipmentid(String shipmentid){
-			return this.baseMapper.selectObjByShipmentid(shipmentid);
+			List<ShipInboundItemVo> itemvoList=this.baseMapper.selectObjByShipmentid(shipmentid);
+			return itemvoList;
 		}
 		public ShipInboundItem findItem(String shipmentid, String inboundplanid, String sellersku) {
 			// TODO Auto-generated method stub
@@ -50,9 +51,7 @@ public class ShipInboundItemServiceImpl extends  ServiceImpl<ShipInboundItemMapp
 		@Override
 		public List<ShipInboundItem> getItemByShipment(String shipmentid) {
 			// TODO Auto-generated method stub
-			QueryWrapper<ShipInboundItem> queryWrapper = new QueryWrapper<ShipInboundItem>();
-			queryWrapper.eq("shipmentid",shipmentid);
-			return this.baseMapper.selectList(queryWrapper);
+			return this.baseMapper.getOneByShipmentid(shipmentid);
 		}
 
 		@Override

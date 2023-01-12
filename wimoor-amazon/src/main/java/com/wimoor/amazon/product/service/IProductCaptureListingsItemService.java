@@ -16,10 +16,10 @@ public interface IProductCaptureListingsItemService extends IRunAmazonService{
 
 	Call captureListMatchingProductSync(AmazonAuthority amazonAuthority, AmzProductRefresh amzProductRefresh, List<String> marketList);
 
-	void handlerResult(Item result, AmazonAuthority amazonAuthority) ;
+	public void handlerResult(Item result, AmazonAuthority amazonAuthority,AmzProductRefresh mrefresh) ;
 
 	void handlerFailure(AmazonAuthority amazonAuthority, AmzProductRefresh amzProductRefresh, ApiException e);
-
+	
 	void stopTask();
 
 	void runTask();

@@ -14,13 +14,13 @@ import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IAmazonSellerMarketService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.service.IAmazonMoveDataService;
-import com.wimoor.amazon.report.mapper.AmzSettlementAccReportMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportSummaryDayMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportSummaryMonthMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementSummarySkuMapper;
-import com.wimoor.amazon.report.mapper.InventoryReportMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzSettlementAccReport;
+import com.wimoor.amazon.finances.mapper.AmzSettlementAccReportMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryDayMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryMonthMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
+import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
+import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
 import com.wimoor.common.GeneralUtil;
 @Service("amazonMoveDataService")
 public class AmazonMoveDataServiceImpl implements IAmazonMoveDataService{

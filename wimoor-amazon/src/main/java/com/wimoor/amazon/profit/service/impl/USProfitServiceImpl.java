@@ -123,6 +123,10 @@ public class USProfitServiceImpl extends ProfitServiceImpl {
 		if (format.contains("?")) {// 如果有逻辑判断
 			format = (String) AviatorEvaluator.exec(format, outboundWeight);
 		}
+		if(format.contains("{0}")) {
+			String result = StringFormat.format(format, outboundWeight);
+			format =  new BigDecimal(Calculator.conversion(result)).toString();
+		}
 		FBA = new BigDecimal(format);
 		return FBA;
 	}

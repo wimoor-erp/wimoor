@@ -19,14 +19,14 @@ import com.wimoor.amazon.common.pojo.entity.SummaryData;
 import com.wimoor.amazon.common.pojo.vo.ChartLine;
 import com.wimoor.amazon.common.pojo.vo.ChartMarkpoint;
 import com.wimoor.amazon.common.service.ISummaryDataService;
-import com.wimoor.amazon.report.mapper.AmzOrderReturnsMapper;
-import com.wimoor.amazon.report.mapper.InventoryReportHisMapper;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
-import com.wimoor.amazon.report.mapper.OrdersSummaryMapper;
-import com.wimoor.amazon.report.mapper.SummaryAllMapper;
-import com.wimoor.amazon.report.pojo.entity.InventoryReportHis;
-import com.wimoor.amazon.report.pojo.entity.OrdersSummary;
-import com.wimoor.amazon.report.pojo.vo.ProductSalesRankVo;
+import com.wimoor.amazon.inventory.mapper.InventoryReportHisMapper;
+import com.wimoor.amazon.inventory.pojo.entity.InventoryReportHis;
+import com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
+import com.wimoor.amazon.orders.mapper.OrdersSummaryMapper;
+import com.wimoor.amazon.orders.mapper.SummaryAllMapper;
+import com.wimoor.amazon.orders.pojo.entity.OrdersSummary;
+import com.wimoor.amazon.orders.pojo.vo.ProductSalesRankVo;
 import com.wimoor.amazon.util.ChartPoint;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.user.UserInfo;
@@ -49,7 +49,7 @@ public Map<String, Object> selectSumByMutilParameter(SummaryMutilParameterQueryD
 	// TODO Auto-generated method stub
 	String marketplaceid=parameter.getMarketplaceid();
 	 Marketplace market =null;
-	  if(StrUtil.isEmpty(marketplaceid)) {
+	  if(!StrUtil.isEmpty(marketplaceid)) {
 		  market = iMarketplaceService.findMapByMarketplaceId().get(marketplaceid);
 	  }
 	  if(market!=null) {
@@ -101,7 +101,7 @@ public Map<String, Object> getReturnOrder(SummaryMutilParameterQueryDTO paramete
 public Map<String, Object> selectByMutilParameter(SummaryMutilParameterQueryDTO parameter) {
 	 String marketplaceid=parameter.getMarketplaceid();
 	 Marketplace market =null;
-	  if(StrUtil.isEmpty(marketplaceid)) {
+	  if(!StrUtil.isEmpty(marketplaceid)) {
 		  market = iMarketplaceService.findMapByMarketplaceId().get(marketplaceid);
 	  }
 	  List<Map<String,Object>> listMap = null;
@@ -142,7 +142,7 @@ public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, Strin
 	SimpleDateFormat sdf1 = new SimpleDateFormat("MM.dd");
 	Map<String, Object> param = new HashMap<String, Object>();
 	Calendar c = Calendar.getInstance();
-	c.add(Calendar.DATE, daysize*-1);
+	c.add(Calendar.DATE, daysize*-1-1);
 	List<OrdersSummary> list = null;
 	param.put("sku", sku);
 	param.put("marketplaceid", marketplaceid);

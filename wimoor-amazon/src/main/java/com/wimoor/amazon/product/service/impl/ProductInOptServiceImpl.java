@@ -3,8 +3,11 @@ package com.wimoor.amazon.product.service.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -13,13 +16,18 @@ import org.springframework.stereotype.Service;
 
 import com.amazon.spapi.model.catalogitems.Dimension;
 import com.amazon.spapi.model.catalogitems.Dimensions;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.amazon.api.AdminClientOneFeign;
 import com.wimoor.amazon.product.mapper.ProductInOptMapper;
+import com.wimoor.amazon.product.mapper.ProductInTagsMapper;
 import com.wimoor.amazon.product.mapper.ProductPriceMapper;
 import com.wimoor.amazon.product.mapper.ProductRemarkHistoryMapper;
 import com.wimoor.amazon.product.pojo.dto.ProductPriceDTO;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
+import com.wimoor.amazon.product.pojo.entity.ProductInTags;
 import com.wimoor.amazon.product.pojo.entity.ProductPrice;
 import com.wimoor.amazon.product.pojo.vo.ProductPriceVo;
 import com.wimoor.amazon.product.service.IProductInOptService;
@@ -30,6 +38,7 @@ import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.util.AmzDateUtils;
+import com.wimoor.common.result.Result;
 
 import cn.hutool.core.util.StrUtil;
 
@@ -52,6 +61,10 @@ public class ProductInOptServiceImpl extends ServiceImpl<ProductInOptMapper, Pro
 	IProfitService profitService;
 	@Autowired
 	ProductRemarkHistoryMapper productRemarkHistoryMapper;
+	@Autowired
+	ProductInTagsMapper productInTagsMapper;
+	@Autowired
+	AdminClientOneFeign adminClientOneFeign;
 	
 	@Override
 	public void refreshAllProductAdv() {
@@ -293,4 +306,56 @@ public class ProductInOptServiceImpl extends ServiceImpl<ProductInOptMapper, Pro
 		List<ProductPrice> list = productPriceMapper.findbyProductID(pid);
 		return list;
 	}
+	
+	public List<Map<String,Object>> saveTagsByPid(String pid,String tagids,String userid) {
+		Set<String> tagsIdsList=new HashSet<String>();
+		if(tagids.contains(",")) {
+			//先删除老的 再save
+			QueryWrapper<ProductInTags> queryWrapper=new QueryWrapper<ProductInTags>();
+			queryWrapper.eq("pid", pid);
+			productInTagsMapper.delete(queryWrapper);
+			tagids=tagids.substring(0, tagids.length()-1);
+			String[] tagsArray = tagids.split(",");
+			for (int i = 0; i < tagsArray.length; i++) {
+				String tagid = tagsArray[i];
+				ProductInTags entity=new ProductInTags();
+				entity.setPid(pid);
+				entity.setOperator(userid);
+				entity.setOpttime(new Date());
+				entity.setTagid(tagid);
+				productInTagsMapper.insert(entity);
+				tagsIdsList.add(tagid);
+			}
+		}else {
+			//清空了标签
+			QueryWrapper<ProductInTags> queryWrapper=new QueryWrapper<ProductInTags>();
+			queryWrapper.eq("pid", pid);
+			productInTagsMapper.delete(queryWrapper);
+		}
+		Result<List<Map<String,Object>>> tagnamelistResult=adminClientOneFeign.findTagsNameByIds(tagsIdsList);
+		List<Map<String,Object>> tagnamelist=tagnamelistResult.getData();
+		return tagnamelist;
+	}
+	
+	@Override
+	public String findProductTagsByPid(String pid) {
+		String strs="";
+		QueryWrapper<ProductInTags> queryWrapper=new QueryWrapper<ProductInTags>();
+		queryWrapper.eq("pid", pid);
+		List<ProductInTags> list = productInTagsMapper.selectList(queryWrapper);
+		if(list!=null && list.size()>0) {
+			for (int i = 0; i < list.size(); i++) {
+				ProductInTags item = list.get(i);
+				strs+=(item.getTagid()+",");
+			}
+		}
+		if(strs.contains(",")) {
+			strs=strs.substring(0, strs.length()-1);
+		}
+		return strs;
+	}
+	
+//	public  findTagsByPid(String pid) {
+//		productInTagsMapper.selectList(queryWrapper);
+//	}
 }

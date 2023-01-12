@@ -19,6 +19,7 @@ import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
+import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
 import com.wimoor.amazon.product.service.IProductCaptureCatalogItemService;
 import com.wimoor.amazon.profit.mapper.FixedClosingFeeMapper;
 import com.wimoor.amazon.profit.mapper.IndividualFeeMapper;
@@ -45,7 +46,6 @@ import com.wimoor.amazon.profit.service.IProductTierService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.profit.service.IReferralFeeService;
-import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
 import com.wimoor.common.StringFormat;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.util.SpringUtil;
@@ -570,7 +570,6 @@ public class ProfitServiceImpl implements IProfitService{
 			eulist.add("PL");
 			eulist.add("SE");
 			eulist.add("TR");
-			eulist.add("SA");
 			eulist.add("EG");
 			
 		}

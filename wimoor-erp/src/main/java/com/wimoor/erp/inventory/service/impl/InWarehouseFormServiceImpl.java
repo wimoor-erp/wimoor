@@ -21,7 +21,6 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.erp.config.IniConfig;
 import com.wimoor.erp.inventory.mapper.InWarehouseFormMapper;
 import com.wimoor.erp.inventory.pojo.entity.InWarehouseForm;
 import com.wimoor.erp.inventory.pojo.entity.InWarehouseFormEntry;
@@ -31,6 +30,7 @@ import com.wimoor.erp.inventory.service.IInWarehouseFormService;
 import com.wimoor.erp.inventory.service.IInventoryFormAgentService;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
+import com.wimoor.erp.util.UUIDUtil;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
@@ -38,28 +38,26 @@ import lombok.RequiredArgsConstructor;
 
  
 
-@Service("inWarehouseForm")
+@Service("inWarehouseFormService")
 @RequiredArgsConstructor
 public class InWarehouseFormServiceImpl extends ServiceImpl<InWarehouseFormMapper,InWarehouseForm> implements IInWarehouseFormService {
 	 
-	InWarehouseFormMapper inWarehouseFormMapper;
+	final IWarehouseService warehouseService;
 	 
-	IWarehouseService warehouseService;
+	final IMaterialService materialService;
 	 
-	IMaterialService materialService;
+	final IInWarehouseFormEntryService inWarehouseFormEntryService;
 	 
-	IInWarehouseFormEntryService inWarehouseFormEntryService;
+	final IInventoryFormAgentService inventoryFormAgentService;
 	 
-	IInventoryFormAgentService inventoryFormAgentService;
-	 
-	ISerialNumService serialNumService;
+	final ISerialNumService serialNumService;
 
 	public IPage<Map<String, Object>> findByCondition(Page<?> page ,Map<String, Object> map) {
-		return inWarehouseFormMapper.findByCondition(page,map);
+		return this.baseMapper.findByCondition(page,map);
 	}
 
 	public Map<String, Object> findById(String id) {
-		return inWarehouseFormMapper.findById(id);
+		return this.baseMapper.findById(id);
 	}
 
 	public Map<String, Object> saveForm(InWarehouseForm inWarehouseForm, Map<String, Object> skuMap, UserInfo user) throws BizException {
@@ -145,9 +143,6 @@ public class InWarehouseFormServiceImpl extends ServiceImpl<InWarehouseFormMappe
 
 	@Transactional
 	public String uploadInStockByExcel(Sheet sheet, UserInfo user) throws Exception {
-		if (IniConfig.isDemo()) {
-			return "演示环境不能上传资料！";
-		}
 		Row whrow = sheet.getRow(0);
 		Cell whnamecell = whrow.getCell(1);
 		String whname = whnamecell.getStringCellValue();
@@ -175,6 +170,7 @@ public class InWarehouseFormServiceImpl extends ServiceImpl<InWarehouseFormMappe
 			inWarehouseForm.setShopid(user.getCompanyid());
 			inWarehouseForm.setAudittime(new Date());
 			inWarehouseForm.setAuditstatus(2);
+			inWarehouseForm.setId(warehouseService.getUUID());
 			inWarehouseForm.setNumber(serialNumService.readSerialNumber(user.getCompanyid(), "IN"));
 			Map<String, Object> skuMap = new HashMap<String, Object>();
 

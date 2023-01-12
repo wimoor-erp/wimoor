@@ -6,11 +6,12 @@
     <result column="materialid" property="materialid" jdbcType="BIGINT" />
     <result column="supplierid" property="supplierid" jdbcType="BIGINT" />
     <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
     <result column="amount" property="amount" jdbcType="INTEGER" />
     <result column="operator" property="operator" jdbcType="BIGINT" />
     <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
   </resultMap>
-  <select id="selectSupplierByMainId" resultType="java.util.Map" parameterType="java.lang.String">
+  <select id="selectSupplierByMainId" resultMap="BaseResultMap" parameterType="java.lang.String">
   	SELECT * FROM t_erp_material_supplier_stepwise t
 	WHERE t.materialid=#{id,jdbcType=CHAR} and t.supplierid=#{supid,jdbcType=CHAR}
   </select>

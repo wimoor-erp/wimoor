@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 @ApiModel(value="ShelfInvListDto对象", description="申请库位库存列表条件和暂存库存列表")
 public class ShelfInvListDto extends BasePageQuery{
 	@ApiModelProperty(value = "仓库ID")
-	String warehouseid;
+	String addressid;
 	
 	@ApiModelProperty(value = "SKU查询", example = "TSS001")
 	String search ;
@@ -22,6 +22,9 @@ public class ShelfInvListDto extends BasePageQuery{
 	
 	@ApiModelProperty(value = "库位库存条件,是否查询子库位库存，默认为true，当shelfid为空时必须为true", example = "true")
 	String allchildren ;
+	
+	@ApiModelProperty(value = "产品ID", example = "123456789")
+	String materialid ;
  
 	
 }

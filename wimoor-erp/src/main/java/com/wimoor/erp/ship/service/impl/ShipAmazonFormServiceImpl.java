@@ -10,11 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
@@ -56,9 +58,11 @@ import com.wimoor.erp.ship.mapper.ShipPlanItemMapper;
 import com.wimoor.erp.ship.pojo.dto.ShipAmazonShipmentDTO;
 import com.wimoor.erp.ship.service.IShipAmazonFormService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
-import com.wimoor.util.QRCodeUtil;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.qrcode.QrCodeUtil;
+import cn.hutool.extra.qrcode.QrConfig;
+import feign.FeignException;
 
 @Service
 public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
@@ -88,7 +92,8 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 	
 	@Autowired
 	ShipPlanItemMapper shipPlanItemMapper;
-
+	@Resource
+    QrConfig qrconfig;
 	 
 	public void handleInventoryAction(UserInfo user, ShipInboundShipmentDTO shipmentobj) {
 		if("WORKING".equals(shipmentobj.getShipmentstatus())&&(shipmentobj.getSyncInv()==null||shipmentobj.getSyncInv()==0)) {
@@ -97,7 +102,7 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 			fulfillableOut(user,shipmentobj.getInboundplan(), shipmentobj);
 		}
 	}
-	
+    @Transactional
 	public void fulfillableToOutbound(UserInfo user, ShipInboundShipmentDTO shipmentobj) {
 		for (int i = 0; i < shipmentobj.getItemList().size(); i++) {
 			 ShipInboundItemDTO item = shipmentobj.getItemList().get(i);
@@ -273,7 +278,6 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 		para.setNumber(plan.getNumber());
 	    inventoryFormAgentService.outStockByDirect(para);
 	}
-	
 	private void cancelfulfillableToOutbound(UserInfo user, ShipInboundShipmentDTO shipment) throws BizException {
 		List<ShipInboundItemDTO> itemlist = shipment.getItemList();
 		ShipInboundPlanDTO plan = shipment.getInboundplan();
@@ -291,8 +295,26 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 			ShipInboundItemVo item=itemlist.get(i);
 			List<String> dataLine = new ArrayList<String>();
 			dataLine.add(item.getImage());
-			dataLine.add(item.getSku());
-			dataLine.add(item.getName());
+			String skucell=item.getSku();
+			if(item!=null&&item.getAssemblyList()!=null&&skucell!=null) {
+				skucell=skucell+"\n(子SKU):";
+				for(AssemblyVO asitem:item.getAssemblyList()) {
+					skucell=skucell+"\n"+asitem.getSku()+" ×"+asitem.getSubnumber();
+				}
+			}
+			dataLine.add(skucell);
+			String namecell=item.getName();
+	
+			if(item!=null&&item.getBoxnum()!=null&&item.getBoxnum()>0) {
+				namecell=namecell+"\n箱规 >\n单箱个数："+item.getBoxnum();
+				if(item.getBoxlength()!=null&&item.getBoxweight()!=null) {
+					namecell=namecell+"    重kg:"+item.getBoxweight();
+					namecell=namecell+"\n长*宽*高cm："
+				     +item.getBoxlength()+
+				     "*"+item.getBoxwidth()+"*"+item.getBoxheight();
+				}
+			}
+			dataLine.add(namecell);
 			String sellersku = item.getSellersku();
 			if (item.getFNSKU()!=null) {
 			   sellersku=sellersku+"\n\n(FNSKU)\n" + item.getFNSKU();
@@ -307,31 +329,39 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 		return data;
 	}
 	@Override
+	@Transactional
 	public String updateDisable(UserInfo user, String shipmentid, boolean isDelAmz, String disableShipment) {
 		// TODO Auto-generated method stub
 			Result<ShipInboundShipmentDTO> shipmentResult = amazonClientOneFeign.getShipmentidAction(shipmentid);
 			ShipInboundShipmentDTO shipment = shipmentResult.getData();
 			Integer oldstatus = shipment.getStatus();
-			if (oldstatus == 0) {
-				return "fail";
+			if(shipment.getStatus()==-1||shipment.getStatus()==1) {
+				throw new BizException("该货件已被取消或者失效"); 
 			}
-			shipment.setStatus(0);
 			shipment.setStatus0date(new Date());
 			shipment.setShipmentstatus(ShipInboundShipmentDTO.ShipmentStatus_CANCELLED);
 			shipment.setOperator(user.getId());
 			shipment.setOpttime(new Date());
-			if(shipment.getSyncInv()==null||shipment.getSyncInv()==0||shipment.getSyncInv()==2) {
-				if (oldstatus >= 5) {
-					cancelfulfillable(user, shipment);
-				} else {
-					cancelfulfillableToOutbound(user, shipment);
+			if(shipment.getStatus()!=0) {
+				if(shipment.getSyncInv()==null||shipment.getSyncInv()==0||shipment.getSyncInv()==2) {
+					if (oldstatus >= 5) {
+						cancelfulfillable(user, shipment);
+					} else {
+						cancelfulfillableToOutbound(user, shipment);
+					}
+					if("1".equals(disableShipment)) {
+						assemblyFormService.cancelByShipment(user,shipment);
+					}
 				}
-				if("1".equals(disableShipment)) {
-					assemblyFormService.cancelByShipment(user,shipment);
-				}
-			}
-			if (isDelAmz) {// 需要刪除亚马逊货件
+			} 
+		   shipment.setStatus(0);
+			 
 				try {
+					if(!isDelAmz) {
+						shipment.setActiontype("updateself");
+					}else {
+						shipment.setActiontype("updateAmz");
+					}
 					Result<String> result = amazonClientOneFeign.updateShipmentAction(shipment);
 					if(Result.isSuccess(result)) {
 						if(!result.getData().equals(shipmentid)) {
@@ -340,12 +370,12 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 					}else {
 						 throw new BizException(result.getMsg());
 					}
-				} catch (Exception e) {
+				}catch (FeignException e) {
+					 throw new BizException(BizException.getMessage(e, "货件删除失败"));
+				}catch (Exception e) {
 					 throw new BizException(e.getMessage());
 				}
-			}
-		
-			return "fail";
+			return "success";
 	}
 
  
@@ -381,7 +411,11 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 			shipment.setIntendedBoxContentsSource(shipmentAmz.getIntendedBoxContentsSource());
 		}
 		shipment.setActiontype("updateqty");
-		amazonClientOneFeign.updateShipmentAction(shipment);
+		try {
+	     	amazonClientOneFeign.updateShipmentAction(shipment);
+		}catch(FeignException  e) {
+	 		 throw new BizException(BizException.getMessage(e, "更新货件失败"));
+	 	}
 	}
 
 	@Override
@@ -389,14 +423,14 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 		// TODO Auto-generated method stub
 		Result<ShipInboundShipmentDTO> shipmentResult = amazonClientOneFeign.getShipmentidAction(shipmentid);
 		ShipInboundShipmentDTO shipment = shipmentResult.getData();
+		if(shipment.getStatus()==-1||shipment.getStatus()==0||shipment.getStatus()==1) {
+			throw new BizException("该货件已被取消或者失效"); 
+		}
 		if(shipment.getSyncInv()==1) {
 			if(shipment.getStatus()<5) {
 				shipment.setStatus(5);
 			}
 		}else {
-			if (shipment.getStatus() != 4) {
-				throw new BizException("错误：系统检测到装箱环节没有处理完成，请确认您当前已经成功下载装箱信息。");
-			}
 			shipment.setStatus(5);
 		}
 		shipment.setStatus5date(new Date());
@@ -404,9 +438,11 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 		shipment.setOperator(user.getId());
 		shipment.setOpttime(new Date());
 		shipment.setShipedDate(new Date());
-		outbound(shipment);
+		//outbound(shipment);
+		shipment.setActiontype("updateself");
 		amazonClientOneFeign.updateShipmentAction(shipment);
 	}
+	
     private Image getImage(String imgpath) {
     	if(imgpath==null)return null;
 		Image img = null;
@@ -473,7 +509,7 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 		table2.setWidthPercentage(100);
 
 		PdfPCell cell21= new PdfPCell(new Paragraph("发货数量: " + data.getSumQuantity(), font_s));
-		PdfPCell cell22 = new PdfPCell(new Paragraph("目的仓库: " + data.getWarehouse() + "-"
+		PdfPCell cell22 = new PdfPCell(new Paragraph("目的仓库: " + data.getGroupname() + "-"
 				+ data.getCountry() + "(" + data.getCenter() + ")", font_s));
 		String warehouse = "";
 		if (data.getWarehouse() != null && data.getWarehouse().toString().contains("-")) {
@@ -675,7 +711,9 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
         
 		String content = "https://www.wimoor.com/wxsc/"+data.getShipmentid();//内容信息
 		try {
-			BufferedImage imagebuffer = QRCodeUtil.generateQRCodeCommon(content, 3);
+			qrconfig.setWidth(70);
+			qrconfig.setHeight(70);
+			BufferedImage imagebuffer =	QrCodeUtil.generate(content, qrconfig);
 			ByteArrayOutputStream out=new ByteArrayOutputStream();
 		    ImageIO.write(imagebuffer, "jpg", out);
 			Image img =Image.getInstance(out.toByteArray()); 
@@ -709,7 +747,7 @@ public class ShipAmazonFormServiceImpl implements IShipAmazonFormService{
 		table1.addCell(cell22);
 		table1.completeRow();
 
-		PdfPCell cell31 = new PdfPCell(new Paragraph("目的仓库: " + data.getWarehouse() + "-"
+		PdfPCell cell31 = new PdfPCell(new Paragraph("目的仓库: " + data.getGroupname() + "-"
 						+ data.getCountry() + "(" + data.getCenter() + ")", font_s));
 		String warehouse = "";
 		if (data.getWarehouse() != null && data.getWarehouse().contains("-")) {

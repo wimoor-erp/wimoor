@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.amazon.inbound.pojo.dto.ShipInboundShipmenSummaryDTO;
@@ -34,4 +35,13 @@ public interface ShipInboundShipmentMapper extends BaseMapper<ShipInboundShipmen
 	Map<String,Object> findToCountry(@Param("destinationFulfillmentCenterId")String destinationFulfillmentCenterId,@Param("region") String region);
 
 	int findhasAssemblyFormNum(@Param("shipmentid")String shipmentid);
+
+	  @Select({"<script>",
+	          " SELECT",
+	          " 	name ",
+	          " FROM",
+	          " 	t_erp_ship_status ",
+	          " WHERE status= #{shipmentstatus} ",
+	          "</script>"})
+	String getShipmentStatusName(@Param("shipmentstatus")String shipmentstatus);
 }

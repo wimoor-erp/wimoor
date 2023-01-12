@@ -104,6 +104,10 @@ public class ShipInboundPlanDTO  extends BizBaseEntity{/**
 	Boolean issplit;
    
 	@TableField(exist = false)
+	@ApiModelProperty(value = "发货批次号")
+	String batchnumber;
+	
+	@TableField(exist = false)
 	@ApiModelProperty(value = "计划的站点")
 	String planmarketplaceid;
 }

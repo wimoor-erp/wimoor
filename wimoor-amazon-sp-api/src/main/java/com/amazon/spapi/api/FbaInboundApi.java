@@ -12,6 +12,7 @@
 
 
 package com.amazon.spapi.api;
+ 
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -59,6 +60,7 @@ import com.amazon.spapi.model.fulfillmentinbound.PutTransportDetailsRequest;
 import com.amazon.spapi.model.fulfillmentinbound.PutTransportDetailsResponse;
 import com.amazon.spapi.model.fulfillmentinbound.VoidTransportResponse;
 import com.google.gson.reflect.TypeToken;
+ 
 
 public class FbaInboundApi {
     private ApiClient apiClient;

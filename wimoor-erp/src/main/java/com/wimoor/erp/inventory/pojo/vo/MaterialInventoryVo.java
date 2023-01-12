@@ -27,4 +27,8 @@ public class MaterialInventoryVo  implements Serializable{
     private Integer outbound;
     
     private Integer fulfillable;
+    
+    private Integer canassembly;
+    
+    private Integer canconsumable;
 }

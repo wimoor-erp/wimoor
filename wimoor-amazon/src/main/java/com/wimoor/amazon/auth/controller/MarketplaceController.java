@@ -17,6 +17,7 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -57,13 +58,16 @@ public class MarketplaceController {
         
     }    
 
-    @ApiOperation(value = "通过SKU获取站点")
+    @ApiOperation(value = "通过MSKU获取站点")
     @GetMapping("/getByMSku")
-    public Result<Marketplace> getMarketplaceByMSkuAction(@RequestParam String msku) {
+    public Result<List<Marketplace>> getMarketplaceByMSkuAction(@RequestParam String msku,@RequestParam String groupid) {
     	UserInfo userinfo = UserInfoContext.get();
-		List<Marketplace> result = iMarketplaceService.getMarketPointByMSku(userinfo.getCompanyid(),msku);
+    	if(StrUtil.isBlank(groupid)) {
+    		groupid=null;
+    	}
+		List<Marketplace> result = iMarketplaceService.getMarketPointByMSku(userinfo.getCompanyid(),groupid,msku);
 		if(result.size()>0) {
-			 return Result.success(result.get(0));
+			 return Result.success(result);
 		}else {
 			return Result.success(null);
 		}

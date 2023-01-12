@@ -45,6 +45,12 @@ public class WarehouseShelfInventoryOptPro extends BaseEntity{
     @ApiModelProperty(value = "操作数量")
     private Integer quantity;
 
+    @ApiModelProperty(value = "表单ID")
+    private String formid;
+    
+    @ApiModelProperty(value = "表单类型")
+    private String formtype;
+    
     @ApiModelProperty(value = "操作数量对应的体积(系统生成)")
     private Float size;
 

@@ -12,7 +12,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface ShipPlanMapper extends BaseMapper<ShipPlan> {
 
-	IPage<Map<String, Object>> getPlan(Page<?> page,Map<String, Object> map);
 
 	ShipPlan selectByGroupAndWarehouse(@Param("amazongroupid")String amazongroupid, @Param("warehouseid")String warehouseid);
 

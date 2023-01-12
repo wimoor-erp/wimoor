@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
@@ -41,7 +43,6 @@ import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
 import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
-import com.wimoor.amazon.report.pojo.entity.ReportRequestType;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.report.service.IReportRequestRecordService;
 import com.wimoor.amazon.report.service.IReportRequestTypeService;
@@ -124,22 +125,21 @@ public abstract class ReportServiceImpl  implements IReportService {
 		 
 }
 	
+	
 	public  void getReportDocument(ReportRequestRecord record) {
 		AmazonAuthority amazonAuthority = amazonAuthorityService.selectBySellerId(record.getSellerid());
 		ReportsApi api = apiBuildService.getReportsApi(amazonAuthority);
 		amazonAuthority.setMarketPlace(marketplaceService.getById(record.getMarketplaceid())); 
-		 ApiCallback<ReportDocument> callback=new ApiCallbackGetReportDocument(this,amazonAuthority,record);
+		
 		try { 
- 			if(record.getReporttype().equals(ReportType.SettlementReport)
- 					||record.getReporttype().equals(ReportType.InventoryReport)
- 					||record.getReporttype().equals(ReportType.FbaStorageFeeReport)
- 				    ||record.getReporttype().equals(ReportType.FbaStorageFeeReport)
- 					) {
-				ReportDocument response = api.getReportDocument(record.getReportDocumentId());
-				downloadReport(amazonAuthority,record,response);
-			}else {
-				api.getReportDocumentAsync(record.getReportDocumentId(),callback);
-			}
+			  if(ReportType.getSingleReport().contains(record.getReporttype())) {
+				    ReportDocument response = api.getReportDocument(record.getReportDocumentId());
+					downloadReport(amazonAuthority,record,response);
+			  }else {
+				  ApiCallback<ReportDocument> callback=new ApiCallbackGetReportDocument(this,amazonAuthority,record);
+				  api.getReportDocumentAsync(record.getReportDocumentId(), callback);
+			  }
+			 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			 if(record!=null&&record.getTreatnumber()!=null) {

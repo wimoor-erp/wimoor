@@ -25,4 +25,8 @@ public interface ProductInOrderMapper extends BaseMapper<ProductInOrder> {
 	Map<String,Object> selectProductOrderWithProfitByPid(@Param("pid")String pid);
 	
 	Integer getProductOrderSales(Map<String,Object> param);
+	
+	List<Map<String,Object>> getProductCountrySales(Map<String,Object> param);
+	
+	List<Map<String,Object>> getProductEUSales(Map<String,Object> param);
 }

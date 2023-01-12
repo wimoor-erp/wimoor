@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import com.wimoor.amazon.report.mapper.AmzOrderRemovesMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzOrderRemoves;
+import com.wimoor.amazon.orders.mapper.AmzOrderRemovesMapper;
+import com.wimoor.amazon.orders.pojo.entity.AmzOrderRemoves;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 
 import cn.hutool.core.util.StrUtil;

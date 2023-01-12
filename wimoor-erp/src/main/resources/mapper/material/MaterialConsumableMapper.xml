@@ -11,7 +11,7 @@
   </resultMap>
   
   <select id="selectConsumableByMainMmid" resultType="com.wimoor.erp.material.pojo.vo.MaterialConsumableVO" parameterType="java.lang.String" >
-  		SELECT m.name,ifnull(p.url,p.location) image,t.amount,t.materialid,t.submaterialid id,m.sku 
+  		SELECT m.name,ifnull(p.url,p.location) image,t.amount,t.materialid,t.submaterialid id,m.sku,m.price price 
   		FROM t_erp_material_consumable t
 		LEFT JOIN t_erp_material m ON m.id=t.submaterialid
 		LEFT JOIN t_picture p on p.id=m.image
@@ -34,7 +34,9 @@
     <select id="findConsumableDetailByShipment" resultType="java.util.Map" parameterType="java.lang.String">
 		select IFNULL(pic.location,pic.url) image,msub.name mname,
 			msub.sku sku ,ifnull(inv.quantity,0) inventoryqty,
- 			sum(item.QuantityShipped*cs.amount) needamount
+ 			sum(item.QuantityShipped*cs.amount) needamount,
+ 			msub.id materialid,
+ 			max(plan.warehouseid) warehouseid
 		from  t_erp_ship_inbounditem item
 		left join t_erp_ship_inboundplan plan on plan.id=item.inboundplanid
 		left join t_marketplace mk on mk.marketplaceid=plan.marketplaceid
@@ -45,8 +47,7 @@
 		left join t_erp_material_consumable cs on cs.materialid=m.id
 		left join t_erp_material msub on cs.submaterialid = msub.id
 		left join t_picture pic on msub.image=pic.id
-		left join t_erp_inventory inv on inv.materialid=msub.id and inv.warehouseid=plan.warehouseid
-				and inv.status='fulfillable'
+		left join t_erp_inventory inv on inv.materialid=msub.id and inv.warehouseid=plan.warehouseid and inv.status='fulfillable'
 		where plan.shopid=#{shopid,jdbcType=CHAR}  and item.ShipmentId=#{shipmentid,jdbcType=CHAR}
 		AND msub.id IS NOT null
 		group by msub.id

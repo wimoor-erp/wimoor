@@ -147,6 +147,20 @@ public class ProductInOptController {
    		return Result.success(iProductInOptService.findPrice(pid));
    	}
     
+    @GetMapping("/saveProductTags")
+    public Result<List<Map<String,Object>>> saveProductTagsAction(String pid,String ids) {
+    	UserInfo user = UserInfoContext.get();
+    	List<Map<String, Object>> result = iProductInOptService.saveTagsByPid(pid, ids, user.getId());
+    	return Result.success(result);
+    }
+    
+    @GetMapping("/findProductTags")
+    public Result<String> findProductTagsAction(String pid) {
+    	String strs=iProductInOptService.findProductTagsByPid(pid);
+    	return Result.success(strs);
+    }
+    
+    
    
     
 }

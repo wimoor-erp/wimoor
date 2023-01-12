@@ -38,5 +38,9 @@ public interface IAmazonAuthorityService  extends IService<AmazonAuthority> {
 	public List<AmazonGroupVO> selectBindAuth(UserInfo user);
 	
 	public int deleteByLogic(Map<String,Object> param);
-	
+
+	AmazonAuthority selectByGroupAndRegion(String groupid, String region);
+
+	List<AmazonAuthority> selectByShopAndMarket(String shopid, String marketplaceid);
+
 }

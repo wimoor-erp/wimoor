@@ -38,10 +38,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExchangeRateServiceImpl extends ServiceImpl<ExchangeRateMapper, ExchangeRate> implements IExchangeRateService {
 		
-	String appCode = "d7d78d081b034ea1bf6f65a94d52bec5";
-	String hostwaihui = "https://ali-waihui.showapi.com";
-	String apiwaihui = "/waihui-list";
- 
 	@Resource
 	ExchangeRateCustomerMapper exchangeRateCustomerMapper;
 	@Resource

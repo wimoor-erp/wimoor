@@ -7,6 +7,10 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.product.pojo.dto.ProductPresaleListDTO;
 import com.wimoor.amazon.product.pojo.entity.ProductInPresale;
 @Mapper
 public interface ProductInPresaleMapper extends BaseMapper<ProductInPresale> {
@@ -17,6 +21,10 @@ public interface ProductInPresaleMapper extends BaseMapper<ProductInPresale> {
 	List<ProductInPresale> selectEvent(@Param("sku") String sku, 
 			@Param("marketplaceid") String marketplaceid,
 			@Param("groupid") String groupid );
+	
+	List<ProductInPresale>  selectByGroup(@Param("sku") String sku, 
+										  @Param("marketplaceid") String marketplaceid,
+										  @Param("groupid") String groupid );
 	
 	List<ProductInPresale> selectAllDayPresale(@Param("sku") String sku, 
 			@Param("marketplaceid") String marketplaceid,
@@ -46,4 +54,8 @@ public interface ProductInPresaleMapper extends BaseMapper<ProductInPresale> {
             @Param("endDate")String endDate);
 
 	List<Map<String, Object>> selectHoliday( @Param("marketplaceid")String marketplaceid);
+	List<Map<String, Object>> selectEstimated();
+	void refreshData(AmazonAuthority auth);
+	
+	IPage<Map<String,Object>>  listProduct(Page<?> page,@Param("param")ProductPresaleListDTO dto);
 }

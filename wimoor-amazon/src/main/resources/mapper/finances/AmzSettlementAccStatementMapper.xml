@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementAccStatementMapper" >
+ 
+  <select id="findAll" resultType="java.util.Map" parameterType="java.lang.String">
+     SELECT t.startdate,t.enddate,t.id,t.opttime,t.currency,g.name gname,u.name uname,m.name market 
+      FROM t_amz_settlement_acc_statement t
+	LEFT JOIN t_amazon_group g ON g.id=t.groupid
+	LEFT JOIN t_userinfo u ON u.id=t.operator
+	LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
+	where t.shopid=#{shopid,jdbcType=CHAR}
+	order by t.opttime desc
+  </select>
+  
+    <select id="existByKey" resultType="java.util.Map" parameterType="java.util.Map">
+    SELECT t.`*`,g.name gname,u.name uname,m.name market FROM t_amz_settlement_acc_statement t
+	LEFT JOIN t_amazon_group g ON g.id=t.groupid
+	LEFT JOIN t_userinfo u ON u.id=t.operator
+	LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
+	where t.shopid=#{shopid,jdbcType=CHAR}
+	 <if test="groupid != null" >
+	  and   t.groupid=#{groupid,jdbcType=BIGINT}
+	 </if>
+	 <if test="marketplaceid != null" >
+	  and   t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	 </if>
+	 <if test="startdate != null" >
+	  and   ((t.startdate&lt;=#{startdate,jdbcType=DATE} and t.enddate&gt;=#{startdate,jdbcType=DATE} )
+	          or   
+	         (t.startdate&lt;=#{enddate,jdbcType=DATE}   and t.enddate&gt;=#{enddate,jdbcType=DATE}   )
+	        )
+	 </if>
+	order by t.opttime desc
+  </select>
+  
+   
+</mapper>

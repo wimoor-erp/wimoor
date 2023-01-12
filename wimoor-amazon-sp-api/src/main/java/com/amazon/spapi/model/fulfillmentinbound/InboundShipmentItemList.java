@@ -13,18 +13,16 @@
 
 package com.amazon.spapi.model.fulfillmentinbound;
 
-import java.util.Objects;
-import java.util.Arrays;
-import io.swagger.annotations.ApiModel;
-import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentItem;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+
+import io.swagger.annotations.ApiModel;
 
 /**
  * A list of inbound shipment item information.
  */
 @ApiModel(description = "A list of inbound shipment item information.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-12-21T11:58:54.268+08:00")
 public class InboundShipmentItemList extends ArrayList<InboundShipmentItem> {
 
   @Override

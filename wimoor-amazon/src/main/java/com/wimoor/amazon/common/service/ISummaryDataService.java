@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.amazon.common.pojo.dto.SummaryMutilParameterQueryDTO;
 import com.wimoor.amazon.common.pojo.entity.SummaryData;
 import com.wimoor.amazon.common.pojo.vo.ChartLine;
-import com.wimoor.amazon.report.pojo.vo.ProductSalesRankVo;
+import com.wimoor.amazon.orders.pojo.vo.ProductSalesRankVo;
 import com.wimoor.common.user.UserInfo;
 
 

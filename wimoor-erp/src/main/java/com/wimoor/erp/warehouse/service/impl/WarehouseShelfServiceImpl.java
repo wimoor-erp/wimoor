@@ -1,5 +1,6 @@
 package com.wimoor.erp.warehouse.service.impl;
 
+import com.wimoor.erp.warehouse.pojo.entity.ErpWarehouseAddress;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelf;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventorySummaryVo;
@@ -9,12 +10,14 @@ import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.erp.warehouse.mapper.WarehouseShelfMapper;
+import com.wimoor.erp.warehouse.service.IErpWarehouseAddressService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfService;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -44,19 +47,30 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper, WarehouseShelf> implements IWarehouseShelfService {
 
-	final IWarehouseService warehouseService;
+	final IErpWarehouseAddressService iErpWarehouseAddressService;
+	final IWarehouseService iWarehouseService;
 	@Lazy
 	@Autowired
 	IWarehouseShelfInventoryService iWarehouseShelfInventoryService;
 	
 	@Override
-	public List<WarehouseShelfTreeVo> getAllTree(UserInfo user) {
+	public List<WarehouseShelfTreeVo> getAllTree(UserInfo user,String warehouseid) {
 		// TODO Auto-generated method stub
-		LambdaQueryWrapper<Warehouse> wrapper=new LambdaQueryWrapper<Warehouse>();
-		wrapper.eq(Warehouse::getShopid, user.getCompanyid());
-		wrapper.eq(Warehouse::getDisabled, false);
-		wrapper.isNull(Warehouse::getFbawareid);
-		List<Warehouse>  list = warehouseService.list(wrapper);
+		Warehouse warehouse = null;
+		if(!StrUtil.isEmpty(warehouseid)) {
+			  warehouse = iWarehouseService.getById(warehouseid);
+		}
+		LambdaQueryWrapper<ErpWarehouseAddress> wrapper=new LambdaQueryWrapper<ErpWarehouseAddress>();
+		wrapper.eq(ErpWarehouseAddress::getShopid, user.getCompanyid());
+		wrapper.eq(ErpWarehouseAddress::getDisabled, Boolean.FALSE);
+		if(warehouse!=null&&warehouse.getAddressid()!=null) {
+			ErpWarehouseAddress address = iErpWarehouseAddressService.getById(warehouse.getAddressid());
+			if(address!=null) {
+				wrapper.eq(ErpWarehouseAddress::getId,address.getId());
+			}
+		}
+		wrapper.orderByAsc(ErpWarehouseAddress::getNumber);
+		List<ErpWarehouseAddress>  list = iErpWarehouseAddressService.list(wrapper);
 		List<WarehouseShelfTreeVo> result= recursionTreeSelectList(user,null,list);
 		return result;
 	}
@@ -69,33 +83,28 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
      * @return
      */
  
-        public   List<WarehouseShelfTreeVo> recursionTreeSelectList(UserInfo user,String parentId, List<Warehouse> wareList) {
+        public   List<WarehouseShelfTreeVo> recursionTreeSelectList(UserInfo user,String parentId, List<ErpWarehouseAddress> wareList) {
         	List<WarehouseShelfTreeVo> warehouseTreeSelectList=new ArrayList<WarehouseShelfTreeVo>();
         	if(wareList==null||wareList.size()==0)return warehouseTreeSelectList;
             Optional.ofNullable(wareList).orElse(new ArrayList<>())
                 .stream()
-                .filter(warehouse -> (parentId==null&&warehouse.getParentid()==null)||(parentId!=null&&warehouse.getParentid()!=null&&warehouse.getParentid().equals(parentId)))
                 .forEach(warehouse -> {
                 	WarehouseShelfTreeVo treeSelectVO = new WarehouseShelfTreeVo();
-                	treeSelectVO.setId(warehouse.getId());
+                	treeSelectVO.setId(warehouse.getId().toString());
                     treeSelectVO.setIsclick(true);
                 	treeSelectVO.setName(warehouse.getName());
                 	treeSelectVO.setNumber(warehouse.getNumber());
-                	treeSelectVO.setParentid(warehouse.getParentid()==null?null:new BigInteger(warehouse.getParentid()));
-                    List<WarehouseShelfTreeVo> children = recursionTreeSelectList(user,warehouse.getId(), wareList);
-                    if (CollectionUtil.isNotEmpty(children)) {
-                        treeSelectVO.setChildren(children);
-                    }else {
-                		LambdaQueryWrapper<WarehouseShelf> wrapperShelf=new LambdaQueryWrapper<WarehouseShelf>();
-                		wrapperShelf.eq(WarehouseShelf::getShopid, user.getCompanyid());
-                		wrapperShelf.eq(WarehouseShelf::getWarehouseid, treeSelectVO.getId());
-                		wrapperShelf.eq(WarehouseShelf::getIsdelete, false);
-                		List<WarehouseShelf> list = this.list(wrapperShelf);
-                		List<WarehouseShelfTreeVo> childrenShelf = recursionShelfTreeSelectList(user,treeSelectVO.getId(),list);
-                		if(CollectionUtil.isNotEmpty(childrenShelf)) {
-                			  treeSelectVO.setChildren(childrenShelf);
-                		}
-                    }
+                	treeSelectVO.setParentid(new BigInteger("0"));
+                    
+            		LambdaQueryWrapper<WarehouseShelf> wrapperShelf=new LambdaQueryWrapper<WarehouseShelf>();
+            		wrapperShelf.eq(WarehouseShelf::getShopid, user.getCompanyid());
+            		wrapperShelf.eq(WarehouseShelf::getAddressid, treeSelectVO.getId());
+            		wrapperShelf.eq(WarehouseShelf::getIsdelete, false);
+            		List<WarehouseShelf> list = this.list(wrapperShelf);
+            		List<WarehouseShelfTreeVo> childrenShelf = recursionShelfTreeSelectList(user,treeSelectVO.getId(),list);
+            		if(CollectionUtil.isNotEmpty(childrenShelf)) {
+            			  treeSelectVO.setChildren(childrenShelf);
+            		}
                     warehouseTreeSelectList.add(treeSelectVO);
                 });
            return warehouseTreeSelectList;
@@ -120,7 +129,7 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
                 	treeSelectVO.setWidth(shelf.getWidth());
                 	treeSelectVO.setCapacity(shelf.getCapacity());
                 	treeSelectVO.setParentid(shelf.getParentid());
-                	treeSelectVO.setWarehouseid(shelf.getWarehouseid());
+                	treeSelectVO.setAddressid(shelf.getAddressid());
                     List<WarehouseShelfTreeVo> children = recursionShelfTreeSelectList(user,shelf.getId(), shelfList);
                     if (CollectionUtil.isNotEmpty(children)) {
                         treeSelectVO.setChildren(children);
@@ -224,7 +233,7 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
     			wrapperShelf.eq(WarehouseShelf::getParentid, id);
     		}
     		if(type.equals("warehouse")) {
-    			wrapperShelf.eq(WarehouseShelf::getWarehouseid, id);
+    			wrapperShelf.eq(WarehouseShelf::getAddressid, id);
     		}
     		wrapperShelf.eq(WarehouseShelf::getIsdelete, false);
     		List<WarehouseShelf> list = this.baseMapper.selectList(wrapperShelf);
@@ -235,9 +244,9 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
 		}
 		
 		@Override
-		public List<WarehouseShelfVo> detailWarehouse(UserInfo user,String warehouseid) {
+		public List<WarehouseShelfVo> detailWarehouse(UserInfo user,String addressid) {
 			// TODO Auto-generated method stub
-			 return	deltailByType(user,warehouseid,"warehouse");
+			 return	deltailByType(user,addressid,"warehouse");
 		}
 
 		@Override
@@ -254,7 +263,7 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
 		
 		private String  searchShelfParentName(String name,WarehouseShelf shelf) {
 			 WarehouseShelf parent = this.getById(shelf.getParentid());
-			 if(parent!=null) {
+			 if(parent!=null&&!parent.getAddressid().equals(shelf.getParentid())) {
 				 name=parent.getNumber()+"-"+parent.getName()+"/"+name;
 				 return searchShelfParentName(name,parent);
 			 }else {
@@ -279,6 +288,35 @@ public class WarehouseShelfServiceImpl extends ServiceImpl<WarehouseShelfMapper,
 				}
 			}
 			return super.updateById(shelf);
+		}
+
+		@Override
+		public WarehouseShelfVo getShelfInfo(UserInfo user, ErpWarehouseAddress address, String shelftreepath) {
+			LambdaQueryWrapper<WarehouseShelf> query=new LambdaQueryWrapper<WarehouseShelf>();
+			// TODO Auto-generated method stub
+			query.eq(WarehouseShelf::getAddressid, address.getId());
+			query.eq(WarehouseShelf::getShopid, user.getCompanyid());
+			query.eq(WarehouseShelf::getIsdelete, false);
+			query.eq(WarehouseShelf::getTreepath, shelftreepath);
+			WarehouseShelf  shelf = this.getOne(query)  ;
+	 		if(shelf==null) {
+	 			throw new BizException("当前库位在系统中不存在！");
+	 		}else {
+	 			return getShelfVo(shelf);
+	 		}
+		}
+
+		@Override
+		public WarehouseShelfVo detailWarehouseSum(UserInfo user, String warehouseid) {
+			// TODO Auto-generated method stub
+			ErpWarehouseAddress address = iErpWarehouseAddressService.getById(warehouseid);
+			WarehouseShelf item=new WarehouseShelf();
+			item.setShopid(address.getShopid());
+			item.setAddressid(address.getId());
+			WarehouseShelfVo result = getShelfVo(item);
+			Integer count = this.baseMapper.getShelfCount(user.getCompanyid(), warehouseid);
+			result.setExpnumber(count);
+			return result;
 		}
  
 }

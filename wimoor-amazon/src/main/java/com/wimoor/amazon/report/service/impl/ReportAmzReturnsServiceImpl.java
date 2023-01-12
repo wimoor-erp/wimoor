@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import com.wimoor.amazon.report.mapper.AmzOrderReturnsMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzOrderReturns;
+import com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper;
+import com.wimoor.amazon.orders.pojo.entity.AmzOrderReturns;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;

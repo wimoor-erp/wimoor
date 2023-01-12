@@ -3,7 +3,6 @@ package com.wimoor.admin.service.impl;
  
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +20,6 @@ import com.wimoor.admin.common.constants.GlobalConstants;
 import com.wimoor.admin.common.constants.SystemConstants;
 import com.wimoor.admin.mapper.SysMenuMapper;
 import com.wimoor.admin.pojo.entity.SysMenu;
-import com.wimoor.admin.pojo.entity.SysRole;
 import com.wimoor.admin.pojo.entity.SysUserRole;
 import com.wimoor.admin.pojo.vo.MenuVO;
 import com.wimoor.admin.pojo.vo.NextRouteVO;
@@ -30,7 +28,6 @@ import com.wimoor.admin.service.ISysMenuService;
 import com.wimoor.admin.service.ISysPermissionService;
 import com.wimoor.admin.service.ISysRoleMenuService;
 import com.wimoor.admin.service.ISysRolePermissionService;
-import com.wimoor.admin.service.ISysRoleService;
 import com.wimoor.admin.service.ISysUserRoleService;
 import com.wimoor.common.SelectVO;
 import com.wimoor.common.TreeSelectVO;
@@ -58,7 +55,6 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     private final ISysPermissionService permissionService;
     private final ISysRolePermissionService iSysRolePermissionService;
     private final ISysUserRoleService iSysUserRoleService;
-    private final ISysRoleService iSysRoleService;
     private final IManagerLimitService iManagerLimitService;
     private final ISysRoleMenuService iSysRoleMenuService;
     /**
@@ -410,7 +406,6 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 	@Override
 	public List<MenuVO> listCompanyTreeSelect(UserInfo user) {
 		// TODO Auto-generated method stub
-	    List<SysUserRole> roleList = iSysUserRoleService.findByUserId(user.getId());
         boolean isadmin=user.getUsertype().equals(UserType.admin.getCode());
         if(isadmin) {
         	return this.listTable(null);

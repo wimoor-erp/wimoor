@@ -26,4 +26,6 @@ public interface IProductInOptService extends IService<ProductInOpt> {
 	public List<Map<String, Object>> findMaterialSizeByCondition(Map<String, Object> param);
 	public List<Map<String, Object>> getProRemarkHis(String pid,String ftype);
 	public List<ProductPrice> findPrice(String pid);
+	public List<Map<String, Object>> saveTagsByPid(String pid,String tagids,String userid);
+	String findProductTagsByPid(String pid);
 }

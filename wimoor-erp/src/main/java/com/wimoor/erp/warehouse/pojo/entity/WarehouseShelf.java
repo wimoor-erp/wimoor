@@ -34,7 +34,7 @@ public class WarehouseShelf  extends BaseEntity{
     private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "仓库ID")
-    private BigInteger warehouseid;
+    private BigInteger addressid;
 
     @ApiModelProperty(value = "货柜名称")
     private String name;

@@ -31,7 +31,7 @@ public class WarehouseShelfTreeVo  extends BaseEntity{
 	private static final long serialVersionUID = 8526330045933801869L;
 
 	@ApiModelProperty(value = "仓位ID")
-    private BigInteger warehouseid;
+    private BigInteger addressid;
 
     @ApiModelProperty(value = "货柜名称")
     private String name;

@@ -55,5 +55,5 @@ public interface IMarketplaceService  extends IService<Marketplace> {
 	public List<Marketplace> findByShopid(String companyid);
 	List<Marketplace> getMarketPointBySkuGroup(String groupid,String sku);
 
-	public List<Marketplace> getMarketPointByMSku(String companyid, String msku);
+	public List<Marketplace> getMarketPointByMSku(String companyid,String groupid,  String msku);
 }

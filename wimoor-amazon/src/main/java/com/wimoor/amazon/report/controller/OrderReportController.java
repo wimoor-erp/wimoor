@@ -7,12 +7,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -30,6 +30,7 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +44,7 @@ public class OrderReportController {
 	final ISummaryDataService iSummaryDataService;
 	 private final IAmazonGroupService iAmazonGroupService;
 	 private final IMarketplaceService iMarketplaceService;
+	 private final IAmazonAuthorityService iAmazonAuthorityService;
 		@Autowired
 		IProductInfoService iProductInfoService;
 	public int returnCalendarDay(String field) {
@@ -61,57 +63,58 @@ public class OrderReportController {
 	@PostMapping("/salesLine")
 	public Result<Chart> getSalesLineAction(@RequestBody SalesChartDTO dto) {
 		UserInfo userinfo = UserInfoContext.get();
+		if(StrUtil.isBlank(dto.getGroupid())) {
+			dto.setGroupid(null);
+		}
 		Chart chart=new Chart();
-		List<ChartLine> lines =new ArrayList<ChartLine>();
-		ChartLine line= iSummaryDataService.findOrderSummaryBySku(dto.getGroupid(),dto.getAmazonAuthId(), dto.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
-		lines.add(line);
-		chart.setLines(lines);
-		Calendar c = Calendar.getInstance();
-		Calendar end=Calendar.getInstance();
-		end.add(Calendar.DATE, dto.getDaysize()-1);
-		chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
-		chart.setLegends(Arrays.asList(dto.getSku()));
-		return Result.success(chart);
+		if(StrUtil.isNotBlank(dto.getSku()) ) {
+			List<ChartLine> lines =new ArrayList<ChartLine>();
+			ChartLine line= iSummaryDataService.findOrderSummaryBySku(dto.getGroupid(),dto.getAmazonAuthId(), dto.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
+			lines.add(line);
+			chart.setLines(lines);
+			Calendar end=Calendar.getInstance();
+			end.add(Calendar.DATE,-1);
+			Calendar c = Calendar.getInstance();
+			c.add(Calendar.DATE, dto.getDaysize()*-1-1);
+			chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
+			chart.setLegends(Arrays.asList(dto.getSku()));
+			return Result.success(chart);
+		}else {
+			List<ChartLine> lines =new LinkedList<ChartLine>();
+			List<String> legends=new LinkedList<String>();
+			List<ProductInfo> groupList = iProductInfoService.selectByMSku(dto.getMsku(),dto.getMarketplaceid(),dto.getGroupid(),userinfo.getCompanyid());
+		    for(ProductInfo item:groupList) {
+		    	   AmazonAuthority auth = iAmazonAuthorityService.getById(item.getAmazonAuthId());
+		    	   AmazonGroup amzstore = iAmazonGroupService.getById(auth.getGroupid());
+		    	   ChartLine line= iSummaryDataService.findOrderSummaryBySku(auth.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
+				   lines.add(line);
+				   String groupname=amzstore.getName();
+				   String marketname=null;
+					if(!dto.getMarketplaceid().equals("EU")) {
+						Marketplace market = iMarketplaceService.getById(dto.getMarketplaceid());
+						if(market!=null) {
+							marketname=market.getName();
+						}
+					}
+					if(marketname==null) {
+						marketname=dto.getMarketplaceid();
+					}
+				   if(dto.getGroupid()==null) {
+					   String legend = dto.getSku()+"-"+groupname;
+					   legends.add(legend);
+				   }else {
+					   legends.add(dto.getSku());
+				   }
+		         }
+				Calendar c = Calendar.getInstance();
+				Calendar end=Calendar.getInstance();
+				end.add(Calendar.DATE, dto.getDaysize()-1);
+				chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
+				chart.setLines(lines);
+				chart.setLegends(legends);
+				return Result.success(chart);
+		}
 	}
 	
-	@GetMapping("/salesMutiLine")
-	public Result<Chart> getSalesChartAction(@RequestBody List<SalesChartDTO> dtos) {
-		UserInfo userinfo = UserInfoContext.get();
-		Chart chart=new Chart();
-		List<ChartLine> lines =new LinkedList<ChartLine>();
-		List<String> legends=new LinkedList<String>();
-		if(dtos!=null&&dtos.size()>0) {
-			for(SalesChartDTO dto:dtos) {
-				   List<ProductInfo> groupList = iProductInfoService.selectByMSku(dto.getMsku(),dto.getMarketplaceid(),dto.getGroupid(),userinfo.getCompanyid());
-			       for(ProductInfo item:groupList) {
-			    	   ChartLine line= iSummaryDataService.findOrderSummaryBySku(dto.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
-						lines.add(line);
-						AmazonGroup amzstore = iAmazonGroupService.getById(dto.getGroupid());
-						String groupname=amzstore.getName();
-						String marketname=null;
-						if(!dto.getMarketplaceid().equals("EU")) {
-							Marketplace market = iMarketplaceService.getById(dto.getMarketplaceid());
-							if(market!=null) {
-								marketname=market.getName();
-							}
-						}
-						if(marketname==null) {
-							marketname=dto.getMarketplaceid();
-						}
-						String legend = dto.getSku()+"-"+groupname;
-						legends.add(legend);
-			       }
-				
-			}
-			Calendar c = Calendar.getInstance();
-			Calendar end=Calendar.getInstance();
-			end.add(Calendar.DATE, dtos.get(0).getDaysize()-1);
-			chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
-			chart.setLines(lines);
-			chart.setLegends(legends);
-			return Result.success(chart);
-	  }else {
-		  return Result.success();
-	 }
-	}
+ 
 }

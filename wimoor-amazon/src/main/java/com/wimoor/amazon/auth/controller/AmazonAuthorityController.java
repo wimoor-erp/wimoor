@@ -1,6 +1,7 @@
 package com.wimoor.amazon.auth.controller;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -88,6 +89,22 @@ public class AmazonAuthorityController {
 	    	}
 	    }
 	    
+	    @ApiOperation(value = "获取区域")
+	    @GetMapping("/getRegionByGroup")
+	    public Result<List<AmazonAuthority>> getRegionByGroupAction(String groupid) {
+	    	List<AmazonAuthority> mylist = iAmazonAuthorityService.selectByGroupId(groupid);
+	    	List<AmazonAuthority> result=new LinkedList<AmazonAuthority>();
+	    	for(AmazonAuthority item:mylist) {
+	    		AmazonAuthority auth = new AmazonAuthority();
+	    		auth.setId(item.getId());
+	    		auth.setRegion(item.getRegion());
+	    		auth.setGroupid(item.getGroupid());
+	    		auth.setSellerid(auth.getSellerid());
+	    		result.add(auth);
+	    	}
+	        return Result.success(result);
+	    }
+	    
 	    @ApiOperation(value = "获取站点")
 	    @GetMapping("/getPerformance")
 	    public Result<AmazonAuthMarketPerformance> getPerformanceAction(String groupid,String marketplaceid) {
@@ -97,7 +114,6 @@ public class AmazonAuthorityController {
 	    		result.setPerformanceJson(GeneralUtil.getJsonObject(result.getPerformance()));
 	    	}
 	        return Result.success(result);
-	    	 
 	    }
 	    
 	    @ApiOperation(value = "刷新旧的WMS店铺授权转移到SP-API")
@@ -144,11 +160,8 @@ public class AmazonAuthorityController {
 	    		}
 	    		return Result.success(result);
 	    	}catch(Exception e) {
-	    		if(e!=null) {
-	    			e.printStackTrace();
-	    			throw new BizException(e.getMessage());
-	    		}
-	    		return Result.failed();
+    			e.printStackTrace();
+    			throw new BizException(e.getMessage());
 	    	}
 	    }
 	    

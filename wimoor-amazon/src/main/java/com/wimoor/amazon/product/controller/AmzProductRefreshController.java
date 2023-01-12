@@ -1,6 +1,7 @@
 package com.wimoor.amazon.product.controller;
 
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -13,12 +14,14 @@ import com.amazon.spapi.model.listings.Item;
 import com.amazon.spapi.model.productpricing.GetPricingResponse;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
+import com.wimoor.amazon.product.pojo.entity.AmzProductRefresh;
 import com.wimoor.amazon.product.service.IAmzProductRefreshService;
 import com.wimoor.amazon.product.service.IProductCaptureCatalogItemService;
 import com.wimoor.amazon.product.service.IProductCaptureListingsItemService;
 import com.wimoor.amazon.product.service.IProductCaptureProductPriceService;
 import com.wimoor.common.result.Result;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -101,17 +104,34 @@ public class AmzProductRefreshController {
     	iProductCaptureProductPriceService.handlerResult(reponse, auth, marketplaceid);
         return Result.success(reponse);
     }
-
     @ApiOperation(value = "刷新产品")
     @GetMapping("/refreshItemBySKU")
     public Result<?> refreshItemBySKUAction(String groupid,String marketplaceid,String sku) {
     	log.info("refreshPriceAction-----"+new Date());
     	AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
     	Item item = iProductCaptureListingsItemService.captureListMatchingProduct(auth, sku, Arrays.asList(marketplaceid));
-    	iProductCaptureListingsItemService.handlerResult(item, auth);
-        return Result.success(item);
+    	iProductCaptureListingsItemService.handlerResult(item, auth,null);
+    	this.refreshPriceBySKUAction(groupid, marketplaceid, sku);
+    	if(item!=null&&item.getSummaries()!=null&&item.getSummaries().size()>0) {
+    		String asin=item.getSummaries().get(0).getAsin();
+    		if(StrUtil.isNotBlank(asin)) {
+    			this.refreshCatalogBySKUAction(groupid, marketplaceid, asin, sku);
+    		}
+    	}
+    	return Result.success(item);
     }
     
-    
+    @ApiOperation(value = "刷新产品关系")
+    @GetMapping("/refreshCatalogBySKU")
+    public Result<?> refreshCatalogBySKUAction(String groupid,String marketplaceid,String asin,String sku) {
+    	AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+    	AmzProductRefresh skuRefresh=new AmzProductRefresh();
+    	skuRefresh.setAmazonauthid(new BigInteger(auth.getId()));
+    	skuRefresh.setSku(sku);
+    	skuRefresh.setAsin(asin);
+		com.amazon.spapi.model.catalogitems.Item item = iProductCaptureCatalogItemService.captureCatalogProduct(auth, skuRefresh, Arrays.asList(marketplaceid));
+		iProductCaptureCatalogItemService.handlerResult(auth, skuRefresh, item); 
+        return Result.success(item);
+    }  
 }
 

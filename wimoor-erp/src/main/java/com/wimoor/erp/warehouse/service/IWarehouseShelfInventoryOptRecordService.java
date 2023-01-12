@@ -1,6 +1,10 @@
 package com.wimoor.erp.warehouse.service;
 
+import com.wimoor.api.amzon.inbound.pojo.vo.WarehouseShelfInventoryOptRecordVo;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventoryOptRecord;
+
+import java.util.List;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -13,4 +17,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IWarehouseShelfInventoryOptRecordService extends IService<WarehouseShelfInventoryOptRecord> {
 
+	List<WarehouseShelfInventoryOptRecordVo> getRecordVo(String shopid, String formid, String formtype, String materialid);
+	public List<WarehouseShelfInventoryOptRecord> getRecord(String shopid, String formid, String formtype,String shelfid) ;
 }

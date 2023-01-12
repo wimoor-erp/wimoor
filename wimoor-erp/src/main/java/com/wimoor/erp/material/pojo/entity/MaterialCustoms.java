@@ -1,6 +1,7 @@
 package com.wimoor.erp.material.pojo.entity;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -16,8 +17,12 @@ import lombok.Data;
 public class MaterialCustoms {
 	
 	@ApiModelProperty(value = "产品ID")
-	@TableId(value= "matreialid")
-    private String matreialid;
+	@TableId(value= "materialid")
+    private String materialid;
+	
+	@ApiModelProperty(value = "产品报关币种")
+	@TableField(value= "currency")
+    private String currency;
 
 	@ApiModelProperty(value = "产品报关英文名")
 	@TableField(value= "name_en")
@@ -62,4 +67,5 @@ public class MaterialCustoms {
 	@ApiModelProperty(value = "附加费用")
 	@TableField(value= "addfee")
     private BigDecimal addfee;
+	
 }

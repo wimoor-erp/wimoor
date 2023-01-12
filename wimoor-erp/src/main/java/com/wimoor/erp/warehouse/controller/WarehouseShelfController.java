@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,13 +37,16 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.erp.warehouse.pojo.entity.ErpWarehouseAddress;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelf;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfTreeVo;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfVo;
+import com.wimoor.erp.warehouse.service.IErpWarehouseAddressService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfService;
-import com.wimoor.util.QRCodeUtil;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.qrcode.QrCodeUtil;
+import cn.hutool.extra.qrcode.QrConfig;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -63,12 +68,14 @@ import lombok.RequiredArgsConstructor;
 public class WarehouseShelfController {
  
 	final IWarehouseShelfService iWarehouseShelfService;
-	
+	final IErpWarehouseAddressService iErpWarehouseAddressService;
+	@Resource
+    QrConfig qrconfig;
     @ApiOperation("仓库库位树")
     @GetMapping("/list")
-    public Result<List<WarehouseShelfTreeVo>> list() {
+    public Result<List<WarehouseShelfTreeVo>> list(String warehouseid) {
     	UserInfo user=UserInfoContext.get();
-        return Result.success(iWarehouseShelfService.getAllTree(user));
+        return Result.success(iWarehouseShelfService.getAllTree(user,warehouseid));
     }
     
 	
@@ -93,10 +100,19 @@ public class WarehouseShelfController {
     
     @ApiOperation("查询当前库位中的基础信息")
     @GetMapping("/getShelfInfo")
-    public Result<WarehouseShelfVo> getShelfInfoAction(@ApiParam("库位ID")@RequestParam String shelfid){
+    public Result<WarehouseShelfVo> getShelfInfoAction(@ApiParam("仓位ID")@RequestParam String shelfid,@ApiParam("仓库地址Number")@RequestParam String addressnum,@ApiParam("库位treepath")@RequestParam String shelftreepath){
     	UserInfo user=UserInfoContext.get();
-    	WarehouseShelfVo res = iWarehouseShelfService.getShelfInfo(user,shelfid);
-    	return Result.success(res);
+    	ErpWarehouseAddress address = iErpWarehouseAddressService.getByNumber(user.getCompanyid(),addressnum);
+    	if(!StrUtil.isEmpty(shelfid)) {
+    		WarehouseShelfVo res =iWarehouseShelfService.getShelfInfo(user, shelfid);
+    		return Result.success(res);
+    	}else {
+    		if(address==null) {
+        		throw new BizException("无法找到地址信息，请确保您的账号下存在此地址编码"+addressnum);
+        	}
+    		WarehouseShelfVo res = iWarehouseShelfService.getShelfInfo(user,address,shelftreepath);
+        	return Result.success(res);
+    	}
     }
     
     @ApiOperation("查询当前仓位中的所有子库位")
@@ -104,6 +120,12 @@ public class WarehouseShelfController {
     public Result<List<WarehouseShelfVo>> detailWarehouse(@ApiParam("查询当前仓位中的所有子库位") @PathVariable("warehouseid") String warehouseid) {
     	UserInfo user=UserInfoContext.get();
         return Result.success(iWarehouseShelfService.detailWarehouse(user,warehouseid));
+    }
+    @ApiOperation("查询")
+    @GetMapping("/{warehouseid}/warehousesum")
+    public Result<WarehouseShelfVo> warehouseSum(@ApiParam("查询当前仓位中的所有子库位") @PathVariable("warehouseid") String warehouseid) {
+    	UserInfo user=UserInfoContext.get();
+        return Result.success(iWarehouseShelfService.detailWarehouseSum(user,warehouseid));
     }
     
     @ApiOperation("修改库位")
@@ -122,7 +144,9 @@ public class WarehouseShelfController {
     @ApiOperation("获取库位二维码")
     @PostMapping("/getQRCode/{shelfid}")
     public  void getQRCode(@ApiParam("库位ID") @PathVariable("shelfid") String shelfid,HttpServletResponse resp) {
-    	 String content = "https://www.wimoor.com/wxwarehouseshelf/"+shelfid;//内容信息
+		WarehouseShelf shelf = iWarehouseShelfService.getById(shelfid);
+		ErpWarehouseAddress address = iErpWarehouseAddressService.getById(shelf.getAddressid());
+    	 String content = "https://www.wimoor.com/ws/"+address.getNumber()+"/"+shelf.getTreepath();//内容信息
          ServletOutputStream os = null;
 		try {
 			resp.reset();
@@ -133,10 +157,10 @@ public class WarehouseShelfController {
 			resp.setHeader("filename","二维码.jpg");
 			resp.setContentType("application/force-download");// 设置强制下载不打开
 			os = resp.getOutputStream();
-			BufferedImage imagebuffer = QRCodeUtil.generateQRCodeCommon(content, 15);
-			imagebuffer.flush();
-		    ImageIO.write(imagebuffer, "jpg", os);
-		    imagebuffer.flush();
+			qrconfig.setWidth(170);
+			qrconfig.setHeight(170);
+			BufferedImage imagebuffer =	QrCodeUtil.generate(content, qrconfig);
+		    ImageIO.write(imagebuffer, "png", os);
 		    os.flush();
 		    os.close();
 		} catch (IOException e) {
@@ -148,7 +172,6 @@ public class WarehouseShelfController {
 			e.printStackTrace();
 			throw new BizException("文件读取错误");
 		}
-	 
     }
     
     @ApiOperation("获取库位二维码PDF")
@@ -157,8 +180,6 @@ public class WarehouseShelfController {
     		                  @ApiParam("父库位ID") @RequestParam String parentshelfid,
     		                  HttpServletResponse resp) {
 		try {
-			UserInfo user=UserInfoContext.get();
-			resp.reset(); 
 			resp.addHeader("Content-Disposition", "attachment;fileName=QRCode" + System.currentTimeMillis() + ".pdf");// 设
 			resp.setHeader("Access-Control-Allow-Origin", "*");
 			resp.setHeader("Access-Control-Expose-Headers", "filename");
@@ -172,48 +193,55 @@ public class WarehouseShelfController {
 			document.addSubject("This is the subject of the PDF file.");
 			document.addKeywords("This is the keyword of the PDF file.");
 			if(StrUtil.isNotEmpty(shelfid)) {
-				//document.newPage();
-				WarehouseShelf shelf = iWarehouseShelfService.getById(shelfid);
-				String showname = shelf.getNumber()+"-"+shelf.getName();
-				BaseFont baseFont = BaseFont.createFont("C:/Windows/Fonts/SIMYOU.TTF", BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
-				com.itextpdf.text.Font font = new com.itextpdf.text.Font(baseFont);
-				font.setSize(50);
-				Paragraph p = new Paragraph(showname,font);// 设置字体，解决中文显示不了的问题
-				p.setAlignment(Element.ALIGN_CENTER);
-				p.setSpacingAfter(10);
-				document.add(p);
-				String content = "https://www.wimoor.com/wxwarehouseshelf/"+shelf.getTreepath();//内容信息
-				BufferedImage imagebuffer = QRCodeUtil.generateQRCodeCommon(content, 15);
-			    imagebuffer.flush();
-	            Image image = Image.getInstance(imagebuffer , null); 
-	            image.setAlignment(Element.ALIGN_CENTER);
-			    document.add(image);
+					//document.newPage();
+					WarehouseShelf shelf = iWarehouseShelfService.getById(shelfid);
+					ErpWarehouseAddress address = iErpWarehouseAddressService.getById(shelf.getAddressid());
+					String showname = shelf.getNumber()+"-"+shelf.getName();
+					String path = new ClassPathResource("font/SIMYOU.TTF").getPath();
+					BaseFont baseFont = BaseFont.createFont(path, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+					com.itextpdf.text.Font font = new com.itextpdf.text.Font(baseFont);
+					font.setSize(50);
+					Paragraph p = new Paragraph(showname,font);// 设置字体，解决中文显示不了的问题
+					p.setAlignment(Element.ALIGN_CENTER);
+					p.setSpacingAfter(10);
+					document.add(p);
+					String content = "https://www.wimoor.com/ws/"+address.getNumber()+"/"+shelf.getTreepath();//内容信息
+					qrconfig.setWidth(300);
+					qrconfig.setHeight(300);
+					BufferedImage imagebuffer =	QrCodeUtil.generate(content, qrconfig);
+		            Image image = Image.getInstance(imagebuffer , null); 
+		            image.setAlignment(Element.ALIGN_CENTER);
+				    document.add(image);
 			}else if(StrUtil.isNotEmpty(parentshelfid)) {
-				LambdaQueryWrapper<WarehouseShelf> wrapperShelf=new LambdaQueryWrapper<WarehouseShelf>();
-        		wrapperShelf.eq(WarehouseShelf::getShopid, user.getCompanyid());
-        		wrapperShelf.eq(WarehouseShelf::getParentid,new BigInteger(parentshelfid));
-        		wrapperShelf.eq(WarehouseShelf::getIsdelete, false);
-				List<WarehouseShelf> shelflist = iWarehouseShelfService.list(wrapperShelf);
-				for(WarehouseShelf shelf:shelflist) {
-                        if(shelf==null)continue;
-						String showname = shelf.getNumber()+"-"+shelf.getName();
-						BaseFont baseFont = BaseFont.createFont("C:/Windows/Fonts/SIMYOU.TTF", BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
-						com.itextpdf.text.Font font = new com.itextpdf.text.Font(baseFont);
-						font.setSize(50);
-						Paragraph p = new Paragraph(showname,font);// 设置字体，解决中文显示不了的问题
-						p.setAlignment(Element.ALIGN_CENTER);
-						p.setSpacingAfter(10);
-						document.add(p);
-						String content = "https://www.wimoor.com/wxwarehouseshelf/"+shelf.getId();//内容信息
-						BufferedImage imagebuffer = QRCodeUtil.generateQRCodeCommon(content,15);
-						imagebuffer.flush();
-					    Image image = Image.getInstance(imagebuffer , null); 
-					    image.setAlignment(Element.ALIGN_CENTER);
-					    document.add(image);
-					    document.newPage();
+				    UserInfo user=UserInfoContext.get();
+					LambdaQueryWrapper<WarehouseShelf> wrapperShelf=new LambdaQueryWrapper<WarehouseShelf>();
+	        		wrapperShelf.eq(WarehouseShelf::getShopid, user.getCompanyid());
+	        		wrapperShelf.eq(WarehouseShelf::getParentid,new BigInteger(parentshelfid));
+	        		wrapperShelf.eq(WarehouseShelf::getIsdelete, false);
+					List<WarehouseShelf> shelflist = iWarehouseShelfService.list(wrapperShelf);
+					for(WarehouseShelf shelf:shelflist) {
+	                        if(shelf==null)continue;
+	                        ErpWarehouseAddress address = iErpWarehouseAddressService.getById(shelf.getAddressid());
+	    					String showname = shelf.getNumber()+"-"+shelf.getName();
+	    					String path = new ClassPathResource("font/SIMYOU.TTF").getPath();
+	    					BaseFont baseFont = BaseFont.createFont(path, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+	    					com.itextpdf.text.Font font = new com.itextpdf.text.Font(baseFont);
+	    					font.setSize(50);
+	    					Paragraph p = new Paragraph(showname,font);// 设置字体，解决中文显示不了的问题
+	    					p.setAlignment(Element.ALIGN_CENTER);
+	    					p.setSpacingAfter(10);
+	    					document.add(p);
+	    					String content = "https://www.wimoor.com/ws/"+address.getNumber()+"/"+shelf.getTreepath();//内容信息
+	    					qrconfig.setWidth(300);
+	    					qrconfig.setHeight(300);
+	    					BufferedImage imagebuffer =	QrCodeUtil.generate(content, qrconfig);
+	    		            Image image = Image.getInstance(imagebuffer , null); 
+	    		            image.setAlignment(Element.ALIGN_CENTER);
+	    				    document.add(image);
+						    document.newPage();
+					}
 				}
-			}
-			document.close();
+				document.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

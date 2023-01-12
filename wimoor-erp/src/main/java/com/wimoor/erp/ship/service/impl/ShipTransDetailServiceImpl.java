@@ -10,5 +10,11 @@ import com.wimoor.erp.ship.service.IShipTransDetailService;
 @Service("shipTransDetailService")
 public class ShipTransDetailServiceImpl extends  ServiceImpl<ShipTransDetailMapper,ShipTransDetail> implements IShipTransDetailService {
 
+	@Override
+	public int usedTransType(String shopid, String transtype) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.usedTransType(shopid,transtype);
+	}
+
 	
 }

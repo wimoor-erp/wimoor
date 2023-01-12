@@ -1,6 +1,5 @@
 package com.wimoor.amazon.product.mapper;
 
-import com.wimoor.amazon.common.pojo.entity.Material;
 import com.wimoor.amazon.product.pojo.dto.ProductListDTO;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.pojo.vo.AmzProductListVo;
@@ -28,7 +27,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public interface ProductInfoMapper extends BaseMapper<ProductInfo> {
 
 	List<ProductInfo> selectBySku(@Param("sku")String sku, @Param("marketplaceid")String marketplaceid, @Param("amazonAuthId")String amazonAuthId);
-	List<ProductInfo> selectByMSku(@Param("sku")String sku, @Param("marketplaceid")String marketplaceid, @Param("groupid")String groupid, @Param("shopid")String shopid);
+	List<ProductInfo> selectByMSku(@Param("msku")String sku, @Param("marketplaceid")String marketplaceid, @Param("groupid")String groupid, @Param("shopid")String shopid);
 	
 	List<Map<String, Object>> findShopSku(@Param("shopid")String shopid, @Param("sku")String sku);
 	
@@ -44,7 +43,9 @@ public interface ProductInfoMapper extends BaseMapper<ProductInfo> {
 
     Map<String, Object> findNameAndPicture(@Param("sku") String sku_p, @Param("marketplaceid") String marketplaceid, @Param("groupid") String groupid);
     
-    Material findMSKUBySKUMarket(@Param("sku") String sku,@Param("marketplaceid") String marketplaceid,@Param("amazonAuthId") String amazonAuthId);
+    String findMSKUBySKUMarket(@Param("sku") String sku,@Param("marketplaceid") String marketplaceid,@Param("amazonAuthId") String amazonAuthId);
     
     List<Map<String, Object>> findAllByCondition(@Param("param")Map<String, Object> map);
+    
+	void clearInSnl(@Param("marketplaceid")String marketplaceid, @Param("amazonAuthId")String amazonAuthId);
 }

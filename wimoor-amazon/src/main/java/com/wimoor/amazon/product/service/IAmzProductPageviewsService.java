@@ -4,7 +4,6 @@ package com.wimoor.amazon.product.service;
 import com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductPageviews;
 import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo;
-import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 
 import java.util.Date;

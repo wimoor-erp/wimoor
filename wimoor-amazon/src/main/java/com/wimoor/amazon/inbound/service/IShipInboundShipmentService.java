@@ -52,10 +52,12 @@ public interface IShipInboundShipmentService extends IService<ShipInboundShipmen
 	void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, String shipmentid);
 	void saveSelfTransData(UserInfo user, ShipInboundTrans ship, String operate, List<Map<String, Object>> box,
 			String proNumber, Date shipsdate, String carrier);
+	public void saveTransTrance(String shipmentid,String carrier,List<Map<String, Object>> boxinfo);
 	List<Map<String, Object>> getSelfTransHis(String companyid, String shipmentid);
 	int saveTransData(UserInfo user, String shipmentid, String company, String channel);
 	void setExcelBookBySku(SXSSFWorkbook workbook, Map<String, Object> params);
     public Integer refreshShipmentRec(String shipmentid);
 	void ignoreShipment(UserInfo user, String shipmentid);
+	String getShipmentStatusName(String shipmentstatus);
  
 }

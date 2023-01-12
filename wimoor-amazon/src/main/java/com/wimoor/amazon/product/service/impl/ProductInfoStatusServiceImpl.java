@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.product.mapper.ProductInfoStatusDefineMapper;
 import com.wimoor.amazon.product.pojo.entity.ProductInfoStatusDefine;
 import com.wimoor.amazon.product.service.IProductInfoStatusService;
+import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
 
@@ -22,7 +23,13 @@ public class ProductInfoStatusServiceImpl extends ServiceImpl<ProductInfoStatusD
 	
 	@Override
 	public List<ProductInfoStatusDefine> getProStatusByShop(String shopid) {
-		return this.baseMapper.getProStatusByShop(shopid);
+		List<ProductInfoStatusDefine> list = this.baseMapper.getProStatusByShop(shopid);
+		for(ProductInfoStatusDefine item:list) {
+			if(item.getColor()!=null) {
+				item.setColor(GeneralUtil.getColorType(item.getColor()).toString());
+			}
+		}
+		return list;
 	}
 
 	@Override

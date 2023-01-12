@@ -14,22 +14,17 @@
 package com.amazon.spapi.model.fulfillmentinbound;
 
 import java.util.Objects;
-import java.util.Arrays;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
+
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import com.amazon.spapi.model.fulfillmentinbound.PartneredSmallParcelPackageInputList;
-import java.io.IOException;
 
 /**
  * Information that is required by an Amazon-partnered carrier to ship a Small Parcel inbound shipment.
  */
 @ApiModel(description = "Information that is required by an Amazon-partnered carrier to ship a Small Parcel inbound shipment.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-12-21T11:58:54.268+08:00")
 public class PartneredSmallParcelDataInput {
   @SerializedName("PackageList")
   private PartneredSmallParcelPackageInputList packageList = null;
@@ -61,10 +56,10 @@ public class PartneredSmallParcelDataInput {
   }
 
    /**
-   * The Amazon-partnered carrier to use for the inbound shipment.
+   * The Amazon-partnered carrier to use for the inbound shipment. **&#x60;CarrierName&#x60;** values in France (FR), Italy (IT), Spain (ES), the United Kingdom (UK), and the United States (US): &#x60;UNITED_PARCEL_SERVICE_INC&#x60;. &lt;br&gt; **&#x60;CarrierName&#x60;** values in Germany (DE): &#x60;DHL_STANDARD&#x60;,&#x60;UNITED_PARCEL_SERVICE_INC&#x60;. &lt;br&gt;Default: &#x60;UNITED_PARCEL_SERVICE_INC&#x60;.
    * @return carrierName
   **/
-  @ApiModelProperty(value = "The Amazon-partnered carrier to use for the inbound shipment.")
+  @ApiModelProperty(value = "The Amazon-partnered carrier to use for the inbound shipment. **`CarrierName`** values in France (FR), Italy (IT), Spain (ES), the United Kingdom (UK), and the United States (US): `UNITED_PARCEL_SERVICE_INC`. <br> **`CarrierName`** values in Germany (DE): `DHL_STANDARD`,`UNITED_PARCEL_SERVICE_INC`. <br>Default: `UNITED_PARCEL_SERVICE_INC`.")
   public String getCarrierName() {
     return carrierName;
   }

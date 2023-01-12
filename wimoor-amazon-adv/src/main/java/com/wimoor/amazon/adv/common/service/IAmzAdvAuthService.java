@@ -100,6 +100,5 @@ public interface IAmzAdvAuthService extends IService<AmzAdvAuth>{
 	public void setBusyTime(Date date);
 
 	public boolean isBusy();
-
 	
 }

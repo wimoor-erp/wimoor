@@ -15,9 +15,7 @@ import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 public interface IWarehouseService extends IService<Warehouse> {
 
 	//展示页面
-	IPage<Map<String, Object>> findByCondition(Page<?> page,String search, String shopid, String ftype) throws ERPBizException;
-
-	
+	public IPage<Warehouse> findByCondition(Page<?> page,String search, String shopid, String ftype,String parentid );
 	//所有fba仓库
 	String selectTypeByName(String ftypename);
 
@@ -27,7 +25,7 @@ public interface IWarehouseService extends IService<Warehouse> {
 	 * @param shopid
 	 * @return
 	 */
-	List<Map<String,Object>> findByType(String ftype, String shopid);
+	List<Warehouse> findByType(String ftype, String shopid);
  
 	/**
 	 * 查询所有自有仓的仓位
@@ -82,7 +80,7 @@ public interface IWarehouseService extends IService<Warehouse> {
 	
 	Warehouse getParentWarehouse(String warehouseid);
 
-	void clearDefaultWare(String warehouseid,String ftype);
+	public void clearDefaultWare(String shopid,String ftype) ;
 
 	List<Warehouse> findBydefault(String shopid);
  
@@ -105,4 +103,7 @@ public interface IWarehouseService extends IService<Warehouse> {
 	Warehouse getPlaceWarehouse(String id);
 	
 	public List<Warehouse> getWarehouseTreeList(UserInfo user);
+
+	String getUUID();
+
 }

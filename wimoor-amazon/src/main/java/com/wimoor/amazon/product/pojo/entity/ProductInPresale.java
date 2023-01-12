@@ -27,6 +27,9 @@ public class ProductInPresale extends BaseEntity{
     @TableField(value= "groupid")
     private String groupid;
 
+    @TableField(value= "amazonauthid")
+    private String amazonauthid;
+    
 	@TableField(value= "date")
     private Date date;
 
@@ -39,16 +42,4 @@ public class ProductInPresale extends BaseEntity{
 	@TableField(value= "opttime")
     private Date opttime;
 	
-	@TableField(value= "start")
-    private Date start;
-	
-	@TableField(value= "end")
-    private Date end;
-	
-	@TableField(value= "month")
-    private String month;
-	
-	@TableField(value= "hasdaysales")
-    private boolean hasdaysales;
- 
 }

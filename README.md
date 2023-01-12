@@ -5,7 +5,6 @@
 4、seata 微服务事务（用于分库之后）
 5、cas-server 中央登录模块（非必要）
 
-
 建议使用开发工具：eclipse
 建议使用JDK1.8
 每次启动需要提前开启nacos 和seata

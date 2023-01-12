@@ -1,11 +1,12 @@
 package com.wimoor.amazon.common.contorller;
  
+import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,10 +17,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.common.pojo.dto.SummaryMutilParameterQueryDTO;
 import com.wimoor.amazon.common.pojo.dto.UserSalesRankQueryDTO;
 import com.wimoor.amazon.common.pojo.entity.SummaryData;
+import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.common.service.ISummaryDataService;
 import com.wimoor.amazon.common.service.IUserSalesRankService;
+import com.wimoor.amazon.orders.pojo.vo.ProductSalesRankVo;
 import com.wimoor.amazon.report.pojo.vo.PerformanceVo;
-import com.wimoor.amazon.report.pojo.vo.ProductSalesRankVo;
 import com.wimoor.amazon.report.service.IReportAmzPerformanceService;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
@@ -40,6 +42,7 @@ public class SummaryDataController {
 	final ISummaryDataService iSummaryDataService;
 	final IUserSalesRankService iUserSalesRankService;
 	final IReportAmzPerformanceService reportAmzPerformanceService;
+	final IExchangeRateHandlerService exchangeRateHandlerService;
 	@ApiOperation(value = "获取统计数据")
     @GetMapping("/list")
     public Result<List<SummaryData>> getAmazonGroupAction() {
@@ -137,5 +140,12 @@ public class SummaryDataController {
 		}
 		return Result.success(reportAmzPerformanceService.getPerformance(userinfo.getCompanyid(),dto.getGroupid()) );
 	}
+	
+	@ApiOperation(value = "获取销量统计数据")
+	@GetMapping("/getCurrency/{toCurrency}")
+	public Result<Map<String,BigDecimal>> getCurrency(@PathVariable String toCurrency){
+		return Result.success(exchangeRateHandlerService.currencyChangeRate(toCurrency));
+	}
+	
 	
 }

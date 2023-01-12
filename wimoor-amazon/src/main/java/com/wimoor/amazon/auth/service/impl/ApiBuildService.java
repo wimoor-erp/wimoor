@@ -1,8 +1,13 @@
 package com.wimoor.amazon.auth.service.impl;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -27,6 +32,7 @@ import com.amazon.spapi.api.ReportsApi;
 import com.amazon.spapi.api.SellersApi;
 import com.amazon.spapi.api.SolicitationsApi;
 import com.amazon.spapi.api.TokensApi;
+import com.amazon.spapi.client.ApiClient;
 import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenRequest;
 import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenResponse;
@@ -66,6 +72,9 @@ public class ApiBuildService implements InitializingBean {
 
     @Setter
     private String sandbox;
+    
+    @Setter
+    private String needproxy;
     
     @Override
     public void afterPropertiesSet() {
@@ -220,6 +229,7 @@ public class ApiBuildService implements InitializingBean {
             .endpoint(getEndPoint(auth.getAWSRegion()))
             .rateLimitConfigurationOnRequests(auth)
             .build();
+		    initClient(api.getApiClient());
         return api;
 	}
     
@@ -231,6 +241,7 @@ public class ApiBuildService implements InitializingBean {
             .endpoint(getEndPoint(auth.getAWSRegion()))
             .rateLimitConfigurationOnRequests(auth)
             .build();
+			initClient(api.getApiClient());
         return api;
 	}
 	
@@ -242,6 +253,7 @@ public class ApiBuildService implements InitializingBean {
            .endpoint(getEndPoint(auth.getAWSRegion()))
            .rateLimitConfigurationOnRequests(auth)
            .build();
+		   initClient(api.getApiClient());
           return api;
 	}
 
@@ -317,6 +329,7 @@ public class ApiBuildService implements InitializingBean {
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
 				.build();
+			    initClient(api.getApiClient());
 		  return api;
 	 }
 	
@@ -329,6 +342,7 @@ public class ApiBuildService implements InitializingBean {
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
 				.build();
+		        initClient(api.getApiClient());
         return api;
 	}
 	
@@ -363,9 +377,23 @@ public class ApiBuildService implements InitializingBean {
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
 				.build();
+		        initClient(api.getApiClient());
         return api;
 	}
 
+	private void initClient(ApiClient client) {
+		client.setConnectTimeout(120000);
+        client.setReadTimeout(120000);
+        if(needproxy!=null&&needproxy.equals("true")) {
+        	SocketAddress address=new InetSocketAddress("127.0.0.1",1080);
+            Proxy proxy= new Proxy(Proxy.Type.SOCKS,address);
+    		client.getHttpClient().setProxy(proxy);
+        }
+	}
+	public static void initClient(OkHttpClient okHttpClient) {
+		     okHttpClient.setReadTimeout(120000, TimeUnit.MILLISECONDS);
+		     okHttpClient.setConnectTimeout(120000, TimeUnit.MILLISECONDS);
+	}
  
 	 public   RestrictedResource buildRestrictedResource(RestrictedResource.MethodEnum method, String path, List<String> dataElements){
 	     RestrictedResource resource = buildRestrictedResource(method,path);
@@ -430,7 +458,7 @@ public class ApiBuildService implements InitializingBean {
 	     // Execute the signed request.
 	     OkHttpClient okHttpClient = new OkHttpClient();
 	     Response response = okHttpClient.newCall(signedRequest).execute();
-
+	     initClient(okHttpClient);
 	     return response;
 	 }
 }

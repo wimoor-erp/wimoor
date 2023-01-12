@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -86,14 +87,7 @@ public class HandlerReportServiceImpl implements IHandlerReportService,IAwsSQSMe
 			}
 		}
 	}
-	// 在这里更新request实体类 的status..状态为'SUBMITTED'和'IN_PROGRESS'需要更新其最新状态..
-	public void refreshProcessReportList(String reporttype) {
-		 List<Runnable> runnables = new ArrayList<Runnable>();
-		 List<ReportRequestRecord> reportRequestRecordList = reportRequestRecordMapper.selectNeedProcessRequest(reporttype,null);
-		 runnables.addAll(processReportListRunnable(reportRequestRecordList));
-		 amazonAuthorityService.executThread(runnables,"refreshProcessReportList");
-
-	}
+ 
 	
 	public void refreshProcessReportById(String id) {
 		ReportRequestRecord reportReuestRecord = reportRequestRecordMapper.selectById(id);
@@ -109,45 +103,58 @@ public class HandlerReportServiceImpl implements IHandlerReportService,IAwsSQSMe
 		service.downloadProcessReport(reportReuestRecord);
 	}
 	
+	// 在这里更新request实体类 的status..状态为'SUBMITTED'和'IN_PROGRESS'需要更新其最新状态..
+	public void refreshProcessReportList(String reporttype) {
+		List<Runnable> runnables = new ArrayList<Runnable>();
+		if(reporttype==null) {
+				List<ReportRequestRecord> reportRequestRecordList = reportRequestRecordMapper.selectNeedProcessRequest(null,null);
+                if(reportRequestRecordList!=null&&reportRequestRecordList.size()>0) {
+                	runnables.addAll(processReportListRunnable(reportRequestRecordList));
+                }
+                if(reportRequestRecordList==null||reportRequestRecordList.size()<100){
+                	List<ReportRequestRecord> reportSettRequestRecordList = reportRequestRecordMapper.selectNeedProcessRequest(ReportType.SettlementReport,null);
+    	            if(reportSettRequestRecordList!=null&&reportSettRequestRecordList.size()>0) {
+    	            	runnables.addAll(processReportListRunnable(reportSettRequestRecordList));
+    	            }
+                }
+		}else {
+			List<ReportRequestRecord> reportRequestRecordList = reportRequestRecordMapper.selectNeedProcessRequest(reporttype,null);
+			runnables.addAll(processReportListRunnable(reportRequestRecordList));
+		}
+		 amazonAuthorityService.executThread(runnables,"refreshProcessReportList");
+
+	}
+	
 	public List<Runnable> processReportListRunnable(List<ReportRequestRecord> reportRequestRecordList) {
 		List<Runnable> runnables=new ArrayList<Runnable>();
-	    if(reportRequestRecordList!=null&&reportRequestRecordList.size()>0) {
-	    	Map<String,List<ReportRequestRecord>> map=new HashMap<String,List<ReportRequestRecord>>();
-	    	for(ReportRequestRecord item:reportRequestRecordList) {
-	    		if(map.get(item.getReporttype())!=null) {
-	    			List<ReportRequestRecord> list=map.get(item.getReporttype());
-	    			list.add(item);
-	    		}else {
-	    			List<ReportRequestRecord> list=new ArrayList<ReportRequestRecord>();
-	    			list.add(item);
-	    			map.put(item.getReporttype(),list);
-	    		}
-	    	}
-	    	for(Entry<String, List<ReportRequestRecord>> entry:map.entrySet()) {
-	    		List<ReportRequestRecord> mylist = entry.getValue();
-	    		Runnable runnable = new Runnable() {
+		Set<String> set = ReportType.getSingleReport();
+		for(ReportRequestRecord item:reportRequestRecordList) {
+            if(!set.contains(item.getReporttype())) {
+            	ReportRequestType type = iReportRequestTypeService.findByTypeCode(item.getReporttype());
+				IReportService reportService=SpringUtil.getBean(type.getBean());
+				Runnable runnable = new Runnable() {
 					public void run() {
-								int i=0;
-								for(ReportRequestRecord item:mylist) {
-									ReportRequestType type = iReportRequestTypeService.findByTypeCode(item.getReporttype());
-									IReportService reportService=SpringUtil.getBean(type.getBean());
-									if(reportService.downloadProcessReport(item)) {
-										i++;
-									}
-									if(item.getReporttype().equals(ReportType.SettlementReport)) {
-										if(i>10) {
-											return;
-										}
-									}
-									if(i>=100) {
-										return;
-									}
-								}
-							}
+				              reportService.downloadProcessReport(item);
+					}
 				};
 				runnables.add(runnable);
-	    	}
-	  }
+            }
+		}
+		
+		for(String type:set) {
+			Runnable runnable = new Runnable() {
+				public void run() {
+					for(ReportRequestRecord item:reportRequestRecordList) {
+	                    if(item.getReporttype().equals(type)) {
+	                    	ReportRequestType type = iReportRequestTypeService.findByTypeCode(item.getReporttype());
+	    					IReportService reportService=SpringUtil.getBean(type.getBean());
+	    					reportService.downloadProcessReport(item);
+	                    }
+					}
+				}
+			};
+			runnables.add(runnable);
+		}
 	  return runnables;
 	}
 	

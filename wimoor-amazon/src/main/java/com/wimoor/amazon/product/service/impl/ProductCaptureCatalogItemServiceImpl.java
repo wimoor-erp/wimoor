@@ -99,7 +99,6 @@ public class ProductCaptureCatalogItemServiceImpl implements IProductCaptureCata
 		return response;
 	}
 
-
 	@Override
 	public void captureCatalogProductSync(AmazonAuthority auth, AmzProductRefresh skuRefresh, List<String> market) {
 		// TODO Auto-generated method stub
@@ -143,14 +142,15 @@ public class ProductCaptureCatalogItemServiceImpl implements IProductCaptureCata
        ItemRelationships relist = result.getRelationships();
        for(ItemRelationshipsByMarketplace relations:relist) {
     	  String marketplaceid= relations.getMarketplaceId();
-	    	AmzProductRefresh refresh = iAmzProductRefreshService.getOne(new LambdaQueryWrapper<AmzProductRefresh>()
-						.eq(AmzProductRefresh::getMarketplaceid, marketplaceid)
-						.eq(AmzProductRefresh::getSku,skuRefresh.getSku())
-						.eq(AmzProductRefresh::getAmazonauthid, auth.getId())
-						);
+	      AmzProductRefresh refresh = iAmzProductRefreshService.getOne(new LambdaQueryWrapper<AmzProductRefresh>()
+																.eq(AmzProductRefresh::getMarketplaceid, marketplaceid)
+																.eq(AmzProductRefresh::getSku,skuRefresh.getSku())
+																.eq(AmzProductRefresh::getAmazonauthid, auth.getId())
+																);
 	    	    if(refresh!=null) {
 	    	    	refresh.setSku(skuRefresh.getSku());
 	    	    	refresh.setAsin(skuRefresh.getAsin());
+	    	    	refresh.setMarketplaceid(marketplaceid);
 	    	    	refresh.setAmazonauthid(new BigInteger(auth.getId()));
 	    	    	refresh.setCatalogRefreshTime(LocalDateTime.now());
 	    	    	refresh.setNotfound(false);

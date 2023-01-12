@@ -21,7 +21,7 @@ import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 
 public interface IInventoryService extends IService<Inventory> {
 
-	List<Map<String, Object>> findByTypeWithStockCycle(String ftype, String id, String shopid );
+	List<Map<String, Object>> findByTypeWithStockCycle(String id,String ftype, String shopid );
 
 	// 出库入库
 	Integer outStockByDirect(InventoryParameter para) throws BizException;
@@ -55,8 +55,6 @@ public interface IInventoryService extends IService<Inventory> {
 
 	Map<String, Object> findInvDetailById(String materialid, String warehouseid, String shopid);
 
-	Map<String, Object> findFBAInvDetailById(String sku, String warehouseid, String shopid,String groupid);
-
 	int SubStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException;
 
 	int AddStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException;
@@ -87,14 +85,14 @@ public interface IInventoryService extends IService<Inventory> {
 	//库存货值
 	IPage<Map<String,Object>> selectInventoryCost(Page<?> page,String warehouseid,String sku,String shopid,String byday);
 
-	Map<String, Object> findInvTUDetailByParentId(String materialid, String warehouseid, String shopid);
+	Map<String, Object> findInvByWarehouseId(String materialid, String warehouseid, String shopid);
 
  
 	public List<Map<String, Object>> localInventoryByDay(Map<String, Object> param);
 
 	public List<Map<String, Object>> localOutInventoryByRange(Map<String, Object> param);
 
-	void setExcelBookInventoryReport(SXSSFWorkbook workbook, List<Map<String,Object>> warehouseList_FBA, List<Map<String,Object>> warehouseList, List<Map<String, Object>> warehouseDetailList);
+	void setExcelBookInventoryReport(SXSSFWorkbook workbook,  List<Map<String,Object>> warehouseList, List<Map<String, Object>> warehouseDetailList);
 
 	Map<String, Object> findSumByType(Map<String,Object> param);
 
@@ -104,8 +102,7 @@ public interface IInventoryService extends IService<Inventory> {
 
 	List<Map<String, Object>> findFulByMaterial(String materialid);
 
-	List<Map<String, Object>> getInventorydetail(String materialid, String warehouseid);
-	public Map<String, Object> findInvTUDetailByParentId(String materialid,  String shopid) ;
+	public Map<String, Object> findInvByMaterialId(String materialid,  String shopid) ;
 
 	Inventory selectAllInvSubWarehouse(String warehouseid, String materialid, String shopid, Status fulfillable);
 	public IPage<Map<String,Object>> findLocalInventory(Page<?> page,Map<String,Object> param) ;
@@ -118,4 +115,9 @@ public interface IInventoryService extends IService<Inventory> {
 
 	IPage<Map<String, Object>> getInvDayDetail(InvDayDetailDTO query, Map<String, Object> parameter);
 	public List<MaterialInventoryVo> findLocalWarehouseInventory(String shopid,String materialid) ;
+	public int UndoSubStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException ;
+
+	Integer findOverseaById(String id, String shopid, String groupid, String country);
+
+	public Map<String, Object> getInventory( String materialid, String warehouseid,String shopid) ;
 }

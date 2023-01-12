@@ -136,11 +136,6 @@
 		    <version>3.0.0</version>
 		  </dependency>
 		  <dependency>
-			 <groupId>QRCode</groupId>
-			 <artifactId>QRCode</artifactId>
-			 <version>3.0</version>
-		 </dependency>
-		  <dependency>
 		  	<groupId>org.springframework.boot</groupId>
 		  	<artifactId>
 		  		spring-boot-configuration-processor
@@ -166,27 +161,6 @@
 				 <plugin>				
                  <groupId>org.apache.maven.plugins</groupId>				
                  <artifactId>maven-install-plugin</artifactId>							
-                 <executions>					
-                        <execution>						
-                         <id>install-QRjar</id>          	
-                         <!-- 阶段：设定在 mvn clean 时执行安装,如果设定为 validate，那么就是在 mvn validate 时才安装 -->						
-                         <phase>clean</phase>						
-                         <configuration>              
-                         <!-- 路径：这就是刚才添加的 jar 路径 -->							
-                            <file>${project.basedir}/src/main/resources/lib/QRCode.jar</file>							
-                            <!-- 属性：下面的这三个属性，就是后面我们添加依赖时的值 -->              
-                            <groupId>QRCode</groupId>							
-                            <artifactId>QRCode</artifactId>							
-                            <version>3.0</version>							
-                            <packaging>jar</packaging>							
-                            <generatePom>true</generatePom>						
-                            </configuration>						
-                            <goals>              
-                            <!-- 目标：安装外部的 jar 文件到 maven 本地仓库 -->							
-                            <goal>install-file</goal>						
-                            </goals>					
-                       </execution>	
-                 </executions>			
              </plugin>
         </plugins>
     </build>

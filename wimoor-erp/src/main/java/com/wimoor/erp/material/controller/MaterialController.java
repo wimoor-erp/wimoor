@@ -2,26 +2,38 @@ package com.wimoor.erp.material.controller;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.alibaba.cloud.commons.lang.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wimoor.api.erp.assembly.pojo.vo.AssemblyVO;
+import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
@@ -29,14 +41,18 @@ import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.erp.api.AdminClientOneFeign;
+import com.wimoor.erp.assembly.pojo.entity.Assembly;
 import com.wimoor.erp.assembly.service.IAssemblyService;
 import com.wimoor.erp.common.pojo.entity.Status;
+import com.wimoor.erp.common.service.IExcelDownLoadService;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.service.IInventoryService;
+import com.wimoor.erp.material.pojo.dto.MaterialDTO;
 import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
+import com.wimoor.erp.material.pojo.entity.MaterialCustomsItem;
 import com.wimoor.erp.material.pojo.entity.StepWisePrice;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialInfoVO;
@@ -46,7 +62,10 @@ import com.wimoor.erp.material.service.IDimensionsInfoService;
 import com.wimoor.erp.material.service.IMaterialCategoryService;
 import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.material.service.IStepWisePriceService;
-
+import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
+import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
+import com.wimoor.erp.ship.pojo.dto.ShipPlanDTO;
+import com.wimoor.erp.warehouse.service.IWarehouseService;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -83,6 +102,12 @@ public class MaterialController {
 	   final FileUpload fileUpload;
 	   
 	   final IPictureService iPictureService;
+	   
+	   final IWarehouseService warehouseService;
+	   
+	   final IPurchaseFormEntryService purchaseFormEntryService;
+	   
+	   final IExcelDownLoadService excelDownLoadService;
 	    /**
 	     * 提供用于用户登录认证信息
 	     */
@@ -132,40 +157,39 @@ public class MaterialController {
 	            @ApiImplicitParam(name = "color", value = "颜色标签对应的颜色", paramType = "query", dataType = "String") 
 	    })
 	    
-	    @GetMapping
-	    public Result<IPage<Map<String, Object>>> list(Integer page, Integer limit, 
-	    		String search, 
-	    		String ftype,
-	    		String isDelete,
-	    		String searchlist,
-	    		String issfg,
-	    		String warehouseid,
-	    		String categoryid,
-	    		String supplier,
-	    		String owner,
-	    		String name,
-	    		String remark,
-	    		String color
-	    		) {
-	      
+	    @PostMapping("/list")
+	    public Result<IPage<Map<String, Object>>> list(@RequestBody MaterialDTO dto) {
 	     	Map<String, Object> map = new HashMap<String, Object>();
 	    	UserInfo userinfo = UserInfoContext.get();
+	    	String ftype= GeneralUtil.getValueWithoutBlank( dto.getFtype());
 			String shopid = userinfo.getCompanyid();
- 
-			if (StringUtils.isNotBlank(search)) {
-				search = "%" + search + "%";
-			} else {
+			String search=dto.getSearch();
+			String searchlist=dto.getSearchlist();
+			String issfg=dto.getIssfg();
+			String warehouseid = GeneralUtil.getValueWithoutBlank(dto.getWarehouseid());
+			String isDelete = GeneralUtil.getValueWithoutBlank(dto.getIsDelete());
+			String categoryid = GeneralUtil.getValueWithoutBlank(dto.getCategoryid());
+			String supplier = GeneralUtil.getValueWithoutBlank(dto.getSupplier());
+			String owner = GeneralUtil.getValueWithoutBlank(dto.getOwner());
+			String name=GeneralUtil.getValueWithoutBlank(dto.getName()); 
+			String remark= GeneralUtil.getValueWithoutBlank(dto.getRemark()); 
+			String color=dto.getColor();
+			String addressid= GeneralUtil.getValueWithoutBlank(dto.getAddressid());
+			String materialid=GeneralUtil.getValueWithoutBlank(dto.getMaterialid());
+			if (StrUtil.isBlankOrUndefined(search)) {
 				search = null;
+			} else {
+				search = "%" + search.trim()+ "%";
 			}
  
 			String[] list = null;
-			if (StringUtils.isNotEmpty(searchlist)) {
+			if (StrUtil.isNotEmpty(searchlist)) {
 				list = searchlist.split(",");
 			}
 			List<String> skulist = new ArrayList<String>();
 			if (list != null) {
 				for (int i = 0; i < list.length; i++) {
-					if (StringUtils.isNotEmpty(list[i])) {
+					if (StrUtil.isNotEmpty(list[i])) {
 						skulist.add("%" + list[i] + "%");
 					}
 				}
@@ -173,61 +197,44 @@ public class MaterialController {
 				skulist = null;
 			}
 		 
-			if (StringUtils.isNotEmpty(issfg) && issfg.equals("true")) {
+			if ( !StrUtil.isBlankOrUndefined(issfg) && issfg.equals("true")) {
 				issfg = "2";
-			} else if (StringUtils.isEmpty(issfg) || issfg.equals("false")) {
+			} else if (StrUtil.isBlankOrUndefined(issfg) || issfg.equals("false")) {
 				issfg = null;
 			}
 			List<Integer> issfglist = new ArrayList<Integer>();
 			if (issfg != null) {
 				String[] issfgarray = issfg.split(",");
 				for (int i = 0; i < issfgarray.length; i++) {
-					if (StringUtils.isNotEmpty(issfgarray[i])) {
+					if (StrUtil.isNotEmpty(issfgarray[i])) {
 						issfglist.add(Integer.parseInt(issfgarray[i]));
 					}
 				}
 			} else {
 				issfglist = null;
 			}
-	 
-			if (StringUtils.isEmpty(warehouseid)) {
-				warehouseid = null;
-			}
-			if (StringUtils.isEmpty(isDelete)) {
-				isDelete = null;
-			}
- 
-			if (StringUtils.isEmpty(categoryid)) {
-				categoryid = null;
-			}
-		 
-			if (StringUtils.isEmpty(supplier)) {
-				supplier = null;
-			}
-	 
-			if (StringUtils.isEmpty(owner)) {
-				owner = null;
-			}
-	 
-			if (StringUtils.isEmpty(name)) {
+	
+			 
+			if (StrUtil.isBlankOrUndefined(name)) {
 				name = null;
 			} else {
 				name = "%" + name + "%";
 			}
 			 
-			if (StringUtils.isEmpty(remark)) {
+			if (StrUtil.isBlankOrUndefined(remark)) {
 				remark = null;
 			} else {
 				remark = "%" + remark + "%";
 			}
 		 
-			if (StringUtils.isEmpty(color) || "all".equals(color)) {
+			if (StrUtil.isBlankOrUndefined(color) || "all".equals(color)) {
 				color = null;
 			} else {
-				color = "%" + color + "%";
+				color = "%" + color.trim() + "%";
 			}
 			map.put("shopid", shopid);
 			map.put("search", search);
+			map.put("searchtype", dto.getSearchtype());
 			map.put("searchsku", skulist);
 			map.put("issfglist", issfglist);
 			map.put("supplierid", supplier);
@@ -239,9 +246,10 @@ public class MaterialController {
 			map.put("warehouseid", warehouseid);
 			map.put("ftype", ftype);
 			map.put("isDelete", isDelete);
-	 
-	         //IPage<Map<String, Object>> result = iMaterialService.findByCondition(map, new Page<>(page, limit));
-	         return Result.success(null);
+			map.put("addressid", addressid);
+			map.put("materialid", materialid);
+	        IPage<Map<String, Object>> result = iMaterialService.findByCondition(dto.getPage(),map,dto);
+	        return Result.success(result);
 	    }
 	    
 	    
@@ -251,7 +259,7 @@ public class MaterialController {
 	    	MaterialInfoVO vo=new MaterialInfoVO();
 	    	MaterialVO data = iMaterialService.findMaterialById(id);
 			if (data == null) {
-				return null;
+				return Result.success(vo);
 			}
 			UserInfo userinfo = UserInfoContext.get();
 			String shopid=userinfo.getCompanyid();
@@ -271,7 +279,9 @@ public class MaterialController {
 			List<AssemblyVO> assemblyList = assemblyService.selectByMainmid(data.getId());
 			List<MaterialConsumableVO> consumableList =  iMaterialService.selectConsumableByMainmid(data.getId(),shopid);
 			List<MaterialSupplierVO> supplierList =iMaterialService.selectSupplierByMainmid(data.getId());
+			List<MaterialCustomsItem> customsItemList=iMaterialService.selectCustomsItemListById(data.getId());
 			MaterialCustoms Customs=iMaterialService.selectCustomsByMaterialId(data.getId());
+			List<Material> parentList = assemblyService.selectBySubid(data.getId());
 			if (data.getOperator() != null) {
 				Result<Map<String, Object>> info = adminClientOneFeign.getUserByUserId(data.getOperator());
 				if (info != null&&info.getData()!=null) {
@@ -294,7 +304,7 @@ public class MaterialController {
 			}
 			if(assemblyList!=null&&assemblyList.size()>0) {
 				for(AssemblyVO items:assemblyList) {
-		              Map<String, Object> submap = inventoryService.findInvTUDetailByParentId(items.getSubmid(), shopid);
+		              Map<String, Object> submap = inventoryService.findInvByMaterialId(items.getSubmid(), shopid);
 		              if(submap!=null&&submap.size()>0) {
 		            	  if(submap.get("inbound")!=null) {
 		            		  items.setInbound(Integer.parseInt(submap.get("inbound").toString()));
@@ -308,6 +318,24 @@ public class MaterialController {
 		              }
 				}
 			}
+			String tagliststr="";
+			Set<String> tagsIdsList=new HashSet<String>();
+			List<String> taglist = iMaterialService.getTagsIdsListByMsku(data.getSku(), shopid);
+			if(taglist!=null && taglist.size()>0) {
+				for (int i = 0; i < taglist.size(); i++) {
+					tagliststr+=(taglist.get(i).toString()+",");
+					tagsIdsList.add(taglist.get(i).toString());
+				}
+			}
+			try {
+				Result<List<Map<String,Object>>> tagnamelistResult=adminClientOneFeign.findTagsNameByIds(tagsIdsList);
+				List<Map<String,Object>> tagnamelist=tagnamelistResult.getData();
+				if(tagnamelist!=null && tagnamelist.size()>0) {
+					vo.setTagNameList(tagnamelist);
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
 			vo.setMaterial(data);
 			vo.setAssemblyList(assemblyList);
 			vo.setBoxDim(boxDim);
@@ -317,6 +345,9 @@ public class MaterialController {
 			vo.setPkgDim(pkgDim);
 			vo.setStepWisePrice(priceList);
 			vo.setSupplierList(supplierList);
+			vo.setCustomsItemList(customsItemList);
+			vo.setTaglist(tagliststr);
+			vo.setParentList(parentList);
 			return Result.success(vo);
 		}
 	    
@@ -333,6 +364,8 @@ public class MaterialController {
 	    	List<Material> list = iMaterialService.list(materialQueryWrapper);
 	    	if(list!=null && list.size()>0) {
 	    		Material material = list.get(0);
+	    		map.put("price", material.getPrice());
+	    		map.put("name", material.getName());
 	    		DimensionsInfo dim_local =dimensionsInfoService.getById(material.getPkgdimensions());
 	    		if (dim_local == null) {
 	    			map.put("code", "fail");
@@ -364,7 +397,15 @@ public class MaterialController {
 		public Result<MaterialInfoVO> getMaterialInfoAction(@ApiParam("本地SKU")@RequestParam String sku,@ApiParam("仓库ID")@RequestParam String warehouseid) {
 	    	MaterialInfoVO vo=new MaterialInfoVO();
 	    	UserInfo userinfo = UserInfoContext.get();
+	    	if(StrUtil.isBlankOrUndefined(sku)) {
+	    		throw new BizException("找不到SKU【"+sku+"】");
+	    	}else {
+	    		sku=sku.trim();
+	    	}
 	    	Material m = iMaterialService.selectBySKU(userinfo.getCompanyid(), sku);
+	    	if(m==null) {
+	    		throw new BizException("找不到SKU【"+sku+"】");
+	    	}
 	    	MaterialVO data = iMaterialService.findMaterialById(m.getId());
 			if (data == null) {
 				return null;
@@ -409,7 +450,7 @@ public class MaterialController {
 			}
 			if(assemblyList!=null&&assemblyList.size()>0) {
 				for(AssemblyVO items:assemblyList) {
-		              Map<String, Object> submap = inventoryService.findInvTUDetailByParentId(items.getSubmid(), shopid);
+		              Map<String, Object> submap = inventoryService.findInvByMaterialId(items.getSubmid(), shopid);
 		              if(submap!=null&&submap.size()>0) {
 		            	  if(submap.get("inbound")!=null) {
 		            		  items.setInbound(Integer.parseInt(submap.get("inbound").toString()));
@@ -542,4 +583,361 @@ public class MaterialController {
 	    	List<String> result = iMaterialService.findMarterialForColorOwner(key,param);
 	    	return Result.success(result);
 	    }
+	    
+	    @PostMapping("/getMskuByTagList")
+		public Result<List<String>> getMskuByTagList(@RequestBody List<String> taglist){
+			return Result.success(iMaterialService.getmskuList(taglist));
+	    }
+	    
+	    @GetMapping("/getTagsIdsListByMsku")
+		public Result<List<String>> getTagsIdsListByMsku(@RequestParam String msku,@RequestParam String shopid){
+			return Result.success(iMaterialService.getTagsIdsListByMsku(msku,shopid));
+	    }
+	    
+	    @GetMapping("/saveMaterialTags")
+	    public Result<List<Map<String,Object>>> saveMaterialTagsAction(String mid,String ids) {
+	    	UserInfo user = UserInfoContext.get();
+	    	List<Map<String, Object>> result = iMaterialService.saveTagsByMid(mid, ids, user.getId());
+	    	return Result.success(result);
+	    }
+	    
+	    @GetMapping("/findMaterialTags")
+	    public Result<String> findProductTagsAction(String mid) {
+	    	String strs=iMaterialService.findMaterialTagsByMid(mid);
+	    	return Result.success(strs);
+	    }
+	    
+	    @GetMapping("/getWisePriceList")
+	    public Result<List<StepWisePrice>> findWisePriceListAction(String mid) {
+			if (StrUtil.isNotEmpty(mid)) {
+				return Result.success(stepWisePriceService.selectByMaterial(mid));
+			} else {
+				return Result.success(null);
+			}
+		}
+	    
+	    @PostMapping(value="/saveData",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	    @Transactional
+	    public Result<Map<String, Object>> saveAction(String infostr,@RequestParam(value="file",required=false)MultipartFile file){
+	    	UserInfo userinfo = UserInfoContext.get();
+	    	ObjectMapper mapper = new ObjectMapper();
+	    	MaterialInfoVO vo=null;
+			try {
+				vo = mapper.readValue(infostr, MaterialInfoVO.class);
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		    iMaterialService.saveAllInfo(vo,file,userinfo);
+	    	return Result.success();
+	    }
+	    
+	    @ApiOperation("删除material")
+	    @GetMapping("/deleteData")
+	    public Result<String> deleteDataAction(String ids){
+	    	UserInfo user = UserInfoContext.get();
+    		String[] idlist = ids.split(",");
+    		for (int i = 0; i < idlist.length; i++) {
+    			String id = idlist[i];
+    			if (StrUtil.isNotEmpty(id)) {
+    				Material material = iMaterialService.getById(id);
+    				String issfg = material.getIssfg();
+    				if("2".equals(issfg)) {
+    					// 如果是子产品并已被加入了主产品中，无法做删除操作
+    					String materialId = material.getId();
+    					QueryWrapper<Assembly> assqueryWrapper=new QueryWrapper<Assembly>();
+    					assqueryWrapper.eq("submid", materialId);
+    					List<Assembly> asslist = assemblyService.list(assqueryWrapper);
+    					if(asslist!=null && asslist.size()>0) {
+    						for(Assembly assemblymain:asslist) {
+    							String mainid = assemblymain.getMainmid();
+    							Material mainMaterial = iMaterialService.getById(mainid);
+    							if(mainMaterial==null||mainMaterial.isDelete()==true) {
+    								continue;
+    							}
+    							String mainSku=material.getSku()+"已存在于主SKU："+mainMaterial.getSku()+",无法归档!";
+    							throw new BizException(mainSku);
+    						}
+    						
+    					} 
+    				}
+    				// 如果ID存在，删除图片对应位置
+    				QueryWrapper<PurchaseFormEntry> queryWrapper=new QueryWrapper<PurchaseFormEntry>();
+    				queryWrapper.eq("materialid", id);
+    				queryWrapper.between("auditstatus", 1, 2);
+					List<PurchaseFormEntry> list = purchaseFormEntryService.list(queryWrapper);
+    				if (list != null && list.size() > 0) {
+    					throw new BizException("SKU:" + material.getSku() + " 存在采购订单无法删除！系统终止删除操作");
+    				}
+    				iMaterialService.logicalDeleteMaterial(user, material);
+    			}
+    		}
+    		return Result.success("操作成功！");
+	    }
+	    
+	    @ApiOperation("还原material")
+	    @GetMapping("/recoverData")
+	    public Result<String> recoverDataAction(String id,String sku){
+	    	UserInfo user = UserInfoContext.get();
+			if (StrUtil.isEmpty(sku)) {
+				throw new BizException("该SKU " + sku + "：有误，不能还原回去！");
+			}
+			if (StrUtil.isEmpty(id)) {
+				throw new BizException("该SKU有误，不能还原回去！");
+			}
+			iMaterialService.updateReductionSKUMaterial(user, id, sku);
+			return Result.success("SKU:"+sku+"还原成功!");
+	    }
+	    
+	    @ApiOperation("获取产品供货周期和海外仓库存信息")
+	    @GetMapping("/getMSkuDeliveryAndInv")
+	    public Result<Material> getMSkuDeliveryAndInv(
+	    		@RequestParam String shopid,
+	    		@RequestParam String groupid,
+	    		@RequestParam String msku,
+	    		@RequestParam String country){
+	 	    Material material = iMaterialService.selectBySKU(shopid, msku);
+	 	    if(material!=null) {
+	 	    	Integer count = inventoryService.findOverseaById(material.getId(), shopid, groupid,country); 
+		    	material.setOverseaqty(count);
+	 	    } 
+	    	return Result.success(material);
+	    }
+	 
+	    @PostMapping("/getMskuInventory")
+		public Result<List<Map<String, Object>>> getMskuInventory(@RequestBody ShipPlanDTO dto){
+	    	    return Result.success(iMaterialService.findInventoryByMsku(dto));
+	    }
+	    
+	    @PostMapping(value = "/uploadBaseInfoFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public Result<String> uploadExcelAction(@RequestParam("file")MultipartFile file)  {
+		       UserInfo user=UserInfoContext.get();
+				if (file != null) {
+					try {
+						InputStream inputStream = file.getInputStream();
+						Workbook workbook = WorkbookFactory.create(inputStream);
+						Sheet sheet = workbook.getSheetAt(0);
+						for (int i = 2; i <= sheet.getLastRowNum(); i++) {
+							Row info=sheet.getRow(i);
+							if(info==null || info.getCell(0)==null) {
+								continue;
+							}
+							excelDownLoadService.uploadMaterialBaseInfoFile(user, info);
+						}
+						workbook.close();
+						return Result.success();
+					} catch (IOException e) {
+						e.printStackTrace();
+						return Result.failed();
+					} catch (EncryptedDocumentException e) {
+						e.printStackTrace();
+					} catch (InvalidFormatException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			return Result.success("ok");
+		}
+	    
+	    
+	    @PostMapping(value = "/uploadSupplierFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public Result<String> uploadSupplierFileAction(@RequestParam("file")MultipartFile file)  {
+		       UserInfo user=UserInfoContext.get();
+				if (file != null) {
+					try {
+						InputStream inputStream = file.getInputStream();
+						Workbook workbook = WorkbookFactory.create(inputStream);
+						Sheet sheet = workbook.getSheetAt(0);
+						for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+							Row info=sheet.getRow(i);
+							if(info==null || info.getCell(0)==null) {
+								continue;
+							}
+							excelDownLoadService.uploadMaterialSupplierFile(user, info);
+						}
+						workbook.close();
+						return Result.success();
+					} catch (IOException e) {
+						e.printStackTrace();
+						return Result.failed();
+					} catch (EncryptedDocumentException e) {
+						e.printStackTrace();
+					} catch (InvalidFormatException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			return Result.success("ok");
+		}
+	    
+	    @PostMapping(value = "/uploadConsumableFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public Result<String> uploadConsumableFileAction(@RequestParam("file")MultipartFile file)  {
+		       UserInfo user=UserInfoContext.get();
+				if (file != null) {
+					try {
+						InputStream inputStream = file.getInputStream();
+						Workbook workbook = WorkbookFactory.create(inputStream);
+						Sheet sheet = workbook.getSheetAt(0);
+						for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+							Row info=sheet.getRow(i);
+							if(info==null || info.getCell(0)==null) {
+								continue;
+							}
+							excelDownLoadService.uploadMaterialConsumableFile(user, info);
+						}
+						workbook.close();
+						return Result.success();
+					} catch (IOException e) {
+						e.printStackTrace();
+						return Result.failed();
+					} catch (EncryptedDocumentException e) {
+						e.printStackTrace();
+					} catch (InvalidFormatException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			return Result.success("ok");
+		}
+	    
+	    @PostMapping(value = "/uploadCustomsFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public Result<String> uploadCustomsFileAction(@RequestParam("file")MultipartFile file)  {
+		       UserInfo user=UserInfoContext.get();
+				if (file != null) {
+					try {
+						InputStream inputStream = file.getInputStream();
+						Workbook workbook = WorkbookFactory.create(inputStream);
+						Sheet sheet = workbook.getSheetAt(0);
+						for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+							Row info=sheet.getRow(i);
+							if(info==null || info.getCell(0)==null) {
+								continue;
+							}
+							excelDownLoadService.uploadMaterialCustomsFile(user, info);
+						}
+						workbook.close();
+						return Result.success();
+					} catch (IOException e) {
+						e.printStackTrace();
+						return Result.failed();
+					} catch (EncryptedDocumentException e) {
+						e.printStackTrace();
+					} catch (InvalidFormatException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			return Result.success("ok");
+		}
+	    
+	    @PostMapping(value = "/uploadAssemblyFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public Result<String> uploadAssemblyFileAction(@RequestParam("file")MultipartFile file)  {
+		       UserInfo user=UserInfoContext.get();
+				if (file != null) {
+					try {
+						InputStream inputStream = file.getInputStream();
+						Workbook workbook = WorkbookFactory.create(inputStream);
+						Sheet sheet = workbook.getSheetAt(0);
+						for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+							Row info=sheet.getRow(i);
+							if(info==null || info.getCell(0)==null) {
+								continue;
+							}
+							excelDownLoadService.uploadMaterialAssemblyFile(user, info);
+						}
+						workbook.close();
+						return Result.success();
+					} catch (IOException e) {
+						e.printStackTrace();
+						return Result.failed();
+					} catch (EncryptedDocumentException e) {
+						e.printStackTrace();
+					} catch (InvalidFormatException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			return Result.success("ok");
+		}
+	    
+	    @GetMapping("/findSKUImageForProduct")
+		public Result<List<Map<String, Object>>> findSKUImageForProductAction(String skulist) {
+			List<String> param = new ArrayList<String>();
+			UserInfo user=UserInfoContext.get();
+			Map<String, Object> maps = new HashMap<String, Object>();
+			String[] skuStr = null;
+			if(StrUtil.isNotEmpty(skulist)) {
+				skuStr = skulist.split("%,#");
+			}
+			for(int i = 0; i < skuStr.length; i++) {
+				param.add(skuStr[i]);
+			}
+			maps.put("param", param);
+			maps.put("shopid", user.getCompanyid());
+			List<Map<String, Object>> list = iMaterialService.findSKUImageForProduct(maps);
+			return Result.success(list);
+		}
+	    
+	    @GetMapping("/copyImageForProduct")
+		public Result<List<Map<String, Object>>> copyImageForProductAction(String sku,String materialid,String image) {
+			List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
+			UserInfo user=UserInfoContext.get();
+			String[] skuStr = null;
+			String[] materialidStr = null;
+			String[] imageStr = null;
+			if(StrUtil.isNotEmpty(sku)) {
+				skuStr = sku.split("%,#");
+			}
+			if(StrUtil.isNotEmpty(materialid)) {
+				materialidStr = materialid.split("%,#");
+			}
+			if(StrUtil.isNotEmpty(image)) {
+				imageStr = image.split("%,#");
+			}
+			for(int i = 0; i < skuStr.length; i++) {
+				Map<String, Object> maps = new HashMap<String, Object>();
+				maps.put("sku", skuStr[i]);
+				maps.put("materialid", materialidStr[i]);
+				maps.put("image", imageStr[i]);
+				list.add(maps);
+			}
+			return Result.success(iMaterialService.copyImageForProduct(list, user));
+		}
+		
+	    @GetMapping("/copyDimsForProduct")
+		public Result<List<Map<String, Object>>> copyDimsForProductAction(String sku,String materialid,String dims) {
+			List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
+			UserInfo user=UserInfoContext.get();
+			String[] skuStr = null;
+			String[] materialidStr = null;
+			String[] dimStr = null;
+			if(StrUtil.isNotEmpty(sku)) {
+				skuStr = sku.split("%,#");
+			}
+			if(StrUtil.isNotEmpty(materialid)) {
+				materialidStr = materialid.split("%,#");
+			}
+			if(StrUtil.isNotEmpty(dims)) {
+				dimStr = dims.split("%,#");
+			}
+			for(int i = 0; i < skuStr.length; i++) {
+				Map<String, Object> maps = new HashMap<String, Object>();
+				maps.put("sku", skuStr[i]);
+				maps.put("materialid", materialidStr[i]);
+				maps.put("dims", dimStr[i]);
+				list.add(maps);
+			}
+			return Result.success(iMaterialService.copyDimsForProduct(list, user));
+		}
+	    
+	    
+	    
+	    
+	    
 }

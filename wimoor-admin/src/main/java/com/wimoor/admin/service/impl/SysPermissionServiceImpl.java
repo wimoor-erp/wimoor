@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, SysPermission> implements ISysPermissionService {
 
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, ?> redisTemplate;
 
     @Override
     public IPage<PermissionVO> list(Page<PermissionVO> page, String name, Long menuId) {
@@ -44,7 +44,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
         return this.baseMapper.listPermRoles();
     }
 
-    @Override
+	@Override
     public boolean refreshPermRolesRules() {
         redisTemplate.delete(Arrays.asList(GlobalConstants.URL_PERM_ROLES_KEY, GlobalConstants.BTN_PERM_ROLES_KEY));
         List<SysPermission> permissions = this.listPermRoles();

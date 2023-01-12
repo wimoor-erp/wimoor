@@ -34,7 +34,6 @@ import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.pojo.entity.DaysalesFormula;
-import com.wimoor.amazon.common.pojo.entity.Material;
 import com.wimoor.amazon.common.pojo.vo.ChartLine;
 import com.wimoor.amazon.common.pojo.vo.ChartMarkpoint;
 import com.wimoor.amazon.common.service.IDaysalesFormulaService;
@@ -56,15 +55,15 @@ import com.wimoor.amazon.inbound.service.IShipInboundPlanService;
 import com.wimoor.amazon.inbound.service.IShipInboundShipmentRecordService;
 import com.wimoor.amazon.inbound.service.IShipInboundShipmentService;
 import com.wimoor.amazon.product.mapper.ProductInfoMapper;
-import com.wimoor.amazon.product.pojo.entity.IProductInPresaleService;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
+import com.wimoor.amazon.product.service.IProductInPresaleService;
 import com.wimoor.amazon.util.AmzDateUtils;
+import com.wimoor.amazon.util.UUIDUtil;
 import com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundItemVo;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.util.UUIDUtil;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -135,9 +134,15 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
     
     private ShipInboundShipment getShipment(AmazonAuthority auth, Marketplace market, InboundShipmentInfo item){
                 Date nowdate = new Date();
+                if(item==null) {
+                	return null;
+                }
                 ShipInboundShipment shipment = new ShipInboundShipment();
     			shipment.setShipmentid(item.getShipmentId());
-    			String shipmentstatus=item.getShipmentStatus().getValue();
+    			String shipmentstatus="SHIPPED";
+    			if(item.getShipmentStatus()!=null) {
+    				shipmentstatus=item.getShipmentStatus().getValue();
+    			}
     			shipment.setCreatedate(nowdate);
     			shipment.setCreator("1");
     			shipment.setCurrency(market.getCurrency());
@@ -196,63 +201,68 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
 		shipAddress.setStateorprovincecode(address.getStateOrProvinceCode());
 		return shipAddress;
     }
+   
+   private ShipInboundPlan createPlan(AmazonAuthority auth, Marketplace market, InboundShipmentInfo item,String warehouseid,Integer skunum) {
+	    Date nowdate = new Date();
+		ShipInboundPlan inplan = new ShipInboundPlan();
+		String marketplaceid = market.getMarketplaceid();
+		String groupid = auth.getGroupid();
+		String shipname = item.getShipmentName();
+		String inboundplanid = UUIDUtil.getUUIDshort();
+		inplan.setId(inboundplanid);
+		inplan.setAmazongroupid(groupid);
+		inplan.setArecasesrequired(item.isAreCasesRequired());
+		inplan.setAuditstatus(3);
+		inplan.setCreatedate(nowdate);
+		inplan.setOpttime(nowdate);
+		inplan.setCreator("1");
+		inplan.setLabelpreptype(item.getLabelPrepType().getValue());
+		 
+		Map<String, Object> tocountry = shipInboundShipmentService.findToCountry(item.getDestinationFulfillmentCenterId(),null);
+		if(tocountry!=null&&tocountry.get("marketplaceId")!=null) {
+			marketplaceid=tocountry.get("marketplaceId").toString()	;
+		}
+		inplan.setMarketplaceid(marketplaceid);
+		inplan.setName(shipname);
+		String number = null;
+		try {
+			number = serialNumService.readSerialNumber(auth.getShopId(), "SF");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		inplan.setNumber(number);
+		inplan.setOperator("1");
+		inplan.setShopid(auth.getShopId());
+		if(StrUtil.isNotEmpty(warehouseid)) {
+			inplan.setWarehouseid(warehouseid);
+		}
+		inplan.setSkunum(skunum);
+		if(item.getShipFromAddress()!=null&&item.getShipFromAddress().getName()!=null) {
+			QueryWrapper<ShipAddress> query=new QueryWrapper<ShipAddress>();
+			query.eq("groupid",auth.getGroupid());
+			query.eq("name",item.getShipFromAddress().getName());
+			List<ShipAddress> shipAddresslist = shipAddressService.list(query);
+			if(shipAddresslist!=null && shipAddresslist.size()>0) {
+				inplan.setShipfromaddressid(shipAddresslist.get(0).getId());
+			}else {
+				//插入shipaddress表   并给inbound表addressid
+				ShipAddress shipAddress=getAddress(auth,item);
+				boolean saveShipResult=shipAddressService.save(shipAddress);
+				if(saveShipResult) {
+					inplan.setShipfromaddressid(shipAddress.getId());
+				}
+			}
+		}
+		this.save(inplan);
+		return inplan;
+   }
 	@Override
 	public ShipInboundShipment createShipment(AmazonAuthority auth, Marketplace market, InboundShipmentInfo item,String warehouseid,Integer skunum) {
 		// TODO Auto-generated method stub
 			ShipInboundShipment shipmentold = shipInboundShipmentService.getById(item.getShipmentId());
 			if(shipmentold==null) {
-				Date nowdate = new Date();
-				ShipInboundPlan inplan = new ShipInboundPlan();
-				String marketplaceid = market.getMarketplaceid();
-				String groupid = auth.getGroupid();
-				String shipname = item.getShipmentName();
-				String inboundplanid = UUIDUtil.getUUIDshort();
-				inplan.setId(inboundplanid);
-				inplan.setAmazongroupid(groupid);
-				inplan.setArecasesrequired(item.isAreCasesRequired());
-				inplan.setAuditstatus(3);
-				inplan.setCreatedate(nowdate);
-				inplan.setOpttime(nowdate);
-				inplan.setCreator("1");
-				inplan.setLabelpreptype(item.getLabelPrepType().getValue());
-				 
-				Map<String, Object> tocountry = shipInboundShipmentService.findToCountry(item.getDestinationFulfillmentCenterId(),null);
-				if(tocountry!=null&&tocountry.get("marketplaceId")!=null) {
-					marketplaceid=tocountry.get("marketplaceId").toString()	;
-				}
-				inplan.setMarketplaceid(marketplaceid);
-				inplan.setName(shipname);
-				String number = null;
-				try {
-					number = serialNumService.readSerialNumber(auth.getShopId(), "SF");
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				inplan.setNumber(number);
-				inplan.setOperator("1");
-				inplan.setShopid(auth.getShopId());
-				if(StrUtil.isNotEmpty(warehouseid)) {
-					inplan.setWarehouseid(warehouseid);
-				}
-				inplan.setSkunum(skunum);
-				if(item.getShipFromAddress()!=null&&item.getShipFromAddress().getName()!=null) {
-					QueryWrapper<ShipAddress> query=new QueryWrapper<ShipAddress>();
-					query.eq("groupid",auth.getGroupid());
-					query.eq("name",item.getShipFromAddress().getName());
-					List<ShipAddress> shipAddresslist = shipAddressService.list(query);
-					if(shipAddresslist!=null && shipAddresslist.size()>0) {
-						inplan.setShipfromaddressid(shipAddresslist.get(0).getId());
-					}else {
-						//插入shipaddress表   并给inbound表addressid
-						ShipAddress shipAddress=getAddress(auth,item);
-						boolean saveShipResult=shipAddressService.save(shipAddress);
-						if(saveShipResult) {
-							inplan.setShipfromaddressid(shipAddress.getId());
-						}
-					}
-				}
-				this.save(inplan);
+				ShipInboundPlan inplan=createPlan( auth,  market,  item, warehouseid, skunum);
 				ShipInboundShipment shipment = getShipment(auth,market,item);
 				shipment.setInboundplanid(inplan.getId());
 				shipInboundShipmentService.save(shipment);
@@ -261,19 +271,22 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
 				return shipment;
 			}else {
 				 ShipInboundPlan plan = this.getById(shipmentold.getInboundplanid());
-				 if(plan.getWarehouseid()==null&&StrUtil.isNotEmpty(warehouseid)) {
-					 plan.setWarehouseid(warehouseid);
+				 if(plan!=null) {
+					 if(StrUtil.isNotEmpty(warehouseid)) {
+						 plan.setWarehouseid(warehouseid);
+					 }
+				 }else {
+					 plan=createPlan( auth,  market,  item, warehouseid, skunum);
+					 shipmentold.setInboundplan(plan);
+					 shipmentold.setInboundplanid(plan.getId());
 				 }
-				 shipmentold.setShipmentstatus(item.getShipmentStatus().getValue());
+				 if(item.getShipmentStatus()!=null) {
+					 shipmentold.setShipmentstatus(item.getShipmentStatus().getValue());
+				 }
 				 shipInboundShipmentService.updateById(shipmentold);
 				 shipmentold.setInboundplan(plan);
 				 return shipmentold;
 			}
-		
-			
-			
-		   
-		
 	} 
 	
 	@Override
@@ -310,9 +323,26 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
 				inplan.setNumber(number);
 				inplan.setOperator("1");
 				inplan.setShopid(auth.getShopId());
-				inplan.setWarehouseid(warehouseid);
+				if(StrUtil.isNotBlank(warehouseid)) {
+					inplan.setWarehouseid(warehouseid);
+				}
 				inplan.setSkunum(skunum);
-		     ShipAddress shipAddress=getAddress(auth,item);
+				if(item.getShipFromAddress()!=null&&item.getShipFromAddress().getName()!=null) {
+					QueryWrapper<ShipAddress> query=new QueryWrapper<ShipAddress>();
+					query.eq("groupid",auth.getGroupid());
+					query.eq("name",item.getShipFromAddress().getName());
+					List<ShipAddress> shipAddresslist = shipAddressService.list(query);
+					if(shipAddresslist!=null && shipAddresslist.size()>0) {
+						inplan.setShipfromaddressid(shipAddresslist.get(0).getId());
+					}else {
+						//插入shipaddress表   并给inbound表addressid
+						ShipAddress shipAddress=getAddress(auth,item);
+						boolean saveShipResult=shipAddressService.save(shipAddress);
+						if(saveShipResult) {
+							inplan.setShipfromaddressid(shipAddress.getId());
+						}
+					}
+				}
 			 ShipInboundShipment shipment = getShipment(auth,market,item);
 		     shipment.setInboundplan(inplan);
 		return shipment;
@@ -390,9 +420,9 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
 					} else {
 						if(qty>0){
 							//拿msku
-							Material material = productInfoMapper.findMSKUBySKUMarket(sku, map.get("marketplaceid").toString(),
+							String msku= productInfoMapper.findMSKUBySKUMarket(sku, map.get("marketplaceid").toString(),
 									map.get("amazonauthid").toString());
-							if(material==null){
+							if(msku==null){
 								isok = false;
 								skuList.add(sku);
 							} else {
@@ -672,5 +702,24 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
 			} else {
 				return day2 - day1;
 			}
+		}
+
+		
+		public List<Map<String, Object>> getShipRecordByMarket(String marketplaceid, String groupid) {
+			// TODO Auto-generated method stub
+			return this.baseMapper.getShipRecordByMarket( marketplaceid, groupid);
+		}
+		
+		public List<Map<String, Object>> getShipRecord(String shopid, String marketplaceid, String sku) {
+			// TODO Auto-generated method stub
+			return this.baseMapper.getShipRecord( marketplaceid, sku,shopid);
+		}
+
+
+
+		@Override
+		public List<Map<String, Object>> getShipBadRecord(String shopid, String marketplaceid, String sku) {
+			// TODO Auto-generated method stub
+			return this.baseMapper.getShipBadRecord(marketplaceid, sku, shopid);
 		}
 }

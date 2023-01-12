@@ -6,8 +6,9 @@ import java.util.Map;
 
 import com.amazon.spapi.model.fbainventory.InventorySummary;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.inventory.pojo.entity.AmzInventoryCountryReport;
+import com.wimoor.amazon.inventory.pojo.entity.InventoryReport;
 import com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo;
-import com.wimoor.amazon.report.pojo.entity.InventoryReport;
 
 public interface IInventorySupplyService {
 
@@ -20,4 +21,5 @@ public interface IInventorySupplyService {
 			 String myself,
 			 String shopid);
 	InventoryReport syncInventorySupply(AmazonAuthority amazonAuthority, List<String> list);
+	List<AmzInventoryCountryReport> findEUFBA(String authid, String sku);
 }

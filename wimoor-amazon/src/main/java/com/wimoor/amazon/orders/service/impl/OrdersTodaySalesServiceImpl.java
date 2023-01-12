@@ -28,8 +28,8 @@ import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.inventory.service.IInventorySupplyService;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
 import com.wimoor.amazon.orders.service.IOrdersTodaySalesService;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
 import com.wimoor.common.GeneralUtil;
 @Service
 public class OrdersTodaySalesServiceImpl implements IOrdersTodaySalesService{

@@ -13,7 +13,7 @@ import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.auth.service.IAmazonSellerMarketService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.finances.mapper.AmzFinAccountMapper;
-import com.wimoor.amazon.report.mapper.InventoryReportMapper;
+import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
 import com.wimoor.common.GeneralUtil;
 
 public class AmzFinEmailServiceImpl {

@@ -24,6 +24,8 @@ import com.wimoor.common.user.UserInfo;
  */
 public interface IProductInfoService extends IService<ProductInfo> {
 
+	public List<String> getPidListByTagList(List<String> taglist,Object shopid,Object amazonAuthId,Object groupid,Object groupList,Object marketplace) ;
+	
 	List<ProductInfo> selectBySku(String sku, String marketplaceid, String amazonAuthId);
 
 	ProductInfo productOnlyone(String amazonAuthId, String sku, String marketplaceid);
@@ -57,5 +59,7 @@ public interface IProductInfoService extends IService<ProductInfo> {
 	void showProfitDetial(Map<String, Object> map);
 
 	Map<String, Object> productSimpleInfoOnlyone(String amazonAuthId, String sku, String marketplaceid);
+
+	public String findMSKUBySKUMarket(String psku, String marketplaceid, String id);
  
 }

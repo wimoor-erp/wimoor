@@ -1,5 +1,7 @@
 package com.wimoor.erp.ship.pojo.dto;
 
+import java.util.List;
+
 import com.wimoor.common.pojo.entity.BasePageQuery;
 
 import io.swagger.annotations.ApiModel;
@@ -14,9 +16,9 @@ public class ShipPlanDTO extends BasePageQuery{
 	String warehouseid ;
 	String planid ;
 	String marketplaceid ;
-	String color;
+	String shortdays;
 	String search ;
-	String selected ;
+	Boolean selected ;
 	String status ;
 	String status2;
 	String owner ;
@@ -25,11 +27,20 @@ public class ShipPlanDTO extends BasePageQuery{
 	String orderparam ;
 	String sortparam ;
 	String ordercountry;
-	String issfg ;
-	String skulist ;
+	String msku;
+	Integer issfg ;
+	String ischeck;
+	String skuarray ;
 	String proname;
+	String small;
 	String remark ;
+	String currentRank;
+	String hasAddFee;
 	String defoutwarehouseid ;
 	String samesearch;
 	String searchtype;
+	List<String> mskulist;
+	List<String> skulist;
+	List<String> pidlist;
+	List<String> tags;
 }

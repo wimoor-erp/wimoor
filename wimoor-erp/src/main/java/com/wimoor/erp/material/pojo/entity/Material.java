@@ -9,6 +9,7 @@ import javax.validation.constraints.Size;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.erp.common.pojo.entity.ErpBaseEntity;
 
 import io.swagger.annotations.ApiModel;
@@ -60,11 +61,11 @@ public class Material  extends ErpBaseEntity{
     private String brand;
     
     @ApiModelProperty(value = "产品尺寸重量ID")
-	@TableField(value = "itemdimensions")
+	@TableField(value = "itemDimensions")
     private String itemdimensions;
 
     @ApiModelProperty(value = "代包装的产品尺寸重量ID")
-    @TableField(value = "pkgdimensions")
+    @TableField(value = "pkgDimensions")
     private String pkgdimensions;
     
     @ApiModelProperty(value = "箱子尺寸重量ID")
@@ -151,6 +152,14 @@ public class Material  extends ErpBaseEntity{
     @TableField(value = "owner")
     private String owner;
     
+    @ApiModelProperty(value = "加权价格")
+    @TableField(value="price_wavg")
+    private BigDecimal priceWavg;
+    
+    @ApiModelProperty(value = "加权运费")
+    @TableField(value="price_ship_wavg")
+    private BigDecimal priceShipWavg;
+    
     @ApiModelProperty(value = "产品生效日期")
     @TableField(value = "effectivedate")
     private Date effectivedate;
@@ -162,5 +171,11 @@ public class Material  extends ErpBaseEntity{
     @ApiModelProperty(value = "是否归档")
     @TableField(value = "isDelete")
     private boolean isDelete;
-
+    
+    @TableField(exist=false)
+    private Picture picture;
+    
+    
+    @TableField(exist=false)
+    private Integer overseaqty;
 }

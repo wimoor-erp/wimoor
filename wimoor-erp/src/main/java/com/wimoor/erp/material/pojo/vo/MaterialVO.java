@@ -59,12 +59,14 @@ public class MaterialVO  extends ErpBaseEntity{
     @TableField(value = "brand")
     private String brand;
     
+    private String brandid;
+    
     @ApiModelProperty(value = "产品尺寸重量ID")
-	@TableField(value = "itemdimensions")
+	@TableField(value = "itemDimensions")
     private String itemdimensions;
 
     @ApiModelProperty(value = "代包装的产品尺寸重量ID")
-    @TableField(value = "pkgdimensions")
+    @TableField(value = "pkgDimensions")
     private String pkgdimensions;
     
     @ApiModelProperty(value = "箱子尺寸重量ID")
@@ -139,6 +141,14 @@ public class MaterialVO  extends ErpBaseEntity{
     @TableField(value="price")
     private BigDecimal price;
     
+    @ApiModelProperty(value = "价格")
+    @TableField(value="price_wavg")
+    private BigDecimal priceWavg;
+    
+    @ApiModelProperty(value = "价格")
+    @TableField(value="price_ship_wavg")
+    private BigDecimal priceShipWavg;
+    
     @ApiModelProperty(value = "创建人ID【系统填写】")
     @TableField(value = "creator")
     private String creator;
@@ -171,5 +181,17 @@ public class MaterialVO  extends ErpBaseEntity{
     
     @TableField(exist=false)
     private String supplierId;
+    
+    @TableField(exist=false)
+    @ApiModelProperty(value = "产品标签列表数据")
+	String taglist;
+    
+    @TableField(exist=false)
+    @ApiModelProperty(value = "产品图片ID")
+    String imageid;
+    
+    @TableField(exist=false)
+    @ApiModelProperty(value = "产品图片数据")
+    Object imgfile;
  
 }

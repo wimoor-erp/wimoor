@@ -10,7 +10,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.mapper.MarketplaceMapper;
@@ -308,13 +307,17 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 	}
  
 	public List<Marketplace> getMarketPointBySkuGroup(String groupid,String sku){
-		return this.baseMapper.getMarketPointBySkuGroup(sku, groupid);
+		List<Marketplace> marketlist= this.baseMapper.getMarketPointBySkuGroup(sku, groupid);
+		clearMarket(marketlist);
+		return marketlist;
 	}
 
 	@Override
-	public List<Marketplace> getMarketPointByMSku(String shopid, String msku) {
+	public List<Marketplace> getMarketPointByMSku(String shopid,String groupid, String msku) {
 		// TODO Auto-generated method stub
-		return this.baseMapper.getMarketPointByMSku(msku, shopid);
+		List<Marketplace> marketlist= this.baseMapper.getMarketPointByMSku(msku,groupid, shopid);
+		clearMarket(marketlist);
+		return marketlist;
 	}
      
 }

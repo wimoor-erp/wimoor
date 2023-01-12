@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.api.erp.assembly.pojo.vo.AssemblyVO;
 import com.wimoor.erp.assembly.pojo.entity.Assembly;
+import com.wimoor.erp.material.pojo.entity.Material;
 @Mapper
 public interface AssemblyMapper  extends BaseMapper<Assembly> {
 
@@ -25,7 +26,7 @@ public interface AssemblyMapper  extends BaseMapper<Assembly> {
 	List<Map<String,Object>>  selectByMainDetailmid(@Param("mainmid")String mainmid,@Param("warehouseid")String warehouseid);
 	List<Assembly> selectAssemblySub(@Param("mainmid")String mainmid);
 
-	List<Map<String, Object>> selectMainBySubid(@Param("submid")String submid);
+	List<Material> selectMainBySubid(@Param("submid")String submid);
 
 	Integer findCanAssembly(@Param("materialid")String materialid,@Param("warehouseid") String warehouseid,@Param("shopid") String shopid);
 	

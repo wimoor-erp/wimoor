@@ -46,5 +46,9 @@ public class MaterialSupplierStepwise extends BaseEntity{
 	@ApiModelProperty(value = "数量")
     @TableField(value="opttime")
     private Date opttime;
+	
+	@ApiModelProperty(value = "币别")
+    @TableField(value="currency")
+    private String currency;
  
 }

@@ -19,14 +19,14 @@
    <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.4</version>
+        <version>2.6.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     
     <properties>
           <java.version>1.8</java.version>
           <spring-boot.version>2.5.4</spring-boot.version>
-          <spring-cloud.version>2020.0.2</spring-cloud.version>
+          <spring-cloud.version>2021.0.1</spring-cloud.version>
           <spring-cloud-alibaba.version>2021.1</spring-cloud-alibaba.version>
           <druid.version>1.2.4</druid.version>
           <mybatis-plus.version>3.4.3</mybatis-plus.version>
@@ -34,6 +34,9 @@
           <javax-validator.version>1.1.0.Final</javax-validator.version>
           <hutool.version>5.5.8</hutool.version>
           <minio.version>7.1.0</minio.version>
+          <spring-cloud-starter-seata.version>2021.0.1.0</spring-cloud-starter-seata.version>
+          <seata.springboot.starter.version>1.4.2</seata.springboot.starter.version>
+          <seata-all.version>1.4.2</seata-all.version>
      </properties>
      
       <dependencies>
@@ -80,8 +83,28 @@
                 <artifactId>minio</artifactId>
                 <version>${minio.version}</version>
                </dependency>
+               
+			   <dependency>
+				    <groupId>com.alibaba.cloud</groupId>
+				    <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+				    <version>${spring-cloud-starter-seata.version}</version>
+				</dependency>
+				
+				<dependency>
+				    <groupId>io.seata</groupId>
+				    <artifactId>seata-all</artifactId>
+				    <version>${seata-all.version}</version>
+				</dependency>
+				
+				<dependency>
+				    <groupId>io.seata</groupId>
+				    <artifactId>seata-spring-boot-starter</artifactId>
+				    <version>${seata.springboot.starter.version}</version>
+				</dependency>
+				
             </dependencies>
   
+ 
             </dependencyManagement>
     
 

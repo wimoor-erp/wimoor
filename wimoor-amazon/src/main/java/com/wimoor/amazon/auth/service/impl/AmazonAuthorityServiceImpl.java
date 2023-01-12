@@ -77,7 +77,20 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 	final IAmazonGroupService iAmazonGroupService;
 	
 	public AmazonAuthority selectByGroupAndMarket(String groupid,String marketplaceid) {
-		return this.baseMapper.selectByGroupAndMarket(groupid, marketplaceid);
+		if(marketplaceid!=null&&marketplaceid.equals("EU")) {
+			QueryWrapper<AmazonAuthority> queryWrapper=new QueryWrapper<AmazonAuthority>();
+			queryWrapper.eq("groupid", groupid);
+			queryWrapper.eq("disable", Boolean.FALSE);
+			queryWrapper.eq("region", "EU");
+			List<AmazonAuthority> list = this.baseMapper.selectList(queryWrapper);
+			if(list!=null&&list.size()>0) {
+				return list.get(0);
+			}else {
+				return null;
+			}
+		}else {
+			return this.baseMapper.selectByGroupAndMarket(groupid, marketplaceid);
+		}
 	}
 	
 	public List<AmazonAuthority> selectByGroupId(String groupid) {
@@ -212,7 +225,9 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 					threadList.add(threadPoolTaskExecutor.submit(runnables.get(i)));
 				}
 			}
-		
+			if(type!=null&&type.equals("anlyway")) {
+		    	return ;
+		    }
 			new Thread(new Runnable(){
 				@Override
 				public void run() {
@@ -269,6 +284,14 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 		// TODO Auto-generated method stub
 		return this.baseMapper.selectByMarket(marketplaceid);
 	}
+	
+	@Override
+	public List<AmazonAuthority> selectByShopAndMarket(String shopid,String marketplaceid) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.selectByShopAndMarket(shopid,marketplaceid);
+	}
+	
+	
 
 	@Override
 	public AmazonAuthority selectBySellerId(String sellerid) {
@@ -481,15 +504,15 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
   					        }
        		    	     } 
        		       }
-       		      if(region.getSellerid()==null) {
+       		      if(region!=null&&region.getSellerid()==null) {
        		    	region.setSellerid(sellerid);
        		      }
-       		      if(region.getRegionname()==null) {
+       		      if(region!=null&&region.getRegionname()==null) {
        		    	  region.setRegionname(regionName);
        		      }
          		  
        	        }
-        	   if(regions.size()>0) {
+        	   if(regions!=null&&regions.size()>0) {
         		   AmazonGroupVO groupvo=new AmazonGroupVO();
         		   groupvo.setGname(groupitem.getName());
         		   groupvo.setGroupid(groupitem.getId());
@@ -516,6 +539,16 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public AmazonAuthority selectByGroupAndRegion(String groupid, String region) {
+		// TODO Auto-generated method stub
+		QueryWrapper<AmazonAuthority> queryWrapper=new QueryWrapper<AmazonAuthority>();
+		queryWrapper.eq("groupid", groupid);
+		queryWrapper.eq("region", region);
+		queryWrapper.eq("disable", Boolean.FALSE);
+		return this.baseMapper.selectOne(queryWrapper);
 	}
 	
 	

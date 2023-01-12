@@ -260,18 +260,21 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 		return (int) count;
 	}
 
-	@CacheEvict(value = "profitCfgCache", allEntries = true)
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+            @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public boolean save(ProfitConfig entity)  {
 		entity.setId(null);
 		return  this.baseMapper.insert(entity)>0?true:false;
 	}
 
-	@CacheEvict(value = "profitCfgCache", allEntries = true)
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+            @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public boolean delete(Serializable key) {
 		return  this.baseMapper.deleteById(key)>0?true:false;
 	}
 
-	@CacheEvict(value = "profitCfgCache", allEntries = true)
+	@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),
+            @CacheEvict(value = "profitCfgCache", allEntries = true)})
 	public int updateSelective(ProfitConfig entity)  {
 		return  this.baseMapper.updateById(entity);
 	}

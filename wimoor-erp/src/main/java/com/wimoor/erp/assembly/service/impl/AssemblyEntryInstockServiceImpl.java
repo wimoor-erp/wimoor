@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -30,8 +32,9 @@ import lombok.RequiredArgsConstructor;
 @Service("assemblyEntryInstockService")
 @RequiredArgsConstructor
 public class AssemblyEntryInstockServiceImpl extends ServiceImpl<AssemblyEntryInstockMapper,AssemblyEntryInstock> implements IAssemblyEntryInstockService{
-	 
-	final IAssemblyFormService assemblyFormService;
+	 @Autowired
+	 @Lazy
+	IAssemblyFormService assemblyFormService;
 	 
 	final IAssemblyFormEntryService assemblyFormEntryService;
 	 
@@ -212,11 +215,14 @@ public class AssemblyEntryInstockServiceImpl extends ServiceImpl<AssemblyEntryIn
 	
 	public void cancelInStock(UserInfo user,AssemblyEntryInstock entity){
 		AssemblyForm assemblyForm = assemblyFormService.getById(entity.getFormid());
-		assemblyForm.setAmount_handle(assemblyForm.getAmount_handle()-entity.getAmount());
+		if(assemblyForm.getAmount_handle()>entity.getAmount()) {
+			assemblyForm.setAmount_handle(assemblyForm.getAmount_handle()-entity.getAmount());
+		}else {
+			assemblyForm.setAmount_handle(0);
+		}
 	    assemblyForm.setAuditstatus(2);
 			// 操作库存
 			InventoryParameter invpara = new InventoryParameter();
-			 
 			invpara.setAmount(Integer.parseInt(entity.getAmount().toString()));
 			invpara.setFormid(entity.getFormid());
 			invpara.setFormtype("assembly");
@@ -236,8 +242,7 @@ public class AssemblyEntryInstockServiceImpl extends ServiceImpl<AssemblyEntryIn
 		for (int i = 0; i < list.size(); i++) {
 			AssemblyFormEntry entry = list.get(i);
 			invpara = new InventoryParameter();
-	 
-			 int amount = (entry.getAmount() / assemblyForm.getAmount()) * entity.getAmount();
+			int amount = (entry.getAmount() / assemblyForm.getAmount()) * entity.getAmount();
 			invpara.setAmount(amount);
 			invpara.setFormid(entity.getFormid());
 			invpara.setFormtype("assembly");

@@ -5,9 +5,11 @@ import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -20,6 +22,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +56,7 @@ import com.wimoor.erp.ship.service.IShipTransChannelService;
 import com.wimoor.erp.ship.service.IShipTransCompanyService;
 import com.wimoor.erp.ship.service.IShipTransCompanyZhihuiService;
 import com.wimoor.erp.ship.service.IShipTransDetailService;
+import com.wimoor.erp.warehouse.service.IWarehouseService;
 
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
@@ -74,6 +78,7 @@ public class ShipTransCompanyController {
 	final IShipTransDetailService shipTransDetailService;
 	final IErpShipTransTypeService erpShipTransTypeService;
 	final IShipTransCompanyZhihuiService shipTransCompanyZhihuiService;
+	final IWarehouseService  iWarehouseService;
 	@Resource
 	IPictureService pictureService;
 	@Resource
@@ -309,6 +314,7 @@ public class ShipTransCompanyController {
 		String shopid =user.getCompanyid();
 		QueryWrapper<ErpShipTransType> query=new QueryWrapper<ErpShipTransType>();
 		query.eq("shopid", shopid);
+		query.eq("disable", false);
 		List<ErpShipTransType> list =erpShipTransTypeService.list(query);
 		return Result.success(list) ;
 	}
@@ -319,6 +325,7 @@ public class ShipTransCompanyController {
 		String shopid =user.getCompanyid();
 		QueryWrapper<ErpShipTransType> query=new QueryWrapper<ErpShipTransType>();
 		query.eq("shopid", shopid);
+		query.eq("disable", false);
 		query.or().isNull("shopid");
 		List<ErpShipTransType> list =erpShipTransTypeService.list(query);
 		return Result.success(list) ;
@@ -333,6 +340,7 @@ public class ShipTransCompanyController {
 	
 	@SystemControllerLog( "保存类型")
 	@PostMapping(value = "/saveTransType")
+	@Transactional
 	public Result<String> saveTransTypeAction(@ApiParam("渠道类型")@RequestBody List<ErpShipTransType> tranlist){
 		UserInfo user=UserInfoContext.get();
 		String shopid =user.getCompanyid();
@@ -343,12 +351,26 @@ public class ShipTransCompanyController {
 		for(ErpShipTransType item:oldlist) {
 			oldMap.put(item.getName(), item);
 		}
+		Set<String> nameset=new HashSet<String>();
         for(ErpShipTransType item:tranlist) {
             ErpShipTransType oldone = oldMap.get(item.getName());
+            if(!nameset.contains(item.getName())) {
+            	nameset.add(item.getName());
+            }else if(!oldone.getId().equals(item.getId())) {
+            	throw new BizException("运输方式名称不能重复");
+            }
 			if(oldone!=null) {
 				oldMap.remove(item.getName());
+				if(oldone.getDisable()) {
+					oldone.setDisable(false);
+					erpShipTransTypeService.updateById(oldone);
+				}
 				continue;
 			}else {
+				if(StrUtil.isBlank(item.getName())) {
+	            	throw new BizException("运输方式名称不能为空");
+	            }
+				item.setId(iWarehouseService.getUUID());
 				item.setShopid(shopid);
 				item.setOperator(user.getId());
 				item.setOpttime(new Date());
@@ -361,16 +383,14 @@ public class ShipTransCompanyController {
         	if(isUsedInTransDetail(oldone)) {
         		throw new BizException("["+oldone.getName()+"]已被使用无法删除");
         	}
-        	erpShipTransTypeService.removeById(oldone.getId());
+        	oldone.setDisable(true);
+        	erpShipTransTypeService.updateById(oldone);
         }
 		return Result.success();
 	}
 	
 	private boolean isUsedInTransDetail(ErpShipTransType type) {
-		QueryWrapper<ShipTransDetail> query =new QueryWrapper<ShipTransDetail>();
-		query.eq("shopid", type.getShopid());
-		query.eq("transtype", type.getId());
-		return shipTransDetailService.count(query )>0;
+		return shipTransDetailService.usedTransType(  type.getShopid(),type.getId() )>0;
 	}
 
 	@SystemControllerLog( "更新")

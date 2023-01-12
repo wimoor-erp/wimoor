@@ -76,6 +76,9 @@ public class ProductInOpt implements Serializable {
 
     @ApiModelProperty(value = "产品状态 0备货 1维持 2提升 3促销  4停售 5清仓 6删除")
     private Integer status;
+    
+    @ApiModelProperty(value = "运营负责人")
+    private String owner;
 
     @ApiModelProperty(value = "操作人")
     private BigInteger operator;

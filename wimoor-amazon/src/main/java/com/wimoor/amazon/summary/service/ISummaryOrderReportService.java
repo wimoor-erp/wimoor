@@ -3,7 +3,7 @@ package com.wimoor.amazon.summary.service;
 import java.util.Date;
 import java.util.Set;
 
-import com.wimoor.amazon.report.pojo.entity.OrdersReport;
+import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
 
 public interface ISummaryOrderReportService {
 
