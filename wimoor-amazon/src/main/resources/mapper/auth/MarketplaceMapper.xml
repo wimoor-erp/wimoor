@@ -165,35 +165,7 @@
 		order by ifnull(mp.findex,30)
 	</select>
 
-	<select id="findMarketplaceBySku" parameterType="java.lang.String" resultMap="BaseResultMap">
-		SELECT DISTINCT * from (select m.*
-		FROM t_product_info p
-			LEFT JOIN t_product_in_opt o ON p.id = o.pid
-			LEFT JOIN t_marketplace m ON m.marketplaceId = p.marketplaceid
-			LEFT JOIN t_amazon_auth a ON a.id = p.amazonAuthId
-		WHERE a.shop_id = #{shopid,jdbcType=CHAR} 
-			<if test="groupid!=null">
-			and a.groupid=#{groupid,jdbcType=CHAR}
-	   	    </if>
-			AND (p.invalid is null  or p.invalid= false)
-			AND (o.disable is null  or o.disable = false)
-			AND p.sku =#{sku,jdbcType=CHAR}
-		union 
-		SELECT DISTINCT m.*
-		FROM t_product_info p
-			LEFT JOIN t_product_in_opt o ON p.id = o.pid
-			LEFT JOIN t_marketplace m ON m.marketplaceId = p.marketplaceid
-			LEFT JOIN t_amazon_auth a ON a.id = p.amazonAuthId
-		WHERE a.shop_id = #{shopid,jdbcType=CHAR} 
-			<if test="groupid!=null">
-			and a.groupid=#{groupid,jdbcType=CHAR}
-		   </if>
-			AND (p.invalid is null  or p.invalid= false)
-			AND (o.disable is null  or o.disable = false)
-			AND o.msku =#{sku,jdbcType=CHAR} ) v
-		ORDER BY findex ASC
  
-	</select>
 	<select id="getMarketPointBySkuGroup" parameterType="java.lang.String" resultMap="BaseResultMap">
 		SELECT m.* FROM t_product_info t
 		LEFT JOIN t_amazon_auth auth ON auth.id=t.amazonAuthId
@@ -203,13 +175,18 @@
 		 GROUP BY t.marketplaceid ORDER BY m.findex asc
 	</select>
 	
-		<select id="getMarketPointByMSku" parameterType="java.lang.String" resultMap="BaseResultMap">
+	<select id="getMarketPointByMSku" parameterType="java.lang.String" resultMap="BaseResultMap">
 		SELECT m.* FROM t_product_info t
 		left join t_product_in_opt o on o.pid=t.id
 		LEFT JOIN t_amazon_auth auth ON auth.id=t.amazonAuthId
 		LEFT JOIN t_amazon_group g ON g.id=auth.groupid 
 		LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
-		 WHERE ifnull(o.msku,t.sku)=#{sku,jdbcType=CHAR} AND g.shopid=#{shopid,jdbcType=CHAR}  AND t.invalid=0
+		 WHERE ifnull(o.msku,t.sku)=#{sku,jdbcType=CHAR} 
+		 AND g.shopid=#{shopid,jdbcType=CHAR}  
+		 <if test="groupid != null">
+			and auth.groupid=#{groupid,jdbcType=CHAR}
+		 </if>
+		 AND t.invalid=0
 		 GROUP BY t.marketplaceid ORDER BY m.findex asc
 	</select>
 

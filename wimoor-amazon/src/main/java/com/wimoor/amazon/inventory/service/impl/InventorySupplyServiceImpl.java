@@ -1,5 +1,6 @@
 package com.wimoor.amazon.inventory.service.impl;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,17 +21,21 @@ import com.amazon.spapi.model.fbainventory.InventoryDetails;
 import com.amazon.spapi.model.fbainventory.InventorySummaries;
 import com.amazon.spapi.model.fbainventory.InventorySummary;
 import com.amazon.spapi.model.fbainventory.Pagination;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ibm.icu.util.Calendar;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.impl.ApiBuildService;
+import com.wimoor.amazon.inventory.mapper.AmzInventoryCountryReportMapper;
+import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
+import com.wimoor.amazon.inventory.pojo.entity.AmzInventoryCountryReport;
+import com.wimoor.amazon.inventory.pojo.entity.InventoryReport;
 import com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo;
 import com.wimoor.amazon.inventory.service.IInventorySupplyService;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.service.IProductInOptService;
 import com.wimoor.amazon.product.service.IProductInfoService;
-import com.wimoor.amazon.report.mapper.InventoryReportMapper;
-import com.wimoor.amazon.report.pojo.entity.InventoryReport;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 
@@ -44,6 +49,8 @@ public class InventorySupplyServiceImpl implements IInventorySupplyService{
 	private InventoryReportMapper inventoryReportMapper;
 	@Resource
 	private IProductInOptService iProductInOptService;
+	@Resource
+	AmzInventoryCountryReportMapper amzInventoryCountryReportMapper;
  
 	@Override
 	public Map<String, InventorySummary> captureInventorySupplyNew(AmazonAuthority amazonAuthority, Date date) {
@@ -188,10 +195,19 @@ public class InventorySupplyServiceImpl implements IInventorySupplyService{
 				 if(infolist!=null&&infolist.size()>0) {
 					 ProductInfo info = infolist.get(0);
 					 report = inventoryReportMapper.findbyProductId(info.getId());
+				     if(report==null) {
+				    	 report= new InventoryReport();
+				    	 report.setSku(inv.getSellerSku());
+				    	 report.setMarketplaceid(amazonAuthority.getMarketPlace().getMarketplaceid());
+				    	 report.setAsin(info.getAsin());
+				    	 report.setIsnewest(true);
+				    	 report.setAmazonAuthId(amazonAuthority.getId());
+				    	 report.setByday(new Date());
+				     }
 					 report.setAfnFulfillableQuantity(invdetail.getFulfillableQuantity());
 					 if(invdetail.getUnfulfillableQuantity()!=null) {
 						 report.setAfnUnsellableQuantity(invdetail.getUnfulfillableQuantity().getTotalUnfulfillableQuantity());
-					 }
+					 } 
 					 report.setAfnInboundReceivingQuantity(invdetail.getInboundReceivingQuantity());
 					 report.setAfnInboundShippedQuantity(invdetail.getInboundShippedQuantity());
 					 report.setAfnInboundWorkingQuantity(invdetail.getInboundWorkingQuantity());
@@ -202,12 +218,25 @@ public class InventorySupplyServiceImpl implements IInventorySupplyService{
 						 report.setAfnResearchingQuantity(invdetail.getResearchingQuantity().getTotalResearchingQuantity());
 					 }
 					 report.setAfnTotalQuantity(inv.getTotalQuantity());
-					 inventoryReportMapper.updateById(report);
+					 if(report.idIsNULL()) {
+						 inventoryReportMapper.insert(report);
+					 }else {
+						 inventoryReportMapper.updateById(report);
+					 }
 				 }
 			    
 			 }
 		 }
 		 return report;
+	}
+
+	@Override
+	public List<AmzInventoryCountryReport> findEUFBA(String authid, String sku) {
+		LambdaQueryWrapper<AmzInventoryCountryReport> queryWrapper=new LambdaQueryWrapper<AmzInventoryCountryReport>();
+		queryWrapper.eq(AmzInventoryCountryReport::getAuthid, new BigInteger(authid));
+		queryWrapper.eq(AmzInventoryCountryReport::getSku, sku);
+		List<AmzInventoryCountryReport> list = amzInventoryCountryReportMapper.selectList(queryWrapper);
+		return list;
 	}
 	 
 }

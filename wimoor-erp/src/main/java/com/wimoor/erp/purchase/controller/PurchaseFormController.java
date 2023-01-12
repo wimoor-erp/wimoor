@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.omg.CORBA.UserException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
+import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
@@ -47,6 +50,7 @@ import lombok.RequiredArgsConstructor;
 
 @Api(tags = "采购单接口")
 @RestController
+@SystemControllerLog( "采购单接口")
 @RequestMapping("/api/v1/purchase_form")
 @RequiredArgsConstructor
 public class PurchaseFormController {
@@ -74,7 +78,18 @@ public class PurchaseFormController {
 		return Result.success(purchaseFormService.getTraceDetailMap(id, shopid, ftype));
 	}
 	
+	@GetMapping(value = "/clearRec")
+	@SystemControllerLog( "撤回入库")
+	@Transactional
+	public Result<PurchaseFormEntry> clearReceiveAction(String entryid) {
+		UserInfo userinfo = UserInfoContext.get();
+        PurchaseFormEntry result = purchaseFormService.deleteReceive(entryid, userinfo);
+		return Result.success(result) ;
+	}
+	
+	@SystemControllerLog( "采购单收货")
 	@GetMapping("/rec")
+	@Transactional
 	public Result<Map<String, Object>> receiveAction(HttpServletRequest request, HttpServletResponse response, Model model) throws ERPBizException {
 		UserInfo userinfo = UserInfoContext.get();
 		String entryid = request.getParameter("entryid");

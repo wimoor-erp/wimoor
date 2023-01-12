@@ -21,17 +21,14 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.wimoor.amazon.api.ErpClientOneFeign;
-import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
-import com.wimoor.amazon.product.pojo.entity.ProductInfo;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
+import com.wimoor.amazon.orders.mapper.OrdersSummaryMapper;
+import com.wimoor.amazon.orders.mapper.SummaryAllMapper;
 import com.wimoor.amazon.product.service.IProductInOptService;
 import com.wimoor.amazon.product.service.IProductInfoService;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
-import com.wimoor.amazon.report.mapper.OrdersSummaryMapper;
-import com.wimoor.amazon.report.mapper.SummaryAllMapper;
 import com.wimoor.amazon.summary.service.IOrdersSumService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
-import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
 
@@ -364,8 +361,8 @@ public class OrdersSumServiceImpl implements IOrdersSumService {
 				cell = row.createCell(2); 
 				
 				String openDate = null;;
-				if(map.get("openDate")!=null) {
-					openDate=map.get("openDate").toString();
+				if(map.get("opendate")!=null) {
+					openDate=map.get("opendate").toString();
 					cell.setCellValue(GeneralUtil.formatDate(GeneralUtil.StringfromDate(openDate, "yyyy-MM-dd")));
 				}else {
 					cell.setCellValue("--");

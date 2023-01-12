@@ -2,6 +2,7 @@ package com.wimoor.erp.inventory.controller;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,30 +11,24 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.assembly.mapper.AssemblyMapper;
+import com.wimoor.erp.assembly.service.IAssemblyService;
 import com.wimoor.erp.inventory.pojo.dto.InvDayDetailDTO;
 import com.wimoor.erp.inventory.pojo.dto.InventoryQueryDTO;
 import com.wimoor.erp.inventory.pojo.dto.WarehouseExportDTO;
@@ -42,10 +37,13 @@ import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.mapper.MaterialConsumableMapper;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
+import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
  
@@ -64,18 +62,13 @@ public class InventoryController   {
     AssemblyMapper assemblyMapper;
     @Resource
     MaterialConsumableMapper materialConsumableMapper;
-
+	final IAssemblyService assemblyService;
+	
 	@GetMapping("/list")
-	public Result<Map<String,Object>> getListData(String id)  {
+	public Result<List<Map<String, Object>>> getListData(String id,String ftype)  {
 		UserInfo userinfo = UserInfoContext.get();
-		List<Map<String, Object>> fbainventoryList = null;
-		List<Map<String, Object>> inventoryList = null;
-		fbainventoryList = inventoryService.findByTypeWithStockCycle("FBA", id, userinfo.getCompanyid());
-		inventoryList = inventoryService.findByTypeWithStockCycle("notFBA", id, userinfo.getCompanyid());
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("inventoryList", inventoryList);
-		map.put("fbainventoryList", fbainventoryList);
-		return Result.success(map);
+		List<Map<String, Object>> inventoryList = inventoryService.findByTypeWithStockCycle(id, ftype,userinfo.getCompanyid());
+		return Result.success(inventoryList);
 	}
 
 	@GetMapping("getInventoryField")
@@ -83,22 +76,9 @@ public class InventoryController   {
 		Map<String, Object> map = new HashMap<String, Object>();
 		UserInfo userinfo = UserInfoContext.get();
 		String shopid = userinfo.getCompanyid();
-		List<Map<String, Object>> warehouseList_FBA = wareService.findByType("FBA", shopid);
-		List<Map<String, Object>> warehouseList = wareService.findByType("notFBA", shopid);
-		if (warehouseList_FBA == null || warehouseList_FBA.size() == 0) {
-			warehouseList_FBA = null;
-		}
-		if (warehouseList == null || warehouseList.size() == 0) {
-			warehouseList = null;
-		}
-		if (warehouseList_FBA == null && warehouseList == null) {
-			map.put("msg", "暂无库存详情，请先添加仓库！");
-			return Result.success(map);
-		}
+		List<Warehouse> warehouseList = wareService.findByType("self_usable", shopid);
 		Map<String, Object> warehouseMap = new HashMap<String, Object>();
-		warehouseMap.put("warehouseList_FBA", warehouseList_FBA);
 		warehouseMap.put("warehouseList", warehouseList);
-		map.put("warehouseList_FBA", warehouseList_FBA);
 		map.put("warehouseList", warehouseList);
 		return Result.success(map);
 	}
@@ -111,16 +91,11 @@ public class InventoryController   {
 		}
 		UserInfo userinfo = UserInfoContext.get();
 		String shopid = userinfo.getCompanyid();
-		List<Map<String, Object>> warehouseList_FBA = wareService.findByType("FBA", shopid);
-		List<Map<String, Object>> warehouseList = wareService.findByType("notFBA", shopid);
-		if (warehouseList_FBA == null || warehouseList_FBA.size() == 0) {
-			warehouseList_FBA = null;
-		}
+		List<Warehouse> warehouseList = wareService.findByType("self_usable", shopid);
 		if (warehouseList == null || warehouseList.size() == 0) {
 			warehouseList = null;
 		}
 		Map<String, Object> warehouseMap = new HashMap<String, Object>();
-		warehouseMap.put("warehouseList_FBA", warehouseList_FBA);
 		warehouseMap.put("warehouseList", warehouseList);
 		warehouseMap.put("shopid", shopid);
 		warehouseMap.put("skuid", skuid);
@@ -140,19 +115,11 @@ public class InventoryController   {
 		}
 		UserInfo userinfo = UserInfoContext.get();
 		String shopid=userinfo.getCompanyid();
-		List<Map<String, Object>> warehouseList_FBA = wareService.findByType("FBA", shopid);
-		List<Map<String, Object>> warehouseList = wareService.findByType("notFBA", shopid);
-		if (warehouseList_FBA == null || warehouseList_FBA.size() == 0) {
-			warehouseList_FBA = null;
-		}
+		List<Warehouse> warehouseList = wareService.findByType("self_usable", shopid);
 		if (warehouseList == null || warehouseList.size() == 0) {
 			warehouseList = null;
 		}
-		if (warehouseList_FBA == null && warehouseList == null) {
-			throw new BizException("暂无库存详情，请先添加仓库！");
-		}
 		Map<String, Object> warehouseMap = new HashMap<String, Object>();
-		warehouseMap.put("warehouseList_FBA", warehouseList_FBA);
 		warehouseMap.put("warehouseList", warehouseList);
 		warehouseMap.put("shopid", shopid);
 		warehouseMap.put("skuid", skuid);
@@ -164,7 +131,11 @@ public class InventoryController   {
 			response.addHeader("Content-Disposition", "attachment;fileName=inventoryReport" + System.currentTimeMillis() + ".xlsx");// 设置文件名
 			ServletOutputStream fOut = response.getOutputStream();
 			// 将数据写入Excel
-			inventoryService.setExcelBookInventoryReport(workbook, warehouseList_FBA, warehouseList, warehouseDetailList);
+			List<Map<String, Object>> list=new ArrayList<Map<String,Object>>();
+			for(Warehouse item:warehouseList) {
+						list.add(BeanUtil.beanToMap(item));
+			}
+			inventoryService.setExcelBookInventoryReport(workbook,  list, warehouseDetailList);
 			workbook.write(fOut);
 			workbook.close();
 			fOut.flush();
@@ -689,12 +660,6 @@ public class InventoryController   {
 		}
 	}
 	
-	@ResponseBody
-	@RequestMapping(value = "getInventoryByMaterial")
-	public List<Map<String, Object>> getInventoryByMaterialAction(HttpServletRequest request) throws UserException {
-		String materialid = request.getParameter("materialid");
-		return inventoryService.findFulByMaterial(materialid);
-	}
 
 	@ResponseBody
 	@RequestMapping(value = "getInventorydetail")
@@ -705,6 +670,10 @@ public class InventoryController   {
 	}
 */	
 	
+	@GetMapping(value = "/getInventoryByMaterial")
+	public Result<List<Map<String, Object>>> getInventoryByMaterialByIdAction(String mid){
+		return Result.success(inventoryService.findFulByMaterial(mid));
+	}
 	 
 	@GetMapping(value = "/getInventoryByMaterialSKU")
 	public Result<List<MaterialInventoryVo>> getInventoryByMaterialAction(String sku)  {
@@ -713,5 +682,25 @@ public class InventoryController   {
 		return Result.success(inventoryService.findLocalWarehouseInventory(userinfo.getCompanyid(),material.getId()));
 	}
 	
+	
+    @ApiOperation("根据本地产品ID查询产品详情")
+    @GetMapping("/getInventory")
+	public Result<MaterialInventoryVo> getInventoryAction(@ApiParam("本地SKU id")@RequestParam String materialid,@ApiParam("仓库ID")@RequestParam String warehouseid) {
+    	MaterialInventoryVo vo=new MaterialInventoryVo();
+    	UserInfo userinfo = UserInfoContext.get();
+    	  String shopid=userinfo.getCompanyid();
+    		vo.setFulfillable(0);
+    		vo.setOutbound(0);
+    		vo.setInbound(0);
+    		vo.setCanassembly(0);
+    		vo.setCanconsumable(null);
+		if(StrUtil.isNotBlank(warehouseid)) {
+			Integer canconsumable = materialConsumableMapper.findCanConsumableByInventory(materialid, warehouseid, shopid);
+			if(canconsumable!=null) {
+				vo.setCanconsumable(canconsumable);
+			}
+		}
+		return Result.success(vo);
+	} 
 	
 }

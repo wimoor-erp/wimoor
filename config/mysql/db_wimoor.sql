@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `oauth_client_details` (
   `additional_information` varchar(2000) DEFAULT NULL,
   `autoapprove` varchar(256) DEFAULT NULL,
   PRIMARY KEY (`client_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `t_advert_warning_keywords_data` (
   PRIMARY KEY (`keywordid`,`ftype`),
   KEY `shopid` (`shopid`) USING BTREE,
   KEY `ftype` (`ftype`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `t_advert_warning_product_data` (
   PRIMARY KEY (`adid`,`ftype`),
   KEY `shopid` (`shopid`) USING BTREE,
   KEY `ftype` (`ftype`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_browsenode` (
   `refinement` varchar(255) DEFAULT NULL,
   `lastupdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2580 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=2580  ;
 
 -- 数据导出被取消选择。
 
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_dimensions` (
   `weight` decimal(15,2) DEFAULT NULL,
   `weight_units` char(20) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_productgroup` (
   `name` varchar(50) DEFAULT NULL,
   `referralfeeId` int(11) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8879 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=8879  ;
 
 -- 数据导出被取消选择。
 
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_rank` (
   PRIMARY KEY (`id`),
   KEY `Index 2` (`asin`),
   KEY `Index 3` (`productgroup`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -177,7 +177,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_rank_his` (
   `estiProfit` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`asin`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -192,9 +192,9 @@ CREATE TABLE IF NOT EXISTS `t_amazonseller_market` (
   `domain` varchar(50) COLLATE utf8_bin DEFAULT NULL COMMENT '对应域名',
   `amazonauthid` bigint(20) unsigned DEFAULT NULL COMMENT '授权对应ID等同于Sellerid',
   `opttime` datetime(6) DEFAULT NULL COMMENT '操作时间',
-  `disable` bit(1) DEFAULT b'0' COMMENT '操作人',
+  `disable` bit(1) DEFAULT 0 COMMENT '操作人',
   PRIMARY KEY (`sellerid`,`marketplace_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth` (
   `groupid` bigint(20) unsigned DEFAULT NULL,
   `region` char(10) CHARACTER SET utf8 DEFAULT NULL,
   `MWSAuthToken` varchar(50) CHARACTER SET utf8 DEFAULT NULL COMMENT '卖家授权码',
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   `name` varchar(10) CHARACTER SET utf8 DEFAULT NULL,
   `pictureId` bigint(20) unsigned DEFAULT NULL,
   `status` char(20) COLLATE utf8_bin DEFAULT NULL,
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth` (
   KEY `shop_id` (`shop_id`),
   KEY `Index_id_shopid` (`groupid`) USING BTREE,
   KEY `region` (`region`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='亚马逊账号授权';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='亚马逊账号授权';
 
 -- 数据导出被取消选择。
 
@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth_market_performance` (
   `performance` varchar(6000) CHARACTER SET latin1 DEFAULT NULL,
   `refreshtime` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`amazonauthid`,`marketplaceid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -253,10 +253,10 @@ CREATE TABLE IF NOT EXISTS `t_amazon_group` (
   `opttime` datetime DEFAULT NULL,
   `creator` bigint(20) unsigned DEFAULT NULL,
   `createtime` datetime DEFAULT NULL,
-  `isdelete` bit(1) DEFAULT b'0',
+  `isdelete` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`shopid`,`name`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -285,7 +285,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report` (
   `totalsales` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mykey` (`bydate`,`sku`,`marketplaceid`,`sellerid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='商品广告';
+) ENGINE=InnoDB   COMMENT='商品广告';
 
 -- 数据导出被取消选择。
 
@@ -312,7 +312,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary` (
   `totalsales` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`id`),
   UNIQUE KEY `sellerskum` (`sellerid`,`marketplaceid`,`sku`,`ctype`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='商品广告';
+) ENGINE=InnoDB   COMMENT='商品广告';
 
 -- 数据导出被取消选择。
 
@@ -339,7 +339,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary_month` (
   `totalsales` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`id`),
   UNIQUE KEY `sellerskum` (`sellerid`,`marketplaceid`,`sku`,`ctype`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='商品广告';
+) ENGINE=InnoDB   COMMENT='商品广告';
 
 -- 数据导出被取消选择。
 
@@ -366,7 +366,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary_week` (
   `totalsales` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`id`),
   UNIQUE KEY `sellerskum` (`sellerid`,`marketplaceid`,`sku`,`ctype`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='商品广告';
+) ENGINE=InnoDB   COMMENT='商品广告';
 
 -- 数据导出被取消选择。
 
@@ -383,7 +383,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups` (
   KEY `profileid_name` (`name`(255)),
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups_hsa` (
   PRIMARY KEY (`adGroupId`),
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -414,7 +414,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups_sd` (
   KEY `profileid_name` (`name`(255)),
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -428,7 +428,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_assets` (
   `url` varchar(500) DEFAULT NULL,
   `opptime` datetime DEFAULT NULL,
   PRIMARY KEY (`profileid`,`brandEntityId`,`assetId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -445,13 +445,13 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_auth` (
   `creator` bigint(20) unsigned DEFAULT NULL,
   `createtime` datetime DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   `disableTime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `shopid` (`shopid`),
   KEY `groupid` (`groupid`),
   KEY `region` (`region`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -464,7 +464,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_brand` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`brandId`,`brandEntityId`,`profileid`),
   KEY `profileid_brandRegistryName` (`profileid`,`brandRegistryName`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -480,7 +480,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_browsenode` (
   PRIMARY KEY (`id`),
   KEY `Index 2` (`parentid`),
   KEY `Index 3` (`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -503,7 +503,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns` (
   KEY `idx_profileid_name` (`name`),
   KEY `profileid` (`profileid`),
   KEY `state` (`state`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -531,7 +531,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns_hsa` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`profileid`),
   KEY `profileid_name` (`profileid`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -549,7 +549,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns_sd` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`profileid`),
   KEY `profileid` (`profileid`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -565,7 +565,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campkeywords_negativa` (
   PRIMARY KEY (`keywordId`),
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -577,7 +577,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_group` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -599,7 +599,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords` (
   KEY `campaignId` (`campaignId`),
   KEY `adGroupId` (`adGroupId`),
   KEY `keywordText` (`keywordText`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -621,7 +621,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords_hsa` (
   KEY `campaignId` (`campaignId`),
   KEY `adGroupId` (`adGroupId`),
   KEY `keywordText` (`keywordText`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -640,7 +640,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords_negativa` (
   KEY `adGroupId` (`adGroupId`),
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -656,7 +656,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_media_hsa` (
   `opttime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`mediaId`),
   KEY `profileid` (`profileid`,`opttime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -676,7 +676,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_operate_log` (
   KEY `campaignId` (`campaignId`),
   KEY `adGroupId` (`adGroupId`),
   KEY `profileid` (`profileid`,`opttime`)
-) ENGINE=InnoDB AUTO_INCREMENT=389033 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=389033  ;
 
 -- 数据导出被取消选择。
 
@@ -694,7 +694,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_portfolios` (
   `endDate` date DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`,`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -714,7 +714,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_productads` (
   KEY `campaignId` (`campaignId`),
   KEY `adGroupId` (`adGroupId`),
   KEY `state` (`state`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -734,7 +734,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_productads_sd` (
   KEY `campaignId` (`campaignId`),
   KEY `adGroupId` (`adGroupId`),
   KEY `state` (`state`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -753,7 +753,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe` (
   KEY `profileid_expression` (`profileid`),
   KEY `adGroupId` (`adGroupId`),
   KEY `campaignId` (`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -771,7 +771,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_negativa` (
   KEY `adGroupId` (`adGroupId`),
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -787,7 +787,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_negativa_sd` (
   PRIMARY KEY (`targetId`),
   KEY `adGroupId` (`adGroupId`),
   KEY `profileid` (`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -804,7 +804,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_sd` (
   PRIMARY KEY (`targetId`),
   KEY `profileid_expression` (`profileid`),
   KEY `adGroupId` (`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -826,7 +826,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_profile` (
   KEY `marketplaceId` (`marketplaceId`),
   KEY `authid` (`advauthId`),
   KEY `sellerId` (`sellerId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -842,7 +842,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_remark` (
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`profileid`,`campaignId`,`adgroupId`,`keywordId`,`adId`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='广告历史记录备注';
+) ENGINE=InnoDB   COMMENT='广告历史记录备注';
 
 -- 数据导出被取消选择。
 
@@ -860,13 +860,13 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_remind` (
   `fcondition` int(11) DEFAULT NULL COMMENT '1是超过，2是低于',
   `subtrahend` char(15) DEFAULT NULL,
   `amount` decimal(10,2) DEFAULT NULL COMMENT '(cycle.quota） condition(>) amount',
-  `iswarn` bit(1) NOT NULL DEFAULT b'0',
+  `iswarn` bit(1) NOT NULL DEFAULT 0,
   `createdate` datetime DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `creator` bigint(20) unsigned DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`profileid`,`campaignid`,`adgroupid`,`keywordid`,`adid`,`targetid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='广告提醒';
+) ENGINE=InnoDB   COMMENT='广告提醒';
 
 -- 数据导出被取消选择。
 
@@ -881,10 +881,10 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_report_metrics` (
   `level` int(11) DEFAULT NULL,
   `reponsetype` varchar(30) DEFAULT NULL,
   `nomarket` char(245) DEFAULT NULL,
-  `disablevendor` bit(1) DEFAULT b'0',
+  `disablevendor` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `campaigntype_reporttype_segment_activeType` (`campaigntype`,`reporttype`,`segment`,`activeType`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -906,12 +906,12 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_request` (
   `treat_number` int(10) unsigned DEFAULT '0',
   `treat_status` varchar(20) DEFAULT NULL,
   `log` varchar(5000) DEFAULT NULL,
-  `isrun` bit(1) DEFAULT b'0',
+  `isrun` bit(1) DEFAULT 0,
   PRIMARY KEY (`reportId`,`profileId`),
   KEY `Index1` (`requesttime`,`treat_number`,`treat_status`,`isrun`) USING BTREE,
   KEY `Index 2` (`profileId`,`recordType`,`campaignType`,`segment`) USING BTREE,
   KEY `byday` (`byday`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='广告报表请求记录表';
+) ENGINE=InnoDB   COMMENT='广告报表请求记录表';
 
 -- 数据导出被取消选择。
 
@@ -927,7 +927,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`) USING BTREE,
   KEY `campaignId_profileid` (`profileid`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -940,7 +940,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_attributed` (
   `attributedConversions14d` decimal(12,2) unsigned NOT NULL DEFAULT '0.00',
   `attributedConversions14dSameSKU` decimal(12,2) unsigned NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`bydate`,`campaignId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -960,7 +960,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_brand` (
   `dpv14d` int(10) unsigned DEFAULT '0',
   `opttime` datetime NOT NULL,
   PRIMARY KEY (`bydate`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -977,7 +977,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`),
   KEY `profileid` (`profileid`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -991,7 +991,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_attributed` (
   `attributedConversions14d` decimal(12,2) DEFAULT '0.00',
   `attributedConversions14dSameSKU` decimal(12,2) DEFAULT '0.00',
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1012,7 +1012,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_brand` (
   `dpv14d` int(10) unsigned DEFAULT '0',
   `opttime` datetime NOT NULL,
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1033,7 +1033,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_video` (
   `vctr` decimal(12,2) unsigned DEFAULT '0.00',
   `opttime` datetime NOT NULL,
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1053,7 +1053,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_video` (
   `vctr` decimal(12,2) unsigned DEFAULT '0.00',
   `opttime` datetime NOT NULL,
   PRIMARY KEY (`bydate`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1071,7 +1071,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`),
   KEY `profileid` (`profileid`,`campaignId`,`adGroupId`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1084,7 +1084,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_attributed` (
   `attributedConversions14d` int(11) DEFAULT NULL,
   `attributedConversions14dSameSKU` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1104,7 +1104,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_brand` (
   `dpv14d` int(11) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1125,7 +1125,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_query` (
   PRIMARY KEY (`bydate`,`queryid`,`keywordId`),
   KEY `adGroupId_campaignId_profileid` (`profileid`,`campaignId`,`adGroupId`),
   KEY `queryid` (`queryid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1145,7 +1145,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_video` (
   `vctr` decimal(12,2) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1162,7 +1162,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`),
   KEY `campaignId_adGroupId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1175,7 +1175,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_attributed` (
   `attributedSales14d` decimal(10,0) DEFAULT NULL,
   `attributedSales14dSameSKU` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1195,7 +1195,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_brand` (
   `dpv14d` int(11) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1215,7 +1215,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_video` (
   `vctr` decimal(12,2) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1231,7 +1231,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`),
   KEY `adGroupId_campaignId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1252,7 +1252,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed` (
   `attributedSales14d` decimal(12,2) DEFAULT NULL,
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1264,7 +1264,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_new` (
   `attributedSalesNewToBrand14d` decimal(12,2) DEFAULT NULL,
   `attributedUnitsOrderedNewToBrand14d` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1281,7 +1281,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_same` (
   `attributedSales14dSameSKU` decimal(12,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1294,7 +1294,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_view` (
   `viewAttributedUnitsOrdered14d` int(11) DEFAULT NULL,
   `viewAttributedSales14d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1322,7 +1322,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_asins` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`asin`,`otherAsin`,`adGroupId`),
   KEY `campaignId_adGroupId_profileid` (`profileid`,`campaignId`,`adGroupId`,`asin`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1337,7 +1337,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`),
   KEY `campaignId_profileid` (`profileid`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1358,7 +1358,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed` (
   `attributedSales14d` decimal(12,2) DEFAULT NULL,
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1370,7 +1370,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_new` (
   `attributedSalesNewToBrand14d` decimal(12,2) DEFAULT NULL,
   `attributedUnitsOrderedNewToBrand14d` int(11) DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1387,7 +1387,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_same` (
   `attributedSales14dSameSKU` decimal(12,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1400,7 +1400,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_view` (
   `viewAttributedUnitsOrdered14d` int(11) DEFAULT NULL,
   `viewAttributedSales14d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1417,7 +1417,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_t00001` (
   `attributedUnitsSold14d` int(11) DEFAULT NULL,
   `attributedSales14d` int(11) DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`bydate`,`profileid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1434,7 +1434,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`),
   KEY `profileid_adGroupId` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1455,7 +1455,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed` (
   `attributedSales14d` decimal(10,2) DEFAULT NULL,
   `attributedSales30d` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1467,7 +1467,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_new` (
   `attributedSalesNewToBrand14d` decimal(10,2) DEFAULT NULL,
   `attributedUnitsOrderedNewToBrand14d` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1484,7 +1484,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_same` (
   `attributedSales14dSameSKU` decimal(10,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1497,7 +1497,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_view` (
   `viewAttributedUnitsOrdered14d` int(11) DEFAULT NULL,
   `viewAttributedSales14d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1514,7 +1514,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`),
   KEY `campaignId_adGroupId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1535,7 +1535,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed` (
   `attributedSales14d` decimal(10,2) DEFAULT NULL,
   `attributedSales30d` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1547,7 +1547,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_new` (
   `attributedSalesNewToBrand14d` decimal(10,2) DEFAULT NULL,
   `attributedUnitsOrderedNewToBrand14d` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1564,7 +1564,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_same` (
   `attributedSales14dSameSKU` decimal(10,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1577,7 +1577,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_view` (
   `viewAttributedUnitsOrdered14d` int(11) DEFAULT NULL,
   `viewAttributedSales14d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1593,7 +1593,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`),
   KEY `proadcam` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1615,7 +1615,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups_attributed` (
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1636,7 +1636,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups_attributed_same` (
   `attributedSales14dSameSKU` decimal(12,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1666,7 +1666,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_asins` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`asin`,`otherAsin`,`keywordId`,`targetId`),
   KEY `profileid` (`profileid`,`campaignId`,`adGroupId`,`asin`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1682,7 +1682,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`),
   KEY `campaignId_profileid` (`profileid`,`campaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1703,7 +1703,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_attributed` (
   `attributedSales14d` decimal(12,2) DEFAULT NULL,
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`campaignId`,`bydate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1724,7 +1724,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_attributed_same` (
   `attributedUnitsOrdered14dSameSKU` int(11) DEFAULT NULL,
   `attributedUnitsOrdered30dSameSKU` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1740,7 +1740,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place` (
   `cost` decimal(12,2) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1762,7 +1762,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place_attributed` (
   `attributedSales14d` decimal(12,2) DEFAULT NULL,
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1784,7 +1784,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place_attributed_same` (
   `attributedSales14dSameSKU` decimal(12,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`campaignId`,`placementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1801,7 +1801,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`),
   KEY `campaignId_adGroupId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='campaignId';
+) ENGINE=InnoDB   COMMENT='campaignId';
 
 -- 数据导出被取消选择。
 
@@ -1822,7 +1822,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_attributed` (
   `attributedSales14d` decimal(12,2) DEFAULT NULL,
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='campaignId';
+) ENGINE=InnoDB   COMMENT='campaignId';
 
 -- 数据导出被取消选择。
 
@@ -1843,7 +1843,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_attributed_same` (
   `attributedUnitsOrdered14dSameSKU` decimal(12,2) DEFAULT NULL,
   `attributedUnitsOrdered30dSameSKU` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='campaignId';
+) ENGINE=InnoDB   COMMENT='campaignId';
 
 -- 数据导出被取消选择。
 
@@ -1861,7 +1861,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`queryid`,`keywordId`),
   KEY `adGroupId_campaignId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1883,7 +1883,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query_attributed` (
   `attributedSales14d` decimal(12,2) DEFAULT NULL,
   `attributedSales30d` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`queryid`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1905,7 +1905,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query_attributed_same` (
   `attributedSales14dSameSKU` decimal(12,2) DEFAULT NULL,
   `attributedSales30dSameSKU` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`queryid`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1922,7 +1922,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`),
   KEY `profileid_campaignId_adGroupId` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1943,7 +1943,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads_attributed` (
   `attributedSales14d` decimal(10,2) DEFAULT NULL,
   `attributedSales30d` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -1964,7 +1964,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads_attributed_same` (
   `attributedUnitsOrdered14dSameSKU` decimal(10,2) DEFAULT NULL,
   `attributedUnitsOrdered30dSameSKU` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`adId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -1981,7 +1981,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`),
   KEY `campaignId_adGroupId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2002,7 +2002,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_attributed` (
   `attributedSales14d` decimal(10,2) DEFAULT NULL,
   `attributedSales30d` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2023,7 +2023,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_attributed_same` (
   `attributedUnitsOrdered14dSameSKU` int(11) DEFAULT NULL,
   `attributedUnitsOrdered30dSameSKU` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2041,7 +2041,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query` (
   `opttime` datetime NOT NULL,
   PRIMARY KEY (`bydate`,`targetId`,`queryid`),
   KEY `campaignId_adGroupId_profileid` (`profileid`,`campaignId`,`adGroupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2063,7 +2063,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query_attributed` 
   `attributedSales14d` decimal(10,2) DEFAULT NULL,
   `attributedSales30d` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`,`queryid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2085,7 +2085,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query_attributed_s
   `attributedUnitsOrdered14dSameSKU` int(11) DEFAULT NULL,
   `attributedUnitsOrdered30dSameSKU` int(11) DEFAULT NULL,
   PRIMARY KEY (`bydate`,`targetId`,`queryid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2099,7 +2099,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_keywords_hsa_attributed` (
   `attributedConversions14dSameSKU` decimal(12,2) DEFAULT '0.00',
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`bydate`,`keywordId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2109,7 +2109,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_placement` (
   `name` char(50) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=25    ;
 
 -- 数据导出被取消选择。
 
@@ -2119,7 +2119,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_query` (
   `query` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `query` (`query`(191))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2137,7 +2137,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_plan` (
   `createtime` datetime DEFAULT NULL,
   `remark` char(200) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=337 DEFAULT CHARSET=utf8  COMMENT='广告定时任务';
+) ENGINE=InnoDB AUTO_INCREMENT=337   COMMENT='广告定时任务';
 
 -- 数据导出被取消选择。
 
@@ -2156,7 +2156,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_plandata` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `profileid_campaignId_adGroupId_adId_keywordId` (`profileid`,`campaignId`,`adGroupId`,`keywordId`,`adId`,`planid`)
-) ENGINE=InnoDB AUTO_INCREMENT=947 DEFAULT CHARSET=utf8  COMMENT='广告定时任务';
+) ENGINE=InnoDB AUTO_INCREMENT=947   COMMENT='广告定时任务';
 
 -- 数据导出被取消选择。
 
@@ -2170,7 +2170,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_planitem` (
   `bid` decimal(12,2) DEFAULT NULL,
   `weekdays` char(20) DEFAULT NULL COMMENT '1 ：周日； 2：周一 ；13：周日和周二 以此类推',
   PRIMARY KEY (`taskId`,`planId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2183,7 +2183,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_serch_history` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `userId` (`userId`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=13  ;
 
 -- 数据导出被取消选择。
 
@@ -2205,7 +2205,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_snapshot` (
   PRIMARY KEY (`snapshotId`),
   KEY `Index 2` (`profileid`,`recordtype`,`campaignType`,`region`) USING BTREE,
   KEY `Index 3` (`requesttime`,`treat_number`,`treat_status`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2220,7 +2220,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_stores` (
   `storePageName` varchar(50) DEFAULT NULL,
   `opptime` datetime DEFAULT NULL,
   PRIMARY KEY (`entityId`,`brandEntityId`,`profileid`,`storePageId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2235,7 +2235,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_sumalltype` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`profileid`,`state`,`campaignType`,`recordType`,`byday`),
   KEY `byday` (`byday`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='计划的 state,campagintype,recordtype 都是task';
+) ENGINE=InnoDB   COMMENT='计划的 state,campagintype,recordtype 都是task';
 
 -- 数据导出被取消选择。
 
@@ -2252,7 +2252,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_sumpdtads` (
   `attributedSales` decimal(14,2) DEFAULT NULL,
   `attributedConversions` int(11) DEFAULT NULL,
   PRIMARY KEY (`profileid`,`byday`,`ctype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='转化';
+) ENGINE=InnoDB   COMMENT='转化';
 
 -- 数据导出被取消选择。
 
@@ -2270,7 +2270,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_warningdate` (
   `absoluteNum_ACOS` decimal(10,2) DEFAULT NULL,
   `absoluteNum_CSRT` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`shopid`,`recordType`,`ftype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2286,7 +2286,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_api_timelimit` (
   `restore_unit` int(11) DEFAULT NULL COMMENT '多少秒钟可以恢复一个单位值',
   PRIMARY KEY (`id`),
   UNIQUE KEY `apiname` (`apiname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2307,7 +2307,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_api_timelimit_seller_request` (
   PRIMARY KEY (`id`),
   KEY `sellerid_apiname` (`sellerid`,`apiname`,`lastuptime`),
   KEY `Index 3` (`nexttoken`(255))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2325,7 +2325,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_auth_api_timelimit` (
   `log` varchar(2000) DEFAULT NULL COMMENT '异常log',
   PRIMARY KEY (`amazonauthid`,`apiname`) USING BTREE,
   UNIQUE KEY `key` (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='新版本SPI-API使用';
+) ENGINE=InnoDB  COMMENT='新版本SPI-API使用';
 
 -- 数据导出被取消选择。
 
@@ -2345,7 +2345,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_account` (
   `original_total` decimal(15,2) DEFAULT NULL,
   `fund_transfer_status` char(50) DEFAULT NULL,
   PRIMARY KEY (`groupid`,`amazonAuthid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2362,7 +2362,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_settlement_formula` (
   `pricetype` int(11) DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2372,11 +2372,11 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_user_item` (
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `name` char(20) DEFAULT NULL,
   `creator` bigint(20) unsigned DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
-  `isused` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
+  `isused` bit(1) DEFAULT 0,
   `createdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2396,7 +2396,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_user_item_data` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `itemid_groupid_marketplaceid_byday_shopid` (`shopid`,`groupid`,`marketplaceid`,`sku`,`byday`,`itemid`,`currency`),
   KEY `byday` (`byday`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='客户导入的SKU财务项费用-应用于商品营收其他费用项目导入';
+) ENGINE=InnoDB  COMMENT='客户导入的SKU财务项费用-应用于商品营收其他费用项目导入';
 
 -- 数据导出被取消选择。
 
@@ -2410,7 +2410,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_follow_offer` (
   `refreshtime` timestamp NULL DEFAULT NULL,
   `refreshnum` int(11) DEFAULT '0',
   PRIMARY KEY (`sellerid`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2434,7 +2434,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_follow_offerchange` (
   PRIMARY KEY (`id`),
   KEY `asin_marketplaceid_sellerid` (`asin`,`marketplaceid`,`sellerid`),
   KEY `sellerid` (`sellerid`,`findtime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2493,7 +2493,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_inventory_health` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`authid`,`marketplaceid`,`sku`) USING BTREE,
   KEY `index1` (`shopid`,`authid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2504,7 +2504,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_notifications` (
   `description` varchar(500) DEFAULT NULL,
   `isrun` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=117 ;
 
 -- 数据导出被取消选择。
 
@@ -2520,7 +2520,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_notifications_destination` (
   `awsregion` char(50) DEFAULT NULL,
   PRIMARY KEY (`destinationid`) USING BTREE,
   KEY `name_amazonauthid` (`awsregion`,`name`(191)) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='亚马逊Destination 亚马逊消息接受对象';
+) ENGINE=InnoDB   COMMENT='亚马逊Destination 亚马逊消息接受对象';
 
 -- 数据导出被取消选择。
 
@@ -2536,7 +2536,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_notifications_subscriptions` (
   `refreshtime` datetime DEFAULT NULL COMMENT '刷新时间',
   PRIMARY KEY (`subscriptionId`,`amazonauthid`,`eventFilterType`) USING BTREE,
   KEY `eventFilterType_destinationId_amazonauthid` (`amazonauthid`,`eventFilterType`,`destinationId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅消息对象';
+) ENGINE=InnoDB   COMMENT='订阅消息对象';
 
 -- 数据导出被取消选择。
 
@@ -2561,7 +2561,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_orders_address` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`amazon_order_id`) USING BTREE,
   KEY `amazonAuthId_marketplaceId_name` (`amazonAuthId`,`marketplaceId`,`opttime`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -2604,7 +2604,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_orders_invoice_report` (
   PRIMARY KEY (`order_id`,`order_item_id`) USING BTREE,
   KEY `purchase_date_sales_channel_amazonAuthId` (`amazonAuthId`,`sales_channel`,`purchase_date`),
   KEY `purchase_date_sku` (`sku`,`purchase_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ;
+) ENGINE=InnoDB     ;
 
 -- 数据导出被取消选择。
 
@@ -2629,7 +2629,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_buyer_ship_address` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `amazonAuthId` (`amazonAuthId`,`marketplaceId`,`name`(191)) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -2669,7 +2669,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_item` (
   PRIMARY KEY (`amazon_order_id`,`orderItemId`) USING BTREE,
   KEY `sku` (`sku`) USING BTREE,
   KEY `amazonAuthId_shopid_groupid` (`amazonAuthId`,`marketplaceId`,`purchase_date`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='purchase_order_number';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。
 
@@ -2709,7 +2709,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_item_archive` (
   PRIMARY KEY (`amazon_order_id`,`orderItemId`) USING BTREE,
   KEY `sku` (`sku`) USING BTREE,
   KEY `amazonAuthId_shopid_groupid` (`amazonAuthId`,`marketplaceId`,`purchase_date`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='purchase_order_number';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='purchase_order_number';
 
 
 -- 导出  表 db_wimoor.t_amz_order_main 结构
@@ -2743,14 +2743,14 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_main` (
   `earliestDeliveryDate` datetime DEFAULT NULL,
   `latestDeliveryDate` datetime DEFAULT NULL,
   `promise_response_duedate` datetime DEFAULT NULL,
-  `isBusinessOrder` bit(1) DEFAULT b'0',
+  `isBusinessOrder` bit(1) DEFAULT 0,
   `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
-  `hasItem` bit(1) DEFAULT b'0',
+  `hasItem` bit(1) DEFAULT 0,
   `marketplaceId` char(36) CHARACTER SET utf8 DEFAULT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`amazon_order_id`) USING BTREE,
   KEY `amazonauth` (`amazonAuthId`,`purchase_date`,`hasItem`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='purchase_order_number';
+) ENGINE=InnoDB     COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。
 
@@ -2785,14 +2785,14 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_main_archive` (
   `earliestDeliveryDate` datetime DEFAULT NULL,
   `latestDeliveryDate` datetime DEFAULT NULL,
   `promise_response_duedate` datetime DEFAULT NULL,
-  `isBusinessOrder` bit(1) DEFAULT b'0',
+  `isBusinessOrder` bit(1) DEFAULT 0,
   `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
-  `hasItem` bit(1) DEFAULT b'0',
+  `hasItem` bit(1) DEFAULT 0,
   `marketplaceId` char(36) CHARACTER SET utf8 DEFAULT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`amazon_order_id`) USING BTREE,
   KEY `amazonauth` (`amazonAuthId`,`purchase_date`,`hasItem`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='purchase_order_number';
+) ENGINE=InnoDB     COMMENT='purchase_order_number';
 
 
 -- 导出  表 db_wimoor.t_amz_order_remove_report 结构
@@ -2816,7 +2816,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_remove_report` (
   PRIMARY KEY (`order_id`,`sku`) USING BTREE,
   KEY `purchase_date` (`purchase_date`) USING BTREE,
   KEY `sku` (`sku`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -2837,7 +2837,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_pdt_price_opt` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`pid`,`feed_submission_id`),
   KEY `opttime` (`opttime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2856,7 +2856,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_po_rpt_day` (
   `pricermb` decimal(15,2) DEFAULT NULL,
   `ship_country` char(10) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`sku`,`sales_channel`,`purchase_date`,`order_status`,`amazonAuthId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2869,7 +2869,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_active` (
   `openDate` datetime DEFAULT NULL COMMENT '创建日期',
   `price` decimal(14,2) DEFAULT NULL COMMENT '价格',
   PRIMARY KEY (`amazonAuthId`,`marketplaceid`,`sku`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息';
+) ENGINE=InnoDB   COMMENT='产品信息';
 
 -- 数据导出被取消选择。
 
@@ -2880,7 +2880,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_active_daynum` (
   `byday` date NOT NULL,
   `num` int(11) DEFAULT NULL,
   PRIMARY KEY (`amazonAuthId`,`marketplaceid`,`byday`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2890,7 +2890,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_lock` (
   `isused` bit(1) DEFAULT NULL COMMENT '是否可用',
   `num` int(11) DEFAULT NULL COMMENT '询问次数',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=2  ;
 
 -- 数据导出被取消选择。
 
@@ -2917,7 +2917,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews` (
   `Total_Order_Items_B2B` int(11) DEFAULT NULL,
   PRIMARY KEY (`amazonAuthid`,`marketplaceid`,`byday`,`SKU`,`child_asin`) USING BTREE,
   KEY `amazonAuthid_marketplaceid_byday` (`amazonAuthid`,`marketplaceid`,`byday`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2946,7 +2946,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_download` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `key` (`amazonAuthid`,`marketplaceid`,`byday`,`SKU`,`parent_asin`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='流量报表';
+) ENGINE=InnoDB   COMMENT='流量报表';
 
 -- 数据导出被取消选择。
 
@@ -2972,7 +2972,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_month` (
   `Total_Order_Items` int(11) DEFAULT NULL,
   `Total_Order_Items_B2B` int(11) DEFAULT NULL,
   PRIMARY KEY (`amazonAuthid`,`marketplaceid`,`SKU`,`byday`,`child_asin`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -2998,7 +2998,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_week` (
   `Total_Order_Items` int(11) DEFAULT NULL,
   `Total_Order_Items_B2B` int(11) DEFAULT NULL,
   PRIMARY KEY (`amazonAuthid`,`marketplaceid`,`SKU`,`byday`,`child_asin`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3012,14 +3012,14 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_refresh` (
   `sku` char(50) DEFAULT NULL,
   `asin` char(50) DEFAULT NULL,
   `marketplaceid` char(15) DEFAULT NULL,
-  `isparent` bit(1) DEFAULT b'0',
-  `notfound` bit(1) DEFAULT b'0',
+  `isparent` bit(1) DEFAULT 0,
+  `notfound` bit(1) DEFAULT 0,
   PRIMARY KEY (`pid`) USING BTREE,
   UNIQUE KEY `amazonauthid` (`amazonauthid`,`marketplaceid`,`sku`) USING BTREE,
   KEY `amazonauthid_price_refresh_time_marketplaceid_isparent` (`amazonauthid`,`isparent`,`price_refresh_time`,`marketplaceid`),
   KEY `ftime` (`amazonauthid`,`detail_refresh_time`) USING BTREE,
   KEY `amazonauthid_catalog_refresh_time` (`catalog_refresh_time`,`asin`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3030,7 +3030,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_refreshtime` (
   `ftime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pid`,`item`),
   KEY `ftime` (`ftime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3049,7 +3049,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_tag` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `FK_t_tag_t_sho` (`shopid`) USING BTREE,
   KEY `taggroupid` (`tag_groupid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -3066,7 +3066,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_tag_group` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `FK_t_tag_group_t_shop` (`shop_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -3079,7 +3079,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_region` (
   `client_id` char(100) DEFAULT NULL,
   `client_secret` char(100) DEFAULT NULL,
   PRIMARY KEY (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3092,11 +3092,11 @@ CREATE TABLE IF NOT EXISTS `t_amz_report_request_type` (
   `description` varchar(100) NOT NULL DEFAULT '' COMMENT '描述',
   `bean` varchar(50) NOT NULL DEFAULT '' COMMENT '报表处理类',
   `day` int(11) NOT NULL DEFAULT '0' COMMENT '报表默认请求天数',
-  `disabled` bit(1) DEFAULT b'0' COMMENT '是否可用',
+  `disabled` bit(1) DEFAULT 0 COMMENT '是否可用',
   `reportOptions` varchar(50) DEFAULT NULL COMMENT '报表默认参数',
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='亚马逊报表类型';
+) ENGINE=InnoDB   COMMENT='亚马逊报表类型';
 
 -- 数据导出被取消选择。
 
@@ -3121,7 +3121,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_returns_report` (
   KEY `return_date_sellerid_marketplaceid` (`sellerid`,`marketplaceid`,`return_date`),
   KEY `order_id` (`order_id`),
   KEY `sku` (`sku`,`return_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=InnoDB   ;
 
 -- 数据导出被取消选择。
 
@@ -3133,7 +3133,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_returns_report_summary` (
   `marketplaceid` char(15) NOT NULL,
   `quantity` int(11) DEFAULT NULL,
   PRIMARY KEY (`sellerid`,`marketplaceid`,`sku`,`return_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3177,7 +3177,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_age` (
   `storage_type` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `authid_marketplace_sku` (`authid`,`marketplace`,`sku`,`fcondition`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='GET_FBA_INVENTORY_AGED_DATA';
+) ENGINE=InnoDB  COMMENT='GET_FBA_INVENTORY_AGED_DATA';
 
 -- 数据导出被取消选择。
 
@@ -3194,7 +3194,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_country` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `sku_country_authid` (`sku`,`country`,`authid`,`fcondition`) USING BTREE,
   KEY `country_authid` (`authid`,`country`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用于存储欧洲各个国家的库存';
+) ENGINE=InnoDB  COMMENT='用于存储欧洲各个国家的库存';
 
 -- 数据导出被取消选择。
 
@@ -3229,7 +3229,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_scout_asins` (
   `est_profit` double DEFAULT NULL COMMENT '利润. 使用的利润方案统一为: TUPARKA-pan_EU . 采购成本计为0. ',
   `costdetail` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='测试选品思路,手动加入ASIN数据,自动更新ASIN尺寸及计算利润';
+) ENGINE=InnoDB  COMMENT='测试选品思路,手动加入ASIN数据,自动更新ASIN尺寸及计算利润';
 
 -- 数据导出被取消选择。
 
@@ -3249,7 +3249,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_report` (
   PRIMARY KEY (`settlement_id`),
   KEY `index1` (`amazonauthid`,`marketplace_name`) USING BTREE,
   KEY `deposit_date` (`deposit_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3269,7 +3269,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_report_archive` (
   PRIMARY KEY (`settlement_id`) USING BTREE,
   KEY `index1` (`amazonauthid`,`marketplace_name`) USING BTREE,
   KEY `deposit_date` (`deposit_date`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3290,7 +3290,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_statement` (
   `fielddata` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3303,7 +3303,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_amount_description` (
   `edescription` varchar(1000) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ename` (`ename`)
-) ENGINE=InnoDB AUTO_INCREMENT=131 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=131 ;
 
 -- 数据导出被取消选择。
 
@@ -3313,7 +3313,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_amount_type_nonsku` (
   `amount_type` char(40) NOT NULL,
   `amount_description` char(100) NOT NULL,
   PRIMARY KEY (`transaction_type`,`amount_type`,`amount_description`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3344,7 +3344,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_report` (
   PRIMARY KEY (`amazonAuthId`,`posted_date`,`id`) USING BTREE,
   KEY `order_id` (`order_id`,`order_item_code`),
   KEY `index1` (`settlement_id`,`sku`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='账期报表';
+) ENGINE=InnoDB   COMMENT='账期报表';
 
 -- 数据导出被取消选择。
 
@@ -3374,7 +3374,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_report_archive` (
   `amazonAuthId` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`posted_date`,`amazonAuthId`,`id`),
   KEY `index1` (`settlement_id`,`amazonAuthId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='账期报表'
+) ENGINE=InnoDB   COMMENT='账期报表'
 /*!50100 PARTITION BY RANGE (year(posted_date))
 SUBPARTITION BY HASH (quarter(posted_date ))
 SUBPARTITIONS 4
@@ -3406,7 +3406,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day` (
   KEY `marketplace_name` (`marketplace_name`),
   KEY `sku` (`sku`),
   KEY `settlementid` (`settlementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3428,7 +3428,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day_archive` (
   KEY `marketplace_name` (`marketplace_name`) USING BTREE,
   KEY `sku` (`sku`) USING BTREE,
   KEY `settlementid` (`settlementid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3447,7 +3447,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month` (
   `amount` decimal(15,2) DEFAULT NULL,
   PRIMARY KEY (`amazonAuthId`,`posted_date`,`id`),
   KEY `settlementid` (`settlementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3466,7 +3466,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month_archive` (
   `amount` decimal(15,2) DEFAULT NULL,
   PRIMARY KEY (`amazonAuthId`,`posted_date`,`id`) USING BTREE,
   KEY `settlementid` (`settlementid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3484,7 +3484,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_returns` (
   KEY `sku` (`sku`),
   KEY `marketplace_name` (`marketplace_name`),
   KEY `settlementid` (`settlementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3502,7 +3502,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_returns_archive` (
   KEY `sku` (`sku`) USING BTREE,
   KEY `marketplace_name` (`marketplace_name`) USING BTREE,
   KEY `settlementid` (`settlementid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3526,7 +3526,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku` (
   KEY `marketplace_name` (`marketplace_name`),
   KEY `sku` (`sku`),
   KEY `settlementid` (`settlementid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3550,7 +3550,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_archive` (
   KEY `marketplace_name` (`marketplace_name`) USING BTREE,
   KEY `sku` (`sku`) USING BTREE,
   KEY `settlementid` (`settlementid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3563,7 +3563,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_ship_fulfillment_center` (
   `state` char(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `zip` char(10) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`code`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -3575,7 +3575,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_ship_state_province_code` (
   `capital` varchar(50) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `ecapital` varchar(50) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   PRIMARY KEY (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -3597,7 +3597,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_submitfeed` (
   `documentid` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`feed_submissionid`,`sellerid`,`feed_type`) USING BTREE,
   KEY `marketplaceid_shopid` (`shopid`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='\r\n';
+) ENGINE=InnoDB   COMMENT='\r\n';
 
 -- 数据导出被取消选择。
 
@@ -3621,7 +3621,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_submitfeed_queue` (
   KEY `shopid` (`shopid`),
   KEY `feedtype` (`feed_type`),
   KEY `shopid_sellerid_marketplaceid_feed_type_process_date` (`amazonAuthId`,`marketplaceid`,`createtime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3634,7 +3634,7 @@ CREATE TABLE IF NOT EXISTS `t_authority` (
   `description` varchar(500) CHARACTER SET utf8 DEFAULT NULL COMMENT '描述',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`url`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='Action权限控制表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='Action权限控制表';
 
 -- 数据导出被取消选择。
 
@@ -3646,7 +3646,7 @@ CREATE TABLE IF NOT EXISTS `t_data_runs_remove_time` (
   `runtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ftype` (`ftype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3665,7 +3665,7 @@ CREATE TABLE IF NOT EXISTS `t_daysales_formula` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -3682,7 +3682,7 @@ CREATE TABLE IF NOT EXISTS `t_dimensions` (
   `weight_units` char(15) CHARACTER SET utf8 DEFAULT NULL,
   `oldid` char(36) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -3692,7 +3692,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_amazon_feedstatus` (
   `name` char(50) DEFAULT NULL,
   `remark` char(100) DEFAULT NULL,
   PRIMARY KEY (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3707,7 +3707,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly` (
   `opttime` datetime DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`),
   KEY `mainmid` (`mainmid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3734,7 +3734,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly_form` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `number` (`shopid`,`number`),
   KEY `mainmid` (`mainmid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3751,7 +3751,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly_form_entry` (
   `purchase_from_entry_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`formid`,`materialid`),
   UNIQUE KEY `indexunique` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3767,7 +3767,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly_from_instock` (
   `shipmentid` char(15) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `formid` (`formid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3787,7 +3787,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_changewh_form` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `number_shopid` (`shopid`,`number`),
   KEY `warehouseid` (`warehouseid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3799,7 +3799,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_changewh_form_entry` (
   `material_to` bigint(20) unsigned DEFAULT NULL,
   `amount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3821,7 +3821,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_customer` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_shopid` (`shopid`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3844,7 +3844,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_form` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `number_shopid` (`shopid`,`number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3855,7 +3855,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_form_entry` (
   `materialid` bigint(20) unsigned DEFAULT NULL,
   `amount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3875,7 +3875,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_estimated_sales` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku_marketplaceid_groupid` (`groupid`,`sku`,`marketplaceid`)
-) ENGINE=InnoDB AUTO_INCREMENT=12442 DEFAULT CHARSET=utf8 COMMENT='用户维护日均销量表';
+) ENGINE=InnoDB AUTO_INCREMENT=12442  COMMENT='用户维护日均销量表';
 
 -- 数据导出被取消选择。
 
@@ -3888,7 +3888,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_account` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='账户表';
+) ENGINE=InnoDB   COMMENT='账户表';
 
 -- 数据导出被取消选择。
 
@@ -3909,7 +3909,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_journalaccount` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3924,7 +3924,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_journaldaily` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `byday` (`byday`,`acct`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='流水_日账单';
+) ENGINE=InnoDB   COMMENT='流水_日账单';
 
 -- 数据导出被取消选择。
 
@@ -3932,7 +3932,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_journaldaily` (
 CREATE TABLE IF NOT EXISTS `t_erp_fin_project` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(50) DEFAULT NULL,
-  `issys` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否是系统项目名称',
+  `issys` bit(1) NOT NULL DEFAULT 0 COMMENT '是否是系统项目名称',
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `createdate` datetime DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
@@ -3941,7 +3941,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_project` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_shopid` (`name`,`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='流水账_类型';
+) ENGINE=InnoDB   COMMENT='流水账_类型';
 
 -- 数据导出被取消选择。
 
@@ -3957,7 +3957,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_type_journalmonthly` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`projectid`,`acct`,`year`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='流水_月账单 类型统计';
+) ENGINE=InnoDB   COMMENT='流水_月账单 类型统计';
 
 -- 数据导出被取消选择。
 
@@ -3967,7 +3967,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_formtype` (
   `name` char(50) DEFAULT NULL,
   `remark` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -3984,7 +3984,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `index_w_s_m_s` (`shopid`,`warehouseid`,`materialid`,`status`),
   KEY `FK_t_erp_inventory_t_erp_material` (`materialid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4004,7 +4004,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_his` (
   KEY `mykey` (`shopid`,`materialid`,`warehouseid`) USING BTREE,
   KEY `modifyday` (`modifyday`),
   KEY `status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4031,7 +4031,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_month_summary` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `materialid_warehouseid` (`shopid`,`warehouseid`,`materialid`,`month`),
   KEY `month` (`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -4057,7 +4057,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_record` (
   KEY `number` (`shopid`,`number`),
   KEY `shopid_opttime` (`shopid`,`opttime`) USING BTREE,
   KEY `formtype` (`shopid`,`formtype`,`opttime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4066,7 +4066,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_status` (
   `id` char(36) DEFAULT NULL,
   `code` char(36) DEFAULT NULL,
   `name` char(36) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4087,7 +4087,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inwh_form` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `number_shopid` (`shopid`,`number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4098,7 +4098,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inwh_form_entry` (
   `materialid` bigint(20) unsigned DEFAULT NULL,
   `amount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4108,7 +4108,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_market_priority` (
   `priority` int(10) DEFAULT NULL COMMENT 'FBA站点优先级',
   `groupid` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`marketplaceid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='主要用于发货计划中的同一个店铺下面各个国家的优先级。';
+) ENGINE=InnoDB   COMMENT='主要用于发货计划中的同一个店铺下面各个国家的优先级。';
 
 -- 数据导出被取消选择。
 
@@ -4146,7 +4146,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material` (
   `creator` bigint(20) unsigned DEFAULT NULL,
   `parentid` char(36) DEFAULT NULL COMMENT '用于导入数据是引用的系统内的那个SKU产品',
   `effectivedate` datetime DEFAULT NULL,
-  `isSmlAndLight` bit(1) DEFAULT b'0' COMMENT '是否轻小产品',
+  `isSmlAndLight` bit(1) DEFAULT 0 COMMENT '是否轻小产品',
   `assembly_time` int(11) DEFAULT NULL COMMENT '组装时间',
   `isDelete` bit(1) DEFAULT NULL,
   `oldid` char(36) DEFAULT NULL,
@@ -4156,7 +4156,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material` (
   KEY `FK_t_erp_material_t_erp_material_sku` (`sku`,`shopid`,`isDelete`) USING BTREE,
   KEY `categoryid` (`categoryid`),
   KEY `shop_delete_sku_color` (`shopid`,`isDelete`,`sku`,`color`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4172,7 +4172,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_category` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`name`,`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4186,7 +4186,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_consumable` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `materialid_submaterialid` (`materialid`,`submaterialid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='耗材表';
+) ENGINE=InnoDB     COMMENT='耗材表';
 
 -- 数据导出被取消选择。
 
@@ -4200,12 +4200,12 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_customs` (
   `customs_code` char(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '海关编码',
   `material_use` char(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '用途',
   `brand` char(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '产品品牌',
-  `iselectricity` bit(1) DEFAULT b'0' COMMENT '是否带电/磁',
-  `isdanger` bit(1) DEFAULT b'0' COMMENT '是否危险品',
+  `iselectricity` bit(1) DEFAULT 0 COMMENT '是否带电/磁',
+  `isdanger` bit(1) DEFAULT 0 COMMENT '是否危险品',
   `unitprice` decimal(10,2) DEFAULT NULL COMMENT '申报单价',
   `addfee` decimal(10,2) DEFAULT NULL COMMENT '附加费用',
   PRIMARY KEY (`matreialid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='海关表';
+) ENGINE=InnoDB     COMMENT='海关表';
 
 -- 数据导出被取消选择。
 
@@ -4220,7 +4220,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_customs_file` (
   `createtime` datetime DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -4232,7 +4232,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_group` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`materialid`,`groupid`),
   KEY `FK_t_erp_material_category_t_erp_category` (`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4268,11 +4268,11 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_his` (
   `creator` bigint(20) unsigned DEFAULT NULL,
   `parentid` char(36) DEFAULT NULL COMMENT '用于导入数据是引用的系统内的那个SKU产品',
   `effectivedate` datetime DEFAULT NULL,
-  `isSmlAndLight` bit(1) DEFAULT b'0' COMMENT '是否轻小产品',
+  `isSmlAndLight` bit(1) DEFAULT 0 COMMENT '是否轻小产品',
   `assembly_time` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`,`opttime`),
   UNIQUE KEY `Index 3` (`shopid`,`sku`,`opttime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='t_erp_material_his历史表';
+) ENGINE=InnoDB   COMMENT='t_erp_material_his历史表';
 
 -- 数据导出被取消选择。
 
@@ -4284,7 +4284,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_mark` (
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`materialid`,`ftype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4297,7 +4297,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_supplier` (
   `productCode` char(36) CHARACTER SET utf8 DEFAULT NULL,
   `otherCost` decimal(10,2) DEFAULT NULL,
   `deliverycycle` int(11) DEFAULT NULL,
-  `isdefault` bit(1) NOT NULL DEFAULT b'0',
+  `isdefault` bit(1) NOT NULL DEFAULT 0,
   `badrate` float DEFAULT '0',
   `MOQ` int(11) NOT NULL DEFAULT '0',
   `creater` bigint(20) unsigned DEFAULT NULL,
@@ -4306,7 +4306,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_supplier` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `materialid_supplierid` (`materialid`,`supplierid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -4321,7 +4321,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_supplier_stepwise` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `materialid` (`materialid`,`supplierid`,`amount`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -4339,7 +4339,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_tag` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_t_tag_t_sho` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -4356,7 +4356,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_tag_group` (
   `lasttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_t_tag_group_t_shop` (`shop_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -4372,7 +4372,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_m_group` (
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4397,7 +4397,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_outwh_form` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `number_shopid` (`shopid`,`number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4408,7 +4408,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_outwh_form_entry` (
   `materialid` bigint(20) unsigned DEFAULT NULL,
   `amount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4428,12 +4428,12 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_auth` (
   `createtime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
-  `isDelete` bit(1) DEFAULT b'0',
+  `isDelete` bit(1) DEFAULT 0,
   `appkey` varchar(255) DEFAULT NULL,
   `appsecret` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `shopid_name` (`shopid`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=192 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=192  ;
 
 -- 数据导出被取消选择。
 
@@ -4451,7 +4451,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form` (
   UNIQUE KEY `number_shopid` (`shopid`,`number`) USING BTREE,
   KEY `warehouseid_shopid` (`warehouseid`,`shopid`),
   KEY `createdate` (`createdate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4488,7 +4488,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry` (
   KEY `inwhstatus` (`inwhstatus`),
   KEY `paystatus` (`paystatus`),
   KEY `supplier` (`supplier`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4500,14 +4500,14 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_alibabainfo` (
   `logistics_info` text,
   `logistics_trace_info` text,
   `order_info` longtext,
-  `logistics_status` bit(1) DEFAULT b'0',
-  `logistics_trace_status` bit(1) DEFAULT b'0',
+  `logistics_status` bit(1) DEFAULT 0,
+  `logistics_trace_status` bit(1) DEFAULT 0,
   `order_status` char(30) DEFAULT NULL,
   `order_refresh_time` datetime DEFAULT NULL,
   `logistics_refresh_time` datetime DEFAULT NULL,
   `logistics_trace_refresh_time` datetime DEFAULT NULL,
   PRIMARY KEY (`entryid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4544,7 +4544,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_copy` (
   KEY `inwhstatus` (`inwhstatus`) USING BTREE,
   KEY `paystatus` (`paystatus`) USING BTREE,
   KEY `supplier` (`supplier`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4555,7 +4555,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_logistics` (
   `refreshtime` datetime DEFAULT NULL,
   PRIMARY KEY (`entryid`,`logisticsId`),
   KEY `logisticsId` (`logisticsId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4575,7 +4575,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_payment` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `formentryid` (`formentryid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4605,7 +4605,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_receive` (
   PRIMARY KEY (`id`),
   KEY `formentryid` (`formentryid`),
   KEY `opttime` (`opttime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4624,7 +4624,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_plan` (
   `totalpayprice` decimal(18,4) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -4649,7 +4649,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planitem` (
   UNIQUE KEY `Index 2` (`subplanid`,`materialid`,`warehouseid`),
   KEY `materialid` (`materialid`),
   KEY `idx_materialid_status` (`materialid`,`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -4661,7 +4661,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planitemsub` (
   `warehouseid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `planamount` int(11) DEFAULT NULL COMMENT '实际发货量',
   PRIMARY KEY (`planitemid`,`warehouseid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='废表';
+) ENGINE=InnoDB   COMMENT='废表';
 
 -- 数据导出被取消选择。
 
@@ -4670,10 +4670,10 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodel` (
   `planid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `modelid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `refreshtime` datetime DEFAULT NULL,
-  `isrun` bit(1) DEFAULT b'0',
+  `isrun` bit(1) DEFAULT 0,
   `operator` bigint(20) unsigned DEFAULT '0',
   PRIMARY KEY (`planid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -4691,7 +4691,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodelitem` (
   PRIMARY KEY (`id`),
   KEY `modelid_materialid` (`modelid`,`materialid`),
   KEY `idx_materialid_itemprice_planamount_invamount` (`materialid`,`itemprice`,`planamount`,`invamount`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4705,7 +4705,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodelitemsub` (
   `salesday` int(11) DEFAULT NULL,
   `aftersalesday` int(11) DEFAULT NULL,
   PRIMARY KEY (`itemid`,`sku`,`marketplaceid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -4719,7 +4719,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_plansub` (
   `ftype` char(10) DEFAULT NULL COMMENT 'po代表订单，ao代表组装单',
   PRIMARY KEY (`id`),
   KEY `planid` (`planid`,`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4731,7 +4731,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_plan_warahouse` (
   PRIMARY KEY (`warehouseid`),
   KEY `planid` (`planid`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='入库仓库和补货规划的映射关系表，一个入库仓库不能在多个补货规划中出现，一个补货规划会有多个入库仓库';
+) ENGINE=InnoDB  COMMENT='入库仓库和补货规划的映射关系表，一个入库仓库不能在多个补货规划中出现，一个补货规划会有多个入库仓库';
 
 -- 数据导出被取消选择。
 
@@ -4741,7 +4741,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_warahouse_material` (
   `materialid` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`planid`,`materialid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='记录每个sku在补货规划中所默认的入库仓库';
+) ENGINE=InnoDB  COMMENT='记录每个sku在补货规划中所默认的入库仓库';
 
 -- 数据导出被取消选择。
 
@@ -4753,7 +4753,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_warahouse_status` (
   `userid` bigint(20) unsigned DEFAULT NULL,
   `opptime` datetime DEFAULT NULL,
   PRIMARY KEY (`warehouseid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='记录每个仓库补货规划的状态，操作人，日期';
+) ENGINE=InnoDB  COMMENT='记录每个仓库补货规划的状态，操作人，日期';
 
 -- 数据导出被取消选择。
 
@@ -4767,7 +4767,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_serial_num` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`prefix_date`,`ftype`,`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4784,7 +4784,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_shipcycle` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku_marketplaceid_groupid` (`sku`,`marketplaceid`,`groupid`)
-) ENGINE=InnoDB AUTO_INCREMENT=17392024503393377051 DEFAULT CHARSET=utf8 COMMENT='FBA仓库配置';
+) ENGINE=InnoDB AUTO_INCREMENT=17392024503393377051  COMMENT='FBA仓库配置';
 
 -- 数据导出被取消选择。
 
@@ -4804,13 +4804,13 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_address` (
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `phone` char(30) DEFAULT NULL,
   `isdefault` bit(1) DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_groupid_city` (`name`,`groupid`,`city`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4832,7 +4832,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_addressto` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4842,7 +4842,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_config_carrier` (
   `name` char(30) NOT NULL,
   `transtyle` char(5) NOT NULL,
   PRIMARY KEY (`country`,`name`,`transtyle`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4862,7 +4862,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundbox` (
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4876,7 +4876,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundcase` (
   `quantity` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shipmentid` (`shipmentid`,`merchantsku`,`numberofcase`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4900,7 +4900,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inbounditem` (
   KEY `FK_t_erp_ship_inboundplanitem_t_erp_ship_inboundplan` (`inboundplanid`),
   KEY `Index 4` (`ShipmentId`),
   KEY `idx_ShipmentId_QuantityReceived_QuantityShipped` (`ShipmentId`,`QuantityReceived`,`QuantityShipped`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4930,7 +4930,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundplan` (
   KEY `marketplaceid_warehouseid_shopid` (`shopid`,`marketplaceid`),
   KEY `warehouseid` (`warehouseid`),
   KEY `idx_amazongroupid_marketplaceid_shopid` (`amazongroupid`,`marketplaceid`,`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4944,7 +4944,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundruntime` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_marketplaceid` (`shopid`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -4987,14 +4987,14 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment` (
   `transport_status` char(50) DEFAULT NULL,
   `box_contents_source` char(10) DEFAULT NULL,
   `sync_inv` tinyint(4) DEFAULT '0' COMMENT '1代表没有扣库存，2代表已经扣库存',
-  `ignorerec` bit(1) DEFAULT b'0' COMMENT '忽略收货异常',
+  `ignorerec` bit(1) DEFAULT 0 COMMENT '忽略收货异常',
   PRIMARY KEY (`ShipmentId`),
   KEY `Index 2` (`inboundplanid`),
   KEY `Index 3` (`status`),
   KEY `idx_inboundplanid_status_refreshtime` (`inboundplanid`,`status`,`refreshtime`),
   KEY `idx_inboundplanid_status_shipeddate_refreshtime` (`inboundplanid`,`status`,`shiped_date`,`refreshtime`),
   KEY `status5date` (`status5date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5007,7 +5007,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment_record` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ShipmentId` (`shipmentid`)
-) ENGINE=InnoDB AUTO_INCREMENT=484641 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=484641  ;
 
 -- 数据导出被取消选择。
 
@@ -5033,7 +5033,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundtrans` (
   `transtype` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shipmentid` (`shipmentid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5059,7 +5059,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundtrans_his` (
   `transtype` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`opttime`,`id`) USING BTREE,
   UNIQUE KEY `shipmentid` (`shipmentid`,`opttime`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5079,7 +5079,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_plan` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `warehouseid_amazongroupid` (`warehouseid`,`amazongroupid`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5099,7 +5099,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planitem` (
   PRIMARY KEY (`id`),
   KEY `Index 2` (`plansubid`,`sku`),
   KEY `status_materialid` (`materialid`,`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5110,11 +5110,11 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodel` (
   `warehouseid` bigint(20) unsigned DEFAULT NULL,
   `groupid` bigint(20) unsigned DEFAULT NULL,
   `refreshtime` datetime DEFAULT NULL,
-  `isrun` bit(1) DEFAULT b'0',
+  `isrun` bit(1) DEFAULT 0,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `索引 2` (`planid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5126,7 +5126,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodelitem` (
   `planamount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`modelid`,`materialid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5141,7 +5141,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodelitemsub` (
   `aftersalesday` int(11) DEFAULT NULL,
   PRIMARY KEY (`itemid`,`marketplaceid`,`sku`),
   KEY `索引 2` (`sku`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5154,7 +5154,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_plansub` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `planid` (`planid`,`status`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5169,7 +5169,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_plansub_euitem` (
   `amount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniqid` (`plansubid`,`marketplaceid`,`sku`)
-) ENGINE=InnoDB AUTO_INCREMENT=20396 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=20396  ;
 
 -- 数据导出被取消选择。
 
@@ -5184,7 +5184,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_shipment_template_file` (
   `opttime` datetime DEFAULT NULL,
   `createdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -5194,7 +5194,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_status` (
   `content` char(200) NOT NULL DEFAULT '0',
   `name` char(50) DEFAULT NULL,
   PRIMARY KEY (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5207,7 +5207,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transchannel` (
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5222,12 +5222,12 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `uploadpath` varchar(200) DEFAULT NULL,
-  `isdelete` bit(1) DEFAULT b'0',
+  `isdelete` bit(1) DEFAULT 0,
   `oldid` char(36) DEFAULT NULL,
   `location` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5241,7 +5241,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany_api` (
   `url` varchar(500) DEFAULT NULL,
   `system` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 ;
 
 -- 数据导出被取消选择。
 
@@ -5252,7 +5252,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany_services_zhihui` (
   `name` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
   `ftype` char(10) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`code`,`apiid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -5273,11 +5273,11 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transdetail` (
   `remark` varchar(1000) DEFAULT NULL,
   `cbmrate` int(11) DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
-  `disabled` bit(1) NOT NULL DEFAULT b'0',
+  `disabled` bit(1) NOT NULL DEFAULT 0,
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`company`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5298,11 +5298,11 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transdetail_his` (
   `remark` varchar(1000) DEFAULT NULL,
   `cbmrate` int(11) DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
-  `disabled` bit(1) DEFAULT b'0',
+  `disabled` bit(1) DEFAULT 0,
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`opttime`,`id`) USING BTREE,
   KEY `Index 2` (`company`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5317,7 +5317,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stepwise_quotn` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `material_amount` (`material`,`amount`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5332,7 +5332,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stockcycle` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `warehouseid_materialid` (`warehouseid`,`materialid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5356,7 +5356,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking` (
   `opttime` datetime DEFAULT NULL,
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5371,7 +5371,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_item` (
   `lossamount` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `stocktaking_mate_ware` (`stocktakingid`,`warehouseid`,`materialid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5385,7 +5385,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_summary_data` (
   `updatetime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `索引 2` (`shopid`,`ftype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='主页上的数据，每日更新';
+) ENGINE=InnoDB   COMMENT='主页上的数据，每日更新';
 
 -- 数据导出被取消选择。
 
@@ -5397,7 +5397,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_transtype` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -5415,7 +5415,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_turnover_rate` (
   `wrate` decimal(10,2) DEFAULT NULL,
   `wday` decimal(10,2) DEFAULT NULL,
   `createdate` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5430,7 +5430,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_unsalable` (
   `inv365` int(11) DEFAULT NULL,
   `invout90` int(11) DEFAULT NULL,
   `over90` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5445,7 +5445,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_usersales_rank` (
   `createdate` datetime DEFAULT NULL,
   PRIMARY KEY (`userid`,`shopid`,`daytype`),
   KEY `createdate` (`createdate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5454,12 +5454,12 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_calculate_record` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
   `ftype` char(20) NOT NULL COMMENT '计算类型，发货，采购，人力',
-  `iswarn` bit(1) NOT NULL DEFAULT b'0',
+  `iswarn` bit(1) NOT NULL DEFAULT 0,
   `operator` bigint(20) unsigned NOT NULL COMMENT '计算操作人',
   `opttime` datetime NOT NULL COMMENT '计算时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_ftype` (`shopid`,`ftype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用于存储各个计算模块的计算时间，计算人。统一留存历史记录';
+) ENGINE=InnoDB  COMMENT='用于存储各个计算模块的计算时间，计算人。统一留存历史记录';
 
 -- 数据导出被取消选择。
 
@@ -5468,12 +5468,12 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_calculate_record_history` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `ftype` char(20) DEFAULT NULL,
-  `iswarn` bit(1) DEFAULT b'0',
+  `iswarn` bit(1) DEFAULT 0,
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `shopid_ftype` (`shopid`,`ftype`,`opttime`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -5493,7 +5493,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_man_month` (
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `shopid_month` (`shopid`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='人力计算结果保存';
+) ENGINE=InnoDB  COMMENT='人力计算结果保存';
 
 -- 数据导出被取消选择。
 
@@ -5513,7 +5513,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_man_month_history` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `shopid_month` (`shopid`,`month`,`opttime`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='人力计算结果历史';
+) ENGINE=InnoDB  COMMENT='人力计算结果历史';
 
 -- 数据导出被取消选择。
 
@@ -5529,7 +5529,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_pickpay_form` (
   `creattime` datetime NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `month_shopid` (`month`,`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='采购提货与付款模块分组，采用一个月一个表单的结构，对采购付款历史与审核进行保存';
+) ENGINE=InnoDB  COLLATE=utf8_bin COMMENT='采购提货与付款模块分组，采用一个月一个表单的结构，对采购付款历史与审核进行保存';
 
 -- 数据导出被取消选择。
 
@@ -5552,7 +5552,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_pickpay_form_entry` (
   `opttime` datetime NOT NULL COMMENT '操作时间',
   `creattime` datetime NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='提货付款模块SKU从审核到通过以及历史的具体entry表';
+) ENGINE=InnoDB  COMMENT='提货付款模块SKU从审核到通过以及历史的具体entry表';
 
 -- 数据导出被取消选择。
 
@@ -5568,7 +5568,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `unione` (`pid`,`month`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='销售预测月度结果';
+) ENGINE=InnoDB  COMMENT='销售预测月度结果';
 
 -- 数据导出被取消选择。
 
@@ -5584,7 +5584,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form` (
   `creattime` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_year_month` (`shopid`,`year`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='销售预测提交的表单，以每个月一份表单的方式存储整个公司关于销售预测的提交';
+) ENGINE=InnoDB  COMMENT='销售预测提交的表单，以每个月一份表单的方式存储整个公司关于销售预测的提交';
 
 -- 数据导出被取消选择。
 
@@ -5604,7 +5604,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form_entry` (
   `creator` bigint(20) unsigned DEFAULT NULL COMMENT '创建人',
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_one` (`pid`,`formid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='销售预测单个SKU所以的审核与历史表单对应';
+) ENGINE=InnoDB  COMMENT='销售预测单个SKU所以的审核与历史表单对应';
 
 -- 数据导出被取消选择。
 
@@ -5619,7 +5619,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form_entry_item` (
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_one` (`entryid`,`year`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='销售预测每个SKU对应每个月的预测数据';
+) ENGINE=InnoDB  COMMENT='销售预测每个SKU对应每个月的预测数据';
 
 -- 数据导出被取消选择。
 
@@ -5635,7 +5635,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_week` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `unione` (`pid`,`week`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='销售预测周结构数据存储';
+) ENGINE=InnoDB  COMMENT='销售预测周结构数据存储';
 
 -- 数据导出被取消选择。
 
@@ -5655,7 +5655,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_form` (
   `creattime` datetime NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='采购模块表单保存表';
+) ENGINE=InnoDB  COLLATE=utf8_bin COMMENT='采购模块表单保存表';
 
 -- 数据导出被取消选择。
 
@@ -5680,7 +5680,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_form_entry` (
   `creattime` datetime NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `formid` (`formid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -5700,7 +5700,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_material` (
   UNIQUE KEY `unione` (`materialid`) USING BTREE,
   KEY `shopid` (`shopid`) USING BTREE,
   KEY `sumrquest` (`sumrquest`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='产品采购计划，计算结果，存储每个SKU对应的采购周期，需求量，建议采购量，总需求量等';
+) ENGINE=InnoDB  COMMENT='产品采购计划，计算结果，存储每个SKU对应的采购周期，需求量，建议采购量，总需求量等';
 
 -- 数据导出被取消选择。
 
@@ -5719,7 +5719,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_material_history` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `unione` (`materialid`,`opttime`) USING BTREE,
   KEY `shopid` (`shopid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -5729,7 +5729,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_selected` (
   `userid` bigint(20) unsigned NOT NULL COMMENT '用户ID',
   PRIMARY KEY (`materialid`,`userid`),
   KEY `userid` (`userid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='采购计算结果选中发货，记录是否选中';
+) ENGINE=InnoDB  COMMENT='采购计算结果选中发货，记录是否选中';
 
 -- 数据导出被取消选择。
 
@@ -5743,13 +5743,13 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_week` (
   `moreqty` int(10) DEFAULT '0' COMMENT '多余库存（库存减去对应安全库存+头程周期+增长天数对应需求量的和）',
   `suggestqty` int(10) DEFAULT '0' COMMENT '建议提货量（将需求量+剩余库存，缺少部分通过合箱规后）',
   `differentqty` int(10) DEFAULT '0' COMMENT '差异数量-（销售预测与库存之间的差异值）',
-  `isfull` bit(1) DEFAULT b'0',
+  `isfull` bit(1) DEFAULT 0,
   `opttime` datetime DEFAULT NULL COMMENT '操作时间',
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `unione` (`materialid`,`week`) USING BTREE,
   KEY `shopid` (`shopid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='产品采购计划，通过发货需求与本地产品对应，并进行本地SKU转化，组装子SKU转换\r\n采购周情况存储。包换需求量，多余库存等';
+) ENGINE=InnoDB  COMMENT='产品采购计划，通过发货需求与本地产品对应，并进行本地SKU转化，组装子SKU转换\r\n采购周情况存储。包换需求量，多余库存等';
 
 -- 数据导出被取消选择。
 
@@ -5763,13 +5763,13 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_week_history` (
   `moreqty` int(10) DEFAULT '0',
   `suggestqty` int(10) DEFAULT '0',
   `differentqty` int(10) DEFAULT '0',
-  `isfull` bit(1) DEFAULT b'0',
+  `isfull` bit(1) DEFAULT 0,
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `unione` (`materialid`,`week`,`opttime`) USING BTREE,
   KEY `shopid` (`shopid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='采购计算周数据历史保存';
+) ENGINE=InnoDB     COMMENT='采购计算周数据历史保存';
 
 -- 数据导出被取消选择。
 
@@ -5783,7 +5783,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_setting` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='发货计划设置，用于保存发货计算中当达成率与增长率达到标准时增加的天数';
+) ENGINE=InnoDB  COMMENT='发货计划设置，用于保存发货计算中当达成率与增长率达到标准时增加的天数';
 
 -- 数据导出被取消选择。
 
@@ -5799,7 +5799,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_week` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `unione` (`pid`,`week`) USING BTREE,
   KEY `shopid` (`shopid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='发货计划周情况，记录发货计算历史结果,根据销售预测得到需求量';
+) ENGINE=InnoDB  COMMENT='发货计划周情况，记录发货计算历史结果,根据销售预测得到需求量';
 
 -- 数据导出被取消选择。
 
@@ -5815,7 +5815,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_week_history` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `unione` (`pid`,`week`,`opttime`) USING BTREE,
   KEY `shopid` (`shopid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -5829,7 +5829,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_productl_workhours` (
   `opttime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`mid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='人力计算配置表\r\n标准工时/H	待增加	每个小时能处理多少个该产品的组装及打包发货工作	产品信息管理	\r\n独立产品及组装产品的主SKU（在售成品）需要设置【标准工时】。用作计算发货工时及人力需求。	\r\n如有产品需要完成组装（工作较为复杂），则可能为“12”，意为每小时从拣货、组装到装箱打包可以处理12个该产品。如流程较为简单，则可能为“35”，即为每小时可处理35个。\r\n';
+) ENGINE=InnoDB  COMMENT='人力计算配置表\r\n标准工时/H	待增加	每个小时能处理多少个该产品的组装及打包发货工作	产品信息管理	\r\n独立产品及组装产品的主SKU（在售成品）需要设置【标准工时】。用作计算发货工时及人力需求。	\r\n如有产品需要完成组装（工作较为复杂），则可能为“12”，意为每小时从拣货、组装到装箱打包可以处理12个该产品。如流程较为简单，则可能为“35”，即为每小时可处理35个。\r\n';
 
 -- 数据导出被取消选择。
 
@@ -5841,7 +5841,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_ship_product_delivery_cycle` (
   `opttime` datetime DEFAULT NULL COMMENT '操作时间',
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品的头程周期存储';
+) ENGINE=InnoDB  COMMENT='商品的头程周期存储';
 
 -- 数据导出被取消选择。
 
@@ -5856,7 +5856,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_shop_units_worktime` (
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid` (`shopid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='人力计算配置表';
+) ENGINE=InnoDB  COMMENT='人力计算配置表';
 
 -- 数据导出被取消选择。
 
@@ -5871,24 +5871,24 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse` (
   `remark` varchar(1000) DEFAULT NULL COMMENT '备注',
   `findex` int(11) DEFAULT NULL COMMENT '次序',
   `fbawareid` bigint(20) unsigned DEFAULT NULL COMMENT '海外仓',
-  `isdefault` bit(1) DEFAULT b'0' COMMENT '默认仓库',
+  `isdefault` bit(1) DEFAULT 0 COMMENT '默认仓库',
   `shopid` bigint(20) unsigned NOT NULL COMMENT '店铺',
   `parentid` bigint(20) unsigned DEFAULT NULL COMMENT '父节点',
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   `opttime` datetime DEFAULT NULL COMMENT '修改时间',
   `stocking_cycle` int(11) DEFAULT '0',
-  `disabled` bit(1) NOT NULL DEFAULT b'0',
-  `isstocktaking` bit(1) DEFAULT b'0',
+  `disabled` bit(1) NOT NULL DEFAULT 0,
+  `isstocktaking` bit(1) DEFAULT 0,
   `min_cycle` int(10) DEFAULT '0',
   `first_leg_charges` decimal(12,2) DEFAULT NULL,
   `oldid` char(36) DEFAULT NULL,
-  `ishungry` bit(1) DEFAULT b'0',
+  `ishungry` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`parentid`),
   KEY `ftype` (`ftype`),
   KEY `shopid` (`shopid`),
   KEY `name_shopid` (`name`,`shopid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -5908,7 +5908,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_fba` (
   `opttime` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_marketplaceid` (`shopid`,`marketplaceid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -5926,9 +5926,9 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf` (
   `sort` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '排序即（柜子所在位置）',
   `treepath` char(200) NOT NULL DEFAULT '0' COMMENT '所有付货柜编码如：A01!033!F01',
   `shopid` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '公司ID',
-  `iswarn` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否报警',
-  `isdelete` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否逻辑删除',
-  `isfrozen` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否冻结',
+  `iswarn` bit(1) NOT NULL DEFAULT 0 COMMENT '是否报警',
+  `isdelete` bit(1) NOT NULL DEFAULT 0 COMMENT '是否逻辑删除',
+  `isfrozen` bit(1) NOT NULL DEFAULT 0 COMMENT '是否冻结',
   `operator` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '操作人',
   `opttime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '操作时间',
   `creator` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '创建人',
@@ -5936,7 +5936,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf` (
   PRIMARY KEY (`id`),
   KEY `treepath` (`shopid`,`warehouseid`,`treepath`),
   KEY `parentid` (`parentid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='仓库货柜';
+) ENGINE=InnoDB  COMMENT='仓库货柜';
 
 -- 数据导出被取消选择。
 
@@ -5953,7 +5953,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory` (
   PRIMARY KEY (`id`),
   KEY `shelfid_materialid_shopid` (`shopid`,`shelfid`,`materialid`) USING BTREE,
   KEY `materialid_shopid` (`shopid`,`materialid`,`shelfid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='货架产品库存';
+) ENGINE=InnoDB  COMMENT='货架产品库存';
 
 -- 数据导出被取消选择。
 
@@ -5974,7 +5974,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory_opt_pro` (
   `opttime` datetime DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `shelfid_materialid_shopid` (`shopid`,`shelfid`,`materialid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='预操作，此表内不存储任何记录。当预操作结束后自动删除';
+) ENGINE=InnoDB  COMMENT='预操作，此表内不存储任何记录。当预操作结束后自动删除';
 
 -- 数据导出被取消选择。
 
@@ -5996,7 +5996,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory_opt_record` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `shelfid_materialid_shopid_formid_formtype` (`shopid`,`shelfid`,`materialid`),
   KEY `formid_formtype` (`formid`,`formtype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='操作记录';
+) ENGINE=InnoDB  COMMENT='操作记录';
 
 -- 数据导出被取消选择。
 
@@ -6010,7 +6010,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_type` (
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   `opttime` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -6036,7 +6036,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_whse_unsalable_rpt` (
   `qtysum30` decimal(35,0) DEFAULT NULL,
   `salesum30` decimal(35,0) DEFAULT NULL,
   PRIMARY KEY (`shopid`,`wid`,`mtid`,`sku`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -6047,7 +6047,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangeinfo` (
   `type` varchar(15) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`currency`) USING BTREE,
   UNIQUE KEY `symbol` (`name`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin  COMMENT='汇率';
+) ENGINE=InnoDB      COMMENT='汇率';
 
 -- 数据导出被取消选择。
 
@@ -6062,7 +6062,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate` (
   `volume` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=444945 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin  COMMENT='汇率';
+) ENGINE=InnoDB AUTO_INCREMENT=444945      COMMENT='汇率';
 
 -- 数据导出被取消选择。
 
@@ -6078,7 +6078,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate_customer` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`shopid`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='汇率';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='汇率';
 
 -- 数据导出被取消选择。
 
@@ -6090,10 +6090,10 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate_his` (
   `symbol` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
   `type` varchar(15) CHARACTER SET latin1 DEFAULT NULL,
   `byday` date DEFAULT NULL,
-  `isnewest` bit(1) DEFAULT b'0',
+  `isnewest` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `index_name` (`name`,`byday`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=458421 DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='汇率';
+) ENGINE=InnoDB AUTO_INCREMENT=458421  COLLATE=utf8_bin  COMMENT='汇率';
 
 -- 数据导出被取消选择。
 
@@ -6113,7 +6113,7 @@ CREATE TABLE IF NOT EXISTS `t_fbaformat` (
   PRIMARY KEY (`id`),
   KEY `FK_t_fbaformat_t_producttier` (`producttierId`),
   KEY `country` (`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB  COLLATE=utf8_bin;
 
 
 -- 数据导出被取消选择。
@@ -6164,7 +6164,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_estimated_fees` (
   `lastupdate` datetime DEFAULT NULL,
   PRIMARY KEY (`sku`,`asin`,`amazonAuthId`,`marketplaceid`),
   KEY `index_auth` (`amazonAuthId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -6177,7 +6177,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_labeling_service_fee` (
   PRIMARY KEY (`id`),
   KEY `producttierId` (`isStandard`),
   KEY `country` (`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -6196,13 +6196,13 @@ CREATE TABLE IF NOT EXISTS `t_fba_longterm_storage_fee_report` (
   `per_unit_volume` decimal(12,2) DEFAULT NULL,
   `volume_unit` decimal(10,2) DEFAULT NULL,
   `country` char(10) DEFAULT NULL,
-  `is_sl` bit(1) DEFAULT b'0',
+  `is_sl` bit(1) DEFAULT 0,
   `amazonauthid` bigint(20) unsigned,
   `lastupdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date-sku-country` (`amazonauthid`,`country`,`sku`,`snapshot_date`) USING BTREE,
   KEY `snapshot_date` (`amazonauthid`,`country`,`snapshot_date`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=149523 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=149523 ;
 
 -- 数据导出被取消选择。
 
@@ -6230,13 +6230,13 @@ CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report` (
   `currency` char(20) DEFAULT NULL,
   `monthly_storage_fee` decimal(12,4) DEFAULT NULL,
   `category` char(50) DEFAULT NULL,
-  `eligible_for_inv_discount` bit(1) DEFAULT b'0',
-  `qualifies_for_inv_discount` bit(1) DEFAULT b'0',
+  `eligible_for_inv_discount` bit(1) DEFAULT 0,
+  `qualifies_for_inv_discount` bit(1) DEFAULT 0,
   `amazonauthid` bigint(20) unsigned DEFAULT NULL,
   `lastupdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `index1` (`amazonauthid`,`country`,`asin`,`month`,`fulfillment_center`,`fnsku`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5176840 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5176840 ;
 
 -- 数据导出被取消选择。
 
@@ -6264,14 +6264,14 @@ CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report_archive` (
   `currency` char(20) DEFAULT NULL,
   `monthly_storage_fee` decimal(12,4) DEFAULT NULL,
   `category` char(50) DEFAULT NULL,
-  `eligible_for_inv_discount` bit(1) DEFAULT b'0',
-  `qualifies_for_inv_discount` bit(1) DEFAULT b'0',
+  `eligible_for_inv_discount` bit(1) DEFAULT 0,
+  `qualifies_for_inv_discount` bit(1) DEFAULT 0,
   `amazonauthid` bigint(20) unsigned DEFAULT NULL,
   `lastupdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `month` (`month`),
   KEY `index1` (`amazonauthid`,`country`,`asin`,`month`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2147483647 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2147483647 ;
 
 -- 数据导出被取消选择。
 
@@ -6285,7 +6285,7 @@ CREATE TABLE IF NOT EXISTS `t_fixed_closingfee` (
   `sort` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `country` (`country`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=5  ;
 
 -- 数据导出被取消选择。
 
@@ -6296,7 +6296,7 @@ CREATE TABLE IF NOT EXISTS `t_individualfee` (
   `perItemFee` decimal(10,2) DEFAULT NULL COMMENT '个人卖家才有per-item fee',
   PRIMARY KEY (`id`),
   KEY `country` (`country`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB AUTO_INCREMENT=9  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6309,7 +6309,7 @@ CREATE TABLE IF NOT EXISTS `t_inplacefee` (
   PRIMARY KEY (`id`),
   KEY `id` (`id`),
   KEY `country` (`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6326,7 +6326,7 @@ CREATE TABLE IF NOT EXISTS `t_inplacefeeformat` (
   KEY `inplacefeeid` (`inplacefeeid`),
   KEY `country` (`country`),
   KEY `producttierId` (`producttierId`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB AUTO_INCREMENT=14  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6338,7 +6338,7 @@ CREATE TABLE IF NOT EXISTS `t_inventorystoragefee` (
   `country` char(10) DEFAULT NULL,
   `isStandard` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=28 ;
 
 -- 数据导出被取消选择。
 
@@ -6372,7 +6372,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`marketplaceid`,`amazonAuthId`,`sku`),
   KEY `iv_sku_amazonauthid` (`sku`,`amazonAuthId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6406,7 +6406,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report_his` (
   PRIMARY KEY (`byday`,`id`) USING BTREE,
   UNIQUE KEY `索引 3` (`amazonAuthId`,`marketplaceid`,`sku`,`byday`),
   KEY `sku` (`sku`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6441,7 +6441,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report_his_archive` (
   KEY `marketplaceid` (`marketplaceid`),
   KEY `sku` (`sku`),
   KEY `key` (`amazonAuthId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6464,7 +6464,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_reserved_report` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `index1` (`sku`,`marketplaceid`,`amazonAuthId`),
   KEY `idx_amazonAuthId_marketplaceid` (`amazonAuthId`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -6479,7 +6479,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_status` (
   `amazonAuthId` char(36) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`byday`,`asin`,`marketplaceid`,`amazonAuthId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6491,7 +6491,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_temp` (
   `instock` int(11) DEFAULT NULL,
   `inbound` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1641 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1641 ;
 
 -- 数据导出被取消选择。
 
@@ -6521,11 +6521,11 @@ CREATE TABLE IF NOT EXISTS `t_manager_limit` (
   `oprate` bigint(20) unsigned DEFAULT NULL COMMENT '修改人',
   `logicVersion` bigint(20) DEFAULT '0',
   `saleskey` char(36) DEFAULT NULL,
-  `neverNoticeShop` bit(1) DEFAULT b'0',
+  `neverNoticeShop` bit(1) DEFAULT 0,
   `afterNnoticeTariff` date DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `t_manager_limit_ibfk_1` (`shopId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -6539,10 +6539,10 @@ CREATE TABLE IF NOT EXISTS `t_manager_limit_append` (
   `num` int(11) DEFAULT '0',
   `effecttime` date DEFAULT NULL,
   `losingeffect` date DEFAULT NULL,
-  `isclose` bit(1) DEFAULT b'0',
+  `isclose` bit(1) DEFAULT 0,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -6553,7 +6553,7 @@ CREATE TABLE IF NOT EXISTS `t_manual_processing_fee` (
   `manualProcessingFee` decimal(10,2) DEFAULT '0.00' COMMENT '手动处理费',
   `country` char(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=4  ;
 
 -- 数据导出被取消选择。
 
@@ -6587,7 +6587,7 @@ CREATE TABLE IF NOT EXISTS `t_marketplace` (
   KEY `region` (`region`),
   KEY `marketplaceId_region` (`marketplaceId`,`region`),
   KEY `currency` (`currency`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='站点';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='站点';
 
 -- 数据导出被取消选择。
 
@@ -6605,7 +6605,7 @@ CREATE TABLE IF NOT EXISTS `t_menu` (
   `groupid` char(36) COLLATE utf8_bin DEFAULT NULL COMMENT '分组',
   PRIMARY KEY (`id`),
   KEY `FK_t_menu_t_menu` (`parentid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='菜单';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='菜单';
 
 -- 数据导出被取消选择。
 
@@ -6616,7 +6616,7 @@ CREATE TABLE IF NOT EXISTS `t_menu_group` (
   `icon` varchar(500) DEFAULT NULL,
   `remark` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -6634,7 +6634,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_financial` (
   `posted_date` datetime DEFAULT NULL COMMENT '出账时间',
   PRIMARY KEY (`id`),
   KEY `amazon_order_id` (`amazon_order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=53667 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=53667 ;
 
 -- 数据导出被取消选择。
 
@@ -6693,7 +6693,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_report` (
   KEY `purchase_date` (`purchase_date`) USING BTREE,
   KEY `sku` (`sku`,`purchase_date`) USING BTREE,
   KEY `sales_channel_amazonauthid` (`amazonauthid`,`sales_channel`,`purchase_date`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -6748,7 +6748,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_report_archive` (
   `fulfillment_channel` char(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `sales_channel` char(50) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`amazon_order_id`,`shipment_item_id`,`amazon_order_item_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 -- 导出  表 db_wimoor.t_orders_remark 结构
@@ -6762,7 +6762,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_remark` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`amazon_order_id`),
   KEY `amazon_order_id_remark` (`remark`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6806,7 +6806,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_report` (
   PRIMARY KEY (`amazonAuthId`,`purchase_date`,`id`) USING BTREE,
   UNIQUE KEY `Index` (`amazon_order_id`,`sku`) USING BTREE,
   KEY `Index 2` (`sales_channel`,`sku`,`purchase_date`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='purchase_order_number';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。
 
@@ -6849,7 +6849,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_report_archive` (
   PRIMARY KEY (`amazonAuthId`,`purchase_date`,`id`),
   KEY `Index 2` (`sales_channel`,`sku`),
   KEY `Index` (`amazon_order_id`,`sku`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='purchase_order_number';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。
 -- 导出  表 db_wimoor.t_orders_report_download 结构
@@ -6891,7 +6891,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_report_download` (
   `refreshtime` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`purchase_date`,`id`) USING BTREE,
   UNIQUE KEY `Index 2` (`amazonAuthId`,`amazon_order_id`,`sku`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='purchase_order_number';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。
 
@@ -6918,7 +6918,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_sumconfig` (
   `discountTo` decimal(10,0) DEFAULT NULL,
   `amazonAuthId` char(36) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6940,7 +6940,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary` (
   UNIQUE KEY `index_1` (`amazonAuthId`,`marketplaceid`,`sku`,`purchase_date`) USING BTREE,
   KEY `Index 2` (`marketplaceid`,`quantity`,`orderprice`,`ordersum`),
   KEY `amazonauthid` (`sku`,`amazonAuthId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6961,7 +6961,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary_month` (
   PRIMARY KEY (`purchase_date`,`id`),
   UNIQUE KEY `index_1` (`amazonAuthId`,`marketplaceid`,`sku`,`purchase_date`),
   KEY `Index 2` (`marketplaceid`,`quantity`,`orderprice`,`ordersum`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -6982,7 +6982,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary_week` (
   PRIMARY KEY (`purchase_date`,`id`),
   UNIQUE KEY `index_1` (`amazonAuthId`,`marketplaceid`,`sku`,`purchase_date`),
   KEY `Index 2` (`marketplaceid`,`quantity`,`orderprice`,`ordersum`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7003,7 +7003,7 @@ CREATE TABLE IF NOT EXISTS `t_order_invoice` (
   `sign` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `groupid` (`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7016,7 +7016,7 @@ CREATE TABLE IF NOT EXISTS `t_order_invoice_vat` (
   `vat_rate` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `groupid` (`groupid`,`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7028,7 +7028,7 @@ CREATE TABLE IF NOT EXISTS `t_outbound_weightformat` (
   `format` char(255) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `producttierId` (`producttierId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB  COLLATE=utf8_bin;
 
 -- 数据导出被取消选择。
 
@@ -7042,7 +7042,7 @@ CREATE TABLE IF NOT EXISTS `t_parameterconfig` (
   `description` varchar(100) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `pkey` (`pkey`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB AUTO_INCREMENT=30  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7058,7 +7058,7 @@ CREATE TABLE IF NOT EXISTS `t_picture` (
   `oldid` char(36) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_location` (`location`(255))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='用于存放Image';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='用于存放Image';
 
 -- 数据导出被取消选择。
 
@@ -7071,7 +7071,7 @@ CREATE TABLE IF NOT EXISTS `t_prepservicefee` (
   `country` char(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `country` (`country`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=38  ;
 
 -- 数据导出被取消选择。
 
@@ -7086,7 +7086,7 @@ CREATE TABLE IF NOT EXISTS `t_productformat` (
   `sort` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`producttierId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB  COLLATE=utf8_bin;
 
 -- 数据导出被取消选择。
 
@@ -7099,7 +7099,7 @@ CREATE TABLE IF NOT EXISTS `t_producttier` (
   `box_weight` decimal(10,4) DEFAULT NULL COMMENT '包装箱重量（单位：kg）',
   `amz_name` char(50) COLLATE utf8_bin DEFAULT NULL COMMENT '对应亚马逊显示的product tier',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB  COLLATE=utf8_bin;
 
 -- 数据导出被取消选择。
 
@@ -7110,7 +7110,7 @@ CREATE TABLE IF NOT EXISTS `t_product_category` (
   `Name` varchar(200) CHARACTER SET utf8 DEFAULT NULL,
   `parentId` char(36) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`pid`,`CategoryId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='产品分类表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='产品分类表';
 
 -- 数据导出被取消选择。
 
@@ -7121,12 +7121,12 @@ CREATE TABLE IF NOT EXISTS `t_product_follow` (
   `amazonAuthId` bigint(20) unsigned DEFAULT NULL,
   `marketplaceid` char(15) DEFAULT NULL,
   `lastupdateTime` datetime DEFAULT NULL,
-  `isread` bit(1) DEFAULT b'0',
+  `isread` bit(1) DEFAULT 0,
   `sku` char(36) DEFAULT NULL,
   `flownumber` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `asin_amazonAuthId_marketplaceid_endtime_isnewest` (`amazonAuthId`,`marketplaceid`,`asin`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -7151,17 +7151,17 @@ CREATE TABLE IF NOT EXISTS `t_product_info` (
   `image` bigint(20) unsigned DEFAULT NULL COMMENT '照片',
   `parentMarketplace` char(36) DEFAULT NULL COMMENT '父商品marketplace',
   `parentAsin` char(36) DEFAULT NULL COMMENT '父商品asin',
-  `isparent` bit(1) DEFAULT b'0' COMMENT '是否副产品（即不是变体）',
+  `isparent` bit(1) DEFAULT 0 COMMENT '是否副产品（即不是变体）',
   `lastupdate` datetime DEFAULT NULL COMMENT '更新时间',
   `createdate` datetime DEFAULT NULL,
   `amazonAuthId` bigint(20) unsigned DEFAULT NULL COMMENT '授权ID',
-  `invalid` bit(1) DEFAULT b'0' COMMENT '是否无效',
+  `invalid` bit(1) DEFAULT 0 COMMENT '是否无效',
   `oldid` char(36) DEFAULT NULL,
-  `inSnl` bit(1) DEFAULT b'0' COMMENT '是否轻小',
+  `inSnl` bit(1) DEFAULT 0 COMMENT '是否轻小',
   `fnsku` char(20) DEFAULT NULL,
   `pcondition` char(20) DEFAULT NULL,
   `status` char(20) DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   `refreshtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `Index 3` (`amazonAuthId`,`marketplaceid`,`sku`) USING BTREE,
@@ -7169,7 +7169,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info` (
   KEY `invalid` (`invalid`,`disable`,`isparent`) USING BTREE,
   KEY `idx_sku_isparent_invalid` (`sku`) USING BTREE,
   KEY `idx_asin_amazonAuthId` (`asin`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息';
+) ENGINE=InnoDB   COMMENT='产品信息';
 
 
 -- 导出  表 db_wimoor.t_product_info_status_define 结构
@@ -7177,7 +7177,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info_status_define` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `name` char(20) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '状态名称',
-  `issystem` bit(1) NOT NULL DEFAULT b'0',
+  `issystem` bit(1) NOT NULL DEFAULT 0,
   `color` char(10) COLLATE utf8mb4_bin DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `createtime` datetime DEFAULT NULL,
@@ -7186,7 +7186,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info_status_define` (
   `remark` char(100) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `shopid_name` (`shopid`,`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=46    ;
 
 -- 数据导出被取消选择。
 
@@ -7203,7 +7203,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_adv` (
   `adv_acos7` decimal(14,4) DEFAULT NULL,
   `lastupdate` datetime DEFAULT NULL,
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息';
+) ENGINE=InnoDB   COMMENT='产品信息';
 
 -- 数据导出被取消选择。
 
@@ -7216,7 +7216,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_opt` (
   `businessprice` decimal(10,2) DEFAULT NULL,
   `businesstype` char(10) DEFAULT NULL,
   `businesslist` varchar(1000) DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   `presales` int(11) DEFAULT NULL COMMENT '手动输入的预估销量',
   `lastupdate` datetime DEFAULT NULL,
   `remark_analysis` varchar(1000) DEFAULT NULL,
@@ -7230,7 +7230,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_opt` (
   KEY `Index 5` (`disable`),
   KEY `msku` (`msku`),
   KEY `idx_msku_disable_status` (`msku`,`disable`,`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息';
+) ENGINE=InnoDB   COMMENT='产品信息';
 
 -- 数据导出被取消选择。
 
@@ -7253,7 +7253,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_order` (
   PRIMARY KEY (`pid`),
   KEY `lastupdate` (`lastupdate`),
   KEY `sales_month` (`sales_month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息的订单销售数据';
+) ENGINE=InnoDB   COMMENT='产品信息的订单销售数据';
 
 -- 数据导出被取消选择。
 
@@ -7270,11 +7270,11 @@ CREATE TABLE IF NOT EXISTS `t_product_in_presale` (
   `start` date DEFAULT NULL,
   `end` date DEFAULT NULL,
   `month` char(10) DEFAULT NULL,
-  `hasdaysales` bit(1) DEFAULT b'0',
+  `hasdaysales` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `index_bydate` (`sku`,`marketplaceid`,`groupid`,`date`) USING BTREE,
   KEY `index_date_event` (`start`,`end`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7293,7 +7293,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_profit` (
   `costDetail` varchar(2000) DEFAULT '',
   PRIMARY KEY (`pid`),
   KEY `lastupdate` (`lastupdate`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息的利润信息';
+) ENGINE=InnoDB   COMMENT='产品信息的利润信息';
 
 -- 数据导出被取消选择。
 
@@ -7309,14 +7309,14 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review` (
   `starofrate_3` float unsigned DEFAULT NULL,
   `starofrate_4` float unsigned DEFAULT NULL,
   `starofrate_5` float unsigned DEFAULT NULL,
-  `negative` bit(1) DEFAULT b'0',
+  `negative` bit(1) DEFAULT 0,
   `positiveReview` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `criticalReview` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `refreshtime` datetime DEFAULT NULL,
   `refreshnum` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `asin_marketplaceid` (`asin`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7340,11 +7340,11 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review_detail` (
   `verified_text` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `helpful_num` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `opttime` datetime NOT NULL,
-  `refreshorder` bit(1) DEFAULT b'0',
+  `refreshorder` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `reviewid_asin_marketplaceid` (`asin`,`marketplaceid`,`reviewid`) USING BTREE,
   KEY `review_star_rating` (`marketplaceid`,`review_star_rating`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -7384,7 +7384,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review_runs` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `shopid_asin` (`shopid`) USING BTREE,
   KEY `asin_marketplaceid` (`amazonauthid`,`marketplaceid`,`sku`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -7395,7 +7395,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_ses` (
   `session_rate7` decimal(14,4) DEFAULT NULL,
   `buybox_rate7` decimal(14,4) DEFAULT NULL,
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息';
+) ENGINE=InnoDB   COMMENT='产品信息';
 
 -- 数据导出被取消选择。
 
@@ -7425,7 +7425,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_sys` (
   `othersfee` decimal(10,2) DEFAULT NULL,
   `costDetail` varchar(2000) DEFAULT '',
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='产品信息';
+) ENGINE=InnoDB   COMMENT='产品信息';
 
 -- 数据导出被取消选择。
 
@@ -7450,7 +7450,7 @@ CREATE TABLE IF NOT EXISTS `t_product_price` (
   `SellerSKU` char(50) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`SellerId`,`MarketplaceId`,`SellerSKU`,`ptype`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='产品价格信息表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='产品价格信息表';
 
 -- 数据导出被取消选择。
 
@@ -7475,7 +7475,7 @@ CREATE TABLE IF NOT EXISTS `t_product_price_his` (
   `SellerSKU` char(50) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index 2` (`SellerId`,`MarketplaceId`,`isnewest`,`ptype`,`asin`,`byday`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='产品价格信息表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='产品价格信息表';
 
 -- 数据导出被取消选择。
 
@@ -7485,7 +7485,7 @@ CREATE TABLE IF NOT EXISTS `t_product_price_locked` (
   `price` decimal(10,2) DEFAULT NULL,
   `starttime` datetime DEFAULT NULL,
   `endtime` datetime DEFAULT NULL,
-  `disable` bit(1) NOT NULL DEFAULT b'0',
+  `disable` bit(1) NOT NULL DEFAULT 0,
   `operator` bigint(20) unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`pid`) USING BTREE
@@ -7505,7 +7505,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `FK_t_ranklist_t_produ` (`product_id`,`categoryId`),
   KEY `tprank_pid_byday_rank` (`product_id`,`byday`,`rank`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7522,7 +7522,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank_his` (
   KEY `FK_t_ranklist_t_produ` (`product_id`),
   KEY `Index 3` (`byday`),
   KEY `categoryId` (`categoryId`,`byday`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7535,7 +7535,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank_sales_his` (
   `ordersum` int(11) NOT NULL DEFAULT '0',
   `rank` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='产品当天在一级大类排名对应产品当天的ordersum';
+) ENGINE=InnoDB  COMMENT='产品当天在一级大类排名对应产品当天的ordersum';
 
 -- 数据导出被取消选择。
 
@@ -7552,8 +7552,8 @@ CREATE TABLE IF NOT EXISTS `t_product_recommended` (
   `category` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '分类',
   `subcategory` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '子分类',
   `lowestprice` decimal(10,2) DEFAULT NULL COMMENT '上周最低价格',
-  `fbaoffer` bit(1) DEFAULT b'0' COMMENT 'fba提供',
-  `amzoffer` bit(1) DEFAULT b'0' COMMENT '亚马逊提供',
+  `fbaoffer` bit(1) DEFAULT 0 COMMENT 'fba提供',
+  `amzoffer` bit(1) DEFAULT 0 COMMENT '亚马逊提供',
   `offers` int(11) DEFAULT NULL COMMENT '优惠数量',
   `reviews` int(11) DEFAULT NULL COMMENT '评论数量',
   `rank` int(11) DEFAULT NULL COMMENT '销量排名',
@@ -7567,14 +7567,14 @@ CREATE TABLE IF NOT EXISTS `t_product_recommended` (
   `brandoffer` bit(1) DEFAULT NULL COMMENT '是否 自己提供的品牌',
   `categoryoffer` bit(1) DEFAULT NULL COMMENT '是否 自己提供的类别',
   `performance` char(20) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '产品性能',
-  `istoprank` bit(1) DEFAULT b'0' COMMENT '是否最高销售排名',
-  `islowprice` bit(1) DEFAULT b'0' COMMENT '是否最低价格',
-  `onAmazon` bit(1) DEFAULT b'0' COMMENT '产品尚未在亚马逊上',
-  `isrefresh` bit(1) DEFAULT b'0',
+  `istoprank` bit(1) DEFAULT 0 COMMENT '是否最高销售排名',
+  `islowprice` bit(1) DEFAULT 0 COMMENT '是否最低价格',
+  `onAmazon` bit(1) DEFAULT 0 COMMENT '产品尚未在亚马逊上',
+  `isrefresh` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `amazonAuthId_marketplaceid_asin` (`amazonAuthId`,`marketplaceid`,`asin`),
   KEY `asin` (`amazonAuthId`,`sales_rank_growth`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -7594,7 +7594,7 @@ CREATE TABLE IF NOT EXISTS `t_product_recommended_ext` (
   PRIMARY KEY (`rid`) USING BTREE,
   KEY `asin` (`asin`),
   KEY `profit` (`profit`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -7616,7 +7616,7 @@ CREATE TABLE IF NOT EXISTS `t_product_type` (
   `name` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '类型',
   `country` varchar(5) CHARACTER SET latin1 DEFAULT NULL COMMENT '国家',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=147 DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='成本计算用，的亚马逊成本。采用父分类的方式，将所有国家的分类都放入此表。\r\n以美国的分类作为主要分类。如果美国没有此分类，则该分类依旧为美国添加，使用其他分类 类型的策略。\r\n当用户选择1 号分类，则其他子分类即改分类对应的其他国家的分类。\r\n ';
+) ENGINE=InnoDB AUTO_INCREMENT=147  COLLATE=utf8_bin  COMMENT='成本计算用，的亚马逊成本。采用父分类的方式，将所有国家的分类都放入此表。\r\n以美国的分类作为主要分类。如果美国没有此分类，则该分类依旧为美国添加，使用其他分类 类型的策略。\r\n当用户选择1 号分类，则其他子分类即改分类对应的其他国家的分类。\r\n ';
 
 -- 数据导出被取消选择。
 
@@ -7624,7 +7624,7 @@ CREATE TABLE IF NOT EXISTS `t_product_type` (
 CREATE TABLE IF NOT EXISTS `t_product_usercategory` (
   `id` char(36) COLLATE utf8_bin DEFAULT NULL,
   `name` char(36) COLLATE utf8_bin DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7632,21 +7632,21 @@ CREATE TABLE IF NOT EXISTS `t_product_usercategory` (
 CREATE TABLE IF NOT EXISTS `t_profitcfg` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID 用于区分每一个方案',
   `shop_id` bigint(20) unsigned DEFAULT NULL COMMENT '添加方案的人，只能当事人或其部下使用',
-  `isSystem` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否系统内置方案',
+  `isSystem` bit(1) NOT NULL DEFAULT 0 COMMENT '是否系统内置方案',
   `name` varchar(50) CHARACTER SET utf8 DEFAULT NULL COMMENT '名称',
   `sales_channel` char(10) CHARACTER SET utf8 DEFAULT NULL COMMENT '配送方案，是否亚马逊配送',
   `sellerPlan` char(10) CHARACTER SET utf8 DEFAULT NULL COMMENT '销售计划',
   `shipmentStyle` char(10) CHARACTER SET utf8 NOT NULL COMMENT '运费计算方式',
-  `isDefault` bit(1) DEFAULT b'0' COMMENT '是否为默认方案',
+  `isDefault` bit(1) DEFAULT 0 COMMENT '是否为默认方案',
   `opttime` datetime DEFAULT NULL,
   `createtime` datetime DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   `creator` bigint(20) unsigned DEFAULT NULL,
-  `isdelete` bit(1) DEFAULT b'0',
+  `isdelete` bit(1) DEFAULT 0,
   `oldid` char(36) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `shop_id` (`shop_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='利润计算方案';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='利润计算方案';
 
 -- 数据导出被取消选择。
 
@@ -7667,19 +7667,19 @@ CREATE TABLE IF NOT EXISTS `t_profitcfgcountry` (
   `costRate` decimal(10,2) DEFAULT '0.00' COMMENT '其他每单销售成本比率',
   `logistics` char(50) CHARACTER SET utf8 DEFAULT NULL COMMENT '物流方式',
   `subscriptionfee` decimal(10,2) DEFAULT NULL COMMENT '订阅费',
-  `prepservice` bit(1) DEFAULT b'0' COMMENT '计划内的服务费',
-  `labelService` bit(1) DEFAULT b'0' COMMENT '亚马逊标签服务费',
+  `prepservice` bit(1) DEFAULT 0 COMMENT '计划内的服务费',
+  `labelService` bit(1) DEFAULT 0 COMMENT '亚马逊标签服务费',
   `manualProcessing` decimal(10,2) DEFAULT '0.00' COMMENT '亚马逊手动处理费',
   `unprepservice` decimal(10,2) DEFAULT '0.00' COMMENT '计划外的服务费',
   `invplacefee` char(36) CHARACTER SET utf8 DEFAULT NULL COMMENT '库存配置费',
   `promotion` decimal(10,2) DEFAULT '0.00' COMMENT 'all store promtion',
   `amonth` int(11) DEFAULT '1' COMMENT '亚马逊仓储费，库存周期',
-  `hasAddedSite` bit(1) DEFAULT b'0' COMMENT '当配送方案为Pan EU时，Germany是否添加Poland, Czech Republic仓库站点',
+  `hasAddedSite` bit(1) DEFAULT 0 COMMENT '当配送方案为Pan EU时，Germany是否添加Poland, Czech Republic仓库站点',
   `warehouse_site` char(10) COLLATE utf8_bin DEFAULT NULL COMMENT '当配送方案为EFN时，亚马逊仓库站点',
   `dispatch_type` char(36) COLLATE utf8_bin DEFAULT NULL COMMENT '亚马逊配送方案:pan_EU,EFN',
   `vat_rate` decimal(10,2) DEFAULT '0.00' COMMENT 'VAT增值税费率',
   `fba_taxes` decimal(10,2) DEFAULT '0.00' COMMENT 'FBA GST/HST taxes',
-  `hasDeclaredValue` bit(1) DEFAULT b'0' COMMENT '是否单独输入申报价值',
+  `hasDeclaredValue` bit(1) DEFAULT 0 COMMENT '是否单独输入申报价值',
   `declared_value` decimal(10,4) DEFAULT '0.0000' COMMENT '申报价值',
   `gst_rate` decimal(10,2) DEFAULT '0.00' COMMENT '进口GST税率',
   `selling_GSTRate` decimal(10,2) DEFAULT '0.00' COMMENT '销售GST税率',
@@ -7687,7 +7687,7 @@ CREATE TABLE IF NOT EXISTS `t_profitcfgcountry` (
   PRIMARY KEY (`id`),
   KEY `FK_t_profitcfgcountry_t_profitcfg` (`profitid`),
   KEY `country` (`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='利润各国计算方案';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='利润各国计算方案';
 
 -- 数据导出被取消选择。
 
@@ -7703,7 +7703,7 @@ CREATE TABLE IF NOT EXISTS `t_pro_rcd_dimensions` (
   `weight` decimal(15,2) DEFAULT NULL,
   `weight_units` char(20) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB  COLLATE=utf8_bin;
 
 -- 数据导出被取消选择。
 
@@ -7724,7 +7724,7 @@ CREATE TABLE IF NOT EXISTS `t_referralfee` (
   `parent_id` int(10) DEFAULT NULL COMMENT '父分类',
   PRIMARY KEY (`id`),
   UNIQUE KEY `parent_id` (`country`,`parent_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=699 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='成本计算用，的亚马逊成本。采用父分类的方式，将所有国家的分类都放入此表。\r\n以美国的分类作为主要分类。如果美国没有此分类，则该分类依旧为美国添加，使用其他分类 类型的策略。\r\n当用户选择1 号分类，则其他子分类即改分类对应的其他国家的分类。\r\n ';
+) ENGINE=InnoDB AUTO_INCREMENT=699  COLLATE=utf8_bin COMMENT='成本计算用，的亚马逊成本。采用父分类的方式，将所有国家的分类都放入此表。\r\n以美国的分类作为主要分类。如果美国没有此分类，则该分类依旧为美国添加，使用其他分类 类型的策略。\r\n当用户选择1 号分类，则其他子分类即改分类对应的其他国家的分类。\r\n ';
 
 -- 数据导出被取消选择。
 
@@ -7747,12 +7747,12 @@ CREATE TABLE IF NOT EXISTS `t_report_requestrecord` (
   `report_processing_status` char(20) COLLATE utf8_bin DEFAULT NULL,
   `log` longtext COLLATE utf8_bin,
   `reportOptions` varchar(100) COLLATE utf8_bin DEFAULT NULL,
-  `isrun` bit(1) DEFAULT b'0',
+  `isrun` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`reportType`,`reportId`,`sellerid`) USING BTREE,
   KEY `index3` (`lastupdate`) USING BTREE,
   KEY `sellerid_marketPlaceId` (`sellerid`,`marketPlaceId`)
-) ENGINE=InnoDB AUTO_INCREMENT=11989481306690711245 DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB AUTO_INCREMENT=11989481306690711245  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7766,7 +7766,7 @@ CREATE TABLE IF NOT EXISTS `t_role` (
   `oldid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`shopid`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='角色';
+) ENGINE=InnoDB   COMMENT='角色';
 
 -- 数据导出被取消选择。
 
@@ -7776,7 +7776,7 @@ CREATE TABLE IF NOT EXISTS `t_role_adv_group` (
   `groupid` bigint(20) unsigned NOT NULL,
   `group_name` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`roleid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7788,7 +7788,7 @@ CREATE TABLE IF NOT EXISTS `t_role_authority` (
   PRIMARY KEY (`id`),
   KEY `FK_t_role_authority_t_role` (`role_id`),
   KEY `FK_t_role_authority_t_authority` (`authority_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='角色权限分配表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='角色权限分配表';
 
 -- 数据导出被取消选择。
 
@@ -7798,7 +7798,7 @@ CREATE TABLE IF NOT EXISTS `t_role_group` (
   `groupid` bigint(20) unsigned NOT NULL,
   `group_name` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`roleid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7809,7 +7809,7 @@ CREATE TABLE IF NOT EXISTS `t_role_marketplace` (
   `marketplaceid` char(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`roleid`,`marketplaceid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -7821,7 +7821,7 @@ CREATE TABLE IF NOT EXISTS `t_role_menu` (
   PRIMARY KEY (`id`),
   KEY `FK_t_role_menu_t_role` (`role_id`),
   KEY `FK_t_role_menu_t_menu` (`menu_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='角色菜单分配表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='角色菜单分配表';
 
 
 -- 数据导出被取消选择。
@@ -7837,7 +7837,7 @@ CREATE TABLE IF NOT EXISTS `t_shop` (
   `boss_email` varchar(100) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `invitecode` (`invitecode`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='店铺';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='店铺';
 
 -- 数据导出被取消选择。
 
@@ -7857,7 +7857,7 @@ CREATE TABLE IF NOT EXISTS `t_summaryall` (
   `price` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`purchase_date`,`id`),
   KEY `index_1` (`amazonauthid`,`sales_channel`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ;
+) ENGINE=InnoDB  COLLATE=utf8_bin ;
 
 -- 数据导出被取消选择。
 
@@ -7875,7 +7875,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_company` (
   `iscompany` bit(1) DEFAULT b'1' COMMENT '是否企业',
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7896,7 +7896,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_detail` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uni_g_c` (`appgroupid`,`appcompanyid`)
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=47 ;
 
 -- 数据导出被取消选择。
 
@@ -7911,7 +7911,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_group` (
   `opttime` timestamp NULL DEFAULT NULL,
   `operator` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -7923,7 +7923,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_service_detail` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `detailid` (`detailid`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=30 ;
 
 -- 数据导出被取消选择。
 
@@ -7933,7 +7933,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_channel_salesperson_key` (
   `salesperson` char(50) NOT NULL DEFAULT '0',
   `fkey` char(50) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=15 ;
 
 -- 数据导出被取消选择。
 
@@ -7946,7 +7946,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_contact` (
   `message` varchar(500) DEFAULT NULL,
   `operatetime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -7959,7 +7959,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_discount` (
   `amount` decimal(10,2) unsigned DEFAULT NULL COMMENT '折扣金额',
   `account` char(50) DEFAULT NULL COMMENT '指定应用帐户（可以不填）',
   `pkgtime` int(11) DEFAULT NULL,
-  `isused` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否应用',
+  `isused` bit(1) NOT NULL DEFAULT 0 COMMENT '是否应用',
   `orderid` char(50) DEFAULT NULL COMMENT '应用订单',
   `shopid` bigint(20) unsigned DEFAULT NULL COMMENT '应用公司',
   `createdate` datetime DEFAULT NULL COMMENT '创建时间',
@@ -7967,7 +7967,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_discount` (
   `operator` varchar(36) DEFAULT NULL COMMENT '操作人',
   PRIMARY KEY (`id`),
   UNIQUE KEY `number` (`number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户折扣表';
+) ENGINE=InnoDB  COMMENT='用户折扣表';
 
 -- 数据导出被取消选择。
 
@@ -7986,11 +7986,11 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_invoice` (
   `sendAddress` char(255) DEFAULT NULL,
   `sendPhone` char(20) DEFAULT NULL,
   `sendName` char(10) DEFAULT NULL,
-  `isSend` bit(1) DEFAULT b'0',
+  `isSend` bit(1) DEFAULT 0,
   `ivctype` char(50) DEFAULT 'normal',
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -8011,10 +8011,10 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_order` (
   `tariffpackage` int(11) DEFAULT NULL,
   `pcs` int(11) DEFAULT '1',
   `paytype` char(10) DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `out_trade_no` (`out_trade_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT=' ';
+) ENGINE=InnoDB  COMMENT=' ';
 
 -- 数据导出被取消选择。
 
@@ -8029,7 +8029,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_order_refund` (
   `refund_reason` char(50) DEFAULT NULL COMMENT '订单名称',
   `out_request_no` char(20) DEFAULT NULL,
   `opttime` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT=' ';
+) ENGINE=InnoDB   COMMENT=' ';
 
 -- 数据导出被取消选择。
 
@@ -8045,7 +8045,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_dept` (
   `gmt_create` timestamp NULL DEFAULT NULL,
   `gmt_modified` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -8060,7 +8060,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_dict` (
   `gmt_modified` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `type_code` (`code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4  COMMENT='字典类型表';
+) ENGINE=InnoDB AUTO_INCREMENT=5    COMMENT='字典类型表';
 
 -- 数据导出被取消选择。
 
@@ -8078,7 +8078,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_dict_item` (
   `gmt_modified` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `value_dict_code` (`dict_code`,`value`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4  COMMENT='字典数据表';
+) ENGINE=InnoDB AUTO_INCREMENT=22    COMMENT='字典数据表';
 
 -- 数据导出被取消选择。
 
@@ -8091,7 +8091,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_help_page` (
   `operator` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`menuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='菜单';
+) ENGINE=InnoDB AUTO_INCREMENT=38  COLLATE=utf8_bin  COMMENT='菜单';
 
 -- 数据导出被取消选择。
 
@@ -8105,7 +8105,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_holiday` (
   PRIMARY KEY (`id`),
   KEY `country` (`country`,`month`),
   KEY `marketplaceid` (`marketplaceid`,`month`)
-) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=60    ;
 
 -- 数据导出被取消选择。
 
@@ -8121,7 +8121,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_importrecord` (
   PRIMARY KEY (`id`),
   KEY `Index 2` (`shopid`,`importtype`),
   KEY `opttime` (`opttime`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8138,7 +8138,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_mailsender` (
   `validate` bit(1) DEFAULT NULL,
   `starttls` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 ;
 
 -- 数据导出被取消选择。
 
@@ -8149,7 +8149,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_mail_template` (
   `shopid` bigint(20) unsigned DEFAULT NULL,
   `content` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 ;
 
 -- 数据导出被取消选择。
 
@@ -8172,7 +8172,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_menu` (
   `gmt_modified` datetime DEFAULT NULL COMMENT '更新时间',
   `oldid` char(40) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=6102 DEFAULT CHARSET=utf8mb4  COMMENT='菜单管理';
+) ENGINE=InnoDB AUTO_INCREMENT=6102    COMMENT='菜单管理';
 
 -- 数据导出被取消选择。
 
@@ -8185,7 +8185,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_menu_favorite` (
   `gmt_create` datetime DEFAULT NULL COMMENT '创建时间',
   `gmt_modified` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4  COMMENT='菜单收藏';
+) ENGINE=InnoDB    COMMENT='菜单收藏';
 
 -- 数据导出被取消选择。
 
@@ -8197,7 +8197,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_message_template` (
   `operator` bigint(20) unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL COMMENT '更新日期',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=3  ;
 
 -- 数据导出被取消选择。
 
@@ -8218,7 +8218,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_notify` (
   KEY `shopid` (`shopid`),
   KEY `target` (`target`),
   KEY `createdAt` (`createdAt`)
-) ENGINE=InnoDB AUTO_INCREMENT=714505 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=714505  ;
 
 -- 数据导出被取消选择。
 
@@ -8237,7 +8237,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_operationlog` (
   PRIMARY KEY (`id`),
   KEY `time` (`userid`,`method`,`time`) USING BTREE,
   KEY `idx_method_time_userid` (`method`,`time`,`userid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8253,7 +8253,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_permission` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `id` (`id`,`name`) USING BTREE,
   KEY `id_2` (`id`,`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4  COMMENT='权限表';
+) ENGINE=InnoDB AUTO_INCREMENT=6    COMMENT='权限表';
 
 -- 数据导出被取消选择。
 
@@ -8266,10 +8266,10 @@ CREATE TABLE IF NOT EXISTS `t_sys_potential_customer` (
   `telphone` char(20) DEFAULT NULL,
   `email` varchar(50) DEFAULT NULL,
   `sendtime` timestamp NULL DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `disable` bit(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`telphone`,`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=38005 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=38005 ;
 
 -- 数据导出被取消选择。
 
@@ -8286,10 +8286,10 @@ CREATE TABLE IF NOT EXISTS `t_sys_quartz_task` (
   `method` varchar(50) DEFAULT NULL,
   `parameter` varchar(200) DEFAULT NULL,
   `path` varchar(200) DEFAULT NULL,
-  `isdelete` bit(1) DEFAULT b'0',
+  `isdelete` bit(1) DEFAULT 0,
   `createdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=131 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=131 ;
 
 -- 数据导出被取消选择。
 
@@ -8308,7 +8308,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_field` (
   `align` char(10) DEFAULT NULL,
   `createdate` datetime DEFAULT NULL,
   PRIMARY KEY (`fquery`,`ffield`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8323,7 +8323,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_user_version` (
   `createtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`,`fquery`)
-) ENGINE=InnoDB AUTO_INCREMENT=123456962 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=123456962  ;
 
 -- 数据导出被取消选择。
 
@@ -8333,7 +8333,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_version_feild` (
   `ffield` char(30) NOT NULL,
   `findex` int(11) NOT NULL,
   PRIMARY KEY (`fversionid`,`ffield`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8343,7 +8343,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_menu` (
   `menu_id` bigint(20) unsigned NOT NULL COMMENT '菜单ID',
   PRIMARY KEY (`role_id`,`menu_id`),
   KEY `menu_id` (`menu_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4  COMMENT='角色和菜单关联表';
+) ENGINE=InnoDB    COMMENT='角色和菜单关联表';
 
 -- 数据导出被取消选择。
 
@@ -8353,7 +8353,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_permission` (
   `permission_id` bigint(20) DEFAULT NULL COMMENT '资源id',
   KEY `role_id` (`role_id`) USING BTREE,
   KEY `permission_id` (`permission_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4  COMMENT='角色权限表';
+) ENGINE=InnoDB    COMMENT='角色权限表';
 
 -- 数据导出被取消选择。
 
@@ -8364,7 +8364,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_tag` (
   `roleid` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`tag_id`,`roleid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='管理员新建，用于给不同下属分配不同的产品查询权限';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='管理员新建，用于给不同下属分配不同的产品查询权限';
 
 -- 数据导出被取消选择。
 
@@ -8375,7 +8375,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_taggroup` (
   `groupid` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 2` (`roleid`,`groupid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8384,10 +8384,10 @@ CREATE TABLE IF NOT EXISTS `t_sys_subscription` (
   `target` char(2) NOT NULL,
   `userid` bigint(20) unsigned NOT NULL,
   `action` char(100) DEFAULT NULL COMMENT '订阅动作',
-  `disable` bit(1) NOT NULL DEFAULT b'0',
+  `disable` bit(1) NOT NULL DEFAULT 0,
   `createdAt` datetime DEFAULT NULL,
   PRIMARY KEY (`target`,`userid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8397,7 +8397,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_target` (
   `name` char(50) NOT NULL,
   `description` char(100) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8421,7 +8421,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages` (
   `lastUpdateTime` date DEFAULT NULL COMMENT '最后更新时间',
   `lastUpdateUser` varchar(36) DEFAULT NULL COMMENT '最后更新的人',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='套餐表';
+) ENGINE=InnoDB   COMMENT='套餐表';
 
 -- 数据导出被取消选择。
 
@@ -8469,7 +8469,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_timetask` (
   `operator` bigint(20) unsigned DEFAULT NULL COMMENT '操作人',
   `opttime` datetime DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8481,7 +8481,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_timetask_log` (
   `reason` varchar(255) DEFAULT NULL,
   `state` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8489,12 +8489,12 @@ CREATE TABLE IF NOT EXISTS `t_sys_timetask_log` (
 CREATE TABLE IF NOT EXISTS `t_sys_usernotify` (
   `userid` bigint(20) unsigned NOT NULL COMMENT '用户消息所属者',
   `notify` int(11) NOT NULL,
-  `isRead` bit(1) NOT NULL DEFAULT b'0' COMMENT '0，代表未读；1，代表已读',
+  `isRead` bit(1) NOT NULL DEFAULT 0 COMMENT '0，代表未读；1，代表已读',
   `createdAt` datetime DEFAULT NULL,
   PRIMARY KEY (`userid`,`notify`),
   KEY `Index 2` (`notify`),
   KEY `createdAt` (`isRead`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8502,9 +8502,9 @@ CREATE TABLE IF NOT EXISTS `t_sys_usernotify` (
 CREATE TABLE IF NOT EXISTS `t_sys_user_datalimit` (
   `userid` bigint(20) unsigned NOT NULL,
   `datatype` char(15) NOT NULL COMMENT 'owner只能查看自己负责的产品（在产品管理页面配置）;operations只能查看自己运营的产品（在商品分析页面配置）',
-  `islimit` bit(1) DEFAULT b'0' COMMENT 'true表示需要限制，false表示不需要限制',
+  `islimit` bit(1) DEFAULT 0 COMMENT 'true表示需要限制，false表示不需要限制',
   PRIMARY KEY (`userid`,`datatype`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户数据权限，放在用户信息中，登录后将在所有模块生效';
+) ENGINE=InnoDB  COMMENT='用户数据权限，放在用户信息中，登录后将在所有模块生效';
 
 -- 数据导出被取消选择。
 
@@ -8512,7 +8512,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_user_datalimit` (
 CREATE TABLE IF NOT EXISTS `t_sys_user_group` (
   `userid` bigint(20) unsigned DEFAULT NULL COMMENT '用户ID',
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT '店铺ID'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户客户对店铺的权限绑定';
+) ENGINE=InnoDB  COMMENT='用户客户对店铺的权限绑定';
 
 -- 数据导出被取消选择。
 
@@ -8523,7 +8523,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_user_ip_city` (
   `city` char(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `userip` (`userip`)
-) ENGINE=InnoDB AUTO_INCREMENT=1385 DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB AUTO_INCREMENT=1385  ;
 
 -- 数据导出被取消选择。
 
@@ -8550,7 +8550,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_weather` (
   `weaforce` varchar(50) DEFAULT NULL COMMENT '风向',
   PRIMARY KEY (`id`),
   UNIQUE KEY `city` (`city`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8  COMMENT='城市天气表';
+) ENGINE=InnoDB   COMMENT='城市天气表';
 
 -- 数据导出被取消选择。
 
@@ -8559,7 +8559,7 @@ CREATE TABLE IF NOT EXISTS `t_tasklock` (
   `task` char(15) NOT NULL,
   `mylock` bit(1) DEFAULT NULL,
   PRIMARY KEY (`task`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+) ENGINE=InnoDB  ;
 
 -- 数据导出被取消选择。
 
@@ -8569,7 +8569,7 @@ CREATE TABLE IF NOT EXISTS `t_temp_purchase_form` (
   `formid` bigint(20) unsigned DEFAULT NULL,
   `materialid` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
 -- 数据导出被取消选择。
 
@@ -8582,10 +8582,10 @@ CREATE TABLE IF NOT EXISTS `t_user` (
   `leader_id` bigint(20) unsigned DEFAULT NULL COMMENT '上层',
   `createDate` timestamp NULL DEFAULT NULL COMMENT '创建时间',
   `losingEffect` date DEFAULT NULL COMMENT '失效时间',
-  `logicDelete` bit(1) DEFAULT b'0' COMMENT '逻辑删除',
-  `disable` bit(1) DEFAULT b'0' COMMENT '停用',
+  `logicDelete` bit(1) DEFAULT 0 COMMENT '逻辑删除',
+  `disable` bit(1) DEFAULT 0 COMMENT '停用',
   `isActive` bit(1) DEFAULT b'1' COMMENT '账户是否激活',
-  `hasEmail` bit(1) DEFAULT b'0' COMMENT '邮箱是否激活',
+  `hasEmail` bit(1) DEFAULT 0 COMMENT '邮箱是否激活',
   `member` int(8) DEFAULT '5' COMMENT '拥有下属数量上限',
   `passwordkey` char(36) COLLATE utf8_bin DEFAULT NULL,
   `lastlogintime` datetime DEFAULT NULL,
@@ -8598,7 +8598,7 @@ CREATE TABLE IF NOT EXISTS `t_user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `account` (`account`),
   KEY `leader_id` (`leader_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='用户表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='用户表';
 
 -- 数据导出被取消选择。
 
@@ -8613,7 +8613,7 @@ CREATE TABLE IF NOT EXISTS `t_userinfo` (
   `email` varchar(100) COLLATE utf8_bin DEFAULT NULL,
   `remark` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='用户详细信息表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='用户详细信息表';
 
 -- 数据导出被取消选择。
 
@@ -8624,7 +8624,7 @@ CREATE TABLE IF NOT EXISTS `t_user_role` (
   `role_id` bigint(20) unsigned DEFAULT NULL COMMENT '角色ID',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 4` (`user_id`,`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='用户角色分配表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='用户角色分配表';
 
 -- 数据导出被取消选择。
 
@@ -8635,7 +8635,7 @@ CREATE TABLE IF NOT EXISTS `t_user_shop` (
   `shop_id` bigint(20) unsigned DEFAULT NULL COMMENT '店铺ID',
   PRIMARY KEY (`id`),
   UNIQUE KEY `shop_id` (`shop_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='用户店铺归属表';
+) ENGINE=InnoDB  COLLATE=utf8_bin  COMMENT='用户店铺归属表';
 
 -- 数据导出被取消选择。
 
@@ -8649,7 +8649,7 @@ CREATE TABLE IF NOT EXISTS `t_user_wechat_login` (
   PRIMARY KEY (`openid`) USING BTREE,
   UNIQUE KEY `userid` (`userid`) USING BTREE,
   UNIQUE KEY `unionid` (`unionid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -8662,7 +8662,7 @@ CREATE TABLE IF NOT EXISTS `t_user_wechat_mp` (
   `refresh_token` char(200) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`openid`,`userid`,`ftype`) USING BTREE,
   KEY `userid` (`userid`,`ftype`,`openid`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB    ;
 
 -- 数据导出被取消选择。
 
@@ -8677,7 +8677,7 @@ CREATE TABLE IF NOT EXISTS `t_variable_closing_fee` (
   `format` char(255) COLLATE utf8_bin DEFAULT '0.00',
   PRIMARY KEY (`id`),
   KEY `country` (`country`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin  COMMENT='物流方式';
+) ENGINE=InnoDB   COLLATE=utf8_bin  COMMENT='物流方式';
 
 -- 数据导出被取消选择。
 
@@ -8694,11 +8694,5 @@ CREATE TABLE IF NOT EXISTS `undo_log` (
   `ext` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_undo_log` (`xid`,`branch_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB ;
 
--- 数据导出被取消选择。
-
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;

@@ -1,12 +1,20 @@
 package com.wimoor.erp.warehouse.controller;
 
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wimoor.common.result.Result;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventoryOptRecord;
+import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryOptRecordService;
+
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -21,7 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/warehouse/shelfInventoryOptRecord")
 @RequiredArgsConstructor
 public class WarehouseShelfInventoryOptRecordController {
-
+	final IWarehouseShelfInventoryOptRecordService iWarehouseShelfInventoryOptRecordService;
 	
+	@GetMapping
+	public Result<List<WarehouseShelfInventoryOptRecord>> getRecord(String formid, String formtype,String shelfid) {
+		   UserInfo user = UserInfoContext.get();
+		   List<WarehouseShelfInventoryOptRecord> result = iWarehouseShelfInventoryOptRecordService.getRecord(user.getCompanyid(), formid, formtype,shelfid);
+		return Result.success(result);
+		   
+	}
 }
 

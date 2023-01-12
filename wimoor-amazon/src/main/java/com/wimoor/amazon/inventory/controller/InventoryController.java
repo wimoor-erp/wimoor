@@ -17,11 +17,15 @@ import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
+import com.wimoor.amazon.feed.mapper.AmzSubmitFeedQueueMapper;
+import com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue;
+import com.wimoor.amazon.feed.service.ISubmitfeedService;
 import com.wimoor.amazon.inventory.pojo.dto.InventorySizeDTO;
+import com.wimoor.amazon.inventory.pojo.entity.AmzInventoryCountryReport;
+import com.wimoor.amazon.inventory.pojo.entity.InventoryReport;
 import com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo;
 import com.wimoor.amazon.inventory.service.IInventorySupplyService;
 import com.wimoor.amazon.product.service.IProductInOptService;
-import com.wimoor.amazon.report.pojo.entity.InventoryReport;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
@@ -41,6 +45,10 @@ public class InventoryController {
 	IInventorySupplyService inventorySupplyService;
 	@Autowired
 	IProductInOptService productInOptService;
+	@Autowired
+	ISubmitfeedService submitfeedService;
+	@Autowired
+	AmzSubmitFeedQueueMapper amzSubmitFeedQueueMapper;
 	
 	@GetMapping("/getInventorySupply")
 	public Result<Map<String, InventorySummary>> getInventorySupplyAction(String  groupid,String marketplaceid ,String skuStr) {
@@ -115,6 +123,23 @@ public class InventoryController {
 		List<Map<String, Object>> list = productInOptService.findMaterialSizeByCondition(param);
 		IPage<Map<String, Object>> pagelist= dto.getListPage(list);
 		return Result.success(pagelist);
+	}
+	
+	@GetMapping("/findEUFBA")
+	public Result<List<AmzInventoryCountryReport>> findEUFBAAction(String  authid ,String sku) {
+		if(StrUtil.isNotEmpty(authid)) {
+			return Result.success(inventorySupplyService.findEUFBA(authid, sku));
+		}else {
+			return Result.success(null);
+		}
+	}
+	
+	@GetMapping("/callqueue")
+	public void findEUFBAAction2(String authid,String marketplaceid,String queueid) {
+		AmazonAuthority auth = amazonAuthorityService.getById(authid);
+		Marketplace marketplace = marketplaceService.getById(marketplaceid);
+		AmzSubmitFeedQueue queue = amzSubmitFeedQueueMapper.selectById(queueid);
+		submitfeedService.callSubmitFeed(auth, marketplace, queue);
 	}
 	
 	

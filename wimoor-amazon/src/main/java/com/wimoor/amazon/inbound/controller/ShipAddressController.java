@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.amazon.inbound.pojo.dto.AddressListDTO;
 import com.wimoor.amazon.inbound.pojo.entity.ShipAddress;
 import com.wimoor.amazon.inbound.service.IShipAddressService;

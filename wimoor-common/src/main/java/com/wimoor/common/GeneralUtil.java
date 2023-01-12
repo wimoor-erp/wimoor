@@ -86,7 +86,7 @@ public class GeneralUtil {
 	public static boolean isEmpty(String value){
 		return value==null||value.trim().length()==0;
 	}
-
+	
 	   public static Map<String, Object> objectToMap(Object obj)  {    
 	        if(obj == null){    
 	            return null;    
@@ -1359,7 +1359,16 @@ public class GeneralUtil {
 		}
 		return null;
 	}
-
+	public static Integer getIntegerValue(String[] info, Map<String, Integer> titleList, String key) {
+		Integer position = titleList.get(key);
+		if(position==null)return null;
+		if(position<info.length) {
+			if(isNumericzidai(info[position])) {
+				return new Integer(info[position]);
+			}
+		}
+		return null;
+	}
 	public static boolean getBooleanValue(String[] info, Map<String, Integer> titleList, String key) {
 		Integer position = titleList.get(key);
 		if(position==null)return false;
@@ -1963,5 +1972,27 @@ public class GeneralUtil {
 		return bnumber.setScale(i, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
+	public static String getValueWithoutBlank(String value) {
+		// TODO Auto-generated method stub
+		if(StrUtil.isBlankOrUndefined(value))return null;
+		else return value.trim();
+	}
+   
+	public static  Map<String,String> colorMap=null;
+	
+	public static Object getColorType(Object value) {
+		   if(value==null)return null;
+		   if(colorMap==null) {
+				colorMap=new HashMap<String,String>();
+		    	colorMap.put("red", "danger");
+		    	colorMap.put("blue", "primary");
+		    	colorMap.put("orange", "warning");
+		    	colorMap.put("green", "success");
+		    	colorMap.put("purple", "info");
+		   }
+	      String type=colorMap.get(value);
+	      if(type!=null)return type;
+	      else return value;
+	    }
 
 }

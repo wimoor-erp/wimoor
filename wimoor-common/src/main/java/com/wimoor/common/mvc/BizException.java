@@ -1,7 +1,11 @@
 package com.wimoor.common.mvc;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.result.IResultCode;
 
+import feign.FeignException;
 import lombok.Getter;
 
 @Getter
@@ -20,6 +24,30 @@ public class BizException extends RuntimeException {
         super(message);
     }
 
+    public static String getMessage(FeignException e,String defaultMsg){
+    	String message="";
+    	 if(e!=null&&e.getMessage()!=null&&e.getMessage().contains("]:")) {
+    		      String[] arraymsg = e.getMessage().split("]:");
+    		      if(arraymsg.length>1) {
+    		    	    JSONArray errors = GeneralUtil.getJsonArray(e.getMessage().split("]:")[1]);
+    		     		JSONObject errorObj =errors!=null? errors.getJSONObject(0):null;
+    		     		String msg=errorObj!=null?errorObj.getString("msg"):null;
+    		     		if(msg!=null) {
+    		     			message=msg;
+    		     		}else {
+    		     			 message=e.getMessage();  
+    		     		}
+    		      }else {
+    		    	  message=e.getMessage();  
+    		      }
+ 		   }else if(e!=null) {
+ 			  message=e.getMessage();  
+ 		   }else {
+ 			 return defaultMsg;
+ 		   }
+         return message;
+    }
+    
     public BizException(String message, Throwable cause){
         super(message, cause);
     }

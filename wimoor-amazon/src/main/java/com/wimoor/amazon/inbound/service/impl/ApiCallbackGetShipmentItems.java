@@ -39,7 +39,11 @@ public class ApiCallbackGetShipmentItems implements ApiCallback<GetShipmentItems
 			nexttoken=result.getPayload().getNextToken();
 		}
 		auth.setApiRateLimit(responseHeaders, nexttoken);
-		iFulfillmentInboundService.handlerItemResult(auth,market,result,shipment);
+		boolean needshipqty=false;
+		if(this.shipment!=null) {
+			needshipqty=true;
+		}
+		iFulfillmentInboundService.handlerItemResult(auth,market,result,shipment,needshipqty);
 	}
 
 	@Override

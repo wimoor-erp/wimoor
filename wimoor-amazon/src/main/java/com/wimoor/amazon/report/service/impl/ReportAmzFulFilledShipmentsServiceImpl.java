@@ -15,8 +15,8 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import com.wimoor.amazon.report.mapper.OrdersFulfilledShipmentsReportMapper;
-import com.wimoor.amazon.report.pojo.entity.OrdersFulfilledShipmentsReport;
+import com.wimoor.amazon.orders.mapper.OrdersFulfilledShipmentsReportMapper;
+import com.wimoor.amazon.orders.pojo.entity.OrdersFulfilledShipmentsReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;

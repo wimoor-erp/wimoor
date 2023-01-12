@@ -28,7 +28,7 @@ public class Assembly extends ErpBaseEntity{
     private String submid;
 
     @TableField(value= "subnumber")
-    private String subnumber;
+    private Integer subnumber;
 
     @Size(max=200,message="其它联系信息的长度不能超过200个字符")
     @TableField(value= "remark")

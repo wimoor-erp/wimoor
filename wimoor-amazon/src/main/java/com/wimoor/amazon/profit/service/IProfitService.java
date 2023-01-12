@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
 import com.wimoor.amazon.profit.pojo.entity.ProductTier;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.entity.ReferralFee;
 import com.wimoor.amazon.profit.pojo.vo.CostDetail;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
-import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
 import com.wimoor.common.mvc.BizException;
 
 public interface IProfitService {

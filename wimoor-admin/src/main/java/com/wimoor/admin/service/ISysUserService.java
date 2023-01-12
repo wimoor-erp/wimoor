@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.admin.pojo.dto.UserDTO;
 import com.wimoor.admin.pojo.dto.UserInsertDTO;
+import com.wimoor.admin.pojo.dto.UserRegisterInfoDTO;
 import com.wimoor.admin.pojo.entity.SysUser;
 import com.wimoor.admin.pojo.vo.UserVO;
 import com.wimoor.common.user.UserInfo;
@@ -17,7 +18,7 @@ public interface ISysUserService  extends IService<SysUser> {
 	
 	public SysUser getUserAllById(String userid);
 	
-	public SysUser bindOpenId(String openid, String account, String password);
+	public SysUser bindOpenId(String openid,String appType, String account, String password);
 
 	public SysUser getUserAllByOpenid(String account);
 	
@@ -31,7 +32,7 @@ public interface ISysUserService  extends IService<SysUser> {
 
 	public List<SysUser> findMpUserByOpenid(String openid);
 
-	public List<SysUser> findAppUserByOpenid(String openid);
+	public List<SysUser> findAppUserByOpenid(String openid,String appType);
 
 	SysUser verifyAccount(String account, String password);
 
@@ -41,4 +42,8 @@ public interface ISysUserService  extends IService<SysUser> {
 	public boolean saveUser(UserInsertDTO userDTO, UserInfo operatorUserInfo);
 
 	boolean updateUser(UserInsertDTO userDTO, UserInfo operatorUserInfo);
+
+	public SysUser saveRegister(UserRegisterInfoDTO dto);
+
+	public SysUser changePassword(UserRegisterInfoDTO dto);
 }

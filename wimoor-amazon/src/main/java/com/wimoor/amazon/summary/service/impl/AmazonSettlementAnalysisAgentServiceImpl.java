@@ -16,15 +16,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.mapper.MarketplaceMapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
-import com.wimoor.amazon.report.mapper.AmzOrderReturnsMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementAccReportMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportSummaryDayMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportSummaryMonthMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementSummaryReturnsMapper;
-import com.wimoor.amazon.report.mapper.AmzSettlementSummarySkuMapper;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzSettlementAccReport;
+import com.wimoor.amazon.finances.mapper.AmzSettlementAccReportMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryDayMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryMonthMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementSummaryReturnsMapper;
+import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
+import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
+import com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
 import com.wimoor.amazon.summary.service.IAmazonSettlementAnalysisService;
 import com.wimoor.common.GeneralUtil;
  
@@ -56,7 +56,7 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 	public void checkSummaryData() {
 		List<AmazonAuthority> amazonAuthorityList =amazonAuthorityService.getAllAuth();
 		Calendar c =Calendar.getInstance();
-		c.add(Calendar.DATE, -100);
+		c.add(Calendar.DATE, -30);
 		for (int step = 0; step < amazonAuthorityList.size(); step++) {
 			AmazonAuthority amazonAuthority = amazonAuthorityList.get(step);
 	    	 QueryWrapper<AmzSettlementAccReport> query = new QueryWrapper<AmzSettlementAccReport>();

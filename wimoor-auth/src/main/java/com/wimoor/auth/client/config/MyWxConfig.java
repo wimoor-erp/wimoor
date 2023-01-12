@@ -9,10 +9,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.wxpay.sdk.WXPayConfig;
+import com.wimoor.auth.client.pojo.AppUserInfo;
+import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.HttpClientUtil;
+
+import cn.hutool.core.util.StrUtil;
 
 @Component
 public class MyWxConfig implements WXPayConfig{
@@ -123,5 +130,27 @@ public class MyWxConfig implements WXPayConfig{
 		}
  
 	}
-
+  public AppUserInfo getLoginInfo(String code) {
+		String url = 	"https://api.weixin.qq.com/sns/jscode2session?appid="+ this.getSmallAppID()+"&secret="+this.getSmallAppSecret()+"&js_code="+code+"&grant_type=authorization_code";
+		try {
+			String json= HttpClientUtil.getUrl(url, null);
+            if(StrUtil.isNotEmpty(json)) {
+            	JSONObject jsonObject = GeneralUtil.getJsonObject(json);
+            	if(jsonObject!=null) {
+            		String openid= jsonObject.getString("openid");
+        			AppUserInfo info =new AppUserInfo();
+        			info.setAppType("app");
+        			info.setOpenId(openid);
+        			info.setSessionKey(jsonObject.getString("session_key"));
+        			info.setUnionid(jsonObject.getString("unionid"));
+        			return info;
+            	}
+    			
+            }
+		} catch (HttpException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+    }
 }

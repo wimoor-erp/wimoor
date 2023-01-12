@@ -5,17 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.amazon.spapi.model.fulfillmentinbound.GetInboundGuidanceResult;
@@ -89,6 +90,7 @@ import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
 import com.wimoor.amazon.util.ChartPoint;
 import com.wimoor.amazon.util.ChartPoint.SumType;
+import com.wimoor.amazon.util.HttpDownloadUtil;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundItemDTO;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundPlanDTO;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundShipmentDTO;
@@ -102,9 +104,9 @@ import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -163,67 +165,6 @@ public class ShipFormController {
 	        return Result.success(shiplist);
 	    }
 	
-	@ApiOperation(value = "货件同步获取列表")
-	@GetMapping("/getSyncList")
-	public Result<List<ShipInboundShipmenSummarytVo>> getSyncListAction(@ApiParam("店铺ID") @RequestParam String groupid,
-			                                                             @ApiParam("站点ID") @RequestParam String marketplaceid,
-			                                                             @ApiParam("货件ID") @RequestParam String search,
-			                                                             @ApiParam("开始时间") @RequestParam String fromDate,
-			                                                             @ApiParam("结束时间") @RequestParam String endDate
-			                                                             ) {
-		    UserInfo user=UserInfoContext.get();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-			Map<String,Object> param=new HashMap<String, Object>();
-			if (StrUtil.isNotEmpty(fromDate)) {
-				fromDate = fromDate.trim();
-			} else {
-				Calendar cal = Calendar.getInstance();
-				cal.add(Calendar.DAY_OF_MONTH, -7);
-				fromDate = GeneralUtil.formatDate(cal.getTime(), sdf);
-			}
-			if (StrUtil.isNotEmpty(endDate)) {
-				endDate = endDate.trim();
-			} else {
-				endDate = GeneralUtil.formatDate(new Date(), sdf);
-			}
-			param.put("shopid", user.getCompanyid());
-			param.put("search", search.trim());
-			param.put("marketplaceid", marketplaceid);
-			param.put("groupid", groupid);
-			param.put("fromdate", fromDate);
-			param.put("enddate", endDate );
-			List<ShipInboundShipmenSummarytVo> list = shipInboundShipmentService.getShipmentSyncList(param);
-	        return Result.success(list);
-	    }
-	
-	@ApiOperation(value = "货件同步")
-	@GetMapping("/syncShipment")
-	@Transactional
-	//@GlobalTransactional
-	public Result<ShipInboundShipmentDTO> syncShipmentAction(@ApiParam("店铺ID") @RequestParam String groupid, 
-			                                            @ApiParam("站点ID") @RequestParam String marketplaceid, 
-			                                            @ApiParam("货件ID") @RequestParam String shipmentid,
-			                                            @ApiParam("仓库ID") @RequestParam String warehouseid){
-		return Result.success(shipInboundShipmentService.syncShipment(groupid, marketplaceid, shipmentid,warehouseid));
-	}
-	
-	@ApiOperation(value = "货件同步")
-	@GetMapping("/confirmSyncShipment")
-	@Transactional
-	//@GlobalTransactional
-	public Result<ShipInboundShipment> confirmSyncShipment(   @ApiParam("货件ID") @RequestParam String shipmentid ){
-		ShipInboundShipment shipment = shipInboundShipmentService.getById(shipmentid);
-		shipment.setSyncInv(2);
-		shipInboundShipmentService.updateById(shipment);
-		return Result.success(shipment);
-	}
-	
-	@ApiOperation(value = "货件同步")
-	@GetMapping("/refreshShipmentRec")
-	public Result<Integer> refreshShipmentRec(  @ApiParam("货件ID") @RequestParam String shipmentid  ){
-		return Result.success(shipInboundShipmentService.refreshShipmentRec( shipmentid));
-	}
-	
 	@ApiOperation(value = "货件忽略异常")
 	@GetMapping("/ignoreShipment")
 	public Result<String> ignoreShipmentAction(String shipmentid) {
@@ -254,14 +195,7 @@ public class ShipFormController {
 	
 	
 	
-	@ApiOperation(value = "获取未同步货件")
-	@GetMapping("/getUnSyncShipment")
-	public Result<ShipInboundShipmenSummarytVo> getUnSyncShipmentAction(@ApiParam("店铺ID") @RequestParam String groupid, 
-			                                            @ApiParam("站点ID") @RequestParam String marketplaceid, 
-			                                            @ApiParam("货件ID") @RequestParam String shipmentid,
-			                                            @ApiParam("仓库ID") @RequestParam String warehouseid){
-		return Result.success(shipInboundShipmentService.getUnSyncShipment(groupid, marketplaceid, shipmentid,warehouseid));
-	}
+ 
  
 
 	@ApiOperation(value = "获取货件信息")
@@ -283,19 +217,29 @@ public class ShipFormController {
 	@ApiOperation(value = "获取URL下载箱子标签")
 	@ApiImplicitParam(name = "shipmentid", value = "货件ID", required = true, paramType = "query", dataType = "String")
 	@GetMapping("/getPkgLabelUrl")
-	public Result<String> getPkgLabelUrlAction(
+	public void getPkgLabelUrlAction(
 			@RequestParam("shipmentid") String shipmentid
 			,@RequestParam("pagetype") String pagetype
 			,@RequestParam("labeltype") String labeltype,
-			@RequestParam("pannum") String pannum
+			@RequestParam("pannum") String pannum,
+			HttpServletResponse response
 			 ) {
 		    String data = shipInboundShipmentService.getLabelUrl(shipmentid,pagetype,labeltype,pannum);
-	        return Result.success(data);
+			response.setContentType("application/force-download");// 设置强制下载不打开
+			response.addHeader("Content-Disposition", "attachment;fileName=shipment.pdf");// 设置文件名
+			try {
+				ServletOutputStream fOut = response.getOutputStream();
+				HttpDownloadUtil.download(data, fOut);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 	
 	@ApiOperation(value = "获取货件信息【ERP内部调用,也可以用于显示货件】")
 	@ApiImplicitParam(name = "shipmentid", value = "货件ID", required = true, paramType = "query", dataType = "String")
 	@GetMapping("/getShipment/{shipmentid}")
+    @Transactional
 	public Result<ShipInboundShipmentDTO> getShipmentidAction(@PathVariable("shipmentid") String shipmentid) {
 		      ShipInboundShipment shipment = shipInboundShipmentService.getById(shipmentid);
 		      ShipInboundPlan inplanv = shipInboundPlanService.getById(shipment.getInboundplanid());
@@ -342,18 +286,15 @@ public class ShipFormController {
 	
 	@ApiOperation(value = "创建货件【ERP内部调用】")
 	@PostMapping("/create")
+	@Transactional
 	public Result<String> createShipmentAction(@ApiParam("货件信息")@RequestBody ShipInboundShipmentDTO dto) {
-		    try {
 		        String result=shipInboundShipmentService.createInboundShipment(transShipmentDTO2Entity(dto));
 		        return Result.success(result);
-		    }catch(Exception e) {
-		    	return Result.failed(e.getMessage());
-		    }
-	  
 	}
 	
 	@ApiOperation(value = "更新货件【ERP内部调用】")
 	@PostMapping("/update")
+	@Transactional
 	public Result<String> updateShipmentAction(@ApiParam("货件信息")@RequestBody ShipInboundShipmentDTO dto) {
 		    String result=shipInboundShipmentService.updateInboundShipment(transShipmentDTO2Entity(dto),dto.getActiontype());
 	        return Result.success(result);
@@ -383,36 +324,33 @@ public class ShipFormController {
 	        return Result.judge(flog);
 	}
 	
-	@ApiOperation(value = "提交发货计划【ERP内部调用】")
-	@PostMapping("/saveInboundPlan")
-	@SystemControllerLog("新增")
-	public Result<ShipInboundPlan> saveInboundPlanAction(@ApiParam("发货计划")@RequestBody ShipInboundPlanDTO inplan){
-		  try {
-			    ShipInboundPlan inplanparam = new ShipInboundPlan();
-				BeanUtil.copyProperties(inplan, inplanparam);
-				List<ShipInboundItemVo> list = inplan.getPlanitemlist();
-				List<ShipInboundItem> itemlist = new ArrayList<ShipInboundItem>();
-				for(ShipInboundItemVo itemvo:list) {
-					ShipInboundItem item=new ShipInboundItem();
-					BeanUtil.copyProperties(itemvo, item);
-					itemlist.add(item);
-				}
-				inplanparam.setPlanitemlist(itemlist);
-				ShipInboundTrans trans=new ShipInboundTrans();
-				BeanUtil.copyProperties(inplan.getTransinfo(),trans);
-				inplanparam.setTransinfo(trans);
-				inplanparam.setId(null);
-				inplanparam.setOpttime(new Date());
-				inplanparam.setAuditstatus(1);
-				inplanparam.setCreatedate(new Date());
-			    shipInboundPlanService.saveShipInboundPlan(inplanparam);
-			    return Result.success(inplanparam);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-			return Result.failed(e.getMessage());
-		}
+	@SystemControllerLog(  "更新物流")
+	@PostMapping("/updateTransInfo")
+	public Result<?> updateTransInfoAction(@ApiParam("货件信息")@RequestBody ShipInboundTransDTO dto) {
+		UserInfo user=UserInfoContext.get();
+		 boolean flog =false;
+		ShipInboundTrans oldtrans = shipInboundTransService.getOne(new QueryWrapper<ShipInboundTrans>().eq("shipmentid",dto.getShipmentid()));
+		 if(oldtrans!=null) {
+			 oldtrans.setInarrtime(dto.getInarrtime());
+			 oldtrans.setOutarrtime(dto.getOutarrtime());
+			 oldtrans.setArrivalTime(dto.getArrivalTime());
+			 oldtrans.setOperator(user.getId());
+			 oldtrans.setOpttime(new Date());
+			 flog = shipInboundTransService.updateById(oldtrans);
+		 }else {
+			 ShipInboundTrans trans=new ShipInboundTrans();
+			 trans.setInarrtime(dto.getInarrtime());
+			 trans.setOutarrtime(dto.getOutarrtime());
+			 trans.setArrivalTime(dto.getArrivalTime());
+			 trans.setOperator(user.getId());
+			 trans.setOpttime(new Date());
+			 trans.setShipmentid(dto.getShipmentid());
+			 flog = shipInboundTransService.save(trans);
+		 }
+		 return Result.judge(flog);
 	}
+	
+
 	
 	@ApiOperation(value = "下载产品标签-Excel")
 	@GetMapping("/downExcelLabel")
@@ -714,12 +652,10 @@ public class ShipFormController {
 		if (detail.size() > 0) {
 			map.put("detail", detail.get(0));
 		}
-		map.put("shipment", shipInboundShipmentService.getById(shipmentid));
 		map.put("transinfo", shipInboundShipmentService.getSelfTransData(shipmentid));
 		ShipInboundPlan plan = shipInboundPlanService.getById(ship.getInboundplanid());
-		ShipAddressTo toAddress = shipAddressToService.getById(ship.getShiptoaddressid());
 		ShipAddress fromAddress = shipAddressService.getById(plan.getShipfromaddressid());
-		map.put("shipment", ship);
+		ShipAddressTo toAddress = shipAddressToService.getToAddress(ship);
 		map.put("toAddress", toAddress);
 		map.put("fromAddress", fromAddress);
 		Result<Map<String, Object>> result = getBoxDetialAction(shipmentid);
@@ -930,15 +866,14 @@ public class ShipFormController {
 		map.put("volume", volume.setScale(2, BigDecimal.ROUND_HALF_UP));
 		map.put("sumweight", sumweight);
 		map.put("cart", cartlist);
-		map.put("shipment", shipInboundShipmentService.getById(shipmentid));
-	
+		ShipInboundShipment ship = shipInboundShipmentService.getById(shipmentid);
+		ship.setShipmentstatus(shipInboundShipmentService.getShipmentStatusName(ship.getShipmentstatus()));
+		map.put("shipment",ship);
 		if(transinfo!=null) {
 			map.put("transinfo", transinfo);
 			if(transinfo.get("channel")!=null) {
-				
 				map.put("transchannel", shipInboundShipmentService.getTransChannelInfo(transinfo.get("channel").toString()));
 			}
-		 
 		}
 		return Result.success(map);
 	}
@@ -970,8 +905,17 @@ public class ShipFormController {
 		}
 	}
 	
+	 @ApiOperation(value = "保存物流跟踪信息")
+	 @PostMapping("/saveTransTrace")
+	 @Transactional
+	 public	Result<String> saveTransTraceAction(@ApiParam("货件物流信息") @RequestBody ShipTransDTO dto){
+		 shipInboundShipmentService.saveTransTrance(dto.getShipmentid(), dto.getCarrier(), dto.getBoxinfo());
+		 return Result.success("ok");
+	 }
+	
 	 @ApiOperation(value = "保存物流信息")
 	 @PostMapping("/saveSelfTrans")
+	 @Transactional
 	 public	Result<String> saveSelfTransAction(@ApiParam("货件物流信息") @RequestBody ShipTransDTO dto){
 	    	UserInfo user=UserInfoContext.get();
 			ShipInboundTrans ship = new ShipInboundTrans();
@@ -997,8 +941,7 @@ public class ShipFormController {
 			ship.setOtherfee(dto.getOtherfee());
 			ship.setSingleprice(dto.getSingleprice());
 			ship.setTransweight(dto.getRweight());
-			List<Map<String, Object>> box = dto.getBoxinfo();
-			shipInboundShipmentService.saveSelfTransData(user, ship, dto.getOperate(), box, dto.getProNumber(),dto.getShipdate(),dto.getCarrier());
+			shipInboundShipmentService.saveSelfTransData(user, ship, dto.getOperate(), null, dto.getProNumber(),dto.getShipdate(),"");
 			return Result.success("success");
 		}
 	 
@@ -1140,6 +1083,11 @@ public class ShipFormController {
 		 ShipInboundShipment shipment = shipInboundShipmentService.getById(shipmentid);
 		 if(shipment!=null) {
 			 shipment.setStatus(-1);
+			 ShipInboundPlan plan = shipInboundPlanService.getById(shipment.getInboundplanid());
+			 if(plan.getAuditstatus()==1) {
+				 plan.setAuditstatus(2);
+				 shipInboundPlanService.updateById(plan);
+			 }
 			 boolean isupdate = shipInboundShipmentService.updateById(shipment);
 			 return Result.judge(isupdate);
 		 }else {
@@ -1195,42 +1143,43 @@ public class ShipFormController {
 			UserInfo userinfo = UserInfoContext.get();
 			Chart chart=new Chart();
 			List<ChartLine> lines =new ArrayList<ChartLine>();
-			ChartLine line= shipInboundPlanService.shipArrivalTimeChart(dto.getGroupid(),dto.getAmazonAuthId(), dto.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
-			lines.add(line);
-			chart.setLines(lines);
-			Calendar c = Calendar.getInstance();
-			Calendar end=Calendar.getInstance();
-			end.add(Calendar.DATE, dto.getDaysize()-1);
-			chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
-			chart.setLegends(Arrays.asList(dto.getSku()));
-			return Result.success(chart);
-		}
-		
-		@GetMapping("/shipMutiLine")
-		public Result<Chart> getSalesChartAction(@RequestBody List<SalesChartDTO> dtos) {
-			UserInfo userinfo = UserInfoContext.get();
-			Chart chart=new Chart();
-			List<ChartLine> lines =new LinkedList<ChartLine>();
-			List<String> legends=new LinkedList<String>();
-			if(dtos!=null&&dtos.size()>0) {
-				for(SalesChartDTO dto:dtos) {
-					   List<ProductInfo> groupList = productInfoService.selectByMSku(dto.getMsku(),dto.getMarketplaceid(),dto.getGroupid(),userinfo.getCompanyid());
-				       for(ProductInfo item:groupList) {
-				    	   ChartLine line= shipInboundPlanService.shipArrivalTimeChart(dto.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
-							lines.add(line);
-							String legend = dto.getSku();
-							legends.add(legend);
-				       }
-				}
+			List<String> legends=new ArrayList<String>();
+			if(StrUtil.isBlank(dto.getGroupid())) {
+				dto.setGroupid(null);
+			}
+			if(StrUtil.isBlank(dto.getSku())) {
+			   List<ProductInfo> groupList = productInfoService.selectByMSku(dto.getMsku(),dto.getMarketplaceid(),dto.getGroupid(),userinfo.getCompanyid());
+		       for(ProductInfo item:groupList) {
+		    	   AmazonAuthority auth = amazonAuthorityService.getById(item.getAmazonAuthId());
+		    	   AmazonGroup amzstore = iAmazonGroupService.getById(auth.getGroupid());
+		    	   ChartLine line= shipInboundPlanService.shipArrivalTimeChart(auth.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
+					lines.add(line);
+					String legend = dto.getSku();
+                    if(StrUtil.isBlank(dto.getGroupid())) {
+                    	legend= dto.getSku()+"-"+amzstore.getName();
+					}
+					legends.add(legend);
+		       }
 				Calendar c = Calendar.getInstance();
 				Calendar end=Calendar.getInstance();
-				end.add(Calendar.DATE, dtos.get(0).getDaysize()-1);
+				end.add(Calendar.DATE, dto.getDaysize()-1);
 				chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
 				chart.setLines(lines);
 				chart.setLegends(legends);
 				return Result.success(chart);
-		  }else {
-			  return Result.success();
-		 }
+			}else {
+				ChartLine line= shipInboundPlanService.shipArrivalTimeChart(dto.getGroupid(),dto.getAmazonAuthId(), dto.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
+				lines.add(line);
+				chart.setLines(lines);
+				Calendar c = Calendar.getInstance();
+				Calendar end=Calendar.getInstance();
+				end.add(Calendar.DATE, dto.getDaysize()-1);
+				chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
+				chart.setLegends(Arrays.asList(dto.getSku()));
+			}
+			
+			return Result.success(chart);
 		}
+		
+	 
 }

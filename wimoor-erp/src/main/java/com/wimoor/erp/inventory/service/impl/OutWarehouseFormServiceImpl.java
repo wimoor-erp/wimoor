@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -27,7 +26,6 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.erp.config.IniConfig;
 import com.wimoor.erp.customer.pojo.entity.Customer;
 import com.wimoor.erp.customer.service.ICustomerService;
 import com.wimoor.erp.inventory.mapper.OutWarehouseFormMapper;
@@ -49,17 +47,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OutWarehouseFormServiceImpl  extends  ServiceImpl<OutWarehouseFormMapper,OutWarehouseForm> implements IOutWarehouseFormService {
 	 
-	IOutWarehouseFormEntryService outWarehouseFormEntryService;
+	final IOutWarehouseFormEntryService outWarehouseFormEntryService;
 	 
-	IInventoryFormAgentService inventoryFormAgentService;
+	final IInventoryFormAgentService inventoryFormAgentService;
 	 
-	IWarehouseService warehouseService;
+	final IWarehouseService warehouseService;
 	 
-	IMaterialService materialService;
+	final IMaterialService materialService;
 	 
-	ICustomerService customerService;
+	final ICustomerService customerService;
 	 
-	ISerialNumService serialNumService;
+	final ISerialNumService serialNumService;
 
 	public IPage<Map<String, Object>> findByCondition(Page<?> page,Map<String, Object> map) {
 		return this.baseMapper.findByCondition(page,map);
@@ -149,9 +147,6 @@ public class OutWarehouseFormServiceImpl  extends  ServiceImpl<OutWarehouseFormM
 
 	@Transactional
 	public String uploadOutStockByExcel(Sheet sheet, UserInfo user) throws BizException {
-		if (IniConfig.isDemo()) {
-			return "演示环境不能上传资料！";
-		}
 		String whname = null;
 		String customer = null;
 		String address = null;

@@ -29,7 +29,7 @@ public class BasePageQuery {
     private int currentpage = 1;
 
     @ApiModelProperty(value = "每页记录数", example = "10")
-    private int pagesize = 10;
+    private int pagesize = 1000;
     
     @ApiModelProperty(value = "排序字段", example = "10")
     private String  sort = "";

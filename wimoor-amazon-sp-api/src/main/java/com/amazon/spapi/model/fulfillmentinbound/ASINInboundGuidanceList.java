@@ -11,6 +11,7 @@
  */
 
 
+
 package com.amazon.spapi.model.fulfillmentinbound;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import io.swagger.annotations.ApiModel;
  * A list of ASINs and their associated inbound guidance.
  */
 @ApiModel(description = "A list of ASINs and their associated inbound guidance.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-12-21T11:58:54.268+08:00")
 public class ASINInboundGuidanceList extends ArrayList<ASINInboundGuidance> {
 
   @Override

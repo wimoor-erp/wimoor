@@ -290,7 +290,7 @@ public class AmazonAuthority  extends  BaseEntity  implements RateLimitConfigura
 	@Override
 	public Long getTimeOut() {
 		// TODO Auto-generated method stub
-		return 60000L;
+		return Long.MAX_VALUE;
 	}
 
  

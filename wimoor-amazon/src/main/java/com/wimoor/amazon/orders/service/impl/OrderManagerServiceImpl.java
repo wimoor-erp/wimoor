@@ -81,17 +81,26 @@ import com.wimoor.amazon.inventory.service.IInventorySupplyService;
 import com.wimoor.amazon.orders.mapper.AmzOrderBuyerShipAddressMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrderItemMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrderMainMapper;
+import com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceMapper;
+import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceReportMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceVatMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrdersRemarkMapper;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
+import com.wimoor.amazon.orders.mapper.OrdersSummaryMapper;
+import com.wimoor.amazon.orders.mapper.SummaryAllMapper;
 import com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO;
 import com.wimoor.amazon.orders.pojo.dto.AmazonOrdersReturnDTO;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrderBuyerShipAddress;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrderItem;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrderMain;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoice;
+import com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoiceReport;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoiceVat;
 import com.wimoor.amazon.orders.pojo.entity.AmzOrdersRemark;
+import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
+import com.wimoor.amazon.orders.pojo.entity.OrdersSummary;
+import com.wimoor.amazon.orders.pojo.entity.SummaryAll;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersRemoveVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersReturnVo;
@@ -101,16 +110,7 @@ import com.wimoor.amazon.orders.service.IOrderManagerService;
 import com.wimoor.amazon.product.mapper.ProductInfoMapper;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.report.mapper.AmazonProductSalesMapper;
-import com.wimoor.amazon.report.mapper.AmzOrderReturnsMapper;
-import com.wimoor.amazon.report.mapper.AmzOrdersInvoiceReportMapper;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
-import com.wimoor.amazon.report.mapper.OrdersSummaryMapper;
-import com.wimoor.amazon.report.mapper.SummaryAllMapper;
 import com.wimoor.amazon.report.pojo.entity.AmazonProductSales;
-import com.wimoor.amazon.report.pojo.entity.AmzOrdersInvoiceReport;
-import com.wimoor.amazon.report.pojo.entity.OrdersReport;
-import com.wimoor.amazon.report.pojo.entity.OrdersSummary;
-import com.wimoor.amazon.report.pojo.entity.SummaryAll;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
@@ -190,8 +190,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	ProductInfoMapper productInfoMapper;
 	@Resource
 	AmazonGroupMapper amazonGroupMapper;
-	@Resource
-	AmzOrderReturnsMapper amzOrderReturnsMapper;
+
  
 	
 	@Override
@@ -419,161 +418,6 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 		}
 	}
 
-
-	@Override
-	public IPage<AmazonOrdersReturnVo> selectReturnsList(AmazonOrdersReturnDTO condition) {
-		 AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(condition.getGroupid(), condition.getMarketplaceid());
-		 if(auth!=null) {
-			 condition.setSellerid(auth.getSellerid());
-		 }
-		 String marketname="";
-		 Marketplace marketplace = marketplaceService.getById(condition.getMarketplaceid());
-		 if(marketplace!=null) {
-			 marketname=marketplace.getName();
-		 }
-		 String gname="";
-		 AmazonGroup amzgroup = amazonGroupMapper.selectById(condition.getGroupid());
-		 if(amzgroup!=null) {
-			 gname=amzgroup.getName();
-		 }
-		 IPage<AmazonOrdersReturnVo> list = amzOrderReturnsMapper.selectReturnsList(condition.getPage(),condition);
-		 if(list.getRecords()!=null && list.getRecords().size()>0) {
-			 for(AmazonOrdersReturnVo item:list.getRecords()) {
-				 item.setAuthid(auth.getId());
-				 item.setMarketname(marketname);
-				 item.setGroupname(gname);
-				 String orderid = item.getOrderId();
-				QueryWrapper<OrdersReport> orderWrapper=new QueryWrapper<OrdersReport>();
-				orderWrapper.eq("amazon_order_id", orderid);
-				orderWrapper.eq("sku", item.getSku());
-				OrdersReport orders = ordersReportMapper.selectOne(orderWrapper);
-				 if(orders!=null) {
-					 item.setPurchaseDate(orders.getPurchaseDate());
-					 item.setItemPrice(orders.getItemPrice());
-				 }
-				QueryWrapper<ProductInfo> queryWrapper=new QueryWrapper<ProductInfo>();
-				queryWrapper.eq("amazonAuthId", auth.getId());
-				queryWrapper.eq("marketplaceid", item.getMarketplaceid());
-				queryWrapper.eq("sku", item.getSku());
-				ProductInfo info = productInfoMapper.selectOne(queryWrapper);
-				if(info!=null) {
-					item.setName(info.getName());
-					if(info.getImage()!=null) {
-						Picture picture = pictureService.getById(info.getImage());
-						if(picture.getLocation()!=null) {
-							item.setImage(picture.getLocation());
-						}else {
-							item.setImage(picture.getUrl());
-						}
-					}
-				}
-				
-				 
-			 }
-		 }
-		 return list;
-	}
-	
-	@Override
-	public void downloadReturnlist(SXSSFWorkbook workbook,AmazonOrdersReturnDTO condition) {
-		 AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(condition.getGroupid(), condition.getMarketplaceid());
-		 if(auth!=null) {
-			 condition.setSellerid(auth.getSellerid());
-		 }
-		 String marketname="";
-		 Marketplace marketplace = marketplaceService.getById(condition.getMarketplaceid());
-		 if(marketplace!=null) {
-			 marketname=marketplace.getName();
-		 }
-		 String gname="";
-		 AmazonGroup amzgroup = amazonGroupMapper.selectById(condition.getGroupid());
-		 if(amzgroup!=null) {
-			 gname=amzgroup.getName();
-		 }
-		 List<AmazonOrdersReturnVo> list = amzOrderReturnsMapper.selectReturnsList(condition);
-		 if(list!=null && list.size()>0) {
-			 for(AmazonOrdersReturnVo item:list) {
-				 item.setAuthid(auth.getId());
-				 item.setMarketname(marketname);
-				 item.setGroupname(gname);
-				 String orderid = item.getOrderId();
-				QueryWrapper<OrdersReport> orderWrapper=new QueryWrapper<OrdersReport>();
-				orderWrapper.eq("amazon_order_id", orderid);
-				orderWrapper.eq("sku", item.getSku());
-				OrdersReport orders = ordersReportMapper.selectOne(orderWrapper);
-				 if(orders!=null) {
-					 item.setPurchaseDate(orders.getPurchaseDate());
-					 item.setItemPrice(orders.getItemPrice());
-				 }
-				QueryWrapper<ProductInfo> queryWrapper=new QueryWrapper<ProductInfo>();
-				queryWrapper.eq("amazonAuthId", auth.getId());
-				queryWrapper.eq("marketplaceid", item.getMarketplaceid());
-				queryWrapper.eq("sku", item.getSku());
-				ProductInfo info = productInfoMapper.selectOne(queryWrapper);
-				if(info!=null) {
-					item.setName(info.getName());
-					if(info.getImage()!=null) {
-						Picture picture = pictureService.getById(info.getImage());
-						if(picture.getLocation()!=null) {
-							item.setImage(picture.getLocation());
-						}else {
-							item.setImage(picture.getUrl());
-						}
-					}
-				}
-				 
-			 }
-			//操作Excel
-			Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
-			titlemap.put("sku", "SKU");
-			titlemap.put("asin", "ASIN");
-			titlemap.put("groupname", "店铺");
-			titlemap.put("market", "站点");
-			titlemap.put("orderid", "订单号");
-			titlemap.put("centerid", "物流中心ID");
-			titlemap.put("returndate", "退款日期");
-			titlemap.put("dispos", "库存属性");
-			titlemap.put("quantity", "数量");
-			titlemap.put("reason", "退货原因");
-			titlemap.put("custcomment", "退货留言");
-			Sheet sheet = workbook.createSheet("sheet1");
-			// 在索引0的位置创建行（最顶端的行）
-			Row trow = sheet.createRow(0);
-			Object[] titlearray = titlemap.keySet().toArray();
-			for (int i = 0; i < titlearray.length; i++) {
-				Cell cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
-				Object value = titlemap.get(titlearray[i].toString());
-				cell.setCellValue(value.toString());
-			}
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				AmazonOrdersReturnVo item = list.get(i);
-				   Cell cell = row.createCell(0); // 在索引0的位置创建单元格(左上端)
-					    cell.setCellValue(item.getSku());
- 					    cell = row.createCell(1);
- 					    cell.setCellValue(item.getAsin());
- 					    cell = row.createCell(2);
-						cell.setCellValue(item.getGroupname());
-			            cell = row.createCell(3);
-						cell.setCellValue(item.getMarketname());
-		                cell = row.createCell(4);
-						cell.setCellValue(item.getOrderId());
-	                    cell = row.createCell(5);
-						cell.setCellValue(item.getFulfillmentCenterId());
-                        cell = row.createCell(6);
-						cell.setCellValue(item.getReturnDate());
-						cell = row.createCell(7);
- 						cell.setCellValue(item.getDetailedDisposition());
-					    cell = row.createCell(8);
-						cell.setCellValue(item.getQuantity());
-					    cell = row.createCell(9);
-						cell.setCellValue(item.getReason());
-					    cell = row.createCell(10);
-						cell.setCellValue(item.getCustomerComments());
-			} 
-			 
-		 }
-	}
 
 	@Override
 	public IPage<AmazonOrdersRemoveVo> selectRemoveList(Map<String, Object> paramMap, Page<AmazonOrdersRemoveVo> page) {

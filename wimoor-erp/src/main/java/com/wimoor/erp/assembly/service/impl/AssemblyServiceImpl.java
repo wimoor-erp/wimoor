@@ -17,6 +17,7 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.erp.assembly.mapper.AssemblyMapper;
 import com.wimoor.erp.assembly.pojo.entity.Assembly;
 import com.wimoor.erp.assembly.service.IAssemblyService;
+import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
 
 import lombok.RequiredArgsConstructor;
@@ -82,13 +83,13 @@ public class AssemblyServiceImpl extends  ServiceImpl<AssemblyMapper,Assembly> i
 		return assemblyMapper.selectAssemblySub(mainmid);
 	}
 
-	public List<Map<String, Object>> selectBySubid(String materialid) {
+	public List<Material> selectBySubid(String materialid) {
 		// TODO Auto-generated method stub
-		List<Map<String, Object>> assemblyMainlist= assemblyMapper.selectMainBySubid(materialid);
-		for(Map<String, Object> item:assemblyMainlist) {
-			List<AssemblyVO> assemblysublist= assemblyMapper.selectByMainmid(item.get("mainmid").toString());
-			item.put("sublist", assemblysublist);
-		}
+		List<Material> assemblyMainlist= assemblyMapper.selectMainBySubid(materialid);
+//		for(Material item:assemblyMainlist) {
+//			List<AssemblyVO> assemblysublist= assemblyMapper.selectByMainmid(item.get("mainmid").toString());
+//			item.put("sublist", assemblysublist);
+//		}
 		return assemblyMainlist;
 	}
 
@@ -101,5 +102,6 @@ public class AssemblyServiceImpl extends  ServiceImpl<AssemblyMapper,Assembly> i
 		// TODO Auto-generated method stub
 		return assemblyMapper.findCanAssembly(materialid,warehouseid,shopid);
 	}
+ 
 
 }

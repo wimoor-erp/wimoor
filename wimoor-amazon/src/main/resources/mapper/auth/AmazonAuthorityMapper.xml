@@ -79,7 +79,7 @@
 		a.productdate,a.opttime,refresh_token,aws_region
 		from t_amazon_auth a
 		left join t_amazonseller_market b on a.sellerid=b.sellerid
-		where a.disable=0 and b.disable=0 
+		where a.disable=0
 		    and  ifnull(a.status,'enable') not in ('invalid') 
 		<if test="marketplaceid!=null">
 			and b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
@@ -87,6 +87,20 @@
 		order by a.opttime
 	</select>
 
+	<select id="selectByShopAndMarket" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select a.id, a.shop_id, a.sellerid,
+		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,
+		a.status,a.statusupdate,a.productdate,a.opttime,refresh_token,aws_region
+		from t_amazon_auth a
+		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		where b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
+		and  ifnull(a.status,'enable') not in ('invalid') 
+		and a.disable=0
+		<if test="shopid!=null">
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		</if>
+	</select>
+	
 	<select id="selectByRegion" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select distinct a.id, a.shop_id, a.sellerid,
 		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,a.status,
@@ -99,18 +113,6 @@
 		    and  ifnull(a.status,'enable') not in ('denied_acc','invalid')  
 	</select>
 
-	<select id="selectByShopAndMarket" resultMap="BaseResultMap" parameterType="java.lang.String">
-		select a.id, a.shop_id, a.sellerid,
-		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,
-		a.status,a.statusupdate,a.productdate,a.opttime,refresh_token,aws_region
-		from t_amazon_auth a
-		left join t_amazonseller_market b on a.sellerid=b.sellerid
-		inner join t_marketplace c on b.marketplace_id = c.marketplaceId
-		where b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
-		<if test="shopid!=null">
-			and a.shop_id=#{shopid,jdbcType=CHAR}
-		</if>
-	</select>
 	
 	<select id="selectByshopid" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select distinct a.id, a.shop_id, concat(g.name,'-',Lower(a.region)) name,a.sellerid,

@@ -26,6 +26,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.admin.pojo.dto.UserDTO;
 import com.wimoor.admin.pojo.dto.UserInsertDTO;
+import com.wimoor.admin.pojo.dto.UserRegisterInfoDTO;
 import com.wimoor.admin.pojo.entity.SysUser;
 import com.wimoor.admin.pojo.entity.SysUserRole;
 import com.wimoor.admin.pojo.vo.UserVO;
@@ -250,9 +251,9 @@ public class UserController {
 	    @ApiImplicitParams({
             @ApiImplicitParam(name = "openid", value = "微信openid", paramType = "query", dataType = "String")
         })
-	    @GetMapping("/sysrole/findbyopenid/{openid}")
-	    public Result<List<UserInfo>> findUserByOpenid(@PathVariable String openid) {
-	    	List<SysUser> userList = iSysUserService.findAppUserByOpenid(openid);
+	    @GetMapping("/sysrole/findbyopenid/{openid}/{appType}")
+	    public Result<List<UserInfo>> findUserByOpenid(@PathVariable String openid,@PathVariable String appType) {
+	    	List<SysUser> userList = iSysUserService.findAppUserByOpenid(openid,appType);
 	    	List<UserInfo> result=new LinkedList<UserInfo>();
 	    	if(userList!=null) {
 	    		for(SysUser user:userList) {
@@ -276,9 +277,9 @@ public class UserController {
             @ApiImplicitParam(name = "password", value = "登陆密码", paramType = "query", dataType = "String")
         })
 	    @GetMapping("/sysrole/openidbind")
-	    public Result<UserInfo> bindUserByOpenid(String openid,String account,String password) {
+	    public Result<UserInfo> bindUserByOpenid(String openid,String appType,String account,String password) {
 	    	try {
-	    		SysUser user = iSysUserService.bindOpenId(openid,account,password);
+	    		SysUser user = iSysUserService.bindOpenId(openid,appType,account,password);
 		    	user.setPassword("***");
 			    user.setSalt("***");
 			    log.debug(account+"获取所有信息---时间："+new Date());
@@ -314,14 +315,14 @@ public class UserController {
 	    @GetMapping("/unbindWechat") 
 		public Object unbindWechatAction(HttpServletRequest request) {
 	    	//UserInfo userInfo = UserInfoContext.get();
-			String ftype=request.getParameter("ftype");
+			String appType=request.getParameter("appType");
 			String account=request.getParameter("account");
 			String openid=request.getParameter("openid");
 			Map<String,Object> map=new HashMap<String, Object>();
-			List<SysUser> userlist = iSysUserService.findAppUserByOpenid(openid);
+			List<SysUser> userlist = iSysUserService.findAppUserByOpenid(openid,appType);
 			SysUser user = userlist.stream().filter(muser->muser.getAccount().equals(account)).findFirst().get();
 	    	UserInfo info=iSysUserService.convertToUserInfo(user);
-			int res=iSysUserService.unbindWechat(info,ftype);
+			int res=iSysUserService.unbindWechat(info,appType);
 			if(res>0) {
 				map.put("isOk", true);
 				map.put("msg", "解绑成功！");
@@ -329,7 +330,6 @@ public class UserController {
 				map.put("isOk", false);
 				map.put("msg", "操作失败，或者您当前暂无绑定！");
 			}
-		 
 			 return Result.success(map);
 		}
 	    
@@ -353,4 +353,22 @@ public class UserController {
 	        boolean result = iSysUserService.updateUser(userDTO,operatorUserInfo);
 	        return Result.judge(result);
 	    }  
+		
+	    @PostMapping("/register")
+	    public Result<UserInfo> register(@RequestBody UserRegisterInfoDTO dto)  {
+	    	    SysUser user = iSysUserService.saveRegister(dto);
+			    user.setPassword("***");
+			    user.setSalt("***");
+			    UserInfo info=iSysUserService.convertToUserInfo(user);
+			    return Result.success(info);
+			}
+	    
+	    @PostMapping("/updatePassword")
+	    public Result<UserInfo> updatePassword(@RequestBody UserRegisterInfoDTO dto)  {
+	    	    SysUser user = iSysUserService.changePassword(dto);
+			    user.setPassword("***");
+			    user.setSalt("***");
+			    UserInfo info=iSysUserService.convertToUserInfo(user);
+			    return Result.success(info);
+			}
 }

@@ -13,6 +13,8 @@ import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+
+import cn.hutool.core.util.StrUtil;
  
 @Service("UKProfitService")
 public class UKProfitServiceImpl extends ProfitServiceImpl {
@@ -74,11 +76,14 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 		String fenpeiType = "PAN_EU";
 		boolean hasAddedSite = false;
 		if (profitConfigX != null) {
-			fenpeiType = profitConfigX.getFenpeiType();
+			String tempType = profitConfigX.getFenpeiType();
+			if(StrUtil.isNotBlank(tempType)) {
+				fenpeiType=tempType;
+			}
 			//选PAN-EU之后, 可选 Fulfilment Network Expansion (Central Europe Program),
 			hasAddedSite = profitConfigX.isHasAddedSite();
 		}
-		if (fenpeiType.equals("PAN_EU") && hasAddedSite) {
+		if (fenpeiType!=null&&fenpeiType.equals("PAN_EU") && hasAddedSite) {
 			if(country.equals("PL") ||country.equals("CZ")) {
 				country = "DE";
 			}

@@ -1,6 +1,5 @@
 package com.wimoor.erp.inventory.service.impl;
 
-import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -21,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -122,6 +121,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	// 根据状态去入库
+	@Transactional
 	public int AddStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException {
 		para=para.clone();
 		if(para.getAmount()==null)return 0;
@@ -130,12 +130,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			return 0;
 		int count = 0;
 		Warehouse warehouseobj = isOkForOperate(para.getWarehouse(), para.getStatus());
-//		ServletContext session = para.getSession();
-//		if (session == null) {
-//			throw new BizException("系统繁忙，请刷新后再试！");
-//		}
-		try {
-			Inventory addinv = this.baseMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
+		Inventory addinv = this.baseMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
 			if (addinv != null) {
 				Integer oldQuantity = addinv.getQuantity();
 				oldQuantity = oldQuantity + quantity;
@@ -168,13 +163,12 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			InventoryRecord record = setInitRecord(para, status, operate);
 			inventoryRecordService.save(record);
 			insertHis(addinv);
-		} finally {
-			//session.removeAttribute("inventory" + para.getWarehouse() + para.getMaterial() + para.getShopid() + para.getInvStatus(status));
-		}
+	 
 		return count;
 	}
 
 	// 根据状态去出库
+	@Transactional
 	public int SubStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException {
 		para=para.clone();
 		int quantity = para.getAmount();
@@ -232,6 +226,34 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return count;
 	}
 
+	@Transactional
+	public int UndoSubStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException {
+		para=para.clone();
+		if(para.getAmount()==null)return 0;
+		int quantity = para.getAmount();
+		if (quantity == 0)
+			return 0;
+		int count = 0;
+		isOkForOperate(para.getWarehouse(), para.getStatus());
+		Inventory addinv = this.baseMapper.selectNowInv(para.getWarehouse(), para.getMaterial(), para.getShopid(), para.getInvStatus(status));
+			if (addinv != null) {
+				Integer oldQuantity = addinv.getQuantity();
+				oldQuantity = oldQuantity + quantity;
+				setInitOldInventory(para, addinv);
+				addinv.setQuantity(oldQuantity);
+				count += this.baseMapper.updateById(addinv);
+			} else {
+				addinv = setInitInventory(para);
+				addinv.setQuantity(quantity);
+				addinv.setStatus(para.getInvStatus(status));
+				count += this.baseMapper.insert(addinv);
+			}
+			para.setInvqty(addinv.getQuantity());
+			InventoryRecord record = setInitRecord(para, status, operate);
+			inventoryRecordService.save(record);
+			insertHis(addinv);
+		return count;
+	}
 	// 初始化inventory对象
 	private Inventory setInitInventory(InventoryParameter para) {
 		Inventory newInv = new Inventory();
@@ -254,6 +276,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	// 入库(直接入库)
+	@Transactional
 	public Integer inStockByDirect(InventoryParameter para) throws BizException {
 		int result = 0;
 		// 根据warehouseid和materialid可以确认当前SKU
@@ -267,6 +290,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	// 待入库
+	@Transactional
 	public Integer inStockByReady(InventoryParameter para) throws BizException {
 		if (para.getStatus() == EnumByInventory.Ready) {
 			return AddStockByStatus(para, Status.inbound, Operate.readyin);
@@ -279,11 +303,13 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	// 出库(直接出库)
+	@Transactional
 	public Integer outStockByDirect(InventoryParameter para) throws BizException {
 		return SubStockByStatus(para, Status.fulfillable, Operate.out);
 	}
 
 	// 待出库
+	@Transactional
 	public Integer outStockByReady(InventoryParameter para) throws BizException {
 		int result = 0;
 		if (para.getStatus() == EnumByInventory.Ready) {
@@ -296,6 +322,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return result;
 	}
 
+	@Transactional
 	public Integer outStockByReadyChange(InventoryParameter para) throws BizException {
 		int result = 0;
 		if (para.getStatus() == EnumByInventory.Ready) {
@@ -305,6 +332,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return result;
 	}
 
+	@Transactional
 	public Integer outStockReadyChange(InventoryParameter para) throws BizException {
 		int result = 0;
 		if (para.getStatus() == EnumByInventory.Ready) {
@@ -315,11 +343,13 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	// 撤销直接入库的(说明之前一定有inventory对象)
+	@Transactional
 	public Integer inStockDirectCancel(InventoryParameter para) throws BizException {
 		return SubStockByStatus(para, Status.fulfillable, Operate.cancel);
 	}
 
 	// 撤销准备入库的
+	@Transactional
 	public Integer inStockReadyCancel(InventoryParameter para) throws BizException {
 		int result = 0;
 		if (para.getStatus() == EnumByInventory.Ready) {
@@ -332,11 +362,13 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	// 撤销直接出库的
+	@Transactional
 	public Integer outStockDirectCancel(InventoryParameter para) throws BizException {
 		return AddStockByStatus(para, Status.fulfillable, Operate.cancel);
 	}
 
 	// 撤销准备出库的
+	@Transactional
 	public Integer outStockReadyCancel(InventoryParameter para) throws BizException {
 		int result = 0;
 		if (para.getStatus() == EnumByInventory.Ready) {
@@ -356,11 +388,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 
 	public IPage<Map<String, Object>> findByTypeWithStockCycle(Page<?> page,String ftype, String id, String shopid) {
 		IPage<Map<String, Object>> list = null;
-		if (ftype.equals("FBA")) {
-			list = this.baseMapper.findFBAWithStockCycle(page,id, shopid);
-		} else {
-			list = this.baseMapper.findNotFBAWithStockCycle(page,id, shopid);
-		}
+		list = this.baseMapper.findNotFBAWithStockCycle(page,id, shopid);
 		return list;
 	}
 
@@ -370,17 +398,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return this.baseMapper.findLocalInventory(page,param);
 	}
 	public Map<String, Object> findSumByType(Map<String,Object> param) {
-		Map<String, Object> map = null;
-		String ftype=null;
-		if(param.get("ftype")!=null) {
-			ftype=param.get("ftype").toString();
-		}
-		if (ftype != null && ftype.equals("FBA")) {
-			map = this.baseMapper.findFBASum(param);
-		} else {
-			map = this.baseMapper.findNotFBASum(param);
-		}
-		return map;
+		return this.baseMapper.findNotFBASum(param);
 	}
 
 	public IPage<Map<String, Object>> findInventoryDetail(Page<?> page,Map<String, Object> warehouseMap) {
@@ -393,10 +411,6 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 
 	public Map<String, Object> findInvDetailById(String materialid, String warehouseid, String shopid) {
 		return this.baseMapper.findInvDetailById(materialid, warehouseid, shopid);
-	}
-
-	public Map<String, Object> findFBAInvDetailById(String sku, String warehouseid, String shopid,String groupid) {
-		return this.baseMapper.findFBAInvDetailById(sku, warehouseid, shopid,groupid);
 	}
 
 	public List<Map<String, Object>> findInboundDetail(String materialid, String warehouseid, String shopid) {
@@ -543,13 +557,13 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		}
 		return pagelist;
 	}
-	public Map<String, Object> findInvTUDetailByParentId(String materialid,  String shopid) {
-		return this.baseMapper.findInvTUDetailByParentId(materialid, null, shopid);
+	public Map<String, Object> findInvByMaterialId(String materialid,  String shopid) {
+		return this.baseMapper.findInvByWarehouseId(materialid, null, shopid);
 	}
-	public Map<String, Object> findInvTUDetailByParentId(String materialid, String warehouseid, String shopid) {
+	public Map<String, Object> findInvByWarehouseId(String materialid, String warehouseid, String shopid) {
 		String[] warehouseidArray = warehouseid.split(",");
 		if (warehouseidArray.length == 1) {
-			return this.baseMapper.findInvTUDetailByParentId(materialid, warehouseid, shopid);
+			return this.baseMapper.findInvByWarehouseId(materialid, warehouseid, shopid);
 		} else {
 			Map<String, Object> maps = new HashMap<String, Object>();
 			Integer inbound = 0;
@@ -557,7 +571,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			Integer fulfillable = 0;
 			for (int i = 0; i < warehouseidArray.length; i++) {
 				String wareid = warehouseidArray[i];
-				Map<String, Object> result = this.baseMapper.findInvTUDetailByParentId(materialid, wareid, shopid);
+				Map<String, Object> result = this.baseMapper.findInvByWarehouseId(materialid, wareid, shopid);
 				if (result == null) {
 					continue;
 				}
@@ -669,21 +683,10 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		}
 	}
 
-	public void setExcelBookInventoryReport(SXSSFWorkbook workbook, List<Map<String, Object>> warehouseList_FBA,
-			List<Map<String, Object>> warehouseList, List<Map<String, Object>> warehouseDetailList) {
+	public void setExcelBookInventoryReport(SXSSFWorkbook workbook,List<Map<String, Object>> warehouseList, List<Map<String, Object>> warehouseDetailList) {
 		Sheet sheet = workbook.createSheet("sheet1");
 		Map<String, Integer> titlemap = new HashMap<String, Integer>();
 		Map<String, String> titlechange = new HashMap<String, String>();
-		titlemap.put("SKU", 0);
-		titlemap.put("平台SKU", 1);
-		titlemap.put("产品名称", 2);
-		titlemap.put("长宽高", 3);
-		titlemap.put("重量", 4);
-		titlemap.put("采购单价", 5);
-		titlemap.put("供应商", 6);
-		titlemap.put("生效日期", 7);
-		titlemap.put("产品负责人", 8);
-
 		titlechange.put("sku", "SKU");
 		titlechange.put("psku", "平台SKU");
 		titlechange.put("name", "产品名称");
@@ -693,20 +696,11 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		titlechange.put("supplier", "供应商");
 		titlechange.put("effectivedate", "生效日期");
 		titlechange.put("owner", "产品负责人");
-		for (int i = 0; i < warehouseList_FBA.size(); i++) {
-			String name = warehouseList_FBA.get(i).get("name").toString();
-			String id = warehouseList_FBA.get(i).get("id").toString();
-			titlemap.put(name, 9  + i);
-			titlechange.put(id, name);
-		}
 		for (int i = 0; i < warehouseList.size(); i++) {
 			String name = warehouseList.get(i).get("name").toString();
 			String id = warehouseList.get(i).get("id").toString();
-			titlemap.put(name, 9 + warehouseList_FBA.size()+ i);
 			titlechange.put("self"+id, name);
 		}
-	
-
 		// 在索引0的位置创建行（最顶端的行）
 		Row row = sheet.createRow(0);
 		for (String key : titlemap.keySet()) {
@@ -798,10 +792,6 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return this.baseMapper.findFulByMaterial(materialid);
 	}
 
-	public List<Map<String, Object>> getInventorydetail(String materialid, String warehouseid) {
-		return this.baseMapper.getInventorydetail(materialid,warehouseid);
-	}
-
  
 	public Inventory selectAllInvSubWarehouse(String warehouseid, String materialid, String shopid,Status fulfillable) {
 		// TODO Auto-generated method stub
@@ -810,15 +800,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 
 	public List<Map<String, Object>> findByType(Map<String,Object> param) {
 		List<Map<String, Object>> list = null;
-		String ftype=null;
-		if(param.get("ftype")!=null) {
-			ftype=param.get("ftype").toString();
-		}
-		if (ftype != null && ftype.equals("FBA")) {
-			list = this.baseMapper.findFBA(param);
-		} else {
-			list = this.baseMapper.findNotFBA(param);
-		}
+	    list = this.baseMapper.findNotFBA(param);
 		if (list != null && list.size() > 0) {
 			for (int i = 0; i < list.size(); i++) {
 				Map<String, Object> map = list.get(i);
@@ -833,14 +815,10 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	@Override
-	public List<Map<String, Object>> findByTypeWithStockCycle(String ftype, String id, String shopid) {
+	public List<Map<String, Object>> findByTypeWithStockCycle(String id,String ftype, String shopid) {
 		// TODO Auto-generated method stub
 		List<Map<String, Object>> list = null;
-		if (ftype.equals("FBA")) {
-			list = this.baseMapper.findFBAWithStockCycle(id, shopid);
-		} else {
-			list = this.baseMapper.findNotFBAWithStockCycle(id, shopid);
-		}
+        list = this.baseMapper.findNotFBAWithStockCycle(id, ftype,shopid);
 		return list;
 	}
 	
@@ -947,5 +925,17 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	
 	public List<MaterialInventoryVo> findLocalWarehouseInventory(String shopid,String materialid) {
 		return this.baseMapper.findLocalWarehouseInventory(shopid, materialid);
+	}
+
+	@Override
+	public Integer findOverseaById(String materialid, String shopid, String groupid, String country) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.findOverseaById(materialid,shopid,groupid,country);
+	}
+
+	@Override
+	public Map<String, Object> getInventory( String materialid, String warehouseid,String shopid) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.getInventory(materialid, warehouseid, shopid);
 	}
 }

@@ -1,5 +1,7 @@
 package com.wimoor.amazon.product.pojo.dto;
 
+import java.util.List;
+
 import com.wimoor.common.pojo.entity.BasePageQuery;
 
 import io.swagger.annotations.ApiModel;
@@ -46,5 +48,6 @@ public class ProductListQuery extends BasePageQuery{
 	String sku;
 	@ApiModelProperty(value = "动态查询条件", example = "")
 	String paralist;
-	
+	@ApiModelProperty(value = "标签查询条件", example = "123,456,122")
+	List<String> taglist;
 }

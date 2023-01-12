@@ -42,11 +42,11 @@ public class Customer extends ErpBaseEntity{
     
     @Size(max=11,message="请正确输入手机号码或电话的格式")
     @TableField(value= "phone_num")
-    private String phoneNum;
+    private String phone_num;
 
     @Size(max=2000,message="其它联系信息的长度不能超过2000个字符")
     @TableField(value= "contact_info")
-    private String contactInfo;
+    private String contact_info;
 
     @Size(max=500,message="地址的长度不能超过500个字符")
     @TableField(value= "address")

@@ -64,198 +64,20 @@
 				and w.ftype='self_usable'
 	</select>
 
-	<select id="findInvTUDetailByParentId" parameterType="java.lang.String" resultType="java.util.Map">
+	<select id="findInvByWarehouseId" parameterType="java.lang.String" resultType="java.util.Map">
 		select inv.materialid ,
 			sum( case when substring_index(status,'_',1) ='inbound' then quantity else 0 end ) inbound,
-			sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
-			sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			sum( case when substring_index(status,'_',1) ='outbound' then quantity else 0 end ) outbound,
+			sum( case when substring_index(status,'_',1) ='fulfillable' then quantity else 0 end ) fulfillable
 		from t_erp_inventory inv
-		left join t_erp_warehouse w on w.id=inv.warehouseid
 		where inv.shopid=#{shopid,jdbcType=CHAR}
 		<if test="warehouseid!=null">
-			and w.parentid=#{warehouseid,jdbcType=CHAR} 
+			and inv.warehouseid=#{warehouseid,jdbcType=CHAR} 
 		</if>
-			and (w.ftype='self_test' or w.ftype='self_usable')
 			and inv.materialid=#{materialid,jdbcType=CHAR}
 		group by inv.materialid
 	</select>
 
-	<select id="findFBAInvDetailById" parameterType="java.lang.String" resultType="java.util.Map">
-		select i.sku, 
-			sum(i.afn_warehouse_quantity) afnWarehouseQuantity,
-			sum(i.afn_fulfillable_quantity) afnFulfillableQuantity,
-			sum(i.afn_reserved_quantity) afnReservedQuantity,
-			sum(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
-			sum(i.afn_inbound_shipped_quantity) afnInboundShippedQuantity ,
-			sum(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
-			sum(i.afn_unsellable_quantity) afnUnsellableQuantity,
-			sum(i.afn_researching_quantity) afnResearchingQuantity,
-			sum(r.reserved_customerorders) reservedCustomerorders,
-			sum(case when r.id is null then ifnull(i.afn_reserved_quantity,0) 
-			       else ifnull(r.reserved_fc_processing,i.afn_reserved_future_supply)  end) reservedFcProcessing,
-			sum(r.reserved_fc_transfers) reservedFcTransfers,
-      		sum(r.reserved_qty) reservedQty 
-		from t_inventory_report i 
-		left join t_inventory_reserved_report r on i.sku=r.sku and i.marketplaceid=r.marketplaceid and i.amazonAuthId=r.amazonAuthId 
-		left join t_amazon_auth a on i.amazonAuthId=a.id 
-		where a.shop_id=#{shopid,jdbcType=CHAR} 
-			and i.isnewest=true
-			and i.sku=#{sku,jdbcType=CHAR} 
-			and i.marketplaceid=#{warehouseid,jdbcType=CHAR}
-		   <if test="groupid != null">
-			and a.groupid=#{groupid,jdbcType=CHAR}
-		  </if>
-	</select>
-
-	<select id="findFBAWithStockCycle" resultType="java.util.Map" parameterType="java.lang.String">
-		<if test="id != ''">
-			select max(w.id), w.name warehouse,tp.sku,w.marketplaceid,
-				ifnull(s.stockingCycle,w.stocking_cycle) stockingCycle,
-				ifnull(s.min_cycle,w.min_cycle) mincycle,ifnull(s.first_leg_charges,0) firstlegcharges,
-				max(i.afn_fulfillable_quantity) afnFulfillableQuantity,
-				max(i.afn_reserved_quantity) afnReservedQuantity,
-				max(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
-				max(i.afn_inbound_shipped_quantity ) afnInboundShippedQuantity ,
-				max(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
-				max(i.afn_unsellable_quantity) afnUnsellableQuantity
-			from t_product_info tp
-			left join t_product_in_opt opt on opt.pid = tp.id
-			left join t_erp_material m on ifnull(opt.msku,tp.sku)=m.sku
-			left join t_marketplace tm on tm.marketplaceId = tp.marketplaceid
-			left join t_amazon_auth a on a.id = tp.amazonAuthId
-			left join t_erp_warehouse_fba w on (tm.marketplaceid = w.marketplaceid or w.marketplaceid = tm.region) and a.shop_id=w.shopid
-			left join t_erp_shipcycle s on s.sku = tp.sku and s.marketplaceid = w.marketplaceid and s.groupid = a.groupid
-			left join t_inventory_report i on i.sku=tp.sku and i.amazonAuthId=a.id and i.isnewest=true and i.marketplaceid=w.marketplaceid
-			where a.shop_id=#{shopid,jdbcType=CHAR}
-				and m.id=#{id,jdbcType=CHAR}
-			GROUP BY w.name,tp.sku,tp.amazonAuthId 
-			ORDER BY w.name,tp.sku,tp.amazonAuthId;
-		</if>
-
-		<if test="id == ''">
-			select w.id, w.name warehouse,w.stocking_cycle stockingCycle
-			from t_erp_warehouse_fba w
-			where w.shopid=#{shopid,jdbcType=CHAR}
-			ORDER BY w.name
-		</if>
-	</select>
-
-	<select id="findNotFBAWithStockCycle" resultType="java.util.Map" parameterType="java.lang.String">
-		<if test="id != ''">
-			select w.id, w.parentid, w.name warehouse,w.ftype ftype,m.sku,m.id skuid,
-				ifnull(s.stockingCycle,wp.stocking_cycle) stockingCycle,
-				ifnull(s.min_cycle,wp.min_cycle) mincycle,0 firstlegcharges,
-				sum(i.inbound) inbound,sum(i.fulfillable) fulfillable,sum(i.outbound) outbound
-			from t_erp_warehouse w
-			left join t_erp_warehouse wp on w.parentid=wp.id
-			left join t_erp_stockcycle s on w.parentid=s.warehouseid and s.materialid=#{id,jdbcType=CHAR}
-			cross join t_erp_material m
-			left join (
-				select shopid,warehouseid,materialid ,
-					sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
-					sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
-					sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
-				from t_erp_inventory where shopid=#{shopid,jdbcType=CHAR}
-				group by shopid,warehouseid,materialid
-			) i on i.materialid=m.id and w.id=i.warehouseid
-			where wp.ftype ='self' 
-				and w.disabled=0 and m.id=#{id,jdbcType=CHAR} 
-				and w.shopid=#{shopid,jdbcType=CHAR}
-			GROUP BY w.name ORDER BY w.name
-		</if>
-		<if test="id == ''">
-			select w.id, w.parentid, w.name warehouse,w.ftype ftype,wp.stocking_cycle stockingCycle
-			from t_erp_warehouse w
-			left join t_erp_warehouse wp on w.parentid=wp.id
-			where wp.ftype ='self' 
-				and w.shopid=#{shopid,jdbcType=CHAR} 
-				and w.disabled=0
-			ORDER BY w.name
-		</if>
-	</select>
-
-	<select id="findFBA" resultType="java.util.Map" parameterType="java.util.Map">
-		select a.groupid,ag.name groupname,a.shop_id shopid, i.marketplaceid wid, 
-			CONCAT('FBA-',case when i.marketplaceid='EU' then '欧洲' else m.name end ) warehouse, 
-		  	i.sku, max(p.`name`) pname,max(pc.location) image,
-			i.afn_warehouse_quantity afnWarehouseQuantity,
-			i.afn_fulfillable_quantity afnFulfillableQuantity,
-			i.afn_reserved_quantity afnReservedQuantity,
-			i.afn_inbound_working_quantity afnInboundWorkingQuantity ,
-			i.afn_inbound_shipped_quantity afnInboundShippedQuantity ,
-			i.afn_inbound_receiving_quantity afnInboundReceivingQuantity,
-			i.afn_unsellable_quantity afnUnsellableQuantity,
-			i.afn_researching_quantity afnResearchingQuantity
-		from t_inventory_report i
-		left join t_amazon_auth a on i.amazonAuthId=a.id
-		LEFT JOIN t_marketplace m ON (m.marketplaceId=i.marketplaceid OR m.region=i.marketplaceid)
-		left join t_amazon_group ag on ag.id=a.groupid 
-		left join t_product_info p on p.sku=i.sku and p.marketplaceid=m.marketplaceId and p.amazonAuthId=a.id 
-		left join t_product_in_opt opt on opt.pid=p.id
-		left join t_erp_material mt on mt.sku=ifnull(opt.msku,p.sku) and mt.shopid=a.shop_id and mt.isDelete=0
-		left join t_picture pc on pc.id=p.image 
-		where a.shop_id=#{shopid,jdbcType=CHAR} and a.disable=0 and i.isnewest=TRUE 
-		<if test="warehouseid != null">
-			and i.marketplaceid=#{warehouseid,jdbcType=CHAR}
-		</if>
-		<if test="groupid != null">
-			and a.groupid=#{groupid,jdbcType=CHAR}
-		</if>
-		<if test="skuid != null">
-			and i.sku=#{skuid,jdbcType=CHAR}
-		</if>
-	    <if test="myself != null">
-			and mt.owner=#{myself,jdbcType=CHAR} 
-		</if>
-		group by i.id 
-	</select>
-
-	<select id="findFBASum" resultType="java.util.Map" parameterType="java.util.Map">
-		select count(i.sku) sku,
-			sum(i.afn_warehouse_quantity) afnWarehouseQuantity,
-			sum(i.afn_fulfillable_quantity) afnFulfillableQuantity,
-			sum(i.afn_reserved_quantity) afnReservedQuantity,
-			sum(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
-			sum(i.afn_inbound_shipped_quantity) afnInboundShippedQuantity ,
-			sum(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
-			sum(i.afn_unsellable_quantity) afnUnsellableQuantity,
-			sum(i.afn_researching_quantity) afnResearchingQuantity 
-		from (
-				select a.groupid,ag.name groupname,a.shop_id shopid, i.marketplaceid wid, 
-			CONCAT('FBA-',case when i.marketplaceid='EU' then '欧洲' else m.name end ) warehouse, 
-		  	i.sku, max(p.`name`) pname,max(pc.location) image,
-			i.afn_warehouse_quantity ,
-			i.afn_fulfillable_quantity ,
-			i.afn_reserved_quantity ,
-			i.afn_inbound_working_quantity  ,
-			i.afn_inbound_shipped_quantity  ,
-			i.afn_inbound_receiving_quantity ,
-			i.afn_unsellable_quantity ,
-			i.afn_researching_quantity 
-		from t_inventory_report i
-		left join t_amazon_auth a on i.amazonAuthId=a.id
-		LEFT JOIN t_marketplace m ON (m.marketplaceId=i.marketplaceid OR m.region=i.marketplaceid)
-		left join t_amazon_group ag on ag.id=a.groupid 
-		left join t_product_info p on p.sku=i.sku and p.marketplaceid=m.marketplaceId and p.amazonAuthId=a.id 
-		left join t_product_in_opt opt on opt.pid=p.id
-		left join t_erp_material mt on mt.sku=ifnull(opt.msku,p.sku) and mt.shopid=a.shop_id and mt.isDelete=0
-		left join t_picture pc on pc.id=p.image 
-		where a.shop_id=#{shopid,jdbcType=CHAR} and a.disable=0 and i.isnewest=TRUE 
-		<if test="warehouseid != null">
-			and i.marketplaceid=#{warehouseid,jdbcType=CHAR}
-		</if>
-		<if test="groupid != null">
-			and a.groupid=#{groupid,jdbcType=CHAR}
-		</if>
-		<if test="skuid != null">
-			and i.sku=#{skuid,jdbcType=CHAR}
-		</if>
-	    <if test="myself != null">
-			and mt.owner=#{myself,jdbcType=CHAR} 
-		</if>
-		group by i.id 
-		) i
-	</select>
 
 	<select id="findLocalInventory" resultType="java.util.Map" parameterType="java.util.Map">
 		select uuid_short() id, m.sku,m.name name,m.id materialid,
@@ -354,7 +176,44 @@
 		</if>
 		ORDER BY w.name
 	</select>
-
+	
+      <select id="findNotFBAWithStockCycle" resultType="java.util.Map" parameterType="java.lang.String">
+		<if test="id != ''">
+			select w.id, w.parentid, w.name warehouse,w.ftype ftype,m.sku,m.id skuid,
+				ifnull(s.stockingCycle,wp.stocking_cycle) stockingCycle,
+				ifnull(s.min_cycle,wp.min_cycle) mincycle,0 firstlegcharges,
+				sum(i.inbound) inbound,sum(i.fulfillable) fulfillable,sum(i.outbound) outbound
+			from t_erp_warehouse w
+			left join t_erp_warehouse wp on w.parentid=wp.id
+			left join t_erp_stockcycle s on w.parentid=s.warehouseid and s.materialid=#{id,jdbcType=CHAR}
+			cross join t_erp_material m
+			left join (
+				select shopid,warehouseid,materialid ,
+					sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+					sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+					sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+				from t_erp_inventory where shopid=#{shopid,jdbcType=CHAR}
+				group by shopid,warehouseid,materialid
+			) i on i.materialid=m.id and w.id=i.warehouseid
+			where wp.ftype ='self' 
+			<if test="ftype!=null">
+				and w.ftype=#{ftype,jdbcType=CHAR} 
+			</if>
+				and w.disabled=0 and m.id=#{id,jdbcType=CHAR} 
+				and w.shopid=#{shopid,jdbcType=CHAR}
+			GROUP BY w.name ORDER BY w.name
+		</if>
+		<if test="id == ''">
+			select w.id, w.parentid, w.name warehouse,w.ftype ftype,wp.stocking_cycle stockingCycle
+			from t_erp_warehouse w
+			left join t_erp_warehouse wp on w.parentid=wp.id
+			where wp.ftype ='self' 
+				and w.shopid=#{shopid,jdbcType=CHAR} 
+				and w.disabled=0
+			ORDER BY w.name
+		</if>
+	</select>
+	
 	<select id="findNotFBASum" resultType="java.util.Map" parameterType="java.util.Map">
 		select count(m.sku) sku,sum(i.inbound) inbound,sum(i.fulfillable) fulfillable,sum(i.outbound) outbound
 		from t_erp_warehouse w
@@ -898,25 +757,9 @@
 	WHERE t.materialid=#{id,jdbcType=CHAR} AND t.`status`='fulfillable'
 	</select>
 	
-	<select id="getInventorydetail" parameterType="java.lang.String" resultType="java.util.Map">
-		SELECT w.name wname,ass.subnumber,t.sku,t.name,ifnull(p.url,p.location) image,inv.quantity fulfillable,inv2.quantity outbound,inv3.quantity inbound FROM 
-		t_erp_assembly ass 
-		LEFT JOIN t_erp_material t ON t.id=ass.submid
-		LEFT JOIN t_erp_warehouse w ON w.id=#{warehouseid,jdbcType=CHAR}
-		LEFT JOIN t_erp_inventory inv ON inv.warehouseid=w.id AND inv.materialid=t.id  
-		AND inv.`status`='fulfillable'
-		LEFT JOIN t_erp_inventory inv2 ON inv2.warehouseid=w.id AND inv2.materialid=t.id  
-		AND inv2.`status` like 'outbound%'
-		LEFT JOIN t_erp_inventory inv3 ON inv3.warehouseid=w.id AND inv3.materialid=t.id  
-		AND inv3.`status` like 'inbound%'
-		LEFT JOIN t_picture p ON p.id=t.image
-		WHERE  ass.mainmid=#{materialid,jdbcType=CHAR}
-	</select>
-	
-	
 	<select id="getInvDayDetail" parameterType="java.lang.String" resultType="java.util.Map">
 	select 
-    h.shopid,h.warehouseid,h.materialid,m.sku,m.name pname,h.modifyday,
+             h.shopid,h.warehouseid,h.materialid,m.sku,m.name pname,h.modifyday,
 			 h.quantity  quantity,h.`status`,p.location image,w.name warehouse
          from  ( select h.shopid,  h.warehouseid,h.materialid,h.modifyday,h.`status`  ,sum( h.quantity) quantity    FROM t_erp_inventory_his h
           where  h.shopid=#{shopid,jdbcType=CHAR} 
@@ -962,5 +805,27 @@
 			and m.sku like #{sku,jdbcType=CHAR}
 		</if>
 	</select>
-	
+	<select id="getInventory" parameterType="java.lang.String" resultType="java.util.Map">
+	    select  sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory
+			where shopid=#{shopid,jdbcType=CHAR}
+		    and materialid=#{materialid,jdbcType=CHAR}
+		    and warehouseid=#{warehouseid,jdbcType=CHAR}
+	</select>
+	<select id="findOverseaById" parameterType="java.lang.String" resultType="java.lang.Integer">
+	   select sum(case when (iv.`status`='fulfillable' or POSITION('inbound' IN iv.`status`)) then iv.quantity else 0 end) fulfillable
+	   from t_erp_inventory iv
+	   left join t_erp_warehouse w on w.id=iv.warehouseid
+	   where iv.materialid=#{materialid,jdbcType=CHAR}
+	   and iv.shopid=#{shopid,jdbcType=CHAR}
+	   <if test="country=='EU'">
+	      and w.country in ('DE','FR','IT','ES','SA','NL','PL','SE')
+	   </if>
+	    <if test="country!='EU'">
+	     and w.country=#{country,jdbcType=CHAR}
+	   </if>
+	   and (w.groupid is null or w.groupid=#{groupid,jdbcType=CHAR})
+	</select>
 </mapper>

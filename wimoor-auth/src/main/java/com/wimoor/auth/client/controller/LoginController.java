@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.http.HttpException;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +27,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wimoor.auth.client.api.AdminClientOneFeign;
+import com.wimoor.auth.client.config.FeiShuConfig;
 import com.wimoor.auth.client.config.MyWxConfig;
 import com.wimoor.auth.client.config.ShiroConfig;
+import com.wimoor.auth.client.pojo.AppUserInfo;
 import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.HttpClientUtil;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.result.ResultCode;
 import com.wimoor.common.user.UserInfo;
@@ -49,6 +49,8 @@ public class LoginController {
     ShiroConfig shiroConfig;
     @Autowired
 	MyWxConfig wxconfig;
+    @Autowired
+    FeiShuConfig feishuConfig;
     
     @RequestMapping("/mylogout")
 	String mylogoutAction(HttpServletRequest request,HttpServletResponse response, Model model) {
@@ -82,7 +84,7 @@ public class LoginController {
 				  int expiresIn =3600;
 			        String key = jsessionid;
 			        String value = (String) subject.getPrincipal();
-			        //value="调试账号";
+			        //value="13430555681";
 			        Result<UserInfo> userresult = adminClientOneFeign.getUserByUsername(value);
 			        if(Result.isSuccess(userresult)) {
 			        	 UserInfo user = userresult.getData();
@@ -110,7 +112,8 @@ public class LoginController {
 	@RequestMapping("/getOpenUserlist")
 	public Result<List<UserInfo>> loginWechatAction2(HttpServletRequest request,HttpServletResponse response) {
 		String openid = request.getParameter("openid");
-		Result<List<UserInfo>> openresult = adminClientOneFeign.findUserByOpenid(openid);
+		String appType = request.getParameter("appType");
+		Result<List<UserInfo>> openresult = adminClientOneFeign.findUserByOpenid(openid,appType);
 		 if(Result.isSuccess(openresult)&&openresult.getData().size()>0) {
 			 List<UserInfo> openUserList=new LinkedList<UserInfo>();
 			 for(UserInfo openuser:openresult.getData()) {
@@ -233,8 +236,9 @@ public class LoginController {
 	@ResponseBody
 	@RequestMapping("/loginWechat")
 	public Result<Map<String,Object>> loginWechatAction(HttpServletRequest request,HttpServletResponse response) {
-		String code = request.getParameter("code");
-		return this.verifyCodeApp(code);
+		String code = request.getParameter("code");	
+		String appType = request.getParameter("appType");
+		return this.verifyCodeApp(code,appType);
 	}
 	
 	@ResponseBody
@@ -244,7 +248,8 @@ public class LoginController {
 		String account=request.getParameter("email");
 		String password=request.getParameter("password");
 		String oldjsessionid=request.getParameter("jsessionid");
-	    Result<UserInfo> result = adminClientOneFeign.bindUserByOpenid(openid, account, password);
+		String appType=request.getParameter("appType");
+	    Result<UserInfo> result = adminClientOneFeign.bindUserByOpenid(openid,appType, account, password);
 				//校验成功
 	    
 	    int expiresIn =3600;
@@ -284,11 +289,12 @@ public class LoginController {
 		String openid = request.getParameter("openid");
 		String account=request.getParameter("account");
 		String jsessionid=request.getParameter("jsessionid");
-		return loginApp(openid,account,jsessionid);
+		String appType=request.getParameter("appType");
+		return loginApp(openid,account,jsessionid,appType);
 	}
 	
-	private Result<Map<String,Object>> loginApp(String openid,String account,String jsessionid){
-		Result<List<UserInfo>> result = adminClientOneFeign.findUserByOpenid(openid);
+	private Result<Map<String,Object>> loginApp(String openid,String account,String jsessionid,String appType){
+		Result<List<UserInfo>> result = adminClientOneFeign.findUserByOpenid(openid,appType);
 		if(Result.isSuccess(result)) {
 			for(UserInfo userinfo:result.getData()) {
 				if(userinfo.getAccount().equals(account)) {
@@ -308,25 +314,24 @@ public class LoginController {
 		return Result.failed(ResultCode.USER_LOGIN_ERROR);
 	}
 	
-	
-    private Result<Map<String,Object>> verifyCodeApp(String code) {
-    	String url = "https://api.weixin.qq.com/sns/jscode2session?appid="+
-    	wxconfig.getSmallAppID()+"&secret="+wxconfig.getSmallAppSecret()+"&js_code="+code+"&grant_type=authorization_code";
-    	String json;
-	    try {
-			 json = HttpClientUtil.getUrl(url, null);
-			 JSONObject jsonObject = GeneralUtil.getJsonObject(json);
-			if(jsonObject!=null && jsonObject.size()>0) {
-				String openid= jsonObject.getString("openid");
-				if(!GeneralUtil.isEmpty(openid)) {
+	AppUserInfo getAppUserInfo(String code,String ftype){
+		if(ftype.equals("app")) {
+			return wxconfig.getLoginInfo(code);
+		}else if(ftype.equals("feiapp")) {
+			return feishuConfig.getLoginInfo(code);
+		}
+	    return null;
+	}
+    private Result<Map<String,Object>> verifyCodeApp(String code,String appType) {
+    	AppUserInfo info = getAppUserInfo(code, appType);
+				if(info!=null&&!GeneralUtil.isEmpty(info.getOpenId())) {
 					Result<List<UserInfo>> result = null;
 					try {
-						result=adminClientOneFeign.findUserByOpenid(openid);
+						result=adminClientOneFeign.findUserByOpenid(info.getOpenId(),appType);
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
-					
-					String sessionkey = jsonObject.getString("session_key");
+					String sessionkey = info.getSessionKey();
 					if(result!=null&&Result.isSuccess(result)&&result.getData().size()>0) {
 						//已经绑定了 直接登录
 							Map<String,Object> data=new HashMap<String,Object>();
@@ -353,12 +358,12 @@ public class LoginController {
 										 openUserList.add(openuser);
 									 }
 								 }
-								 data.put("openid", openid);
+								 data.put("openid", info.getOpenId());
 								 data.put("userlist",openUserList);
 								 data.put("jsessionid", sessionkey);
 								 return Result.success(data);
 							 }else {
-								data.put("openid", openid);
+								data.put("openid", info.getOpenId());
 								data.put("status", "isfail");
 								data.put("jsessionid", sessionkey);
 								return Result.result(ResultCode.USERNAME_OR_PASSWORD_ERROR,data);
@@ -367,18 +372,12 @@ public class LoginController {
 							
 					} else {
 						Map<String,Object> data=new HashMap<String,Object>();
-						data.put("openid", openid);
+						data.put("openid", info.getOpenId());
 						data.put("status", "isfail");
 						return Result.result(ResultCode.USERNAME_OR_PASSWORD_ERROR,data);
 					}
 				}
-			}
-			} catch (HttpException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		return Result.failed(ResultCode.USER_LOGIN_ERROR);
 	}
-	
 	
 }

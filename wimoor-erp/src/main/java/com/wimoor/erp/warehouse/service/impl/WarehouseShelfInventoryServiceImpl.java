@@ -24,11 +24,14 @@ import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IDimensionsInfoService;
 import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.warehouse.mapper.WarehouseShelfInventoryMapper;
+import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelf;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventory;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventoryOptPro;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventoryOptRecord;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventorySummaryVo;
+import com.wimoor.erp.warehouse.service.IErpWarehouseAddressService;
+import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryOptRecordService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfService;
@@ -53,10 +56,11 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 	final IWarehouseShelfInventoryOptRecordService iWarehouseShelfInventoryOptRecordService;
 	final IInventoryService inventoryService;
     final IAssemblyService assemblyService;
-    
+	final IErpWarehouseAddressService iErpWarehouseAddressService;
 	@Lazy
 	@Autowired
 	IWarehouseShelfService iWarehouseShelfService;
+	final IWarehouseService iWarehouseService;
 	@Override
 	public WarehouseShelfInventorySummaryVo sumByShelf(WarehouseShelf item) {
 		// TODO Auto-generated method stub
@@ -71,25 +75,37 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 			if(item.getMaterialid()==null) {
 				throw new BizException(item.getSellersku()+"找不到对应的本地产品无法处理");
 			}
-			List<WarehouseShelfInventoryVo> shelfinvVoList = findByMaterial(itemsum.getShopid(),itemsum.getWarehouseid(),item.getMaterialid());
+			Warehouse warehouse = iWarehouseService.getById(itemsum.getWarehouseid());
+			List<WarehouseShelfInventoryVo> shelfinvVoList = findByMaterial(itemsum.getShopid(),warehouse.getAddressid(),item.getMaterialid());
 			for(WarehouseShelfInventoryVo inv:shelfinvVoList) {
 				inv.setShelfname(iWarehouseShelfService.getAllParentName(inv.getShelfid()));
 			}
 			item.setShelfInvList(shelfinvVoList);
-			if(item.getIssfg()==1) {
+			item.setShelfInvRecordList(iWarehouseShelfInventoryOptRecordService.getRecordVo(itemsum.getShopid(), item.getId(),
+																							"outstockform", item.getMaterialid()));
+			Material m = materialService.getById(item.getMaterialid());
+			if(m!=null&&m.getIssfg()!=null) {
+				item.setIssfg(Integer.parseInt(m.getIssfg()));
+			}
+			if(m!=null&&m.getIssfg()!=null&&m.getIssfg().equals("1")) {
 				List<AssemblyVO> assvolist = assemblyService.selectByMainmid(item.getMaterialid());
 				for(AssemblyVO assvo:assvolist) {
+					assvo.setSubamount(assvo.getSubnumber()*item.getQuantityShipped());
 					Map<String, Object> map = inventoryService.findInvDetailById(assvo.getSubmid(), itemsum.getWarehouseid(), itemsum.getShopid());
 					if(map!=null) {
 						assvo.setInbound(map.get("inbound")!=null?Integer.parseInt(map.get("inbound").toString()):0);
 						assvo.setFulfillable(map.get("fulfillable")!=null?Integer.parseInt(map.get("fulfillable").toString()):0);
 						assvo.setOutbound(map.get("outbound")!=null?Integer.parseInt(map.get("outbound").toString()):0);
 					}
-					List<WarehouseShelfInventoryVo> mshelfinvVoList = findByMaterial(itemsum.getShopid(),itemsum.getWarehouseid(),assvo.getSubmid());
+					List<WarehouseShelfInventoryVo> mshelfinvVoList = findByMaterial(itemsum.getShopid(),warehouse.getAddressid(),assvo.getSubmid());
 					for(WarehouseShelfInventoryVo inv:mshelfinvVoList) {
 						inv.setShelfname(iWarehouseShelfService.getAllParentName(inv.getShelfid()));
 					}
 					assvo.setShelfInvList(mshelfinvVoList);
+					assvo.setShelfInvRecordList(iWarehouseShelfInventoryOptRecordService.getRecordVo(itemsum.getShopid(),
+							                           item.getId(),
+							                           "outstockform",
+							                           assvo.getSubmid()));
 				}
 			  item.setAssemblyList(assvolist);
 			}
@@ -99,9 +115,9 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 	}
  
 	@Override
-	public List<WarehouseShelfInventoryVo> findByMaterial(String shopid,String warehouseid,String materialid) {
+	public List<WarehouseShelfInventoryVo> findByMaterial(String shopid,String addressid,String materialid) {
 		// TODO Auto-generated method stub
-		return this.baseMapper.findByMaterial(shopid,warehouseid,materialid);
+		return this.baseMapper.findByMaterial(shopid,addressid,materialid);
 	}
 	
 	/**
@@ -174,7 +190,6 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
  		Float size = getSize(opt);
 		WarehouseShelfInventory inv=new WarehouseShelfInventory();
 		WarehouseShelfInventoryOptRecord record=new WarehouseShelfInventoryOptRecord();
-
 		BeanUtil.copyProperties(opt, inv); 
 		BeanUtil.copyProperties(opt, record);
 	    WarehouseShelfInventory oldone =getOldOne(inv);
@@ -200,8 +215,8 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 	    return record;
 	}
 
-	public IPage<WarehouseShelfInventoryVo> getShelfList(Page<?> page, Map<String, Object> param) {
-		return this.baseMapper.getShelfList(page,param);
+	public IPage<WarehouseShelfInventoryVo> getUnShelfInventoryList(Page<?> page, Map<String, Object> param) {
+		return this.baseMapper.getUnShelfInventoryList(page,param);
 	}
 
     
@@ -212,7 +227,7 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
     	if("true".equals(param.get("allchildren").toString())) {
     		if(shelfid!=null) {
     			WarehouseShelf  shelf = iWarehouseShelfService.getById(shelfid)  ;
-        		param.put("warehouseid", shelf.getWarehouseid());
+        		param.put("addressid", shelf.getAddressid());
         		param.put("treepath", shelf.getTreepath());
         		param.put("shelfid",null);
     		   } else {
@@ -224,7 +239,7 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
     			throw new BizException("没有对应库位无法选择查询当前库位下的子产品");
     		}
     		WarehouseShelf  shelf = iWarehouseShelfService.getById(shelfid)  ;
-    		param.put("warehouseid", shelf.getWarehouseid());
+    		param.put("addresssid", shelf.getAddressid());
     		param.put("shelfid",shelfid);
     		param.put("treepath",null);
     		result =  this.baseMapper.getShelfInventoryList(page,param);

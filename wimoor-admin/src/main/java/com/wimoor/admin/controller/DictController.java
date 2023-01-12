@@ -1,5 +1,6 @@
 package com.wimoor.admin.controller;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,7 +71,7 @@ public class DictController {
     @ApiOperation(value = "字典详情")
     @ApiImplicitParam(name = "id", value = "字典id", required = true, paramType = "path", dataType = "Long")
     @GetMapping("/{id}")
-    public Result<SysDict> detail(@PathVariable Integer id) {
+    public Result<SysDict> detail(@PathVariable BigInteger id) {
         SysDict dict = iSysDictService.getById(id);
         return Result.success(dict);
     }
@@ -90,7 +91,7 @@ public class DictController {
     })
     @PutMapping(value = "/{id}")
     public Result<Boolean> update(
-            @PathVariable Long id,
+            @PathVariable BigInteger id,
             @RequestBody SysDict dict) {
 
         boolean status = iSysDictService.updateById(dict);
@@ -125,7 +126,7 @@ public class DictController {
             @ApiImplicitParam(name = "dictItem", value = "实体JSON对象", required = true, paramType = "body", dataType = "SysDictItem")
     })
     @PatchMapping(value = "/{id}")
-    public Result<Boolean> patch(@PathVariable Long id, @RequestBody SysDict dict) {
+    public Result<Boolean> patch(@PathVariable BigInteger id, @RequestBody SysDict dict) {
         LambdaUpdateWrapper<SysDict> updateWrapper = new LambdaUpdateWrapper<SysDict>().eq(SysDict::getId, id);
         updateWrapper.set(dict.getStatus() != null, SysDict::getStatus, dict.getStatus());
         boolean update = iSysDictService.update(updateWrapper);

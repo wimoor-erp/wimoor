@@ -2,6 +2,9 @@ package com.wimoor.erp.material.pojo.vo;
 
 
 
+
+import java.math.BigDecimal;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -31,6 +34,9 @@ public class MaterialConsumableVO{
 	
 	@ApiModelProperty(value = "耗材SKU")
 	String sku;
+	
+	@ApiModelProperty(value = "耗材价格")
+	BigDecimal price;
 	
 	@ApiModelProperty(value = "耗材SKU-待入库库存")
 	Integer inbound;

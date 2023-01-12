@@ -3,9 +3,9 @@ package com.wimoor.amazon.finances.service.impl;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper;
+import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
 import com.wimoor.amazon.finances.service.IAmzSettlementReportService;
-import com.wimoor.amazon.report.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzSettlementReport;
 @Service
 public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementReportMapper, AmzSettlementReport> implements IAmzSettlementReportService {
 //	@Resource

@@ -5,7 +5,6 @@ import java.util.List;
 import com.amazon.spapi.model.fulfillmentinbound.GetInboundGuidanceResult;
 import com.amazon.spapi.model.fulfillmentinbound.GetShipmentItemsResponse;
 import com.amazon.spapi.model.fulfillmentinbound.GetShipmentsResponse;
-import com.amazon.spapi.model.fulfillmentinbound.GetShipmentsResult;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentInfo;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentItem;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentList;
@@ -20,8 +19,9 @@ public interface IFulfillmentInboundService extends IRunAmazonService{
 	
 	GetInboundGuidanceResult getInboundGuidance(AmazonAuthority auth,String marketplaceId,List<String> sellerSKUList);
 	
-	List<ShipInboundShipment> createInboundShipmentPlan(AmazonAuthority auth,Marketplace market,ShipInboundPlan inplan);
+	List<ShipInboundShipment> createInboundShipmentPlan(AmazonAuthority auth,	Marketplace market ,ShipInboundPlan inplan);
 	
+	void handlerItemResult(AmazonAuthority auth, Marketplace market, GetShipmentItemsResponse result, ShipInboundShipment param_shipment,boolean needshipqty); 
 	public InboundShipmentList listShipment(AmazonAuthority auth,Marketplace market,String startdate,String enddate);
 	
 	public InboundShipmentList listShipment(AmazonAuthority auth,Marketplace market,List<String> shipmentIdsList);
@@ -36,7 +36,6 @@ public interface IFulfillmentInboundService extends IRunAmazonService{
 
 	void handlerResult(AmazonAuthority auth, Marketplace market, GetShipmentsResponse result);
 
-	void handlerItemResult(AmazonAuthority auth, Marketplace market, GetShipmentItemsResponse result, ShipInboundShipment shipment);
 	
 	public List<ShipInboundItem> syncItemsByShipmentId(AmazonAuthority amazonAuthority, Marketplace market,ShipInboundShipment shipment);
 	public List<ShipInboundItem> getUnSyncItemsByShipmentId(AmazonAuthority amazonAuthority, Marketplace market,ShipInboundShipment shipment);

@@ -2,9 +2,7 @@ package com.wimoor.amazon.report.controller;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.common.service.IUserSalesRankService;
+import com.wimoor.amazon.product.service.IProductInPresaleService;
 import com.wimoor.amazon.report.mapper.ReportRequestRecordMapper;
 import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
@@ -50,6 +49,8 @@ public class ReportController {
     ReportRequestRecordMapper reportRequestRecordMapper;
 	@Autowired
 	IAmazonAuthorityService amazonAuthorityService;
+	@Autowired
+	IProductInPresaleService iProductInPresaleService;
     /**
      * 提供用于用户登录认证信息
      */
@@ -102,6 +103,21 @@ public class ReportController {
         return Result.success();
     }
 
+    @ApiOperation(value = "根据id 获取产品信息")
+    @ApiImplicitParam(name = "type", value = "报表code", required = true, paramType = "path", dataType = "String")
+    @GetMapping("/requestReportParamAuth")
+    public Result<?> requestReportParamAction(String authid,String type,String start,String end,String ignore) {
+    	boolean myignore=false;
+    	if(ignore!=null&&ignore.equals("true")) {
+    		myignore=true;
+    	}
+    	Calendar cstart=Calendar.getInstance();
+    	cstart.setTime(GeneralUtil.getDatez(start));
+    	Calendar cend=Calendar.getInstance();
+    	cend.setTime(GeneralUtil.getDatez(end));
+    	handlerReportService.requestReport(authid,type,cstart, cend,myignore) ;
+        return Result.success();
+    }
    
     /**
      * 提供用于用户登录认证信息
@@ -143,7 +159,7 @@ public class ReportController {
     @GetMapping("/refreshAll")
     public Result<?> refreshAll() {
     	Calendar c=Calendar.getInstance();
-    	c.add(Calendar.DATE, -30);
+    	c.add(Calendar.DATE, -10);
     	summaryOrderReportService.refreshAll(c.getTime());
         return Result.success();
     }
@@ -283,8 +299,4 @@ public class ReportController {
     		 }
     	return Result.success();
     }
-    
-    
-  
-    
 }

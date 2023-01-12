@@ -28,7 +28,7 @@ import lombok.EqualsAndHashCode;
 public class AmzProductPageviews  extends BaseEntity {
 
     private static final long serialVersionUID=1L;
-
+    @TableField("amazonAuthid")
     private BigInteger amazonAuthid;
 
     private String marketplaceid;

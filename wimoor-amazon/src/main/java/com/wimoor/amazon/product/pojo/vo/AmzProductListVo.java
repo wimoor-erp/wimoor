@@ -2,6 +2,8 @@ package com.wimoor.amazon.product.pojo.vo;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -78,6 +80,7 @@ public class AmzProductListVo {
 	Integer optstatus;
 	Integer marketindex;
 	Integer countryinv;
+	Integer czinv;
 	BigDecimal dayfulfilla;
 	BigDecimal dayinbound;
 	BigDecimal buybox;
@@ -95,6 +98,6 @@ public class AmzProductListVo {
 	String priceremark;
 	Date lastupdateTime;
 	Date lockedtime;
-	
+	List<Map<String,Object>> tagNameList;
 	
 }

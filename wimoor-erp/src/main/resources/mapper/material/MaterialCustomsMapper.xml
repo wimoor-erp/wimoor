@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.wimoor.erp.material.mapper.MaterialCustomsMapper" >
   <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialCustoms" >
-    <id column="matreialid" property="matreialid" jdbcType="INTEGER" />
+    <id column="materialid" property="materialid" jdbcType="INTEGER" />
     <result column="name_eng" property="nameEng" jdbcType="VARCHAR" />
     <result column="name_chn" property="nameChn" jdbcType="VARCHAR" />
     <result column="material" property="material" jdbcType="CHAR" />
@@ -16,7 +16,7 @@
     
   </resultMap>
   <sql id="Base_Column_List" >
-    matreialid, name_en, name_cn, material, model, customs_code, material_use, iselectricity, 
+    materialid, name_en, name_cn, material, model, customs_code, material_use, iselectricity, 
     brand,isdanger,unitprice
   </sql>
    

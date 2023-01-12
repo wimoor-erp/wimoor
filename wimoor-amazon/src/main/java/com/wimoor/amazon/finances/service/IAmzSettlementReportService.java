@@ -1,7 +1,7 @@
 package com.wimoor.amazon.finances.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.wimoor.amazon.report.pojo.entity.AmzSettlementReport;
+import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
 
  
  

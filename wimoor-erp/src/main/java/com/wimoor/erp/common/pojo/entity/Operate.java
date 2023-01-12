@@ -1,7 +1,7 @@
 package com.wimoor.erp.common.pojo.entity;
 
 public enum Operate {
-	in("in", 1), out("out", 2), cancel("cancel", 3), stop("stop", 4), readyin("readyin", 5),
+	in("in", 1), out("out", 2), undoout("undoout", 2), cancel("cancel", 3), stop("stop", 4), readyin("readyin", 5),
 	readyout("readyout", 5), changesub("changesub", 6), changeadd("changeadd", 7);
 
 	private String value;

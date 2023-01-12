@@ -110,10 +110,24 @@ public class ShipInboundItemVo extends BaseEntity {
 	@ApiModelProperty(value = "日均销量")
     private Integer avgsales;
 	
+
+	@ApiModelProperty(value = "是否label【系统内置】")
+	@TableField(value="PrepInstruction")
+    private String prepInstruction;
+	
+	@ApiModelProperty(value = "打label的人【系统内置】")
+	@TableField(value="PrepOwner")
+    private String prepOwner;
+	
+	 
+	@ApiModelProperty(value = "平台SKU【订单填写】")
+	@TableField(value="msku")
+	private String msku;
+ 
 	
 	@ApiModelProperty(value = "货架库存")
 	List<WarehouseShelfInventoryVo> shelfInvList;
-	
+	List<WarehouseShelfInventoryOptRecordVo> shelfInvRecordList;
 	@ApiModelProperty(value = "组装列表")
 	List<AssemblyVO> assemblyList;
 	

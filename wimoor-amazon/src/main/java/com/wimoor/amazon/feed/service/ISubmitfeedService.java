@@ -28,5 +28,6 @@ public interface ISubmitfeedService extends IRunAmazonService {
 	public void handlerCreateFeed(CreateFeedResponse res,AmazonAuthority amazonAuthority,AmzSubmitFeedQueue queue,Marketplace marketplace);
 	public void handlerCreateFeedDocument(CreateFeedDocumentResponse response,AmazonAuthority amazonAuthority,AmzSubmitFeedQueue queue,Marketplace marketplace);
 	void downloadFeedFile(ServletOutputStream outputStream, String queueid); 
+	void callSubmitFeed(AmazonAuthority amazonAuthority, Marketplace marketplace, AmzSubmitFeedQueue queue) ;
  
 }

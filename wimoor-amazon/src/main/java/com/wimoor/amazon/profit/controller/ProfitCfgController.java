@@ -48,6 +48,10 @@ public class ProfitCfgController {
 		if (user == null) {
 			   throw new BizException("未登录无法编辑");
 			} 
+		 ProfitConfig oldcfg = profitCfgService.getById(config.getId());
+		 if(oldcfg!=null&&oldcfg.getIssystem()) {
+			 throw new BizException("系统默认方案不能修改");
+		 }
 		config.setIsdelete(false);
 		config.setShopId(user.getCompanyid());
 		config.setOpttime(new Date());
@@ -66,7 +70,7 @@ public class ProfitCfgController {
 				de.setLabelService(false);
 				jp.setLabelService(false);
 			}
-			if (!config.idIsNULL()) {
+			if (oldcfg!=null) {
 				  profitCfgService.update(config);
 			} else {
 				  LambdaQueryWrapper<ProfitConfig> query=new LambdaQueryWrapper<ProfitConfig>();
@@ -78,8 +82,6 @@ public class ProfitCfgController {
 					  config.setId(list.get(0).getId());
 					  profitCfgService.update(config);
 				  }else {
-					  // String shopId =user.getCompanyid();
-					  //this.profitCfgService.getProfitPlanCountByShopId(shopId);
 					  profitCfgService.insert(config);
 				  }
 				 
@@ -129,6 +131,10 @@ public class ProfitCfgController {
 		if(cfg.getIsDefault()) {
 			throw new BizException("默认方案无法删除");
 		}
+ 
+		 if(cfg!=null&&cfg.getIssystem()) {
+			 throw new BizException("系统默认方案不能修改");
+		 }
 		cfg.setIsdelete(true);
 		cfg.setOpttime(new Date());
 		cfg.setOperator(new BigInteger(user.getId()));

@@ -12,8 +12,8 @@ import com.wimoor.util.SpringUtil;
 import cn.hutool.core.util.StrUtil;
 
 
-public class UUIDUtil {
-public static String getUUIDshort() {
+public class UUIDUtil extends com.wimoor.util.UUIDUtil{
+public static String getUUIDshort()  {
 	AmazonAuthorityMapper mapper=SpringUtil.getBean(AmazonAuthorityMapper.class);
 	String result = mapper.uuid();
 	if(StrUtil.isNotBlank(result)) {

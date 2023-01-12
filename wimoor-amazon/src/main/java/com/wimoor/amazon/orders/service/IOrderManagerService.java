@@ -25,8 +25,6 @@ public interface IOrderManagerService{
 
 	IPage<AmazonOrdersVo> selectOrderList(AmazonOrdersDTO dto);
 
-	IPage<AmazonOrdersReturnVo> selectReturnsList(AmazonOrdersReturnDTO condition);
-
 	IPage<AmazonOrdersRemoveVo> selectRemoveList(Map<String, Object> paramMap, Page<AmazonOrdersRemoveVo> page);
 
 	IPage<AmazonOrdersShipVo> getOrderAddressList(Map<String, Object> paramMap, Page<AmazonOrdersShipVo> page);
@@ -59,8 +57,6 @@ public interface IOrderManagerService{
 	public void setOrdersExcelBook(SXSSFWorkbook workbook, AmazonOrdersDTO dto);
 	
 	public String refreshAmzVatInvoinceStatus(String orderid);
-
-	public void downloadReturnlist(SXSSFWorkbook workbook,AmazonOrdersReturnDTO condition);
 
 	List<OrdersFinancial> lastShippedOrderFin(AmazonAuthority auth, ProductInfo info);
 

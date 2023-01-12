@@ -30,6 +30,11 @@ public class ErpShipTransType extends BaseEntity{
 
 	@TableField(value= "opttime")
     private Date opttime;
+	
+	@TableField(value= "disable")
+    private Boolean disable;
+	
+	
 
    
 }

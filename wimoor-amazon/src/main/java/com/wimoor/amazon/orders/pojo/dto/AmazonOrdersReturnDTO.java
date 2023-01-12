@@ -18,8 +18,8 @@ public class AmazonOrdersReturnDTO extends BasePageQuery{
 	@ApiModelProperty(value = "结束日期")
 	String endDate;
 	
-	@ApiModelProperty(value = "站点ID")
-	String marketplaceid;
+	@ApiModelProperty(value = "授权ID")
+	String amazonauthid;
 	
 	@ApiModelProperty(value = "店铺ID")
 	String groupid;

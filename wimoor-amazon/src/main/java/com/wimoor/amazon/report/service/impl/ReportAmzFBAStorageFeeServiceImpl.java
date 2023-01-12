@@ -34,8 +34,8 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
-import com.wimoor.amazon.report.mapper.FBAStorageFeeReportMapper;
-import com.wimoor.amazon.report.pojo.entity.FBAStorageFeeReport;
+import com.wimoor.amazon.finances.mapper.FBAStorageFeeReportMapper;
+import com.wimoor.amazon.finances.pojo.entity.FBAStorageFeeReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;

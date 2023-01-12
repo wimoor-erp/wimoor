@@ -61,4 +61,62 @@
 			and (mk.marketplaceid = #{marketplaceid,jdbcType=CHAR} or mk.region = #{marketplaceid,jdbcType=CHAR})
 			and auth.groupid = #{groupid,jdbcType=CHAR}
 	</select>
+	
+   <select id="getProductCountrySales" parameterType="java.util.Map" resultType="java.util.Map">
+		select info.sku,
+		       info.marketplaceid,
+		       auth.groupid,
+		       ifnull(o.msku,info.sku) msku,
+		       t.sales_week sumweek,
+		       t.sales_seven sumseven,
+		       t.sales_month summonth,
+		       t.sales_fifteen sum15,
+		       info.openDate,
+		       t.avgsales
+		from t_product_in_order t
+		left join t_product_info info on t.pid = info.id
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
+		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		where  
+		    auth.disable = FALSE 
+		    and (o.disable is null or o.disable=0) 
+		    and info.invalid=0 
+		    and info.isparent=0
+		    and t.sales_month>0
+			and mk.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and info.amazonauthid = #{amazonauthid,jdbcType=CHAR}
+			<if test="sku">
+			   and info.sku = #{sku,jdbcType=CHAR}
+			</if>
+	</select>
+	
+    <select id="getProductEUSales" parameterType="java.util.Map" resultType="java.util.Map">
+		select info.sku sku,
+		       'EU' marketplaceid,
+		       auth.groupid groupid,
+		       ifnull(o.msku,info.sku) msku,
+		       sum(t.sales_week) sumweek,
+		       sum(t.sales_seven) sumseven,
+		       sum(t.sales_month) summonth,
+		       sum(t.sales_fifteen) sum15,
+		       min(info.openDate) openDate,
+		       sum(t.avgsales) avgsales
+		from t_product_in_order t
+		left join t_product_info info on t.pid = info.id
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
+		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		where   auth.disable = FALSE 
+			    and (o.disable is null or o.disable=0) 
+			    and info.invalid=0 
+			    and info.isparent=0
+				and mk.region='EU'
+				and info.amazonauthid = #{amazonauthid,jdbcType=CHAR}
+				and t.sales_month>0
+				<if test="sku">
+			     and info.sku = #{sku,jdbcType=CHAR}
+			   </if>
+		group by sku
+	</select>
 </mapper>

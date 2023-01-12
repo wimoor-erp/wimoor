@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.amazon.spapi.model.fulfillmentinbound.Address;
 import com.amazon.spapi.model.fulfillmentinbound.InboundShipmentInfo;
@@ -89,21 +91,24 @@ import com.wimoor.amazon.inbound.service.IShipInboundPlanService;
 import com.wimoor.amazon.inbound.service.IShipInboundShipmentRecordService;
 import com.wimoor.amazon.inbound.service.IShipInboundShipmentService;
 import com.wimoor.amazon.inbound.service.IShipInboundTransService;
+import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
+import com.wimoor.amazon.inventory.pojo.entity.InventoryReport;
 import com.wimoor.amazon.product.service.IProductInfoService;
-import com.wimoor.amazon.report.mapper.InventoryReportMapper;
-import com.wimoor.amazon.report.pojo.entity.InventoryReport;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundItemDTO;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundPlanDTO;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundShipmentDTO;
 import com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundItemVo;
 import com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundShipmenSummarytVo;
+import com.wimoor.api.erp.inventory.pojo.dto.EnumByInventory;
+import com.wimoor.api.erp.inventory.pojo.dto.InventoryParameter;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
-
+ 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
  
 
@@ -283,7 +288,6 @@ public class ShipInboundShipmentServiceImpl extends  ServiceImpl<ShipInboundShip
 
   public ByteArrayOutputStream createInboundFBAExcel(ShipInboundPlan plan,ShipInboundShipment shipment,List<ShipInboundItemVo> itemlist,List<ShipInboundBox> boxlist,List<ShipInboundCase> boxcase , String sellerid) {
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	File file = null;
 	try {
 		 InputStream is = new ClassPathResource("template/shipmentid.xlsx").getInputStream();
 		 Workbook workbook =  WorkbookFactory.create(is);
@@ -423,26 +427,29 @@ public class ShipInboundShipmentServiceImpl extends  ServiceImpl<ShipInboundShip
 		return bos;
 	} catch (Exception e) {
 		e.printStackTrace();
-	}finally {
-        if(file!=null) {
-        	file.deleteOnExit();
-        }
-	}
+	} 
 	return null;
 }
 
 @Override
+@Transactional
 public String createInboundShipment(ShipInboundShipment shipment) {
 	// TODO Auto-generated method stub
     ShipInboundPlan inplan = shipInboundPlanService.getById(shipment.getInboundplanid());
     AmazonAuthority auth=amazonAuthorityService.selectByGroupAndMarket(inplan.getAmazongroupid(), inplan.getMarketplaceid());
     Marketplace market = marketplaceService.selectByPKey(inplan.getMarketplaceid());
-	String mshipmentid= iFulfillmentInboundService.createInboundShipment(auth, market, inplan, shipment);
+	String mshipmentid=iFulfillmentInboundService.createInboundShipment(auth, market, inplan, shipment);
 	if(mshipmentid.equals(shipment.getShipmentid())) {
 		this.updateById(shipment);
-		shipInboundShipmentRecordService.saveRecord(shipment);
-		for(ShipInboundItem item:shipment.getItemList()) {
-			changeAmazonInventoryReport(auth.getId(),market,item.getSellersku(),item.getQuantityshipped());
+		inplan.setAuditstatus(3);
+		shipInboundPlanService.updateById(inplan);
+		try {
+			shipInboundShipmentRecordService.saveRecord(shipment);
+			for(ShipInboundItem item:shipment.getItemList()) {
+				changeAmazonInventoryReport(auth.getId(),market,item.getSellersku(),item.getQuantityshipped());
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
 		}
 	}else {
 		throw new BizException("未正常确认货件");
@@ -469,11 +476,13 @@ public String updateInboundShipment(ShipInboundShipment shipment, String actiont
     AmazonAuthority auth=amazonAuthorityService.selectByGroupAndMarket(inplan.getAmazongroupid(), inplan.getMarketplaceid());
     Marketplace market = marketplaceService.selectByPKey(inplan.getMarketplaceid());
     String shipmentid =null;
-	if(!"updateself".equals(actiontype)) {
+    
+	if(StrUtil.isBlank(actiontype)||!"updateself".equals(actiontype)) {
 		shipmentid = iFulfillmentInboundService.updateInboundShipment(auth, market, inplan, shipment);
+	}else {
+		shipmentid=shipment.getShipmentid();
 	}
-	if(StrUtil.isNotBlank(shipmentid)&&shipmentid.equals(shipment.getShipmentid())) {
-		ShipInboundShipment oldshipment = this.getById(shipmentid);
+	ShipInboundShipment oldshipment = this.getById(shipment.getShipmentid());
 		if(oldshipment.getStatus()!=shipment.getStatus()) {
 			shipInboundShipmentRecordService.saveRecord(shipment);
 			switch(shipment.getStatus()) {
@@ -485,9 +494,8 @@ public String updateInboundShipment(ShipInboundShipment shipment, String actiont
 				case 5:shipment.setShipedDate(new Date());break;
 			}
 		}
-		this.updateById(shipment);
-		updateItemList(auth,market,shipment.getItemList());
-	}
+	this.updateById(shipment);
+	updateItemList(auth,market,shipment.getItemList());
 	return shipmentid;
 }
  
@@ -577,17 +585,16 @@ public String saveCartShipment(UserInfo user,ShipCartShipmentDTO dto) {
 		if(market!=null)auth.setMarketPlace(market);
 		shipment.setCarrier(dto.getCarrier());
 		List<ShipInboundItemVo> itemlist = shipInboundItemService.listByShipmentid(dto.getShipmentid());
-		 try {
-			iFulfillmentInboundService.putTransportDetailsRequest(auth, market, inplan, shipment);
-		 }catch(Exception e) {
-			this.updateById(shipment);
-			throw new BizException("物流商信息提交失败");
-		 }
+		 iFulfillmentInboundService.putTransportDetailsRequest(auth, market, inplan, shipment);
 		  ByteArrayOutputStream stream = createInboundFBAExcel(inplan, shipment, itemlist, dto.getBoxListDetail(), dto.getCaseListDetail(), auth.getSellerid());
 		  Map<String,Object> map = submitfeedService.selectByFeedTypeAndFileName(auth.getId(), inplan.getMarketplaceid(),"POST_FLAT_FILE_FROM_EXCEL_FBA_CREATE_CARTON_INFO",shipment.getShipmentid());
 		  //判断状态，上一条请求正在处理中，请稍后再提交;如果请求已经完成，可再次提交。
-		  if(map==null ||map.get("feedstatus")==null|| "Error".equals(map.get("feedstatus").toString())||
-				"_CANCELLED_".equals(map.get("feedstatus").toString())||"_DONE_".equals(map.get("feedstatus").toString())){
+		  if(map==null ||map.get("feedstatus")==null
+				||"Error".equals(map.get("feedstatus").toString())
+				||"_CANCELLED_".equals(map.get("feedstatus").toString())
+				||"_DONE_".equals(map.get("feedstatus").toString())
+				||"DONE".equals(map.get("feedstatus").toString())
+				||"CANCELLED".equals(map.get("feedstatus").toString())){
 			AmzSubmitFeedQueue submitfeed = submitfeedService.HandlerFeedQueue(stream, shipment.getShipmentid(), auth, "POST_FLAT_FILE_FROM_EXCEL_FBA_CREATE_CARTON_INFO", user);
 			if(submitfeed!=null) {
 				shipment.setSubmissionid(submitfeed.getId());
@@ -608,7 +615,7 @@ public String getLabelUrl(String shipmentid,String pagetype,String labelType,Str
 	ShipInboundShipment shipment=this.getById(shipmentid); 
 	ShipInboundPlan inplan = shipInboundPlanService.getById(shipment.getInboundplanid());
 	AmazonAuthority auth=amazonAuthorityService.selectByGroupAndMarket(inplan.getAmazongroupid(), inplan.getMarketplaceid());
-	if(shipment.getStatus()>2 &&shipment.getStatus()<=4) {
+	if(shipment.getStatus()>=2 &&shipment.getStatus()<=4) {
 		shipment.setStatus(4);
 		shipment.setStatus4date(new Date());
 		this.updateById(shipment);
@@ -653,10 +660,12 @@ public List<ShipInboundShipmenSummarytVo> getShipmentSyncList(Map<String, Object
 				shipmentvo.setCountryCode(mmarket.getMarket());
 				shipmentvo.setCenterId(item.getDestinationFulfillmentCenterId());
 				shipmentvo.setName(item.getShipmentName());
-				shipmentvo.setShipmentstatus(item.getShipmentStatus().getValue());
+				if(item.getShipmentStatus()!=null) {
+					shipmentvo.setShipmentstatus(item.getShipmentStatus().getValue());
+				}
 				shipmentvo.setAreCasesRequired(item.isAreCasesRequired());
 				ShipInboundShipment ship = this.baseMapper.selectById(item.getShipmentId());
-				shipmentvo.setSyncinv(1);
+				shipmentvo.setSyncinv(-1);
 				if(ship!=null) {
 					shipmentvo.setSyncinv(ship.getSyncInv());
 				}
@@ -727,10 +736,27 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 	if(inboundShipmentList.size()>0) {
 		InboundShipmentInfo ship = inboundShipmentList.get(0);
 		ShipInboundShipment shipment = shipInboundPlanService.convertShipmentPojo(auth, marketPlace, ship, warehouseid, null);
-		List<ShipInboundItem> itemlist = iFulfillmentInboundService.getUnSyncItemsByShipmentId(auth, marketPlace, shipment);
+		ShipInboundShipment oldshipment = this.getById(shipment.getShipmentid());
 		ShipInboundPlan plan = shipment.getInboundplan();
-		plan.setSkunum(itemlist.size());
+	    if(oldshipment==null) {
+	    	shipment.setInboundplanid(plan.getId());
+	    	this.save(shipment);
+	    	shipInboundPlanService.save(plan);
+	    }else {
+	    	if(oldshipment.getInboundplanid()!=null) {
+	    		ShipInboundPlan oldplan = shipInboundPlanService.getById(oldshipment.getInboundplanid());
+	    		if(oldplan!=null) {
+	    			shipment.setInboundplanid(oldplan.getId());
+	    		}else {
+	    			shipInboundPlanService.save(plan);
+	    			shipment.setInboundplanid(plan.getId());
+	    		}
+	    	}
+	    	this.updateById(shipment);
+	    }
 		shipInboundPlanService.updateById(plan);
+		List<ShipInboundItem> itemlist = iFulfillmentInboundService.getUnSyncItemsByShipmentId(auth, marketPlace, shipment);
+		plan.setSkunum(itemlist.size());
 		ShipInboundShipmenSummarytVo shipmentdvo=new ShipInboundShipmenSummarytVo();
 	    BeanUtil.copyProperties(shipment, shipmentdvo);
 	    shipmentdvo.setGroupid(auth.getGroupid());
@@ -781,6 +807,7 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 		titlemap.put("conditions", 4);
 		titlemap.put("quantity", 5);
 		titlemap.put("title", 6);
+		titlemap.put("code", 7);
 		// 在索引0的位置创建行（最顶端的行）
 		Row row = sheet.createRow(0);
 		for (String key : titlemap.keySet()) {
@@ -824,7 +851,11 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 					}
 					cell.setCellValue(pre + "..." + rear);
 				} else {
-					cell.setCellValue(skumap.get(key).toString());
+					if("code".equals(key)) {
+						cell.setCellValue(skumap.get(key).toString().replace("FBA", "")); 
+					}else {
+						cell.setCellValue(skumap.get(key).toString());
+					}
 				}
 			}
 			Cell cell = skurow.createCell(titlemap.get("No.")); // 在索引0的位置创建单元格(左上端)
@@ -903,6 +934,11 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 			InboundShipmentInfo shipmentReponse = iFulfillmentInboundService.requestInboundShipments(auth, shipmentid,marketPlace);
 			Address amzaddress = shipmentReponse.getShipFromAddress();
 			ShipAddress sysaddress = shipAddressService.getById(plan.getShipfromaddressid());
+			if(shipmentReponse!=null&&shipmentReponse.getShipmentStatus()!=null) {
+				if(!shipmentReponse.getShipmentStatus().getValue().equals(shipment.getShipmentstatus())) {
+					throw new BizException("状态："+shipment.getShipmentstatus()+"与亚马逊货件状态："+shipmentReponse.getShipmentStatus()+"不匹配！");
+				}
+			}
 			if(amzaddress.getAddressLine1()!=null
 					&&StrUtil.isNotBlank(amzaddress.getAddressLine1().trim())
 					&&!amzaddress.getAddressLine1().equals(sysaddress.getAddressline1())){
@@ -1130,48 +1166,61 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 			}
 		}
 	}
-
+	
+	@Transactional
+	public void saveTransTrance(String shipmentid,String carrier,List<Map<String, Object>> boxinfo){
+		ShipInboundShipment shipment = this.getById(shipmentid);
+		if(StrUtil.isNotEmpty(carrier)) {
+			shipment.setCarrier(carrier);
+			this.updateById(shipment);
+		}
+		List<ShipInboundBox> boxlist = this.findShipInboundBoxByShipment(shipmentid);
+		Map<Integer, Object> mymap = new HashMap<Integer, Object>();
+		if (boxinfo != null) {
+			for (Map<String, Object> myitem : boxinfo) {
+				if(myitem.get("value")!=null && StrUtil.isNotEmpty(myitem.get("value").toString())) {
+					mymap.put(Integer.parseInt(myitem.get("boxnum").toString()), myitem.get("value"));
+				}
+			}
+		}
+		for (ShipInboundBox item : boxlist) {
+			if (mymap.containsKey(item.getBoxnum())) {
+				item.setTrackingId(mymap.get(item.getBoxnum()).toString());
+			} else {
+				item.setTrackingId("");
+			}
+			shipInboundBoxMapper.updateById(item);
+		}
+		 try {
+			 ShipInboundPlan inplan = shipInboundPlanService.getById(shipment.getInboundplanid());
+			 AmazonAuthority auth=amazonAuthorityService.selectByGroupAndMarket(inplan.getAmazongroupid(), inplan.getMarketplaceid());
+			 Marketplace market = marketplaceService.selectByPKey(inplan.getMarketplaceid());
+			 iFulfillmentInboundService.putTransportDetailsRequest(auth, market, inplan, shipment);
+			 String qid= shipment.getSubmissionid();
+			 if(StrUtil.isNotBlank(qid)) {
+				 AmzSubmitFeedQueue que = submitfeedService.selectByPrimaryKey(qid);
+				 if(que!=null) {
+					 submitfeedService.callSubmitFeed(auth, market, que);
+				 }
+			 }
+		}catch(Exception e) {
+				this.updateById(shipment);
+				throw new BizException("物流商信息提交失败");
+		}
+    }
 
 	@Override
+	@Transactional
 	public void saveSelfTransData(UserInfo user, ShipInboundTrans ship, String operate, List<Map<String, Object>> boxinfo,
 			String proNumber, Date shipsdate, String carrier) {
 		QueryWrapper<ShipInboundTrans> query=new QueryWrapper<ShipInboundTrans>();
 		query.eq("shipmentid", ship.getShipmentid());
 		List<ShipInboundTrans> list = shipInboundTransMapper.selectList(query);
-		List<ShipInboundBox> boxlist = this.findShipInboundBoxByShipment(ship.getShipmentid());
 		ShipInboundShipment shipment = this.getById(ship.getShipmentid());
 		if ("LTL".equals(shipment.getTranstyle())) {
 			shipment.setProNumber(proNumber);
 			this.updateById(shipment);
-			if(StrUtil.isNotBlank(proNumber)||carrier.equals(shipment.getCarrier())) {
-				if(StrUtil.isNotEmpty(carrier)) {
-					shipment.setCarrier(carrier);
-					this.updateById(shipment);
-				}
-			}
-		} else {
-			Map<Integer, Object> mymap = new HashMap<Integer, Object>();
-			if (boxinfo != null) {
-				for (Map<String, Object> myitem : boxinfo) {
-					if(myitem.get("value")!=null && StrUtil.isNotEmpty(myitem.get("value").toString())) {
-						mymap.put(Integer.parseInt(myitem.get("boxnum").toString()), myitem.get("value"));
-					}
-				}
-			}
-			Boolean hasTrackingid=false;
-			for (ShipInboundBox item : boxlist) {
-				if (mymap.containsKey(item.getBoxnum())) {
-					item.setTrackingId(mymap.get(item.getBoxnum()).toString());
-					hasTrackingid=true;
-				} else {
-					item.setTrackingId("");
-				}
-				shipInboundBoxMapper.updateById(item);
-			}
-			if(shipment.getSyncInv()==0) {
-				if(hasTrackingid||!carrier.equals(shipment.getCarrier())) {
-				}
-			}
+
 		}
 		if (list.size() > 0) {
 			ShipInboundTrans item = list.get(0);
@@ -1192,7 +1241,7 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 		}
 		
 	}
-	
+	@Transactional
 	public String saveMarkshiped(UserInfo user, String shipmentid)   {
 		ShipInboundShipment shipment = this.getById(shipmentid);
 		if (shipment.getStatus() != 4) {
@@ -1205,27 +1254,65 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 		shipment.setOpttime(new Date());
 		shipment.setShipedDate(new Date());
 		ShipInboundPlan plan = shipInboundPlanService.getById(shipment.getInboundplanid());
-		ShipInboundShipmentDTO shipmentdto=new ShipInboundShipmentDTO();
-		ShipInboundPlanDTO inboundplandto=new ShipInboundPlanDTO();
-		BeanUtil.copyProperties(shipment,shipmentdto);
-		BeanUtil.copyProperties(plan,inboundplandto);
-		shipmentdto.setInboundplan(inboundplandto);
-		erpClientOneFeign.outboundAction(shipmentdto);
-		AmazonAuthority auth=null;
-		Marketplace market=null;
-		String groupid=plan.getAmazongroupid();
-		String marketplaceid=plan.getMarketplaceid();
-		auth=amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
-		market=marketplaceService.getById(marketplaceid);
-		if(auth!=null && market!=null && plan!=null) {
-			iFulfillmentInboundService.updateInboundShipment(auth, market, plan, shipment);
+		List<ShipInboundItem> itemlist = shipInboundItemService.getItemByShipment(shipmentid);
+		List<InventoryParameter> list=new ArrayList<InventoryParameter>();
+		for (int i = 0; i < itemlist.size(); i++) {
+			ShipInboundItem item = itemlist.get(i);
+			InventoryParameter para = new InventoryParameter();
+			Integer shiped = item.getQuantity();
+			if (item.getQuantityshipped() != null) {
+				shiped =item.getQuantityshipped();
+			}
+			para.setAmount(shiped);
+			para.setShopid(plan.getShopid());
+			para.setNumber(plan.getNumber());
+			para.setFormid(plan.getId());
+			EnumByInventory statusinv = EnumByInventory.Ready;
+			para.setStatus(statusinv);
+			para.setOperator(shipment.getOperator());
+			para.setOpttime(new Date());
+			para.setFormid(plan.getId());
+			para.setMaterial(item.getMaterialid());
+			para.setSku(item.getMsku());
+			para.setOperator(user.getId());
+			para.setOpttime(new Date());
+			para.setWarehouse(plan.getWarehouseid());
+			para.setFormtype("outstockform");
+			list.add(para);
 		}
-		boolean isupdate = this.updateById(shipment);
-		if (isupdate==true) {
-			shipInboundShipmentRecordService.saveRecord(shipment);
-			return "success";
-		}
-		return "fail";
+		Result<?> result =null;
+		try {
+			 result = erpClientOneFeign.outbound(list);
+		 }catch(FeignException e) {
+			 throw new BizException("提交失败" +e.getMessage());
+		 }catch(Exception e) {
+			 throw new BizException("提交失败" +e.getMessage());
+		 }
+		
+        try {
+            if(result!=null&&Result.isSuccess(result)) {
+            	AmazonAuthority auth=null;
+        		Marketplace market=null;
+        		String groupid=plan.getAmazongroupid();
+        		String marketplaceid=plan.getMarketplaceid();
+        		auth=amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+        		market=marketplaceService.getById(marketplaceid);
+        		if(auth!=null && market!=null && plan!=null) {
+        			iFulfillmentInboundService.updateInboundShipment(auth, market, plan, shipment);
+        		}
+        		boolean isupdate = this.updateById(shipment);
+        		if (isupdate==true) {
+        			shipInboundShipmentRecordService.saveRecord(shipment);
+        		}
+            }else {
+            	  throw new BizException("扣除库存失败");
+            }
+        }catch (Exception e) {
+			// TODO: handle exception
+        	erpClientOneFeign.undoOutbound(list);
+            throw new BizException(e.getMessage());
+		} 
+		return "success";
 	}
 
 
@@ -1339,6 +1426,12 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 		ShipInboundShipment shipment = this.baseMapper.selectById(shipmentid);
 		shipment.setIgnorerec(true);
 		this.updateById(shipment);
+	}
+
+	@Override
+	public String getShipmentStatusName(String shipmentstatus) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.getShipmentStatusName(shipmentstatus);
 	}
 
 }

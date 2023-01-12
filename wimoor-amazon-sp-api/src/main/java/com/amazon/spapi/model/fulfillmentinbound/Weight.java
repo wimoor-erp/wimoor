@@ -13,24 +13,19 @@
 
 package com.amazon.spapi.model.fulfillmentinbound;
 
+import java.math.BigDecimal;
 import java.util.Objects;
-import java.util.Arrays;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
+
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import com.amazon.spapi.model.fulfillmentinbound.UnitOfWeight;
-import java.io.IOException;
-import java.math.BigDecimal;
 
 /**
  * The weight of the package.
  */
 @ApiModel(description = "The weight of the package.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-12-21T11:58:54.268+08:00")
 public class Weight {
   @SerializedName("Value")
   private BigDecimal value = null;

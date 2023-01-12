@@ -54,10 +54,16 @@ public class ShowProfitParamController {
     	UserInfo user= UserInfoContext.get();
     	List<ProfitConfig> profitCfgList = this.profitCfgService.findProfitCfgName(user.getCompanyid());//利润计算方案
     	String defaultPlanId = profitCfgService.findDefaultPlanId(user.getCompanyid());
-    	List<Marketplace> marketlist = marketplaceService.findAllMarketplace();//亚马逊站点
+    	List<Marketplace> itemlist = marketplaceService.findAllMarketplace();//亚马逊站点
+    	List<Marketplace> marketlist =new ArrayList<Marketplace>();
+    	for(Marketplace mk:itemlist) {
+    		if(mk.getDimUnits()!=null) {
+    			marketlist.add(mk);
+    		}
+    	}
        	List<String> categoryList = this.profitService.findCategoryList();//为了计算prep service fee
     	List<String> countryList = new ArrayList<String>();
-		if (isSmlAndLight=="true") {
+		if ("true".equals(isSmlAndLight)) {
 			countryList = Arrays.asList(ProfitServiceImpl.smlAndLightCountry);
 		} else {
 			countryList = this.profitService.findCountryList();// 得到需要计算的国家列表

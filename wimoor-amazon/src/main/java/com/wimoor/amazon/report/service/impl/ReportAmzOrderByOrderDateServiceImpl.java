@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
-import com.wimoor.amazon.report.pojo.entity.OrdersReport;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
+import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;
@@ -40,7 +40,6 @@ public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 			try {
 				while ((line = br.readLine()) != null) {
 					String[] info = line.split("\t");
-					System.out.println(line);
 					int length = info.length;
 					if (lineNumber == 0) {
 						for (int i = 0; i < length; i++) {

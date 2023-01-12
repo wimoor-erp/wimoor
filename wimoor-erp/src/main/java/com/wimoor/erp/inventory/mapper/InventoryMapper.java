@@ -1,6 +1,5 @@
 package com.wimoor.erp.inventory.mapper;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -38,23 +37,22 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	 */
 	List<Map<String, Object>> localOutInventoryByRange(Map<String,Object> map);
 
-	List<Map<String, Object>> findFBA(Map<String,Object> param);
 	List<Map<String, Object>> findNotFBA(Map<String,Object> param);
-	IPage<Map<String, Object>> findFBA(Page<?>  page,Map<String, Object> param);
+	
+
 	IPage<Map<String, Object>> findNotFBA(Page<?>  page,Map<String, Object> param);
 	
-	IPage<Map<String, Object>> findFBAWithStockCycle(Page<?>  page,@Param("id")String id, @Param("shopid")String shopid);
-	List<Map<String, Object>> findFBAWithStockCycle(String id, String shopid);
 	IPage<Map<String, Object>> findNotFBAWithStockCycle(Page<?>  page,@Param("id")String id, @Param("shopid")String shopid);
 	
-	List<Map<String, Object>> findNotFBAWithStockCycle(@Param("id")String id, @Param("shopid")String shopid);
+	List<Map<String, Object>> findNotFBAWithStockCycle(@Param("id")String id,@Param("ftype")String ftype, @Param("shopid")String shopid);
 	
 	IPage<Map<String, Object>> findInventoryDetail(Page<?>  page,Map<String,Object> map);
 	List<Map<String, Object>> findInventoryDetail(Map<String,Object> map);
 	
 	Map<String, Object> findInvDetailById(@Param("materialid")String materialid, @Param("warehouseid") String warehouseid, @Param("shopid")String shopid);
-	Map<String, Object> findInvTUDetailByParentId(@Param("materialid")String materialid, @Param("warehouseid") String warehouseid, @Param("shopid")String shopid);
-	Map<String, Object> findFBAInvDetailById(@Param("sku")String sku, @Param("warehouseid") String warehouseid, @Param("shopid")String shopid, @Param("groupid")String groupid);
+	Map<String,Object> getInventory(@Param("materialid")String materialid, @Param("warehouseid") String warehouseid, @Param("shopid")String shopid);
+	Map<String, Object> findInvByWarehouseId(@Param("materialid")String materialid, @Param("warehouseid") String warehouseid, @Param("shopid")String shopid);
+
 	Map<String,Object> selectSubASList(@Param("warehouseid")String warehouseid,@Param("materialid")String materialid,@Param("shopid")String shopid);
 
 	List<Map<String, Object>> findInboundDetail(@Param("materialid")String materialid, @Param("warehouseid") String warehouseid, @Param("shopid")String shopid);
@@ -74,14 +72,14 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	List<Map<String, Object>> findInventoryNowCost(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid);
 	Map<String,Object> findInventoryNowCostTotal(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid);
 	
-	Map<String, Object> findFBASum(Map<String,Object> param);
+
 	Map<String, Object> findNotFBASum(Map<String,Object> param);
 	
 	List<Map<String, Object>> findInventoryNowCostByShopId(@Param("shopid") String shopid);
 	List<Map<String, Object>> findFulByMaterial(String id);
-	List<Map<String, Object>> getInventorydetail(@Param("materialid") String materialid,@Param("warehouseid") String warehouseid);
 	IPage<Map<String,Object>> findLocalInventory(Page<?>  page,Map<String, Object> param);
 
 	List<Map<String, Object>> getInvDayDetail(Map<String, Object> parameter);
 	List<MaterialInventoryVo> findLocalWarehouseInventory(@Param("shopid") String shopid,@Param("materialid") String materialid);
+	Integer findOverseaById(@Param("materialid")String materialid,@Param("shopid") String shopid, @Param("groupid")String groupid, @Param("country") String country);
 }

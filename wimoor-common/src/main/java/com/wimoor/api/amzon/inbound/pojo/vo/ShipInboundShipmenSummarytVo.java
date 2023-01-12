@@ -16,7 +16,9 @@ import lombok.Data;
 @Data
 @ApiModel(value="ShipInboundShipmenSummarytVo对象", description="货件Item内容汇总")
 public class ShipInboundShipmenSummarytVo{
- 
+    
+	private String id;
+	
 	@ApiModelProperty(value = "货件ID")
 	@TableId(value="shipmentid")
     private String shipmentid;

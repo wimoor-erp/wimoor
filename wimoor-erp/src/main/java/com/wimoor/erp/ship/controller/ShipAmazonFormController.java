@@ -3,11 +3,12 @@ package com.wimoor.erp.ship.controller;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -47,14 +48,18 @@ import com.wimoor.erp.common.service.IImportRecordService;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
+import com.wimoor.erp.ship.pojo.dto.ConsumableOutFormDTO;
 import com.wimoor.erp.ship.pojo.dto.ShipAmazonShipmentDTO;
 import com.wimoor.erp.ship.service.IShipAmazonFormService;
 import com.wimoor.erp.ship.service.IShipPlanService;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
-import com.wimoor.util.QRCodeUtil;
+
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.qrcode.QrCodeUtil;
+import cn.hutool.extra.qrcode.QrConfig;
+import feign.FeignException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -79,6 +84,8 @@ public class ShipAmazonFormController {
 	final IPictureService iPictureService;
 	final FileUpload fileUpload;
 	final IShipPlanService shipPlanService;
+	@Resource
+    QrConfig qrconig;
 	@ApiOperation(value = "获取配货单")
 	@ApiImplicitParam(name = "shipmentid", value = "货件ID", required = true, paramType = "query", dataType = "String")
 	@GetMapping("/quotainfo/{shipmentid}")
@@ -89,31 +96,23 @@ public class ShipAmazonFormController {
 	        return Result.success(data);
 	    }
 	
-	@SystemControllerLog("同步并保存货件")
-	@RequestMapping("/saveShipmentItemAndPlanBath")
+	
+	@SystemControllerLog("删除旧发货计划")
+	@RequestMapping("/afterShipInboundPlanSave")
 	@Transactional
-	//@GlobalTransactional
-	public Result<ShipInboundShipmentDTO> saveShipmentItemAndPlanBathAction(
-			@ApiParam("店铺ID") @RequestParam String groupid,
-            @ApiParam("站点ID") @RequestParam String marketplaceid,
-            @ApiParam("货件ID") @RequestParam String shipmentid,
-            @ApiParam("仓库ID") @RequestParam String warehouseid,
-            @ApiParam("是否减少库存字符串（true,false)") @RequestParam String needsubinv  ) {
- 
-	    UserInfo user=UserInfoContext.get();
-		Result<ShipInboundShipmentDTO> shipmentResult = amazonClientOneFeign.syncShipmentAction(groupid,marketplaceid,shipmentid,warehouseid);
-		if(shipmentResult!=null&&shipmentResult.getData()!=null&&StrUtil.isNotBlank(warehouseid)) {
-			ShipInboundShipmentDTO shipment = shipmentResult.getData();
-			if("true".equals(needsubinv)) {
-				iShipFormService.handleInventoryAction(user, shipment);
-			}
-			amazonClientOneFeign.confirmSyncShipment(shipmentid);
-		}
-        return shipmentResult;
+	public Result<?> afterShipInboundPlanSaveAction( @ApiParam("参数") @RequestBody Map<String,Object> param  ) {
+	    String planid=param.get("planid").toString();
+		String planmarketplaceid=param.get("planmarketplaceid").toString();
+		Boolean issplit=(Boolean)param.get("issplit");
+		@SuppressWarnings("unchecked")
+		List<String> list=(List<String>) param.get("list");
+	    shipPlanService.afterShipInboundPlanSave(planid, planmarketplaceid, issplit, list);
+        return Result.success();
 	}
 	
+	
 	@SystemControllerLog("查看将同步的货件的详细内容")
-	@RequestMapping("/getUnSyncShipmentDetial")
+	@GetMapping("/getUnSyncShipmentDetial")
 	public Result<ShipInboundShipmenSummarytVo> getUnSyncShipmentDetialAction(
 			@ApiParam("店铺ID") @RequestParam String groupid,
             @ApiParam("站点ID") @RequestParam String marketplaceid,
@@ -123,8 +122,11 @@ public class ShipAmazonFormController {
 		 Result<ShipInboundShipmenSummarytVo> shipmentResult =null;
 		 try {
 			 shipmentResult = amazonClientOneFeign.getUnSyncShipmentAction(groupid,marketplaceid,shipmentid,warehouseid);
-		 }catch(Exception e) {
+		 }catch(FeignException  e) {
+	 			 throw new BizException(BizException.getMessage(e, "同步货件失败"));
+	 	}catch(Exception e) {
 			 e.printStackTrace();
+			 throw new BizException(e.getMessage());
 		 }
 		if(shipmentResult!=null&&shipmentResult.getData()!=null&&StrUtil.isNotBlank(warehouseid)) {
 			  ShipInboundShipmenSummarytVo shipment = shipmentResult.getData();
@@ -196,7 +198,9 @@ public class ShipAmazonFormController {
 			}else {
 				iShipFormService.setPDFDocShipForm(writer,user,document, data);
 			}
-		} catch (FileNotFoundException e) {
+		} catch(FeignException  e) {
+			 throw new BizException(BizException.getMessage(e, "获取货件失败"));
+	     } catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (DocumentException e) {
 			e.printStackTrace();
@@ -210,47 +214,7 @@ public class ShipAmazonFormController {
 	}
 	
 	
-	@ApiOperation(value = "提交发货计划")
-	@PostMapping("/saveInboundPlan")
-	@SystemControllerLog("新增")    
-	@Transactional
-	public  Result<Boolean> saveInboundPlanAction(@ApiParam("发货计划")@RequestBody ShipInboundPlanDTO inplan){
-		 UserInfo user=UserInfoContext.get();
-			inplan.setCreatedate(new Date());
-			inplan.setCreator(user.getId());
-			inplan.setLabelpreptype("SELLER_LABEL");
-			inplan.setOperator(user.getId());
-			inplan.setOpttime(new Date());
-			inplan.setShopid(user.getCompanyid());
-			inplan.setAuditstatus(1);
-		 if(StrUtil.isEmpty(inplan.getNumber())) {
-			 try {
-					inplan.setNumber(serialNumService.readSerialNumber(user.getCompanyid(), "SF"));
-				} catch (Exception e) {
-					e.printStackTrace();
-					try {
-						inplan.setNumber(serialNumService.readSerialNumber(user.getCompanyid(), "SF"));
-					} catch (Exception e1) {
-						e1.printStackTrace();
-						throw new BizException("编码获取失败,请联系管理员");
-					}
-				}
-		 }
-		Result<String> result = amazonClientOneFeign.saveInboundPlanAction(inplan);
-		if(Result.isSuccess(result)) {
-			if (inplan.getPlanid() != null) {
-				List<String> list=new ArrayList<String>();
-				for(ShipInboundItemVo item:inplan.getPlanitemlist()) {
-					list.add(item.getSellersku());
-				}
-				shipPlanService.afterShipInboundPlanSave(inplan.getPlanid(),inplan.getPlanmarketplaceid(),inplan.getIssplit(),list);
-			}
-			return Result.judge(true);
-		}else {
-			return Result.judge(false);
-		}
-	}
-	
+
     @ApiOperation(value = "确认货件")
     @SystemControllerLog("确认货件")
     @GetMapping("/createShipment")
@@ -264,17 +228,27 @@ public class ShipAmazonFormController {
    	    shipmentobj.setOpttime(new Date());
    	    shipmentobj.setStatus(2);
    	    iShipFormService.fulfillableToOutbound(user,shipmentobj);
-   	   
-   	    	Result<String> result2 = amazonClientOneFeign.createShipmentAction(shipmentobj);
-   	    	if(!Result.isSuccess(result2)) {
-   	    		JSONObject errorJson = GeneralUtil.getJsonObject(result2.getMsg());
-   	    		JSONArray errors = errorJson.getJSONArray("errors");
-   	    		JSONObject errorObj = errors.getJSONObject(0);
-   	        	throw new BizException(errorObj.getString("message"));
-   	        }
-   	    	if(!result2.getData().equals(shipmentid)) {
-   	    		throw new BizException("货件创建失败");
-   	    	} 
+   	 	Result<String> result2 =null;
+   	 	try{
+   	 	    result2=amazonClientOneFeign.createShipmentAction(shipmentobj);
+   	 	}catch(FeignException  e) {
+   	 			 throw new BizException(BizException.getMessage(e, "货件创建失败"));
+   	 	}catch(Exception e) {
+    	 	   throw new BizException(e.getMessage());
+    	}
+    	if(!Result.isSuccess(result2)) {
+    		if(result2!=null) {
+    			JSONObject errorJson = GeneralUtil.getJsonObject(result2.getMsg());
+        		JSONArray errors = errorJson.getJSONArray("errors");
+        		JSONObject errorObj = errors.getJSONObject(0);
+            	throw new BizException(errorObj.getString("message"));
+    		}else {
+    			throw new BizException("货件创建失败");
+    		}
+        }
+    	if(!result2.getData().equals(shipmentid)) {
+    		throw new BizException("货件创建失败");
+    	}    	   
     	return Result.judge(true);
     }
     
@@ -282,8 +256,8 @@ public class ShipAmazonFormController {
 	@ApiOperation(value = "删除货件")
 	@SystemControllerLog("删除货件")
 	@GetMapping(value = "disableShipment")
-	@Transactional
-	String disableShipmentAction(String shipmentid,String shipmentStatus,String disableShipment) throws BizException {
+    @Transactional
+	Result<String> disableShipmentAction(String shipmentid,String shipmentStatus,String disableShipment) throws BizException {
 		boolean isDelAmz = true;
 		if (ShipInboundShipmentDTO.ShipmentStatus_CANCELLED.equalsIgnoreCase(shipmentStatus)
 				|| ShipInboundShipmentDTO.ShipmentStatus_CLOSED.equalsIgnoreCase(shipmentStatus)
@@ -291,7 +265,7 @@ public class ShipAmazonFormController {
 			isDelAmz = false;
 		}
 	    UserInfo user=UserInfoContext.get();
-		return iShipFormService.updateDisable(user, shipmentid, isDelAmz,disableShipment);
+		return Result.success(iShipFormService.updateDisable(user, shipmentid, isDelAmz,disableShipment)) ;
 	}
 	
 	@ApiOperation(value = "更新货件")
@@ -301,17 +275,17 @@ public class ShipAmazonFormController {
 	public  Result<Boolean> updateShipmentAction(@ApiParam("货件ITEM")@RequestBody ShipAmazonShipmentDTO shipment){
 		    UserInfo user=UserInfoContext.get();
 		    iShipFormService.updateItemQty(user,shipment);
-		    return Result.judge(false);
+		    return Result.success();
 	}
     
 	@ApiOperation(value = "更新货件")
-	@PostMapping("/marketShipped")
-	@SystemControllerLog("配货")
+	@GetMapping("/marketShipped")
+	@SystemControllerLog("本地出库")
     @Transactional
-	public  Result<Boolean> marketShippedAction(String shipmentid){
+	public  Result<Boolean> marketShippedAction(@RequestParam String shipmentid){
 		    UserInfo user=UserInfoContext.get();
 		    iShipFormService.marketShipped(user,shipmentid);
-		    return Result.judge(false);
+		    return Result.judge(true);
 	}
     
 	
@@ -331,7 +305,9 @@ public class ShipAmazonFormController {
 			resp.setHeader("filename","二维码.jpg");
 			resp.setContentType("application/force-download");// 设置强制下载不打开
 			os = resp.getOutputStream();
-			BufferedImage imagebuffer = QRCodeUtil.generateQRCodeCommon(content, StrUtil.isNotBlank(size)?Integer.parseInt(size):20);
+			qrconig.setWidth(70);
+			qrconig.setHeight(70);
+			BufferedImage imagebuffer =	QrCodeUtil.generate(content, qrconig);
 			imagebuffer.flush();
 		    ImageIO.write(imagebuffer, "jpg", os);
 		    imagebuffer.flush();
@@ -360,7 +336,7 @@ public class ShipAmazonFormController {
  			@ApiParam("shopid")@RequestParam String shopid,
 			@ApiParam("material")@RequestParam String material,
 			@ApiParam("amount")@RequestParam Integer amount,
-			@ApiParam("amount")@RequestParam String ftype
+			@ApiParam("ftype")@RequestParam String ftype
  			) {
     	ShipInboundPlanDTO plan=new ShipInboundPlanDTO();
     	plan.setShopid(shopid);
@@ -392,11 +368,11 @@ public class ShipAmazonFormController {
 	}
     
     @ApiOperation(value = "保存库存耗材")
-    @GetMapping("/saveInventoryConsumable")
+    @PostMapping("/saveInventoryConsumable")
     @Transactional
-	public Result<Map<String, Object>> saveInventoryConsumableAction(String skulist,String warehousename,String shipmentid) {
+	public Result<Map<String, Object>> saveInventoryConsumableAction(@RequestBody ConsumableOutFormDTO dto) {
     	UserInfo user=UserInfoContext.get();
-		int result=materialService.saveInventoryConsumable(skulist,user,warehousename,shipmentid);
+		int result=materialService.saveInventoryConsumable(user,dto);
 		Map<String,Object> maps=new HashMap<String, Object>();
 		if(result>0) {
 			maps.put("isok", "true");
@@ -439,7 +415,7 @@ public class ShipAmazonFormController {
     @ApiOperation(value = "获取shipplan信息")
     @GetMapping("/findPlanSubDetail")
     public Result<List<Map<String, Object>>> findPlanSubDetailAction(@ApiParam("groupid")@RequestParam String groupid,@ApiParam("planid")@RequestParam String planid,
-    		@ApiParam("planid")@RequestParam String warehouseid,@ApiParam("planid")@RequestParam String marketplaceid,String issplit){
+    		@ApiParam("warehouseid")@RequestParam String warehouseid,@ApiParam("marketplaceid")@RequestParam String marketplaceid,String issplit){
     	List<Map<String, Object>> result=null;
     	if(!"true".equals(issplit)) {
     		result= iShipFormService.findPlanSubDetail(planid,marketplaceid,warehouseid);
@@ -449,6 +425,19 @@ public class ShipAmazonFormController {
     	return Result.success(result);
     }
     
+    @GetMapping("/handlerExpShipment")
+    public Result<String> handlerExceptionShipAction(String shipmentid){
+    	   Result<ShipInboundShipmentDTO> result = amazonClientOneFeign.getShipmentidAction(shipmentid);
+    	   ShipInboundShipmentDTO shipmentobj = result.getData();
+    	   UserInfo user=UserInfoContext.get();
+    	   shipmentobj.setLabelpreptype("SELLER_LABEL");
+    	   shipmentobj.setOperator(user.getId());
+    	   shipmentobj.setOpttime(new Date());
+    	   shipmentobj.setStatus(2);
+    	   iShipFormService.fulfillableToOutbound(user,shipmentobj);
+    	   return Result.success("ok");
+    }
+ 
     
     
    

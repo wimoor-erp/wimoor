@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,37 +61,56 @@ import lombok.RequiredArgsConstructor;
 @Service("assemblyFormService")
 @RequiredArgsConstructor
 public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,AssemblyForm> implements IAssemblyFormService {
-	 
-	InventoryMapper inventoryMapper;
-	 
+	final InventoryMapper inventoryMapper;
+	@Autowired
+	@Lazy
 	ISerialNumService serialNumService;
 	 
-	AssemblyFormEntryMapper assemblyFormEntryMapper;
-	 
+	final AssemblyFormEntryMapper assemblyFormEntryMapper;
+	@Autowired
+	@Lazy
 	IAssemblyService assemblyService;
-	 
+	
+	@Autowired
+	@Lazy
 	IStepWisePriceService stepWisePriceService;
-	 
+	
+	@Autowired
+	@Lazy
 	IMaterialService materialService;
 	 
-	PurchaseFormEntryMapper purchaseFormEntryMapper;
-	 
+	final PurchaseFormEntryMapper purchaseFormEntryMapper;
+	@Autowired
+	@Lazy
 	IPurchaseFormService purchaseFormService;
-	 
+	
+	@Autowired
+	@Lazy
 	IAssemblyFormEntryService assemblyFormEntryService;
-	 
+	
+	@Autowired
+	@Lazy
 	IInventoryFormAgentService inventoryFormAgentService;
-	 
+	
+	@Autowired
+	@Lazy
 	IPurchasePlanService purchasePlanService;
-	 
+	
+	@Autowired
+	@Lazy
 	IAssemblyEntryInstockService assemblyEntryInstockService;
-	 
+	
+	@Autowired
+	@Lazy
 	IInventoryService inventoryService;
 	 
-	AssemblyMapper assemblyMapper;
-	 
+	final AssemblyMapper assemblyMapper;
+	@Autowired
+	@Lazy
 	IWarehouseService warehouseService;
-	 
+	
+	@Autowired
+	@Lazy
 	IPurchaseWareHouseStatusService purchaseWareHouseStatusService;
 	 
  
@@ -605,7 +626,7 @@ public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,Ass
 		List<Assembly> list = assemblyService.selectAssemblySub(form.getMainmid());
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		for (Assembly sub : list) {
-			map.put(sub.getSubmid(), Integer.parseInt(sub.getSubnumber()));
+			map.put(sub.getSubmid(),  sub.getSubnumber());
 		}
 		List<AssemblyFormEntry> entrylist = getEntry(form.getId());
 		for (AssemblyFormEntry entry : entrylist) {

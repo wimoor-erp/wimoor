@@ -32,7 +32,7 @@ public class ApiCallbackItem implements ApiCallback<Item> {
 	public void onSuccess(Item result, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
 	    amazonAuthority.setApiRateLimit(responseHeaders, "");
-		productCaptureService.handlerResult(result,amazonAuthority);
+		productCaptureService.handlerResult(result,amazonAuthority,this.amzProductRefresh);
 	}
 
 	@Override

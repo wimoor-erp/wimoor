@@ -126,5 +126,7 @@ public interface IPurchaseFormService extends IService<PurchaseForm> {
 	List<Map<String, Object>> selectNeedSendMsgShop();
 	List<Map<String, Object>> selectPurchaseNotify(String shopid);
 	public int savePurchaseForm(UserInfo user,List<PurchaseForm> formList, String planwarehouseid) throws ERPBizException;
+	
+	PurchaseFormEntry deleteReceive(String entryid,  UserInfo userinfo);
 
 }

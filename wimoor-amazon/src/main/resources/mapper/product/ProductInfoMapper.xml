@@ -164,7 +164,7 @@
 		<if test="param.paralist !=null and param.paralist!=''">
 		   select * from (
 		</if>
-		select t.id,op.msku msku,t.invalid, em.id mid,t.asin, t.sku,t.marketplaceid, m.point_name, t.name,t.parentAsin,
+		select t.id,ifnull(op.msku,t.sku) msku,t.invalid, em.id mid,t.asin, t.sku,t.marketplaceid, m.point_name, t.name,t.parentAsin,
 			em.color skucolor,date_format( openDate,'%Y-%m-%d') opendate, fulfillchannel, binding,a.region region,m.region mregion,
 			(select min(`rank`) `rank` from t_product_rank  where product_id = t.id 
 			and byday &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d')) `rank`,
@@ -279,6 +279,13 @@
 				  				   'A1PA6795UKMFR9','A1RKKUPIHCS9HS',
 				                   'A2NODRKZP88ZB9','A33AVAJ2PDY3EV',
 				                   'APJ6JRA9NG5V4','ARBP9OOSHTCHU')
+		</if>
+		<if test="param.pidlist!=null">
+			and t.id in (
+				<foreach collection="param.pidlist" item="tags" index="index" separator=",">
+					#{tags,jdbcType=CHAR} 
+			    </foreach>			
+			)
 		</if>
 		<if test="param.groupid !=null">
 			and (a.groupid=#{param.groupid,jdbcType=CHAR})
@@ -407,15 +414,13 @@
 		</if>
 	</select>
 	
-	<select id="findMSKUBySKUMarket" parameterType="java.lang.String" resultType="com.wimoor.amazon.common.pojo.entity.Material">
-		SELECT m.* from  t_product_info p 
+	<select id="findMSKUBySKUMarket" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT IFNULL(max(o.msku) ,Max(p.sku)) msku from  t_product_info p 
 		left join t_product_in_opt o on p.id = o.pid
-		left join t_erp_material m on m.sku=IFNULL(o.msku ,p.sku)
+		left join t_marketplace mk on mk.marketplaceid=p.marketplaceid
 		where p.sku=#{sku,jdbcType=CHAR}
-		and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or mk.region=#{marketplaceid,jdbcType=CHAR})
 		and p.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
-		and m.isDelete!=1 
-		limit 1
 	</select>
 	<select id="findAllByCondition" resultType="java.util.Map" parameterType="java.util.Map">
 		select m.id,i.sku sku,m.color color,m.name name,m.shopid shopid,m.sku msku ,m.upc upc,
@@ -442,6 +447,9 @@
 			</foreach>
 		</if>
 	</select>
-	
+	<update id="clearInSnl" parameterType="java.lang.String">
+	  update t_product_info set inSnl=false where amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+			and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	</update>
 	
 </mapper>

@@ -33,6 +33,9 @@ public class SysTariffPackages implements Serializable {
 
     @ApiModelProperty(value = "套餐名字")
     private String name;
+    
+    @ApiModelProperty(value = "套餐名字")
+    private Boolean isdefault;
 
     @ApiModelProperty(value = "角色id")
     @TableField("roleId")

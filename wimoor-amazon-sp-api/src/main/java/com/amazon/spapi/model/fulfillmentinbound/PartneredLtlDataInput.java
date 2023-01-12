@@ -14,26 +14,17 @@
 package com.amazon.spapi.model.fulfillmentinbound;
 
 import java.util.Objects;
-import java.util.Arrays;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
+
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import com.amazon.spapi.model.fulfillmentinbound.Amount;
-import com.amazon.spapi.model.fulfillmentinbound.Contact;
-import com.amazon.spapi.model.fulfillmentinbound.PalletList;
-import com.amazon.spapi.model.fulfillmentinbound.SellerFreightClass;
-import com.amazon.spapi.model.fulfillmentinbound.Weight;
-import java.io.IOException;
 
 /**
  * Information that is required by an Amazon-partnered carrier to ship a Less Than Truckload/Full Truckload (LTL/FTL) inbound shipment.
  */
 @ApiModel(description = "Information that is required by an Amazon-partnered carrier to ship a Less Than Truckload/Full Truckload (LTL/FTL) inbound shipment.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-12-21T11:58:54.268+08:00")
 public class PartneredLtlDataInput {
   @SerializedName("Contact")
   private Contact contact = null;

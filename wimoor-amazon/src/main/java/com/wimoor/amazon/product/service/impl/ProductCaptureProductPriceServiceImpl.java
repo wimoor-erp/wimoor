@@ -166,6 +166,8 @@ public class ProductCaptureProductPriceServiceImpl implements IProductCapturePro
 						price.setSellerid(amazonAuthority.getSellerid());
 						productPriceMapper.insert(price);
 						ProductInOpt productInOpt = productInOptMapper.selectById(info.getId());
+						info.setPrice(buyPrice.getLandedPrice().getAmount());
+						iProductInfoService.updateById(info);
 							if (productInOpt == null) {
 								productInOpt = new ProductInOpt();
 								productInOpt.setPid(new BigInteger(info.getId()));

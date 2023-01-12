@@ -1,5 +1,8 @@
 package com.wimoor.amazon.report.pojo.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ReportType {
 	public static final String ProductListings = "GET_MERCHANT_LISTINGS_ALL_DATA";
 	public static final String ProductOpenListings = "GET_FLAT_FILE_OPEN_LISTINGS_DATA";
@@ -25,4 +28,15 @@ public class ReportType {
 	public static final String OrdersInvoicingReport="GET_FLAT_FILE_ORDER_REPORT_DATA_INVOICING";
 	public static final String InventoryByCountry="GET_AFN_INVENTORY_DATA_BY_COUNTRY";
 	public static final String InventoryAge="GET_FBA_INVENTORY_AGED_DATA";
+	public static Set<String> set=null;
+		public static Set<String> getSingleReport(){
+			if(set==null) {
+				set=new HashSet<String>();
+				set.add(ReportType.SettlementReport);
+				set.add(ReportType.InventoryReport);
+				set.add(ReportType.FbaFeeReport);
+				set.add(ReportType.OrdersByLastUpdateReport);
+			}
+			return set;
+		}
 }

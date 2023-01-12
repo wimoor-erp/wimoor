@@ -4,7 +4,6 @@ package com.wimoor.gateway.filter;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +46,9 @@ public class SecurityGlobalFilter implements GlobalFilter, Ordered {
     public static final String HEADER_USER_INFO = "X-USERINFO";
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
-    @Autowired
-    private final RedisTemplate redisTemplate;
+    @SuppressWarnings("rawtypes")
+	@Autowired
+    private  RedisTemplate redisTemplate;
     
     boolean filterIsIgnoreUrl(String path) {
     	    if(whiteList.contains(path))return true;
@@ -86,7 +86,8 @@ public class SecurityGlobalFilter implements GlobalFilter, Ordered {
          * 缓存取 [URL权限-角色集合] 规则数据
          * urlPermRolesRules = [{'key':'GET:/api/v1/users/*','value':['ADMIN','TEST']},...]
          */
-        Map<String, Object> urlPermRolesRules = redisTemplate.opsForHash().entries("system:perm_roles_rule:url:");
+        @SuppressWarnings("unchecked")
+		Map<String, Object> urlPermRolesRules = redisTemplate.opsForHash().entries("system:perm_roles_rule:url:");
         // 根据请求路径判断有访问权限的角色列表
         List<String> authorizedRoles = new ArrayList<>(); // 拥有访问权限的角色
         boolean requireCheck = false; // 是否需要鉴权，默认未设置拦截规则不需鉴权

@@ -121,14 +121,21 @@ public class CalculateCostController {
 		Map<String, CostDetail> country = query.getCountry();
 		for (int i = 0; i < countryList.size(); i++) {
 			InputDimensions inputDimension = new InputDimensions(length, width, height, LUnit, weight, WUnit);
-			CostDetail costDetail = this.profitService.initCostDetail(countryList.get(i), profitCfgAll, inputDimension,
-					isMedia, type, typeId, cost, shipment, currency, categories, shipmentType, declaredValue,
-					declaredValueCur, taxrate, gstrate, sellingGSTRate, referralrate, isSmlAndLight);
-			CostDetail old = country.get( countryList.get(i));
-			if(old!=null) {
-				costDetail.setSellingPrice(old.getSellingPrice());
+			try {
+				CostDetail costDetail = this.profitService.initCostDetail(countryList.get(i), profitCfgAll, inputDimension,
+						isMedia, type, typeId, cost, shipment, currency, categories, shipmentType, declaredValue,
+						declaredValueCur, taxrate, gstrate, sellingGSTRate, referralrate, isSmlAndLight);
+				CostDetail old = country.get( countryList.get(i));
+				if(costDetail!=null) {
+					if(old!=null) {
+						costDetail.setSellingPrice(old.getSellingPrice());
+					}
+					country.put( countryList.get(i), costDetail);
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				throw new BizException("计算异常请联系管理员");
 			}
-			country.put( countryList.get(i), costDetail);
 		}
 		query.setProfitCfgAll( profitCfgAll);
 		return Result.success(query);

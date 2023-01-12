@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
@@ -1065,6 +1066,5 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 		}
     	return GeneralUtil.distanceOfSecond(serverBusyTime, new Date())<10;
     }
- 
 
 }

@@ -47,6 +47,9 @@
 		from t_report_requestrecord
 		where sellerid= #{sellerid,jdbcType=CHAR} 
 			and reporttype= #{reporttype,jdbcType=CHAR}
+		<if test="starttime!=null">
+		    and startDate= #{starttime,jdbcType=CHAR}
+		</if>
 		<if test="marketplacelist!=null">
 			and
 			(
@@ -143,6 +146,9 @@
 			<if test="reporttype != null">
 				and reportType=#{reporttype,jdbcType=CHAR}
 			</if>
+			<if test="reporttype == null">
+				and reportType!='GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2'
+			</if>
 			<if test="marketplaceid != null">
 				and marketPlaceId=#{marketplaceid,jdbcType=CHAR}
 			</if>
@@ -183,6 +189,9 @@
 				and lastupdate>curdate()
 			<if test="reporttype != null">
 				and reportType=#{reporttype,jdbcType=CHAR}
+			</if>
+		    <if test="reporttype == null">
+				and reportType!='GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2'
 			</if>
 			<if test="marketplaceid != null">
 				and marketPlaceId=#{marketplaceid,jdbcType=CHAR}

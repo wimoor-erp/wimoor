@@ -30,9 +30,10 @@ public interface ShipInboundItemMapper extends BaseMapper<ShipInboundItem> {
 	
 	List<Map<String, Object>> shipArrivalTimeChart(Map<String, Object> param);
 	
- 
+	List<ShipInboundItem>  getOneByShipmentid(String id);
 	List<Map<String, Object>> getshotTime(@Param("shopid")String shopid,@Param("groupid")String groupid,
 			@Param("marketplaceid")String marketplaceid,@Param("sku")String sku);
 	
 	Map<String, Object> findMaterielByShipPlanId(@Param("id")String id,@Param("sku") String sku);
+
 }

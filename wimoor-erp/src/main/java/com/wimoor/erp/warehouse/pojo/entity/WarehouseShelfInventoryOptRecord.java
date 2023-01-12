@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.wimoor.erp.common.pojo.entity.BaseEntity;
+import com.wimoor.erp.material.pojo.entity.Material;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -39,7 +40,7 @@ public class WarehouseShelfInventoryOptRecord extends BaseEntity{
 
     @ApiModelProperty(value = "产品ID")
     private BigInteger materialid;
-
+    
     @ApiModelProperty(value = "公司ID")
     private BigInteger shopid;
 
@@ -48,7 +49,13 @@ public class WarehouseShelfInventoryOptRecord extends BaseEntity{
 
     @ApiModelProperty(value = "操作数量对应的体积")
     private Float size;
-
+    
+    @ApiModelProperty(value = "表单ID")
+    private String formid;
+    
+    @ApiModelProperty(value = "表单类型")
+    private String formtype;
+    
     @ApiModelProperty(value = "操作后结余数量")
     private Integer balanceQty;
 
@@ -66,6 +73,17 @@ public class WarehouseShelfInventoryOptRecord extends BaseEntity{
     @JsonInclude(value = JsonInclude.Include.NON_NULL)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime opttime;
-
-
+    
+    @TableField(exist=false)
+    private WarehouseShelf shelf;
+    
+    @TableField(exist=false)
+    private Material material;
+    
+    @TableField(exist=false)
+    String shelfname;
+    
+    @TableField(exist=false)
+    private WarehouseShelfInventory shelfInventory;
+     
 }

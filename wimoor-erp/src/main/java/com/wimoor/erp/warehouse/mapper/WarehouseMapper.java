@@ -13,11 +13,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface WarehouseMapper extends BaseMapper<Warehouse> {
-	IPage<Map<String, Object>> findByCondition(Page<?> page,@Param("search") String search, @Param("shopid") String shopid,@Param("ftype") String ftype); 
+	IPage<Warehouse> findByCondition(Page<?> page,@Param("search") String search, @Param("shopid") String shopid,@Param("ftype") String ftype,@Param("parentid")String parentid); 
 	
 	String selectTypeByName(@Param("fname")String fname);
 
-	List<Map<String,Object>> findByType(@Param("ftype")String ftype, @Param("shopid") String shopid);
+	List<Warehouse> findByType(@Param("ftype")String ftype, @Param("shopid") String shopid);
 	
 	List<Map<String,Object>> selectFbaSale(@Param("shopid") String shopid,@Param("sku") String sku, @Param("delivery_cycle") String delivery_cycle);
 	
@@ -37,8 +37,10 @@ public interface WarehouseMapper extends BaseMapper<Warehouse> {
 
 	List<Warehouse> findWareDefault(String shopid);
 	
-	void updateWareDefault(@Param("warehouseid")String warehouseid,@Param("ftype")String ftype);
+	void clearWareDefault(@Param("shopid")String shopid,@Param("ftype") String ftype);
 	
 	List<Map<String, Object>> selectAllByShopId(@Param("shopid")String shopid);
+
+	String getUUID();
  
 }

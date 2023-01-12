@@ -171,7 +171,7 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService,IAwsSQSMessageH
 		}
 		return null;
 	}
-	private void callSubmitFeed(AmazonAuthority amazonAuthority, Marketplace marketplace, AmzSubmitFeedQueue queue) {
+	public void callSubmitFeed(AmazonAuthority amazonAuthority, Marketplace marketplace, AmzSubmitFeedQueue queue) {
 		// TODO Auto-generated method stub
 		 FeedsApi api = apiBuildService.getFeedApi(amazonAuthority);
 		 CreateFeedDocumentSpecification body =new CreateFeedDocumentSpecification();
@@ -179,7 +179,6 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService,IAwsSQSMessageH
 		 body.setContentType(contentType);
 		 try {
 			  CreateFeedDocumentResponse response = api.createFeedDocument(body);
-			 
 			String docid=response.getFeedDocumentId();
 			String url =response.getUrl();
 			byte[] content = queue.getContent();
@@ -267,6 +266,7 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService,IAwsSQSMessageH
 	
 	public String upload(byte[] source, String url,AmzSubmitFeedQueue queue) {
 		    OkHttpClient client = new OkHttpClient();
+		    ApiBuildService.initClient(client);
 		    String contentType =getContentType(queue.getFeedType());
 		    String mlog=null;
 		    try {

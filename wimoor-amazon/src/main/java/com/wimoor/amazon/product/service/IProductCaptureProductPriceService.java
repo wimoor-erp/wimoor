@@ -4,7 +4,6 @@ package com.wimoor.amazon.product.service;
 import java.util.List;
 
 import com.amazon.spapi.client.ApiException;
-import com.amazon.spapi.model.listings.Item;
 import com.amazon.spapi.model.productpricing.GetPricingResponse;
 import com.squareup.okhttp.Call;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;

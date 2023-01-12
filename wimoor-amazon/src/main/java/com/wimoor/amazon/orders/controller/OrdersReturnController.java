@@ -25,6 +25,7 @@ import com.wimoor.amazon.orders.service.IAmzOrderItemService;
 import com.wimoor.amazon.orders.service.IAmzOrderMainService;
 import com.wimoor.amazon.orders.service.IAmzOrderSolicitationsService;
 import com.wimoor.amazon.orders.service.IOrderManagerService;
+import com.wimoor.amazon.orders.service.IOrderReturnService;
 import com.wimoor.amazon.report.service.IReportAmzOrderInvoiceService;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
@@ -46,35 +47,15 @@ import io.swagger.annotations.ApiOperation;
 @RestController
 @RequestMapping("/api/v0/orders/return")
 public class OrdersReturnController{
-	 
-	@Autowired
-	IAmzOrderMainService amzOrderMainService;
-	@Autowired
-	IAmzOrderItemService amzOrderItemService;
-	@Autowired
-	IMarketplaceService marketplaceService;
-	@Autowired
-	IAmazonAuthorityService amazonAuthorityService;
-	@Resource
-	IOrderManagerService orderManagerService;
-	@Resource
-	IAmazonGroupService amazonGroupService;
-	@Resource
-	ISerialNumService serialNumService;
-	@Resource
-	IPictureService  pictureService;
-	@Resource
-	OSSApiService ossApiService;
-	@Resource
-	IAmzOrderSolicitationsService iAmzOrderSolicitationsService;
+ 
     @Resource
-    IReportAmzOrderInvoiceService iReportAmzOrderInvoiceService;
+    IOrderReturnService orderReturnService;
 
   	@ApiOperation("订单退货列表")
   	@PostMapping("/returnlist")
     public  Result<IPage<AmazonOrdersReturnVo>> returnlistAction(
     		@RequestBody AmazonOrdersReturnDTO condition){
-		IPage<AmazonOrdersReturnVo> list=orderManagerService.selectReturnsList(condition);
+		IPage<AmazonOrdersReturnVo> list=orderReturnService.selectReturnsList(condition);
 		return Result.success(list);
 	}
   	
@@ -87,7 +68,7 @@ public class OrdersReturnController{
 	  		SXSSFWorkbook workbook = new SXSSFWorkbook();
 			response.setContentType("application/force-download");// 设置强制下载不打开
 			response.addHeader("Content-Disposition", "attachment;fileName=ReturnsReport.xlsx");// 设置文件名
-			orderManagerService.downloadReturnlist(workbook,condition);
+			orderReturnService.downloadReturnlist(workbook,condition);
 			ServletOutputStream fOut = response.getOutputStream();
 			workbook.write(fOut);
 			workbook.close();

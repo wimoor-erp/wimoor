@@ -53,6 +53,20 @@
 		where ShipmentId = #{shipmentid,jdbcType=CHAR}
 	</select>
 	
+		<select id="getOneByShipmentid" resultType="com.wimoor.amazon.inbound.pojo.entity.ShipInboundItem" parameterType="java.lang.String">
+		select distinct item.ShipmentId, item.SellerSKU, item.FulfillmentNetworkSKU, item.Quantity, item.QuantityShipped,
+		item.QuantityReceived, item.QuantityInCase,item.inboundplanid,ifnull(item.msku,p.msku) msku,item.materialid,
+		item.PrepInstruction,item.PrepOwner
+		from t_erp_ship_inbounditem item
+		left join t_erp_ship_inboundPlan plan on plan.id=item.inboundplanid
+		left join(select auth.groupid groupid,v.*, ifnull(opt.msku,v.sku) msku
+					from t_product_info v
+					left join t_product_in_opt opt on opt.pid = v.id
+					left join t_amazon_auth auth on auth.id=v.amazonAuthId
+		) p on p.sku=item.SellerSKU and p.marketplaceid=plan.marketplaceid and p.groupid=plan.amazongroupid
+		where ShipmentId = #{shipmentid,jdbcType=CHAR}
+	</select>
+	
     <select id="summaryShipmentItem"  resultType="com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundShipmenSummarytVo"   parameterType="java.lang.String">
          select item.ShipmentId,
                 count(item.SellerSKU) skuamount,
@@ -75,7 +89,7 @@
     </select>
     
 	<select id="selectObjByShipmentid" resultType="com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundItemVo"  parameterType="java.lang.String">
-			select distinct item.ShipmentId, m.sku sku,
+			select distinct item.id, item.ShipmentId, m.sku sku,
 			     (select  GROUP_CONCAT(c.name) from t_product_category c where c.pid=info.id )  typename,
 			     ifnull(item.Quantity,0) Quantity,
 				ifnull(ifnull(item.QuantityShipped,item.Quantity),0) QuantityShipped,

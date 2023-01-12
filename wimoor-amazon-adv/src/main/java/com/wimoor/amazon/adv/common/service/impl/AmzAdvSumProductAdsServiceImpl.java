@@ -23,6 +23,7 @@ import com.wimoor.amazon.adv.common.service.IAmzAdvSumProductAdsService;
 import com.wimoor.amazon.adv.common.service.IMarketplaceService;
 import com.wimoor.amazon.adv.utils.ChartPoint;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.util.ExchangeRateUtil;
 
 @Service("amzAdvSumProductAdsService")
 public class AmzAdvSumProductAdsServiceImpl implements IAmzAdvSumProductAdsService {
@@ -30,8 +31,7 @@ public class AmzAdvSumProductAdsServiceImpl implements IAmzAdvSumProductAdsServi
 	AmzAdvSumProductAdsMapper amzAdvSumProductAdsMapper;
 	@Resource
 	IMarketplaceService marketplaceService;
-//	@Resource
-//	IExchangeRateHandlerService exchangeRateHandlerService;
+ 
 //	@Resource
 //	SummaryAllMapper summaryAllMapper;
 	@Resource
@@ -64,10 +64,12 @@ public class AmzAdvSumProductAdsServiceImpl implements IAmzAdvSumProductAdsServi
 				Integer attributedConversions = item.get("attributedConversions") != null
 						? Integer.parseInt(item.get("attributedConversions").toString()) : null;
 				BigDecimal attributedSales = new BigDecimal(item.get("attributedSales").toString());
+				Marketplace market = allmarketplace.get(marketplaceId);
 				sumImpressions = sumImpressions + impressions;
 				sumclicks = sumclicks + clicks;
 				sumOrdered = sumOrdered + (attributedConversions == null ? attributedUnitsOrdered : attributedConversions);
-				Marketplace market = allmarketplace.get(marketplaceId);
+				attributedSales=ExchangeRateUtil.changeCurrencyByLocal(market.getCurrency(), currency, attributedSales);
+				cost=ExchangeRateUtil.changeCurrencyByLocal(market.getCurrency(), currency, cost);
 				sumcost = sumcost.add(cost);
 				sumSales = sumSales.add(attributedSales);
 			}
@@ -148,8 +150,10 @@ public class AmzAdvSumProductAdsServiceImpl implements IAmzAdvSumProductAdsServi
 					sumclicks = sumclicks + clicks;
 					sumOrdered = sumOrdered + (attributedConversions == null ? attributedUnitsOrdered : attributedConversions);
 					Marketplace market = allmarketplace.get(marketplaceId);
-					sumcost = sumcost.add(cost);
+					attributedSales=ExchangeRateUtil.changeCurrencyByLocal(market.getCurrency(), currency, attributedSales);
+					cost=ExchangeRateUtil.changeCurrencyByLocal(market.getCurrency(), currency, cost);
 					sumSales = sumSales.add(attributedSales);
+					sumcost = sumcost.add(cost);
 					MathContext mc = new MathContext(2, RoundingMode.HALF_UP);
 					if(clicks != null && clicks != 0) {
 						Integer order = (attributedConversions == null ? attributedUnitsOrdered : attributedConversions);

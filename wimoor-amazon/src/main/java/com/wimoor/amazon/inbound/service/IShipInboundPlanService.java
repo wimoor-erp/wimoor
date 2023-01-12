@@ -35,5 +35,11 @@ public interface IShipInboundPlanService extends IService<ShipInboundPlan> {
 	Map<String,Object> uploadShipListByExcel(Sheet sheet, Map<String, Object> map);
 	
 	public ChartLine shipArrivalTimeChart(String groupid,String amazonAuthId, String sku,String marketplaceid, int daysize,UserInfo userinfo);
+
+	List<Map<String, Object>> getShipRecordByMarket(String marketplaceid, String 	groupid);
+	
+	List<Map<String, Object>> getShipRecord(String shopid, String marketplaceid, String sku);
+
+	List<Map<String, Object>> getShipBadRecord(String companyid, String marketplaceid, String sku);
 	
 }

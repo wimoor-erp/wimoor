@@ -33,6 +33,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.amazon.api.AdminClientOneFeign;
 import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
@@ -46,14 +47,19 @@ import com.wimoor.amazon.common.pojo.entity.DimensionsInfo;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue;
 import com.wimoor.amazon.feed.service.ISubmitfeedService;
+import com.wimoor.amazon.finances.mapper.FBAStorageFeeReportMapper;
+import com.wimoor.amazon.finances.pojo.entity.FBAStorageFeeReport;
 import com.wimoor.amazon.finances.pojo.entity.OrdersFinancial;
 import com.wimoor.amazon.finances.service.IAmzFinConfigService;
 import com.wimoor.amazon.inbound.service.IShipInboundTransService;
+import com.wimoor.amazon.inventory.mapper.AmzInventoryCountryReportMapper;
+import com.wimoor.amazon.inventory.pojo.entity.AmzInventoryCountryReport;
 import com.wimoor.amazon.orders.service.IOrderManagerService;
 import com.wimoor.amazon.product.mapper.AmzProductPriceOptMapper;
 import com.wimoor.amazon.product.mapper.ProductInOptMapper;
 import com.wimoor.amazon.product.mapper.ProductInOrderMapper;
 import com.wimoor.amazon.product.mapper.ProductInProfitMapper;
+import com.wimoor.amazon.product.mapper.ProductInTagsMapper;
 import com.wimoor.amazon.product.mapper.ProductInfoMapper;
 import com.wimoor.amazon.product.mapper.ProductInfoStatusDefineMapper;
 import com.wimoor.amazon.product.mapper.ProductPriceLockedMapper;
@@ -65,6 +71,7 @@ import com.wimoor.amazon.product.pojo.entity.AmzProductPriceOpt;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
 import com.wimoor.amazon.product.pojo.entity.ProductInOrder;
 import com.wimoor.amazon.product.pojo.entity.ProductInProfit;
+import com.wimoor.amazon.product.pojo.entity.ProductInTags;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.pojo.entity.ProductInfoStatusDefine;
 import com.wimoor.amazon.product.pojo.entity.ProductPrice;
@@ -79,10 +86,6 @@ import com.wimoor.amazon.profit.pojo.vo.CostDetail;
 import com.wimoor.amazon.profit.service.ICalculateProfitService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
-import com.wimoor.amazon.report.mapper.AmzInventoryCountryReportMapper;
-import com.wimoor.amazon.report.mapper.FBAStorageFeeReportMapper;
-import com.wimoor.amazon.report.pojo.entity.AmzInventoryCountryReport;
-import com.wimoor.amazon.report.pojo.entity.FBAStorageFeeReport;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
@@ -109,6 +112,8 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
     IAmazonAuthorityService amazonAuthorityService;
     @Autowired
     ErpClientOneFeign erpClientOneFeign;
+    @Autowired
+    AdminClientOneFeign adminClientOneFeign;
     @Autowired
     MaterialMapper materialMapper;
     @Autowired
@@ -155,6 +160,8 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 	IAmzFinConfigService amzFinConfigService;
 	@Autowired
 	IPictureService iPictureService;
+	@Autowired
+	ProductInTagsMapper productInTagsMapper;
 	@Override
 	public List<ProductInfo> selectBySku(String sku, String marketplaceid, String amazonAuthId) {
 		// TODO Auto-generated method stub
@@ -232,16 +239,55 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 	public List<Map<String, Object>> findShopSku(String shopid, String sku) {
 		return this.baseMapper.findShopSku(shopid, sku);
 	}
-
+	
+    public List<String> getPidListByTagList(List<String> taglist,Object shopid,Object amazonAuthId,Object groupid,Object groupList,Object marketplace) {
+    	if(taglist!=null && taglist.size()>0) {
+			Result<List<String>> results=null;
+			HashMap<String,Object> param=new HashMap<String,Object>();
+			try {
+				if(taglist!=null&&taglist.size()>0) {
+					results = erpClientOneFeign.getMskuByTagList(taglist);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			if(Result.isSuccess(results)&&results!=null ){
+				List<String> mskulist=results.getData();
+				if( mskulist!=null && mskulist.size()>0) {
+					param.put("mskulist", mskulist);
+				}
+				
+			}
+			param.put("taglist", taglist);
+			param.put("shopid", shopid);
+			param.put("amazonAuthId", amazonAuthId);
+			param.put("groupid", groupid);
+			param.put("groupList", groupList);
+			param.put("marketplace", marketplace);
+			List<String> pidlist=	productInTagsMapper.getPidList(param);
+			return pidlist;
+		}
+    	return null;
+    }
 	@Override
 	public IPage<AmzProductListVo> getListByUser(UserInfo userinfo, ProductListQuery query, Map<String, Object> parameter) {
 		// TODO Auto-generated method stub
 		parameter.put("shopid", userinfo.getCompanyid());
+		List<String> taglist = query.getTaglist();//123,456,122,
+		parameter.put("pidlist",getPidListByTagList(taglist
+													,parameter.get("shopid")
+													,parameter.get("amazonAuthId")
+													,parameter.get("groupid")
+													,parameter.get("groupList")
+													,parameter.get("marketplace")));
 		IPage<AmzProductListVo> productList = this.baseMapper.selectDetialByAuth(query.getPage(),parameter);
 		if(productList!=null && productList.getRecords()!=null && productList.getRecords().size()>0) {
 			for(AmzProductListVo item:productList.getRecords()) {
 				item.setLandedCurrency(GeneralUtil.formatCurrency(item.getLandedCurrency()));
 				item.setItemshow(false);
+				if(item.getOptstatuscolor()!=null) {
+					item.setOptstatuscolor(GeneralUtil.getColorType(item.getOptstatuscolor()).toString());
+				}
 				LambdaQueryWrapper<AmzInventoryCountryReport> queryWrapper=new LambdaQueryWrapper<AmzInventoryCountryReport>();
 				queryWrapper.eq(AmzInventoryCountryReport::getAuthid, item.getAmazonAuthId());
 				queryWrapper.eq(AmzInventoryCountryReport::getSku, item.getSku());
@@ -250,6 +296,46 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 				if(list!=null && list.size()>0) {
 					item.setCountryinv(list.get(0).getQuantity());
 				}
+				LambdaQueryWrapper<AmzInventoryCountryReport> queryWrapper2=new LambdaQueryWrapper<AmzInventoryCountryReport>();
+				queryWrapper2.eq(AmzInventoryCountryReport::getAuthid, item.getAmazonAuthId());
+				queryWrapper2.eq(AmzInventoryCountryReport::getSku, item.getSku());
+				List<AmzInventoryCountryReport> eulist = amzInventoryCountryReportMapper.selectList(queryWrapper2);
+				if(eulist!=null && eulist.size()>0) {
+					int sum=0;
+					for (int i = 0; i < eulist.size(); i++) {
+						AmzInventoryCountryReport items = eulist.get(i);
+						if(items.getCountry().equals("DE") || items.getCountry().equals("PL")) {
+							sum+=items.getQuantity();
+						}
+					}
+					item.setCzinv(sum);
+				}
+				String pid=item.getId();
+				LambdaQueryWrapper<ProductInTags> queryTagsIdsList=new LambdaQueryWrapper<ProductInTags>();
+				queryTagsIdsList.eq(ProductInTags::getPid,pid);
+				Set<String> tagsIdsList=new HashSet<String>();
+				List<ProductInTags>  productInTagsList= productInTagsMapper.selectList(queryTagsIdsList);
+				for(ProductInTags tagitem:productInTagsList) {
+					tagsIdsList.add(tagitem.getTagid());
+				}
+				try {
+					if(item!=null&&item.getMsku()!=null) {
+						Result<List<String>> materialTagsIdsListResult  =erpClientOneFeign.getTagsIdsListByMsku(item.getMsku(),userinfo.getCompanyid());
+						List<String> materialTagsIdsList=materialTagsIdsListResult.getData();
+						if(materialTagsIdsList!=null && materialTagsIdsList.size()>0) {
+							for(String tagid:materialTagsIdsList) {
+								tagsIdsList.add(tagid);
+							}
+						}
+						Result<List<Map<String,Object>>> tagnamelistResult=adminClientOneFeign.findTagsNameByIds(tagsIdsList);
+						List<Map<String,Object>> tagnamelist=tagnamelistResult.getData();
+						item.setTagNameList(tagnamelist);
+					}
+					
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
+				
 			}
 		}
 	     getWeekOtherCostForSKU(userinfo, productList);
@@ -914,7 +1000,6 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 			return map;
 		}
 		@Override
-
 		public void showProfitDetial(Map<String, Object> map) {
 			if(map.get("pid")==null||map.get("myprice")==null) {
 				return;
@@ -941,9 +1026,14 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 		        	msku=proopt.getMsku();
 		        }
 		    	BigDecimal cost =new BigDecimal("0");
-				Result<Map<String, Object>> result = erpClientOneFeign.getMaterialBySKUAction(msku, auth.getShopId());
+		    	Result<Map<String, Object>> result =null;
+		    	try {
+		    		result = erpClientOneFeign.getMaterialBySKUAction(msku, auth.getShopId());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				DimensionsInfo dim_local = null;
-				if(Result.isSuccess(result)) {
+				if(result!=null && Result.isSuccess(result)) {
 					Map<String, Object> data = result.getData();
 					if(data!=null) {
 						String length=data.get("length")!=null?data.get("length").toString():"0";
@@ -986,6 +1076,9 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 				ProfitConfig profitcfg = profitCfgService.findConfigAction(profitcfgid);
 				DimensionsInfo dim_amz = dimensionsInfoMapper.selectById(info.getPageDimensions());
 				CostDetail costDetail = calculateProfitService.getProfit(info, myprice, auth,dim_local,cost);
+				if(costDetail==null) {
+					return ;
+				}
 				costDetailStr = GeneralUtil.toJSON(costDetail);
 				map.put("avgsales", myprice);
 				map.put("productopt", proopt);
@@ -1136,5 +1229,11 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 			}
 			result.put("msku",msku);
 			return result;
+		}
+		
+		@Override
+		public String findMSKUBySKUMarket(String psku, String marketplaceid, String id) {
+			// TODO Auto-generated method stub
+			return this.baseMapper.findMSKUBySKUMarket(psku, marketplaceid, id);
 		}
 }

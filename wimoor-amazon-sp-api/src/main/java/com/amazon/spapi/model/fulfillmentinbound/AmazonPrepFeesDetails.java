@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiModelProperty;
  * The fees for Amazon to prep goods for shipment.
  */
 @ApiModel(description = "The fees for Amazon to prep goods for shipment.")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-07-29T15:40:46.150+08:00")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2022-12-21T11:58:54.268+08:00")
 public class AmazonPrepFeesDetails {
   @SerializedName("PrepInstruction")
   private PrepInstruction prepInstruction = null;

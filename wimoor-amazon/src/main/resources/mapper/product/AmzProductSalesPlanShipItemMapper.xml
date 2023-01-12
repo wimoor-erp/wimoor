@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductSalesPlanShipItemMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlanShipItem">
+        <id column="id" property="id" />
+        <result column="sku" property="sku" />
+        <result column="msku" property="msku" />
+        <result column="shopid" property="shopid" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="groupid" property="groupid" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="warehouseid" property="warehouseid" />
+        <result column="overseaid" property="overseaid" />
+        <result column="transtype" property="transtype" />
+        <result column="amount" property="amount" />
+        <result column="aftersalesday" property="aftersalesday" />
+        <result column="opttime" property="opttime" />
+        <result column="operator" property="operator" />
+    </resultMap>
+    
+<select id="getSummary" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT COUNT(0) skunum,SUM(amount) amount FROM (
+		SELECT msku,SUM(amount) amount from t_amz_product_sales_plan_ship_item
+		WHERE groupid=#{groupid,jdbcType=CHAR} 
+		and warehouseid=#{warehouseid,jdbcType=CHAR} 
+		AND shopid=#{shopid,jdbcType=CHAR}
+		GROUP BY msku ) v
+</select>
+
+<update id="updateBatch"  parameterType="java.lang.String">
+		 update t_amz_product_sales_plan_ship_item set batchnumber=#{batchnumber,jdbcType=CHAR} 
+		 where id=#{id,jdbcType=CHAR} 
+</update>
+
+<delete id="moveBatch"  parameterType="java.lang.String">
+         insert into t_amz_product_sales_plan_ship_item_his
+		 select* from t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR};
+		 delete from  t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR};
+</delete>
+
+</mapper>

@@ -78,11 +78,19 @@ public class ProductInfoController {
 	    
 	    @GetMapping("/getDim")
 		public Result<Item> getAsinItem(String marketplaceid,String asin) {
+					    	UserInfo user = UserInfoContext.get();
+							String shopid = user.getCompanyid();
 							Marketplace marketPlace = marketplaceService.findMapByMarketplaceId().get(marketplaceid);
 							AmazonAuthority amazonAuthority = null;
-							List<AmazonAuthority> authlist = amazonAuthorityService.selectByMarket(marketplaceid);
-							int d=Math.round(authlist.size());
-					        amazonAuthority =authlist.get(d-2);
+							List<AmazonAuthority>  authlist=amazonAuthorityService.selectByShopAndMarket(shopid,marketplaceid);
+							if(authlist==null||authlist.size()==0) {
+								authlist = amazonAuthorityService.selectByMarket(marketplaceid);
+							}
+							int d=(int)(Math.random()*100000)%authlist.size();
+							if(d-2>0) {
+								d=d-2;
+							}
+					        amazonAuthority =authlist.get(d);
 							amazonAuthority.setMarketPlace(marketPlace);
 							Item response = iProductCaptureCatalogItemService.captureCatalogProductDim(amazonAuthority,asin,Arrays.asList(marketPlace.getMarketplaceid()));
 						    return Result.success(response);

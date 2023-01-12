@@ -8,6 +8,7 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.erp.common.pojo.entity.ErpBaseEntity;
@@ -60,6 +61,14 @@ public class Warehouse  extends ErpBaseEntity{
     @ApiModelProperty(value = "海外仓id")
     private BigInteger fbawareid;
 
+    @ApiModelProperty(value = "店铺id")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private BigInteger groupid;
+    
+    @ApiModelProperty(value = "国家")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String country;
+    
     @ApiModelProperty(value = "父亲id")
     private String parentid;
     
@@ -92,6 +101,10 @@ public class Warehouse  extends ErpBaseEntity{
     @ApiModelProperty(value = "当为true时，库存可以为负数")
     @TableField(value="ishungry")
     private Boolean ishungry;
+    
+    @ApiModelProperty(value = "地址id")
+    @TableField(value="addressid")
+    private String addressid;
     
     @ApiModelProperty(value = "子仓位列表")
     @TableField(exist = false)

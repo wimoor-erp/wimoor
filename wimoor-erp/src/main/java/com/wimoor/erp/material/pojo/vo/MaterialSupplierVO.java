@@ -3,7 +3,8 @@ package com.wimoor.erp.material.pojo.vo;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+
+import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -30,7 +31,7 @@ public class MaterialSupplierVO {
 	String purchaseUrl;
 	
 	@ApiModelProperty(value = "采购编码")
-	String purchaseCode;
+	String productCode;
 	
 	@ApiModelProperty(value = "其他采购成本")
 	BigDecimal otherCost;
@@ -56,8 +57,11 @@ public class MaterialSupplierVO {
 	@ApiModelProperty(value = "操作人")
 	String username;
 	
-	@ApiModelProperty(value = "供应商List")
-	List<Map<String,Object>> stepList;
+	@ApiModelProperty(value = "供应商名称")
+	String name;
+	
+	@ApiModelProperty(value = "阶梯价List")
+	List<MaterialSupplierStepwise> stepList;
 	
 	
 	

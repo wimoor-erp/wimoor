@@ -16,7 +16,7 @@
     <select id="findForDetailRefresh"  resultType="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh" parameterType="java.lang.String">
            SELECT rr.* FROM   t_amz_product_refresh rr
            where rr.amazonauthid=#{amazonauthid,jdbcType=CHAR}  and rr.notfound=0
-           and rr.detail_refresh_time &lt; date_sub(now(), interval 3 day)
+           and rr.detail_refresh_time &lt; date_sub(now(), interval 1 day)
            order by rr.detail_refresh_time asc,rr.isparent asc,rr.sku asc
            LIMIT 1 ;
     </select>

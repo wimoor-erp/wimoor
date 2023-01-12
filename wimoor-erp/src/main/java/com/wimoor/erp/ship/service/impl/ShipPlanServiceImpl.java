@@ -10,33 +10,36 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
-
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.result.Result;
+import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AmazonClientOneFeign;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
 import com.wimoor.erp.assembly.service.IAssemblyFormService;
+import com.wimoor.erp.material.pojo.entity.Material;
+import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.purchase.mapper.PurchaseFormEntryMapper;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
-import com.wimoor.erp.purchase.pojo.entity.PurchaseWareHouseMaterial;
 import com.wimoor.erp.purchase.service.IPurchaseFormService;
 import com.wimoor.erp.purchase.service.IPurchaseWareHouseMaterialService;
 import com.wimoor.erp.ship.mapper.ShipPlanItemMapper;
 import com.wimoor.erp.ship.mapper.ShipPlanMapper;
+import com.wimoor.erp.ship.mapper.ShipPlanModelItemMapper;
+import com.wimoor.erp.ship.mapper.ShipPlanModelMapper;
 import com.wimoor.erp.ship.mapper.ShipPlanSubMapper;
 import com.wimoor.erp.ship.pojo.entity.ShipPlan;
 import com.wimoor.erp.ship.pojo.entity.ShipPlanItem;
+import com.wimoor.erp.ship.pojo.entity.ShipPlanModel;
+import com.wimoor.erp.ship.pojo.entity.ShipPlanModelItem;
 import com.wimoor.erp.ship.pojo.entity.ShipPlanSub;
 import com.wimoor.erp.ship.pojo.entity.ShipPlanSubEuItem;
 import com.wimoor.erp.ship.service.IShipPlanService;
 import com.wimoor.erp.ship.service.IShipPlanSubEuItemService;
 import com.wimoor.erp.ship.service.IShipPlanSubService;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service("shipPlanService")
@@ -51,23 +54,72 @@ public class ShipPlanServiceImpl extends  ServiceImpl<ShipPlanMapper,ShipPlan> i
 	final ShipPlanSubMapper shipPlanSubMapper;
     final IShipPlanSubService shipPlanSubService;
     final IShipPlanSubEuItemService shipPlanSubEuItemService;
-    final AmazonClientOneFeign amazonClientOneFeign;
+    final ShipPlanModelMapper shipPlanModelMapper;
+    final ShipPlanModelItemMapper shipPlanModelItemMapper;
+
+    
 	public List<Map<String, Object>> getSummaryPlan(String planid) {
 		return shipPlanItemMapper.summaryPlan(planid);
 	}
 	
+	public ShipPlan getPlan(UserInfo user,String groupid,String warehouseid) {
+		LambdaQueryWrapper<ShipPlan> query=new LambdaQueryWrapper<ShipPlan>();
+		query.eq(ShipPlan::getShopid,user.getCompanyid());
+		query.eq(ShipPlan::getAmazongroupid, groupid);
+		query.eq(ShipPlan::getWarehouseid, warehouseid);
+		ShipPlan plan = this.baseMapper.selectOne(query);
+		if(plan==null) {
+			plan=new ShipPlan();
+			plan.setAmazongroupid(groupid);
+			plan.setShopid(user.getCompanyid());
+			plan.setWarehouseid(warehouseid);
+			plan.setOperator(user.getId());
+			plan.setOpttime(new Date());
+			plan.setStatus(1);
+			plan.setTotalnum(0);
+			plan.setTotalamount(0);
+			this.baseMapper.insert(plan);
+		}
+		return plan;
+	}
+	
+	public boolean isEUNotUK(String marketplaceid) {
+		 if(marketplaceid.equals("AMEN7PMS3EDWL"))return true;
+		 if(marketplaceid.equals("APJ6JRA9NG5V4"))return true;
+		 if(marketplaceid.equals("ARBP9OOSHTCHU"))return true;
+		 if(marketplaceid.equals("A13V1IB3VIYZZH"))return true;
+		 if(marketplaceid.equals("A17E79C6D8DWNP"))return true;
+		 if(marketplaceid.equals("A1805IZSGTT6HS"))return true;
+		 if(marketplaceid.equals("A1C3SOZRARQ6R3"))return true;
+		 if(marketplaceid.equals("A1PA6795UKMFR9"))return true;
+		 if(marketplaceid.equals("A1RKKUPIHCS9HS"))return true;
+		 if(marketplaceid.equals("A2NODRKZP88ZB9"))return true;
+		 if(marketplaceid.equals("A33AVAJ2PDY3EV"))return true;
+		 return false;
+	}
 	public void afterShipInboundPlanSave(String planid,String planmarketplaceid, Boolean issplit, List<String> skulist) {
 		QueryWrapper<ShipPlanSub> subQuery=new QueryWrapper<ShipPlanSub>();
 		subQuery.eq("planid", planid);
+		if(issplit==null) {
+			issplit=false;
+		}
+		if(issplit==false&&isEUNotUK(planmarketplaceid)) {
+			planmarketplaceid="EU";
+		}
 		subQuery.eq("marketplaceid", planmarketplaceid);
 		subQuery.eq("status", 1);
-		ShipPlanSub plansub =shipPlanSubMapper.selectOne(subQuery);
+		List<ShipPlanSub> plansubList =shipPlanSubMapper.selectList(subQuery);
+		if(plansubList==null||plansubList.size()==0)return ;
+		ShipPlanSub plansub=plansubList.get(0);
 		ShipPlan plan = this.baseMapper.selectById(plansub.getPlanid());
+		if(plan==null) {
+			return ;
+		}
 		String marketplaceid = plansub.getMarketplaceid();
 		if ("EU".equals(planmarketplaceid)) {
 			QueryWrapper<ShipPlanSubEuItem> query = new QueryWrapper<ShipPlanSubEuItem>();
 			query.eq("plansubid", plansub.getId());
-			if ("true".equals(issplit)) {
+			if (issplit) {
 				query.eq("marketplaceid", marketplaceid);
 				shipPlanSubEuItemService.remove(query);
 				QueryWrapper<ShipPlanSubEuItem> query2 = new QueryWrapper<ShipPlanSubEuItem>();
@@ -203,17 +255,6 @@ public class ShipPlanServiceImpl extends  ServiceImpl<ShipPlanMapper,ShipPlan> i
 		super.updateById(plan);
 	}
 	
-	@Override
-	public IPage<Map<String, Object>> getPlan(Page<Object> page, Map<String, Object> param) {
-		// TODO Auto-generated method stub
-		IPage<Map<String, Object>> list = getSale(page,param);
-		for (int i = 0; i < list.getRecords().size(); i++) {
-			Map<String, Object> map1 = list.getRecords().get(i);
-			 map1.put("lastorder", getLastForm(map1));
-		}
-		return list;
-	}
-	
 	public String getLastForm(Map<String, Object> map) {
 		Object id = map.get("id");
 		Object issfg = map.get("issfg");
@@ -244,31 +285,5 @@ public class ShipPlanServiceImpl extends  ServiceImpl<ShipPlanMapper,ShipPlan> i
 		}
 		return lastform;
 	}
-	
-	public IPage<Map<String, Object>> getSale(Page<?> page,Map<String, Object> map) {
-		Object sortparam = map.get("sortparam");
-		Object orderparam = map.get("orderparam");
-		Object defoutwarehouseid = map.get("defoutwarehouseid");
-		String planid = map.get("planid").toString();
-		if (sortparam != null && GeneralUtil.checkParamSql(sortparam.toString()) == false) {
-			map.put("sortparam", null);
-		}
-		if (orderparam != null && GeneralUtil.checkParamSql(orderparam.toString()) == false) {
-			map.put("orderparam", null);
-		}
-		if(defoutwarehouseid != null && StrUtil.isNotEmpty(defoutwarehouseid.toString())) {
-			List<String> materialList = new ArrayList<String>();
-			List<PurchaseWareHouseMaterial> list = purchaseWareHouseMaterialService.getPurchaseForPlanIdAndWareHouseId(planid, defoutwarehouseid.toString());
-			if(list != null && list.size() > 0) {
-				for(PurchaseWareHouseMaterial purchaseWareHouseMaterial : list) {
-					materialList.add(purchaseWareHouseMaterial.getMaterialid());
-				}
-				map.put("materialList", materialList);
-			} 
-		}
-		return this.baseMapper.getPlan(page,map);
-	}
-
-
  
 }

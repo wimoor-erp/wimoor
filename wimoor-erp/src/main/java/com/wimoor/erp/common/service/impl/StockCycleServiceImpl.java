@@ -36,6 +36,7 @@ public class StockCycleServiceImpl extends  ServiceImpl<StockCycleMapper,StockCy
 		String materialid = map.get("materialid").toString();
 		String warehouseid = map.get("warehouseid").toString();
 		Integer num = map.get("num") == null ? null : Integer.parseInt(map.get("num").toString());
+		Integer mincycle = map.get("mincycle") == null ? null : Integer.parseInt(map.get("mincycle").toString());
         QueryWrapper<StockCycle> queryWrapper = new QueryWrapper<StockCycle>();
 		queryWrapper.eq("warehouseid", warehouseid);
 		queryWrapper.eq("materialid", materialid);
@@ -43,15 +44,17 @@ public class StockCycleServiceImpl extends  ServiceImpl<StockCycleMapper,StockCy
 		if(stockcy == null) {
 			stockcy = new StockCycle();
 			stockcy.setStockingcycle(num);
+			stockcy.setMincycle(mincycle);
 			stockcy.setMaterialid(materialid);
 			stockcy.setWarehouseid(warehouseid);
 			stockcy.setOperator(user.getId());
-			stockcy.setOperator(user.getId());
+			stockcy.setOpttime(new Date());
 			return this.save(stockcy);
 		}else {
 			stockcy.setStockingcycle(num);
+			stockcy.setMincycle(mincycle);
 			stockcy.setOperator(user.getId());
-			stockcy.setOperator(user.getId());
+			stockcy.setOpttime(new Date());
 			return this.updateById(stockcy);
 		}
 	}

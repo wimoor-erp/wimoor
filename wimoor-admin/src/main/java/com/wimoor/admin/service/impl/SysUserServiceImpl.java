@@ -1,22 +1,28 @@
 package com.wimoor.admin.service.impl;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.admin.common.util.PasswordHelper;
+import com.wimoor.admin.mapper.SysCompanyMapper;
 import com.wimoor.admin.mapper.SysUserDatalimitMapper;
 import com.wimoor.admin.mapper.SysUserGroupMapper;
 import com.wimoor.admin.mapper.SysUserInfoMapper;
@@ -24,6 +30,8 @@ import com.wimoor.admin.mapper.SysUserMapper;
 import com.wimoor.admin.mapper.SysUserShopMapper;
 import com.wimoor.admin.pojo.dto.UserDTO;
 import com.wimoor.admin.pojo.dto.UserInsertDTO;
+import com.wimoor.admin.pojo.dto.UserRegisterInfoDTO;
+import com.wimoor.admin.pojo.entity.SysCompany;
 import com.wimoor.admin.pojo.entity.SysDictItem;
 import com.wimoor.admin.pojo.entity.SysRole;
 import com.wimoor.admin.pojo.entity.SysUser;
@@ -31,6 +39,7 @@ import com.wimoor.admin.pojo.entity.SysUserDatalimit;
 import com.wimoor.admin.pojo.entity.SysUserGroup;
 import com.wimoor.admin.pojo.entity.SysUserInfo;
 import com.wimoor.admin.pojo.entity.SysUserRole;
+import com.wimoor.admin.pojo.entity.SysUserShop;
 import com.wimoor.admin.pojo.entity.SysUserWechatMP;
 import com.wimoor.admin.pojo.vo.UserVO;
 import com.wimoor.admin.service.ISysDictItemService;
@@ -44,9 +53,14 @@ import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserType;
+import com.wimoor.manager.pojo.entity.ManagerLimit;
+import com.wimoor.manager.pojo.entity.SysTariffPackages;
+import com.wimoor.manager.service.IManagerLimitService;
+import com.wimoor.manager.service.ISysTariffPackagesService;
 import com.wimoor.util.SpringUtil;
 import com.wimoor.util.UUIDUtil;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 
@@ -74,6 +88,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	private final ISysUserDatalimitService iSysUserDatalimitService;
 	
 	private final ISysDictItemService iSysDictItemService;
+	
+	private final SysCompanyMapper sysCompanyMapper ;
+	
+	private final ISysTariffPackagesService iSysTariffPackagesService;
+	
+	private final IManagerLimitService iManagerLimitService;
+	
+	@Value("${sys.admin.id}")
+	String adminid;
+	
 	public BigInteger getShortUUID() {
 		// TODO Auto-generated method stub
 		return this.baseMapper.getShortUUID();
@@ -155,7 +179,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	}
 	
 	@Override
-	public SysUser bindOpenId(String openid, String account, String password) {
+	public SysUser bindOpenId(String openid,String appType, String account, String password) {
 		// TODO Auto-generated method stub
 		SysUser m_user = this.findOneByAccountOrEmail(account);
 		if(m_user==null) {
@@ -163,7 +187,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		}
 		if(m_user.getPassword().equals(PasswordHelper.encryptPassword(account, password, m_user.getSalt()))) {
 			
-			this.addUserWechatMPInfo(m_user,null,null,openid,"app");
+			this.addUserWechatMPInfo(m_user,null,null,openid,appType);
 			String shopid = getUserShopByUser(m_user);
 			m_user.setShopid(shopid);
 			m_user.setUserinfo( this.baseMapper.findUserInfoById(m_user.getId()));
@@ -270,7 +294,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		record.setRefreshToken(refreshtoken);
 		record.setUserid(m_user.getId());
 		record.setFtype(ftype);
-		return iSysUserWechatMPService.save(record);
+		
+		LambdaQueryWrapper<SysUserWechatMP> query=new LambdaQueryWrapper<SysUserWechatMP>();
+		query.eq(SysUserWechatMP::getFtype, ftype);
+		query.eq(SysUserWechatMP::getUserid, m_user.getId());
+		SysUserWechatMP old = iSysUserWechatMPService.getOne(query);
+		if(old!=null) {
+			return iSysUserWechatMPService.update(record, query);
+		}else {
+			return iSysUserWechatMPService.save(record);
+		}
+	
 	}
 
 	@Override
@@ -374,9 +408,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	} 
 	
 	@Override
-	public List<SysUser> findAppUserByOpenid(String openid) {
+	public List<SysUser> findAppUserByOpenid(String openid,String appType) {
 		// TODO Auto-generated method stub
-		return findUserByOpenid(openid,"app");
+		return findUserByOpenid(openid,appType);
 	}
 
 	@Override
@@ -516,6 +550,105 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     		}
     	}
 		return true;
+	}
+
+	@Override
+	public SysUser saveRegister(UserRegisterInfoDTO dto) {
+		// TODO Auto-generated method stub
+		SysUser existUser =this.findOneByAccountOrEmail(dto.getAccount());
+		if (existUser != null) {
+			boolean logicDelete = existUser.getLogicDelete();
+			if (!logicDelete && existUser.getIsActive()) {// 如果账号没有被删除,提示账号已经被注册使用。如果已经被删除，允许再次注册。
+				 throw new BizException("账号已存在，请重新注册！");
+			} else if (!logicDelete && !existUser.getIsActive()) {
+				this.removeById(existUser.getId());
+				sysUserInfoMapper.deleteById(existUser.getId());
+			} else {
+				this.removeById(existUser.getId());
+				sysUserInfoMapper.deleteById(existUser.getId());
+			}
+		}
+	 
+		SysUser user = new SysUser();
+		user.setFtype(dto.getFtype());
+		user.setAccount(dto.getAccount());
+		user.setSalt(UUID.randomUUID().toString());
+		user.setPassword(PasswordHelper.encryptPassword(dto.getAccount(),dto.getPassword(),user.getSalt()));
+		user.setLeaderId(adminid);
+		Calendar c = Calendar.getInstance();
+		user.setCreateDate(c.getTime());
+		c.add(Calendar.MONTH, 1200);
+		user.setLosingeffect(c.getTime());
+		user.setLogicDelete(false);
+		user.setDisable(false);
+		if (dto.getFtype().equals("email")) {
+			user.setIsActive(false);// 修改：注册的账号先开始不可用，激活之后才可用，2019-06-18
+		} else {
+			user.setIsActive(true);
+		}
+		user.setHasEmail(false);
+	    this.save(user);
+		SysUserInfo userInfo = new SysUserInfo();
+		userInfo.setName(dto.getName());
+		userInfo.setCompany(dto.getCompany());
+		userInfo.setEmail(dto.getEmail());
+		userInfo.setId(user.getId());
+		sysUserInfoMapper.insert(userInfo);
+		
+		SysCompany company = new SysCompany();
+		company.setName(dto.getCompany());
+		sysCompanyMapper.insert(company);
+		
+		LambdaQueryWrapper<SysTariffPackages> query=new LambdaQueryWrapper<SysTariffPackages>();
+		query.eq(SysTariffPackages::getIsdefault, Boolean.TRUE);
+		SysTariffPackages tariffPackage = iSysTariffPackagesService.getOne(query);
+		SysRole role = iSysRoleService.getById(tariffPackage.getRoleId());
+		SysUserRole userRole = new SysUserRole();
+		userRole.setUserId(new BigInteger(user.getId()));
+		userRole.setRoleId(role.getId());
+		iSysUserRoleService.save(userRole);
+		
+		SysUserShop userShop = new SysUserShop();
+		userShop.setUserId(user.getId());
+		userShop.setShopId(company.getId());
+		sysUserShopMapper.insert(userShop);
+		// 添加管理员权限
+		ManagerLimit managerLimit = new ManagerLimit();
+		managerLimit.setTariffpackage(tariffPackage.getId());
+		managerLimit.setMaxOrderCount(tariffPackage.getMaxOrderCount());
+		managerLimit.setMaxMember(tariffPackage.getMaxMember());
+		managerLimit.setMaxProfitPlanCount(tariffPackage.getMaxProfitPlanCount());
+		managerLimit.setMaxdayOpenAdvCount(tariffPackage.getDayOpenAdvCount());
+		managerLimit.setMaxShopCount(tariffPackage.getMaxShopCount());
+		managerLimit.setMaxProductCount(tariffPackage.getMaxProductCount());
+		managerLimit.setMaxMarketCount(tariffPackage.getMaxMarketCount());
+		managerLimit.setExistdayOpenAdvCount(0);
+		managerLimit.setExistMarketCount(0);
+		managerLimit.setExistMember(0);
+		managerLimit.setExistOrderCount(0);
+		managerLimit.setExistProductCount(0);
+		managerLimit.setExistProfitPlanCount(0);
+		managerLimit.setExistShopCount(0);
+		managerLimit.setShopId(new BigInteger(company.getId()));
+		managerLimit.setOpratetime(LocalDateTime.now());
+		managerLimit.setCreatetime(LocalDateTime.now());
+		managerLimit.setLosingEffect(LocalDate.parse("2099-01-01"));
+		iManagerLimitService.save(managerLimit);
+		return user;
+	}
+
+	@Override
+	public SysUser changePassword(UserRegisterInfoDTO dto) {
+		// TODO Auto-generated method stub
+		SysUser existUser =this.findOneByAccountOrEmail(dto.getAccount());
+		if(existUser!=null) {
+			existUser.setSalt(UUID.randomUUID().toString());
+			existUser.setPassword(PasswordHelper.encryptPassword(dto.getAccount(),dto.getPassword(),existUser.getSalt()));
+		    this.updateById(existUser);
+		}else {
+			throw new BizException("未找到对应账号");
+		}
+		return existUser;
 	}
  
 	

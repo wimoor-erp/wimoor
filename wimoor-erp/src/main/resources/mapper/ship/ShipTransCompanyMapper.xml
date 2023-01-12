@@ -84,7 +84,11 @@
    <select id="selectBycom" parameterType="java.lang.String" resultType="java.util.Map">
    select s.id,concat(case when s.subarea is null or s.subarea=''  then '' else concat(s.subarea,'-') end,
                       case when ts.name is null  then '' else concat(ts.name,'-') end ,
-                      case when c.name is null then '' else concat(c.name,'-') end ,s.channame) channame 
+                      case when c.name is null then '' else concat(c.name,'-') end ,s.channame) channame ,
+                   s.price,
+                   s.drate,
+                   s.pretime,
+                   s.priceunits
     from t_erp_ship_transcompany t 
 	left join t_erp_ship_transdetail s on s.company=t.id
 	left join t_erp_ship_transchannel c on c.id=s.channel

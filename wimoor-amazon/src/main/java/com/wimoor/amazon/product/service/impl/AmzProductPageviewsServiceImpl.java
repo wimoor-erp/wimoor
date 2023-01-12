@@ -13,7 +13,6 @@ import com.wimoor.amazon.product.mapper.ProductInOptMapper;
 import com.wimoor.amazon.product.service.IAmzProductPageviewsService;
 import com.wimoor.amazon.report.service.IHandlerReportService;
 import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 
 import cn.hutool.core.util.StrUtil;
@@ -168,7 +167,7 @@ public class AmzProductPageviewsServiceImpl extends ServiceImpl<AmzProductPagevi
 			}
 		    this.baseMapper.deleteByMarketplaceid(marketplaceid, auth.getId(), day);
 			if (pagelist.size() > 0) {
-				this.baseMapper.saveBatch(pagelist);
+				this.saveBatch(pagelist);
 				pagelist.clear();
 				pagelist = null;
 			}

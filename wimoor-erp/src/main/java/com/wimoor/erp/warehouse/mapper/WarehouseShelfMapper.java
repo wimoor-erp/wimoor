@@ -4,6 +4,7 @@ import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelf;
 
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -17,5 +18,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 @Mapper
 public interface WarehouseShelfMapper extends BaseMapper<WarehouseShelf> {
-	
+	Integer getShelfCount(@Param("shopid")String shopid,@Param("addressid")String addressid);
 }

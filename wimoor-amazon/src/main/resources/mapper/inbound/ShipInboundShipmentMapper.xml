@@ -22,7 +22,9 @@
 			select inbound.shipmentId , inbound.name , form.id planid,
 				max(form.marketplaceid) marketplaceid, max(mp.market) countryCode ,
 				count(item.SellerSKU) skuamount, sum(item.Quantity) sumQuantity,
-				case when stat.`status`='WORKING' and inbound.status>=5 then '异常单据' else
+				case when (stat.`status`='WORKING' and inbound.status>=5)
+				or (stat.`status`!='WORKING' and inbound.status&lt;5 and inbound.status>0) 
+				then '状态异常' else
 				stat.name end shipmentstatus, inbound.DestinationFulfillmentCenterId centerId,
 				sum(ifnull(item.QuantityShipped,0)) sumshipped, sum(ifnull(item.QuantityReceived,0)) sumrec,
 				max(detail.channame) channame, max(form.createdate) createdate, max(w.name) warehouse,
@@ -61,7 +63,7 @@
 				and inbound.ShipmentId = #{param.shipmentid,jdbcType=CHAR}
 			</if>
 			<if test="param.auditstatus == 6">
-				and inbound.status = 6
+				and inbound.`status` in (2,3,4,5,6)
 			</if>
 			<if test="param.auditstatus == 5">
 				and inbound.status = 5 and inbound.ShipmentStatus!='RECEIVING'
@@ -109,7 +111,12 @@
 			   	</if>
 		    </if>
 		    <if test="param.hasexceptionnum != null">
-		         and inbound.ignorerec=0 and inbound.status = 6
+		         and ( (inbound.ignorerec=0 and inbound.status = 6 )
+		               or 
+		               (inbound.ignorerec=0 and stat.`status`='WORKING' and inbound.status>=5 )
+		               or 
+		               (inbound.ignorerec=0 and stat.`status`!='WORKING' and inbound.status&lt;5 and inbound.status>0)
+		             )
 		   </if>
 			group by inbound.ShipmentId
 		 <if test="param.hasexceptionnum != null">
@@ -160,7 +167,7 @@
 
 	<select id="findLabelByshipmentid" resultType="java.util.Map" parameterType="java.lang.String">
 		select item.SellerSKU sku, item.FulfillmentNetworkSKU fnsku,
-			item.QuantityShipped quantity, pd.name title , mp.market country
+			item.QuantityShipped quantity, pd.name title , mp.market country,item.ShipmentId code
 		from t_erp_ship_inbounditem item
 		left join t_erp_ship_inboundplan p on p.id=item.inboundplanid
 		left join t_product_info pd on pd.sku=item.SellerSKU and pd.marketplaceid=p.marketplaceid

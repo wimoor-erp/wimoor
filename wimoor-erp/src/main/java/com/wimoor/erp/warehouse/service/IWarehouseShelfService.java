@@ -2,6 +2,7 @@ package com.wimoor.erp.warehouse.service;
 
  
 import com.wimoor.common.user.UserInfo;
+import com.wimoor.erp.warehouse.pojo.entity.ErpWarehouseAddress;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelf;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfTreeVo;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfVo;
@@ -20,7 +21,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IWarehouseShelfService extends IService<WarehouseShelf> {
 
-	List<WarehouseShelfTreeVo> getAllTree(UserInfo user);
+	List<WarehouseShelfTreeVo> getAllTree(UserInfo user, String warehouseid);
 
 	boolean save(List<WarehouseShelf> shelflist);
 
@@ -32,6 +33,10 @@ public interface IWarehouseShelfService extends IService<WarehouseShelf> {
 
 	List<WarehouseShelfVo>  detailWarehouse(UserInfo user,String warehouseid);
 	
-	public WarehouseShelfVo getShelfInfo(UserInfo user,String shelfid); 
+	public WarehouseShelfVo getShelfInfo(UserInfo user,String shelfid);
+
+	WarehouseShelfVo getShelfInfo(UserInfo user, ErpWarehouseAddress address, String shelftreepath);
+
+	WarehouseShelfVo detailWarehouseSum(UserInfo user, String warehouseid); 
 
 }

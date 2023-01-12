@@ -10,18 +10,17 @@ import org.apache.ibatis.annotations.Param;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
+import com.wimoor.erp.ship.pojo.dto.ShipPlanDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface MaterialMapper extends BaseMapper<Material> {
 
-	IPage<Map<String, Object>> findMaterial(Page<?> page,Map<String,Object> map);
+	IPage<Map<String, Object>> findMaterial(Page<?> page,@Param("param")Map<String,Object> map);
 
 	MaterialVO findMaterialById(String id);
 
 	List<Material> selectAllSKUForSelect(@Param("sku")String sku, @Param("shopid")String shopid);
-	
-	List<Map<String,Object>> selectMaterialSize(Map<String,Object>   param);
 	
 	Map<String,Object> findDimAndAsinBymid(@Param("sku")String sku,@Param("shopid")String shopid,@Param("marketplaceid")String marketplaceid,@Param("groupid")String groupid);
 	
@@ -39,7 +38,7 @@ public interface MaterialMapper extends BaseMapper<Material> {
 	
 	List<String> findMarterialForColorOwner(Map<String,Object> param);
 	
-	List<Map<String, Object>> findSKUImageForProduct(Map<String, Object> param);
+	List<Map<String, Object>> findSKUImageForProduct(@Param("maps")Map<String, Object> param);
 
 	List<Map<String, Object>> selectAllMaterialByShop(Map<String, Object> parammap);
 
@@ -52,4 +51,8 @@ public interface MaterialMapper extends BaseMapper<Material> {
 	List<Map<String, Object>> findAllByCondition(Map<String, Object> map);
 
 	List<Map<String, Object>> selectProPriceHisById(String string);
+
+	List<Map<String, Object>> findInventoryByMsku(ShipPlanDTO dto);
+
+	Material getMaterailBySku(@Param("shopid")String shopid, @Param("sku")String sku);
 }

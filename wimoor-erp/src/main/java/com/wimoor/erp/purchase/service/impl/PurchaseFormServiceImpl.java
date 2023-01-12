@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -43,11 +44,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
@@ -58,6 +61,7 @@ import com.wimoor.erp.api.AdminClientOneFeign;
 import com.wimoor.erp.assembly.service.IAssemblyFormEntryService;
 import com.wimoor.erp.assembly.service.IAssemblyFormService;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
+import com.wimoor.erp.common.pojo.entity.EnumByFormType;
 import com.wimoor.erp.common.pojo.entity.EnumByInventory;
 import com.wimoor.erp.common.pojo.entity.Operate;
 import com.wimoor.erp.common.pojo.entity.Status;
@@ -99,7 +103,9 @@ import com.wimoor.erp.purchase.service.IPurchaseFormService;
 import com.wimoor.erp.purchase.service.IPurchasePlanService;
 import com.wimoor.erp.purchase.service.IPurchaseWareHouseStatusService;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
+import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventoryOptRecord;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
+import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryOptRecordService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -173,6 +179,8 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 	final IPurchaseFormEntryAlibabaInfoService purchaseFormEntryAlibabaInfoService;
 	
 	final AdminClientOneFeign adminClientOneFeign;
+	
+	final IWarehouseShelfInventoryOptRecordService iWarehouseShelfInventoryOptRecordService;
 	
 	public static String type_cost = "26138972997300240";
 	public static String type_ship = "26138972997300238";
@@ -532,6 +540,11 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 			}
 			List<Map<String, Object>> reclist = purchaseFormReceiveMapper.selectByEntryid(id);
 			if (reclist != null) {
+				for(Map<String, Object> rec:reclist) {
+					String recid=rec.get("id").toString();
+					List<WarehouseShelfInventoryOptRecord> record = iWarehouseShelfInventoryOptRecordService.getRecord(shopid, recid,EnumByFormType.purchase.getValue(),null);
+					rec.put("shelfInvRecordList", record);
+				}
 				resultMap.put("receivelist", reclist);
 			}
 		} else {
@@ -715,6 +728,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		faccountService.updateFinAfterChange(account, projectid, createtime, amount, ftype);
 	}
 
+	@Transactional
 	public void saveReceive(UserInfo user, PurchaseFormReceive rec,PurchaseFormEntry entry) throws ERPBizException {
 		if (entry == null) {
 			return;
@@ -844,7 +858,8 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		purchaseFormEntryService.updateById(entry);
 		return purchaseFormReceiveMapper.deleteById(id);
 	}
-
+	
+	@Transactional
 	public int closeRec(UserInfo user,PurchaseFormEntry entry) throws ERPBizException {
 		Integer oldin = entry.getTotalin();
 		if (oldin == null) {
@@ -877,6 +892,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		return result;
 	}
 	
+	@Transactional
    public int restartRec(UserInfo user,PurchaseFormEntry entry) {
 	   Integer oldin = entry.getTotalin();
 		if (oldin == null) {
@@ -2236,6 +2252,77 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 
 	public List<Map<String, Object>> selectPurchaseNotify(String shopid) {
 		return purchaseFormEntryMapper.selectPurchaseNotify(shopid);
+	}
+
+	@Override
+	@Transactional
+	public PurchaseFormEntry deleteReceive(String entryid,  UserInfo userinfo) {
+		// TODO Auto-generated method stub
+		PurchaseFormEntry purchaseFormEntry = purchaseFormEntryService.getById(entryid);
+		if(purchaseFormEntry.getTotalin()==0) {
+			throw new BizException("请确认是否已经完成撤销操作，当前没有可以撤销的库存");
+		}
+		if(purchaseFormEntry.getInwhstatus()==1) {
+			throw new BizException("已经完成入库无法撤销，请点击继续收货后执行");
+		}
+		int amount = purchaseFormEntry.getTotalin();
+		InventoryParameter invpara = new InventoryParameter();
+		invpara.setFormid(purchaseFormEntry.getFormid());
+		invpara.setMaterial(purchaseFormEntry.getMaterialid());
+		invpara.setOperator(userinfo.getId());
+		invpara.setStatus(EnumByInventory.alReady);
+		invpara.setShopid(userinfo.getCompanyid());
+		invpara.setFormtype("purchase");
+		PurchaseForm ph = this.baseMapper.selectById(purchaseFormEntry.getFormid());
+		invpara.setNumber(ph.getNumber());
+		invpara.setWarehouse(ph.getWarehouseid());
+		 Calendar c=Calendar.getInstance();
+		if (amount > 0) {
+			 LambdaQueryWrapper<PurchaseFormReceive> query =new  LambdaQueryWrapper<PurchaseFormReceive>();
+			 query.eq(PurchaseFormReceive::getFormentryid,  purchaseFormEntry.getId());
+			 query.orderByDesc(PurchaseFormReceive::getOpttime);
+		     List<PurchaseFormReceive> reclist = purchaseFormReceiveMapper.selectList(query);
+			for(PurchaseFormReceive item:reclist) {
+				c.add(Calendar.SECOND, 2);
+				invpara.setOpttime(c.getTime()); 
+				if("in".equals(item.getFtype())) {
+					invpara.setWarehouse(item.getWarehouseid());
+					invpara.setAmount(item.getAmount());
+					System.out.println(invpara.getOpttime());
+					inventoryService.SubStockByStatus(invpara, Status.fulfillable, Operate.out);
+					item.setFtype("clear");
+					item.setRemark("已撤销【通过撤销入库操作】");
+					purchaseFormReceiveMapper.updateById(item);
+				}else if("out".equals(item.getFtype())) {
+					invpara.setOpttime(c.getTime()); 
+					invpara.setWarehouse(item.getWarehouseid());
+					invpara.setAmount(item.getAmount());
+					inventoryService.AddStockByStatus(invpara, Status.fulfillable, Operate.in);
+					item.setFtype("clear");
+					item.setRemark("已撤销【通过撤销出库操作】");
+					purchaseFormReceiveMapper.updateById(item);
+				}
+			
+			}
+		}
+		invpara.setNumber(ph.getNumber());
+		invpara.setWarehouse(ph.getWarehouseid());
+		c.add(Calendar.SECOND, 2);
+		invpara.setOpttime(c.getTime()); 
+		if (amount > purchaseFormEntry.getAmount()) {
+			invpara.setAmount(purchaseFormEntry.getAmount());
+		} else {
+			invpara.setAmount(amount);
+		}
+		inventoryService.AddStockByStatus(invpara, Status.inbound, Operate.in);
+		purchaseFormEntry.setAuditstatus(2);
+		purchaseFormEntry.setInwhstatus(0);
+		purchaseFormEntry.setTotalin(0);
+		purchaseFormEntry.setTotalre(0);
+		purchaseFormEntry.setOperator(userinfo.getId());
+		purchaseFormEntry.setOpttime(new Date());
+		purchaseFormEntryService.updateById(purchaseFormEntry);
+		return purchaseFormEntry;
 	}
 
 }

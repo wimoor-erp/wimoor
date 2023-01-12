@@ -20,7 +20,9 @@ public class InventoryParameter  extends ErpBaseEntity{
 
     //电商公司
     private String shopid;
-
+    
+    //物料，产品ID
+    private String sku;
     //物料，产品ID
     private String material;
 
@@ -133,6 +135,13 @@ public class InventoryParameter  extends ErpBaseEntity{
 		myclone.setShopid(this.shopid);
 		myclone.setInvqty(this.invqty);
 		return  myclone;
+	}
+	
+	public String getSku() {
+		return sku;
+	}
+	public void setSku(String sku) {
+		this.sku = sku;
 	}
 	/**
 	 * @return the invqty

@@ -22,10 +22,7 @@ public interface ShipInboundPlanMapper extends BaseMapper<ShipInboundPlan> {
 
 	List<Map<String, Object>> getsumreport(Map<String, Object> param);
 
-	List<Map<String, Object>> getShipRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
-	List<Map<String, Object>> getShipBadRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
-
-	List<Map<String, Object>> getShipRecordByMarket(String marketplaceid);
+	List<Map<String, Object>> getShipRecordByMarket(@Param("marketplaceid")String marketplaceid,@Param("groupid")String groupid);
 
 	IPage<Map<String, Object>> getShipmentDetailReport(Page<?> page,Map<String, Object> param);
 	
@@ -39,6 +36,9 @@ public interface ShipInboundPlanMapper extends BaseMapper<ShipInboundPlan> {
 
 	List<Map<String, Object>> getShipmentReport(Map<String, Object> param);
 
+	List<Map<String, Object>> getShipRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
+	
+	List<Map<String, Object>> getShipBadRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
 	List<Map<String, Object>> getShipArrivalTimeRecord(@Param("shopid") String shopid, @Param("marketplaceid") String marketplaceid, @Param("sku") String sku);
 
 }

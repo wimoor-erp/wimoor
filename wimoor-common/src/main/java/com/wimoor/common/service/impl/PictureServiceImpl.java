@@ -302,17 +302,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 				imageName = imageNames[imageNames.length - 1];
 		}
 		picture.setLocation(destinationPath + imageName);
-		if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
-			destinationPath = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
-			if (destinationPath.charAt(destinationPath.length() - 1) == '/') {
-				destinationPath = destinationPath.substring(0, destinationPath.length() - 1);
-			}
-		}
-		if (destinationPath.charAt(destinationPath.length() - 1) != '/') {
-			destinationPath = destinationPath + "/";
-		}
+	    destinationPath=buildDestinationPath(destinationPath);
 		try {
-			ossApiService.putObject(ossApiService.getBucketName(),destinationPath+imageName, new URL(sourcePath).openStream());
+			ossApiService.putObject(ossApiService.getBucketName(),destinationPath+ "/"+imageName, new URL(sourcePath).openStream());
 		} catch (Exception e) {
 			return null;
 		}
@@ -323,38 +315,60 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 		}
 		return picture;
 	}
-
+    public String getSourceFileName(String sourcePath) {
+    	String[] imageNames = sourcePath.split("\\\\");
+	    return  imageNames[imageNames.length - 1];
+    }
+    public String createRandFileName(String imageName) {
+    	imageName= imageName.split("\\.")[1];
+		Double rand =   (Math.random()*1000);
+		imageName=(new Date().getTime()+""+rand.intValue())+"."+imageName;
+		return imageName;
+    }
+    public String buildDestinationPath(String destinationPath) {
+    	 if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
+				destinationPath = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
+				if (destinationPath.charAt(destinationPath.length() - 1) == '/') {
+					destinationPath = destinationPath.substring(0, destinationPath.length() - 1);
+				}
+	       }
+    	 return destinationPath;
+    }
 	public Picture downloadPictureMaterial(String pictureid, String sourcePath, String destinationPath) throws Exception {
 		Picture picture = null;
 		String uri = null;
 		String imageName = null;
 		destinationPath=destinationPathBucketName(destinationPath);
+		String oldname=null;
 		if (GeneralUtil.isNotEmpty(pictureid)) {
 			picture = this.getById(pictureid);
-			if (picture != null && GeneralUtil.isNotEmpty(picture.getLocation())) {
-				uri = picture.getLocation();
-			} else {
-				uri = picture.getUrl();
-			}
-			String[] imageNames = uri.split("/");
-			if (imageNames.length > 0)
+			if (picture != null) {
+				if(GeneralUtil.isNotEmpty(picture.getLocation())) {
+					uri = picture.getLocation();
+				}else {
+					uri = picture.getUrl();
+				}
+				String[] imageNames = uri.split("/");
 				imageName = imageNames[imageNames.length - 1];
-		    } else {
+				oldname=imageName;
+			} else {
 				picture = new Picture();
-				String[] imageNames = sourcePath.split("\\\\");
-				if (imageNames.length > 0)
-					imageName = imageNames[imageNames.length - 1];
-			     }
-		  	   picture.setLocation(destinationPath + imageName);
-			  if (destinationPath.indexOf((ossApiService.getBucketName()+"/")) == 0) {
-					destinationPath = destinationPath.substring((ossApiService.getBucketName()+"/").length(), destinationPath.length());
-					if (destinationPath.charAt(destinationPath.length() - 1) == '/') {
-						destinationPath = destinationPath.substring(0, destinationPath.length() - 1);
-					}
+				imageName =getSourceFileName(sourcePath);
+			}
+		}else {
+			picture = new Picture();
+			imageName =getSourceFileName(sourcePath);
 		}
+			imageName=createRandFileName(imageName);
+		    picture.setLocation(destinationPath + imageName);
+		    destinationPath=buildDestinationPath(destinationPath);
 		try {
-			ossApiService.putObject(ossApiService.getBucketName(),destinationPath+"/"+imageName, new URL(sourcePath).openStream());
+			if(StrUtil.isNotEmpty(oldname)) {
+				ossApiService.removeObject(ossApiService.getBucketName(), destinationPath+"/"+oldname);
+			}
+			ossApiService.putObject(ossApiService.getBucketName(),destinationPath+"/"+imageName, new URL("file:\\"+sourcePath).openStream());
 		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
 		}
 		if (GeneralUtil.isEmpty(pictureid)) {

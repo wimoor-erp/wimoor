@@ -18,8 +18,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
+import com.wimoor.erp.api.AdminClientOneFeign;
 import com.wimoor.erp.assembly.mapper.AssemblyFormMapper;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
@@ -39,6 +41,7 @@ import com.wimoor.erp.warehouse.service.IWarehouseService;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
  
 
@@ -63,21 +66,12 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	 
 	final DispatchFormMapper dispatchFormMapper;
 
+	final AdminClientOneFeign adminClientOneFeign;
 	
-	public IPage<Map<String, Object>> findByCondition(Page<?> page,String search, String shopid, String ftype ) {
-		IPage<Map<String, Object>> list = null;
-		if(GeneralUtil.isEmpty(search)) {
-			search = null;
-		}else {
-			search = search.trim() + "%";
-		}
-		list = this.baseMapper.findByCondition(page,search, shopid, ftype);
-		return list;
-	}
- 
 
 
-	public List<Map<String,Object>> findByType(String ftype, String shopid) {
+
+	public List<Warehouse> findByType(String ftype, String shopid) {
 		return this.baseMapper.findByType(ftype, shopid);
 	}
 
@@ -130,6 +124,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		 queryWrapper.like("ftype", "self%");
 		 queryWrapper.eq("disabled", false);
 		 queryWrapper.isNull("fbawareid");
+		 queryWrapper.orderByAsc("findex");
 		 List<Warehouse>  list = this.list(queryWrapper);
 		 List<Warehouse> result= recursionWarehouseSelectList(user,null,list);
 		 return result;
@@ -145,6 +140,14 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
             .forEach(warehouse -> {
             	Warehouse treeSelectVO = new Warehouse();
             	BeanUtil.copyProperties(warehouse, treeSelectVO);
+            	try {
+            		Result<Map<String, Object>> result = adminClientOneFeign.getUserByUserId(treeSelectVO.getOperator());
+            		if(Result.isSuccess(result)&&result.getData()!=null) {
+            			treeSelectVO.setOperator(result.getData().get("name").toString());
+            		}
+            	}catch(Exception e) {
+            		e.printStackTrace();
+            	}
             	
                 List<Warehouse> children = recursionWarehouseSelectList(user,warehouse.getId(), wareList);
                 if (CollectionUtil.isNotEmpty(children)) {
@@ -248,7 +251,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 			}
 			warehouse.setDisabled(true);
 			if(warehouse.getIsdefault()&&warehouse.getFtype().equals("self_usable")) {
-				 throw new ERPBizException("正品仓的默认仓位不支持删除，请将其它正品仓位设置为默认之后再删除此仓位。");
+				 throw new ERPBizException("默认仓位不支持删除，请将其它正品仓位设置为默认之后再删除此仓位。");
 			}
 			this.baseMapper.updateById(warehouse);
 			
@@ -261,6 +264,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		QueryWrapper<Warehouse> queryWrapper = new QueryWrapper<Warehouse>();
 		queryWrapper.eq("name", wh.getName());
 		queryWrapper.eq("shopid", wh.getShopid());
+		queryWrapper.eq("ftype", wh.getFtype());
 		List<Warehouse> warehouselist = this.baseMapper.selectList(queryWrapper);
 		boolean result = false;
 		if(warehouselist != null && warehouselist.size() > 0) {
@@ -285,40 +289,9 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		int result = 0;
 		// 当前的wh是父亲的对象
 		if(wh.getIsdefault()==true){
-			clearDefaultWare(wh.getParentid(),wh.getFtype());
+			clearDefaultWare(wh.getShopid(),wh.getFtype());
 		} 
 		result += this.baseMapper.updateById(wh);
-		QueryWrapper<Warehouse> queryWrapper = new QueryWrapper<Warehouse>();
-		queryWrapper.eq("parentid", parentid);
-		List<Warehouse> childList = this.baseMapper.selectList(queryWrapper);
-		String[] wname = wh.getName().split("-");
-		for (int i = 0; i < childList.size(); i++) {
-			Warehouse item = childList.get(i);
-			item.setAddress(wh.getAddress());
-			item.setOperator(wh.getOperator());
-			item.setOpttime(wh.getOpttime());
-			item.setStockingCycle(wh.getStockingCycle());
-			item.setMincycle(wh.getMincycle());
-			if (item.getFtype().equals("self_test")) {
-				String remark = wh.getAddress() + "测试仓库";
-				item.setRemark(remark);
-				item.setName(wname[0] + "-测试仓");
-			} else if (item.getFtype().equals("self_usable")) {
-				String remark = wh.getAddress() + "正品仓库";
-				item.setRemark(remark);
-				item.setName(wname[0] + "-正品仓");
-			} else if (item.getFtype().equals("self_unusable")) {
-				String remark = wh.getAddress() + "废品仓库";
-				item.setRemark(remark);
-				item.setName(wname[0] + "-废品仓");
-			} else {
-				return -1;
-			}
-			int count= this.baseMapper.updateById(item);
-			if (count > 0) {
-				result++;
-			}
-		}
 		return result;
 	}
 
@@ -410,8 +383,8 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	}
 
 
-	public void clearDefaultWare(String warehouseid,String ftype) {
-		this.baseMapper.updateWareDefault(warehouseid,ftype);
+	public void clearDefaultWare(String shopid,String ftype) {
+		this.baseMapper.clearWareDefault(shopid,ftype);
 	}
 
 	public List<Warehouse> findBydefault(String shopid) {
@@ -657,4 +630,27 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	public Warehouse getPlaceWarehouse(String id) {
 		return this.baseMapper.selectById(id);
 	}
+
+
+
+	@Override
+	public String getUUID() {
+		// TODO Auto-generated method stub
+		return this.baseMapper.getUUID();
+	}
+
+
+	public IPage<Warehouse> findByCondition(Page<?> page,String search, String shopid, String ftype,String parentid ) {
+		if(GeneralUtil.isEmpty(search)) {
+			search = null;
+		}else {
+			search = "%"+search.trim() + "%";
+		}
+		if(StrUtil.isBlankOrUndefined(parentid)) {
+			parentid=null;
+		}
+		return this.baseMapper.findByCondition(page,search,shopid,ftype,parentid);
+	}
+ 
+ 
 }

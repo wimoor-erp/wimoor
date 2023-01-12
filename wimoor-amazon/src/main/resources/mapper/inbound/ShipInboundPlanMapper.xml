@@ -120,7 +120,7 @@
 		SELECT b.ShipmentId shipmentid,a.marketplaceid,b.SellerSKU,chan.channame
 			channel,company.simplename company, ifnull(b.QuantityReceived,0) reveiveQuantity,
 			ts.arrivalTime,a.createdate, c.shiped_date ,ifnull(b.QuantityShipped,b.Quantity) Quantity,
-			ts.outarrtime outtime,ts.inarrtime intime,
+			ts.outarrtime ,ts.inarrtime ,
 			case c.status
 			when 1 then '等待确认'
 			when 2 then '配货'
@@ -130,7 +130,8 @@
 			when 5 then '已发货'
 			when 6 then '已完成'
 			else '--'
-			end status
+			end statusName,
+			c.status
 		from t_erp_ship_inboundplan a
 		LEFT JOIN t_erp_ship_inbounditem b on a.id=b.inboundplanid
 		LEFT JOIN t_erp_ship_inboundshipment c on a.id=c.inboundplanid and c.ShipmentId = b.ShipmentId
@@ -150,6 +151,7 @@
 		SELECT b.ShipmentId shipmentid,a.marketplaceid,b.SellerSKU,chan.channame
 			channel,company.simplename company, ifnull(b.QuantityReceived,0) reveiveQuantity,
 			ts.arrivalTime,a.createdate, c.shiped_date ,ifnull(b.QuantityShipped,b.Quantity) Quantity,
+			ts.outarrtime,ts.inarrtime,
 			case when a.auditstatus =3 then
 			case c.status
 			when 1 then '等待确认'
@@ -200,13 +202,17 @@
 	</select>
 
 	<select id="getShipRecordByMarket" parameterType="java.lang.String" resultType="java.util.Map">
-		SELECT a.marketplaceid, a.createdate, sum(b.Quantity) Quantity
+		SELECT a.marketplaceid, a.createdate, sum(b.Quantity) Quantity,max(s.status) status,
+		max(st.name) shipmentstatus
 		from t_erp_ship_inboundplan a
+		left join t_erp_ship_inboundshipment s on s.inboundplanid=a.id
+		left join t_erp_ship_status st on st.status=s.ShipmentStatus
 		left join t_marketplace m on m.marketplaceid=a.marketplaceid
-		LEFT JOIN t_erp_ship_inbounditem b on a.id=b.inboundplanid
+		LEFT JOIN t_erp_ship_inbounditem b ON b.ShipmentId=s.ShipmentId
 		where (a.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR})
+		and a.amazongroupid=#{groupid,jdbcType=CHAR} 
 		group by a.id
-		ORDER BY a.createdate desc limit 0,3;
+		ORDER BY a.createdate desc limit 0,4;
 	</select>
 
 	<select id="getsumreport" resultType="java.util.Map">

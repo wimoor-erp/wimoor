@@ -61,8 +61,9 @@ public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceIm
 				  param.put("sellerid", amazonAuthority.getSellerid());
 				  param.put("reporttype", this.myReportType());
 				  param.put("marketplacelist", list);
+				  param.put("starttime", GeneralUtil.formatDate(cstart.getTime()));
 				  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
-				  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<5) {
+				  if(lastupdate!=null) {
 					  continue;
 				  }
 			  }
@@ -104,7 +105,10 @@ public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceIm
 					JSONObject orderedProductSalesJson=salesByAsin.getJSONObject("orderedProductSales");
 					BigDecimal orderedProductSales = orderedProductSalesJson.getBigDecimal("amount");
 					JSONObject orderedProductSalesB2BJson=salesByAsin.getJSONObject("orderedProductSalesB2B");
-					BigDecimal orderedProductSalesB2B = orderedProductSalesB2BJson.getBigDecimal("amount");
+					BigDecimal orderedProductSalesB2B =new BigDecimal("0");
+					if(orderedProductSalesB2BJson!=null) {
+						orderedProductSalesB2B=orderedProductSalesB2BJson.getBigDecimal("amount");
+					}
 					Integer browserSessions=trafficByAsin.getInteger("browserSessions");
 					Integer mobileAppSessions=trafficByAsin.getInteger("mobileAppSessions");
 					Integer sessions=trafficByAsin.getInteger("sessions");
@@ -143,7 +147,7 @@ public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceIm
 					pageViews.setOpttime(new Date());
 					list.add(pageViews);
 				}
-				iAmzProductPageviewsService.uploadSessionFile(marketplaceid, amazonAuthority.getSellerid(), null, list);
+				iAmzProductPageviewsService.uploadSessionFile(marketplaceid, amazonAuthority.getSellerid(), day, list);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

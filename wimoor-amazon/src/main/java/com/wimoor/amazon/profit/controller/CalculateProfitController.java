@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wimoor.amazon.common.pojo.entity.ExchangeRate;
@@ -28,6 +27,7 @@ import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.profit.service.impl.ProfitServiceImpl;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
@@ -90,13 +90,19 @@ public class CalculateProfitController {
 		ProfitConfig profitcfg = profitCfgService.findConfigAction(cfgId);
 		Map<String, CostDetail> cuntryDetail = query.getCountry();
 		for (int i = 0; i < countryList.size(); i++) {
-			     CostDetail costDetail=cuntryDetail.get(countryList.get(i));
+			try {
+				CostDetail costDetail=cuntryDetail.get(countryList.get(i));
 			     if(costDetail!=null) {
 				    costDetail = this.profitService.getCostDetail(costDetail, typeId, referralrate, isSmlAndLight,profitcfg);
 				    cuntryDetail.put(countryList.get(i), costDetail);
 				} else {
 					cuntryDetail.put(countryList.get(i), null);
 				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				throw new BizException("计算异常请联系管理员");
+			}
+			     
 		}
 		return Result.success(cuntryDetail);
 	}

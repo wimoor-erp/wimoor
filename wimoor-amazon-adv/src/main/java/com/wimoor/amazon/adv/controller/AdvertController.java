@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wimoor.amazon.adv.common.pojo.AmzAdvAuth;
+import com.wimoor.amazon.adv.common.pojo.AmzRegion;
 import com.wimoor.amazon.adv.common.pojo.BaseException;
 import com.wimoor.amazon.adv.common.service.IAmzAdvAuthService;
 import com.wimoor.amazon.adv.common.service.IAmzAdvBidReCommendService;
@@ -72,6 +73,7 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 	IAmzAdvProductAdsService amzAdvProductAdsService;
 	@Resource
 	IAmzAdvProductAdsSDService amzAdvProductAdsSDService;
+	
 	@Override
 	public IService<AmzAdvAuth> getServeice() {
 		return amzAdvAuthService;
@@ -453,5 +455,46 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 		return Result.success(result);
 	}
 	
-
+	@GetMapping(value = "/bindAdvAuthData")
+	public Result<String> bindAdvAuthDataAction(String code,String state)  {
+		UserInfo userinfo = UserInfoContext.get();
+		if (StringUtil.isEmpty(code)) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Result.failed();
+		}
+		String[] mystate = state.split("_");
+		String region = mystate[0];
+		String groupid = mystate[1];
+		String userid = userinfo.getId();
+		Boolean result = amzAdvAuthService.captureAmzAdvAuthByCode(userid, code, region, groupid);
+		if (result == true) {
+			return Result.success();
+		} else {
+			return Result.failed();
+		}
+	}	 
+	@GetMapping(value = "/bindUrl")
+	public Result<String> bindUrlAction(String groupid,String region,String redirecturl)  {
+		String prefix = null;
+		if("NA".equals(region)){
+			prefix = "https://www.amazon.com/ap/oa";
+		}else if("EU".equals(region)){
+			prefix = "https://eu.account.amazon.com/ap/oa";
+		}else if("FE".equals(region)){
+			prefix = "https://apac.account.amazon.com/ap/oa";
+		} 
+		AmzRegion authRegion = amzAdvAuthService.getRegion(region);
+		String myurl = prefix + "?client_id=" + authRegion.getClientId()
+				  + "&scope=cpc_advertising:campaign_management&response_type=code&state=" + region 
+				  + "_" + groupid + "&redirect_uri=" + redirecturl;
+	    return Result.success(myurl);
+	 
+	}
+	
+	
+	
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialCustomsItemMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialCustomsItem" >
+    <id column="materialid" property="materialid" jdbcType="INTEGER" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="code" property="code" jdbcType="CHAR" />
+    <result column="fee" property="fee" jdbcType="DECIMAL" />
+    <result column="taxrate" property="taxrate" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    materialid,country,code,fee,taxrate
+  </sql>
+   
+</mapper>

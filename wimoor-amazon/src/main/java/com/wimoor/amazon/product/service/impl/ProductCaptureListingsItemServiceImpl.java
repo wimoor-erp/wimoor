@@ -56,7 +56,6 @@ public class ProductCaptureListingsItemServiceImpl implements IProductCaptureLis
 	@Override
 	public Item captureListMatchingProduct(AmazonAuthority amazonAuthority, String sku, List<String> marketplaces) {
 		// TODO Auto-generated method stub
-		
 		ListingsApi api = apiBuildService.getProductApi(amazonAuthority);
 		try {
 			Item item = api.getListingsItem(amazonAuthority.getSellerid(), sku, marketplaces, null, null);
@@ -64,7 +63,7 @@ public class ProductCaptureListingsItemServiceImpl implements IProductCaptureLis
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new BizException("接口调用错误："+e.getMessage());
+			throw new BizException("接口调用错误："+e.getResponseBody());
 		}
 	}
 	  
@@ -73,8 +72,10 @@ public class ProductCaptureListingsItemServiceImpl implements IProductCaptureLis
 	public void runApi(AmazonAuthority amazonAuthority) {
 		// TODO Auto-generated method stub
 		AmzProductRefresh skuRefresh=iAmzProductRefreshService.findForDetailRefresh(amazonAuthority.getId());
-        List<String> markets = Arrays.asList(skuRefresh.getMarketplaceid());
-	    captureListMatchingProductSync(amazonAuthority,skuRefresh,markets);
+		if(skuRefresh!=null) {
+			List<String> markets = Arrays.asList(skuRefresh.getMarketplaceid());
+			captureListMatchingProductSync(amazonAuthority,skuRefresh,markets);
+		}
 	}		
 	
 	@Override
@@ -102,142 +103,155 @@ public class ProductCaptureListingsItemServiceImpl implements IProductCaptureLis
 
  
  
-	 
-		@Override
-		public void handlerResult(Item result, AmazonAuthority amazonAuthority) {
-			// TODO Auto-generated method stub
-			for(ItemSummaryByMarketplace summary:result.getSummaries()) {
-				AmzProductRefresh refresh = iAmzProductRefreshService.getOne(new LambdaQueryWrapper<AmzProductRefresh>()
-						.eq(AmzProductRefresh::getMarketplaceid, summary.getMarketplaceId())
-						.eq(AmzProductRefresh::getSku,result.getSku())
-						.eq(AmzProductRefresh::getAmazonauthid, amazonAuthority.getId())
-						);
-				if(refresh!=null) {
-					refresh.setSku(result.getSku());
-				    refresh.setAsin(summary.getAsin());
-				    refresh.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
+	ProductInfo getProductInfo(String marketplaceid,String sku,String amazonauthid,String asin){
+	    	AmzProductRefresh refresh = iAmzProductRefreshService.getOne(new LambdaQueryWrapper<AmzProductRefresh>()
+					.eq(AmzProductRefresh::getMarketplaceid, marketplaceid)
+					.eq(AmzProductRefresh::getSku,sku)
+					.eq(AmzProductRefresh::getAmazonauthid, amazonauthid)
+					);
+			if(refresh!=null) {
+				refresh.setSku(sku);
+			    refresh.setAsin(asin);
+			    refresh.setAmazonauthid(new BigInteger(amazonauthid));
+			    refresh.setDetailRefreshTime(LocalDateTime.now());
+			    refresh.setNotfound(false);
+				iAmzProductRefreshService.updateById(refresh);
+			}else {
+				List<ProductInfo> info = productMapper.selectBySku(sku,marketplaceid, amazonauthid);
+				if(info!=null&&info.size()>0) {
+					refresh=new AmzProductRefresh();
+					refresh.setPid(new BigInteger(info.get(0).getId()));
+					refresh.setSku(sku);
+				    refresh.setAsin(asin);
+				    refresh.setAmazonauthid(new BigInteger(amazonauthid));
 				    refresh.setDetailRefreshTime(LocalDateTime.now());
+				    refresh.setMarketplaceid(marketplaceid);
 				    refresh.setNotfound(false);
-					iAmzProductRefreshService.updateById(refresh);
+					iAmzProductRefreshService.save(refresh);
 				}else {
-					List<ProductInfo> info = productMapper.selectBySku(result.getSku(), summary.getMarketplaceId(), amazonAuthority.getId());
-					if(info!=null&&info.size()>0) {
-						refresh=new AmzProductRefresh();
-						refresh.setPid(new BigInteger(info.get(0).getId()));
-						refresh.setSku(result.getSku());
-					    refresh.setAsin(summary.getAsin());
-					    refresh.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
-					    refresh.setDetailRefreshTime(LocalDateTime.now());
-					    refresh.setNotfound(false);
-						iAmzProductRefreshService.save(refresh);
-					} 
+					
 				}
-				 
-				ProductInfo product = null;
-				if(refresh!=null) {
-					product=productMapper.selectById(refresh.getPid());
-				}else {
-					 product =new ProductInfo();
-					 product.setSku(result.getSku());
-					 product.setMarketplaceid(summary.getMarketplaceId());
-					 product.setAmazonAuthId(new BigInteger(amazonAuthority.getId()));
-				}
-				
-				ProductInOpt opt =null;
-				if(product.idIsNULL()==false) {
-					opt=productInOptMapper.selectById(product.getId());
-				}
-			    String mystatus=null;
-			    if(summary.getStatus()!=null&&summary.getStatus().size()>0) {
-					for(StatusEnum status:summary.getStatus()){
-				    	if(mystatus==null) {
-				    		mystatus=status.getValue();
-				    	}else {
-				    		mystatus=mystatus+","+status.getValue();
-				    	}
-				    };
-			    }
-				Picture picture=null;
-			    try {
-			    	if(summary.getMainImage()!=null&&summary.getMainImage().getLink()!=null) {
-			    		if(product.getImage()!=null) {
-				    		picture=pictureService.getById(product.getImage());
-				    		if(picture==null||picture.getUrl()==null||picture.getLocation()==null||!picture.getUrl().equals(summary.getMainImage().getLink())) {
-				    			String path=PictureServiceImpl.productImgPath+amazonAuthority.getShopId()+"/"+amazonAuthority.getId()+"/"+summary.getMarketplaceId()+"/";
-				    			picture=pictureService.downloadPicture(summary.getMainImage().getLink(),path, product.getImage().toString());
-				    		}
-				    	}else {
-				    		String path=PictureServiceImpl.productImgPath+amazonAuthority.getShopId()+"/"+amazonAuthority.getId()+"/"+summary.getMarketplaceId()+"/";
-				    		picture=pictureService.downloadPicture(summary.getMainImage().getLink(), path,null);
-				    	}
-			    	}
-			    	
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	            if( (product.getAsin()==null&&summary.getAsin()!=null)
-	            		||(product.getName()==null&&summary.getItemName()!=null)
-	            		||(product.getFnsku()==null&&summary.getFnSku()!=null)
-	            		||(product.getImage()==null&&picture!=null)
-	            		||(product.getPcondition()==null&&summary.getConditionType()!=null&&summary.getConditionType().getValue()!=null)
-	            		||(product.getLastupdate()==null&&summary.getLastUpdatedDate()!=null)
-	              		||(product.getCreatedate()==null&&summary.getCreatedDate()!=null)
-	              		||(product.getFnsku()==null&&summary.getFnSku()!=null)
-	            		||(product.getStatus()==null&&mystatus!=null)
-	            		||!product.getAsin().equals(summary.getAsin())
-	            		||!(product.getName()!=null&&product.getName().equals(EmojiFilterUtils.filterEmoji(summary.getItemName())))
-	            		||!(product.getFnsku()!=null&&product.getFnsku().equals(summary.getFnSku()))
-	            		||!(product.getPcondition()!=null&&summary.getConditionType()!=null&&product.getPcondition().equals(summary.getConditionType().getValue()))
-	             		||!product.getLastupdate().equals(AmzDateUtils.getDate(summary.getLastUpdatedDate()))
-	             		||!product.getCreatedate().equals(AmzDateUtils.getDate(summary.getCreatedDate()))
-	            		||!product.getStatus().equals(mystatus)
-	            		||(product.getImage()!=null&&product.getImage().toString().equals(picture.getId()))
-	            		) {
-	            	product.setAsin(summary.getAsin());
-	      			product.setName(EmojiFilterUtils.filterEmoji(summary.getItemName()));
-	      			product.setFnsku(summary.getFnSku());
-	      
-	      			if(summary.getConditionType()!=null) {
-	      				product.setPcondition(summary.getConditionType().getValue());
-	      			}
-	      		    product.setLastupdate(AmzDateUtils.getDate(summary.getLastUpdatedDate()) );
-	      		    product.setCreatedate(AmzDateUtils.getDate(summary.getCreatedDate()) );
-	      		    product.setTypename(summary.getProductType());
-		      		if(picture!=null) {
-		      		    product.setImage(new BigInteger(picture.getId()));
-		  		    }
-		      		product.setInvalid(false);
-	      		    product.setStatus(mystatus);
-	      		    if(product.idIsNULL()) {
-	      		    	productMapper.insert(product);
-	      		    	refresh=new AmzProductRefresh();
-						refresh.setPid(new BigInteger(product.getId()));
-						refresh.setSku(result.getSku());
-					    refresh.setAsin(summary.getAsin());
-					    refresh.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
-					    refresh.setDetailRefreshTime(LocalDateTime.now());
-					    refresh.setNotfound(false);
-						iAmzProductRefreshService.save(refresh);
-	      		    }else {
-	      		    	productMapper.updateById(product);
-	      		    }
-	            }
-	           // &&(opt.getFnsku()==null ||!opt.getFnsku().equals(product.getFnsku()))
-			    if(opt!=null) {
-			    	opt.setFnsku(product.getFnsku());
-			    	opt.setLastupdate(LocalDateTime.now());
-			    	productInOptMapper.updateById(opt);
-			    }else {
-			    	opt=new ProductInOpt();
-			    	opt.setPid(new BigInteger(product.getId()));
-			    	opt.setDisable(false);
-			    	opt.setFnsku(product.getFnsku());
-			    	productInOptMapper.insert(opt);
-			    }
-		 
-
 			}
+			ProductInfo product=null;
+			if(refresh!=null) {
+				 product=productMapper.selectById(refresh.getPid());
+			}else {
+				 product =new ProductInfo();
+				 product.setSku(sku);
+				 product.setMarketplaceid(marketplaceid);
+				 product.setAmazonAuthId(new BigInteger(amazonauthid));
+			}
+			return product;
+	    }
+		@Override
+		public void handlerResult(Item result, AmazonAuthority amazonAuthority,AmzProductRefresh mrefresh) {
+			// TODO Auto-generated method stub
+			if(result!=null&&result.getSummaries()!=null&&result.getSummaries().size()>0) {
+				for(ItemSummaryByMarketplace summary:result.getSummaries()) {
+					ProductInfo product = getProductInfo(summary.getMarketplaceId(),result.getSku(),amazonAuthority.getId(),summary.getAsin());
+					ProductInOpt opt =null;
+					if(product.idIsNULL()==false) {
+						opt=productInOptMapper.selectById(product.getId());
+					}
+				    String mystatus=null;
+				    if(summary.getStatus()!=null&&summary.getStatus().size()>0) {
+						for(StatusEnum status:summary.getStatus()){
+					    	if(mystatus==null) {
+					    		mystatus=status.getValue();
+					    	}else {
+					    		mystatus=mystatus+","+status.getValue();
+					    	}
+					    };
+				    }
+					Picture picture=null;
+				    try {
+				    	if(summary.getMainImage()!=null&&summary.getMainImage().getLink()!=null) {
+				    		if(product.getImage()!=null) {
+					    		picture=pictureService.getById(product.getImage());
+					    		if(picture==null
+					    				||picture.getUrl()==null
+					    				||picture.getLocation()==null
+					    				||!picture.getUrl().equals(summary.getMainImage().getLink())
+					    				||(product.getLastupdate()!=null&&!(product.getLastupdate().compareTo(AmzDateUtils.getDate(summary.getLastUpdatedDate()))==0))
+					    				) {
+					    			String path=PictureServiceImpl.productImgPath+amazonAuthority.getShopId()+"/"+amazonAuthority.getId()+"/"+summary.getMarketplaceId()+"/";
+					    			picture=pictureService.downloadPicture(summary.getMainImage().getLink(),path, product.getImage().toString());
+					    		}
+					    	}else {
+					    		String path=PictureServiceImpl.productImgPath+amazonAuthority.getShopId()+"/"+amazonAuthority.getId()+"/"+summary.getMarketplaceId()+"/";
+					    		picture=pictureService.downloadPicture(summary.getMainImage().getLink(), path,null);
+					    	}
+				    	}
+				    	
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		            if( (product.getAsin()==null&&summary.getAsin()!=null)
+		            		||(product.getName()==null&&summary.getItemName()!=null)
+		            		||(product.getFnsku()==null&&summary.getFnSku()!=null)
+		            		||(product.getImage()==null&&picture!=null)
+		            		||(product.getPcondition()==null&&summary.getConditionType()!=null&&summary.getConditionType().getValue()!=null)
+		            		||(product.getLastupdate()==null&&summary.getLastUpdatedDate()!=null)
+		              		||(product.getCreatedate()==null&&summary.getCreatedDate()!=null)
+		              		||(product.getFnsku()==null&&summary.getFnSku()!=null)
+		            		||(product.getStatus()==null&&mystatus!=null)
+		            		||!product.getAsin().equals(summary.getAsin())
+		            		||!(product.getName()!=null&&product.getName().equals(EmojiFilterUtils.filterEmoji(summary.getItemName())))
+		            		||!(product.getFnsku()!=null&&product.getFnsku().equals(summary.getFnSku()))
+		            		||!(product.getPcondition()!=null&&summary.getConditionType()!=null&&product.getPcondition().equals(summary.getConditionType().getValue()))
+		             		||!product.getLastupdate().equals(AmzDateUtils.getDate(summary.getLastUpdatedDate()))
+		             		||!product.getCreatedate().equals(AmzDateUtils.getDate(summary.getCreatedDate()))
+		            		||!product.getStatus().equals(mystatus)
+		            		||(product.getImage()!=null&&product.getImage().toString().equals(picture.getId()))
+		            		) {
+		            	product.setAsin(summary.getAsin());
+		      			product.setName(EmojiFilterUtils.filterEmoji(summary.getItemName()));
+		      			product.setFnsku(summary.getFnSku());
+		      			if(summary.getConditionType()!=null) {
+		      				product.setPcondition(summary.getConditionType().getValue());
+		      			}
+		      		    product.setLastupdate(AmzDateUtils.getDate(summary.getLastUpdatedDate()) );
+		      		    product.setCreatedate(AmzDateUtils.getDate(summary.getCreatedDate()) );
+		      		    product.setTypename(summary.getProductType());
+			      		if(picture!=null) {
+			      		    product.setImage(new BigInteger(picture.getId()));
+			  		    }
+			      		product.setInvalid(false);
+		      		    product.setStatus(mystatus);
+		      		    if(product.idIsNULL()) {
+		      		    	productMapper.insert(product);
+		      		    	AmzProductRefresh refresh=new AmzProductRefresh();
+							refresh.setPid(new BigInteger(product.getId()));
+							refresh.setSku(result.getSku());
+						    refresh.setAsin(summary.getAsin());
+						    refresh.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
+						    refresh.setDetailRefreshTime(LocalDateTime.now());
+						    refresh.setNotfound(false);
+							iAmzProductRefreshService.save(refresh);
+		      		    }else {
+		      		    	productMapper.updateById(product);
+		      		    }
+		            }
+		           // &&(opt.getFnsku()==null ||!opt.getFnsku().equals(product.getFnsku()))
+				    if(opt!=null) {
+				    	opt.setFnsku(product.getFnsku());
+				    	opt.setLastupdate(LocalDateTime.now());
+				    	productInOptMapper.updateById(opt);
+				    }else {
+				    	opt=new ProductInOpt();
+				    	opt.setPid(new BigInteger(product.getId()));
+				    	opt.setDisable(false);
+				    	opt.setFnsku(product.getFnsku());
+				    	productInOptMapper.insert(opt);
+				    }
+			 
+
+				}
+			}else if(mrefresh!=null){
+				 getProductInfo(mrefresh.getMarketplaceid() ,result.getSku(),amazonAuthority.getId(),mrefresh.getAsin());
+			}
+			
 			
 			
 		}
@@ -245,6 +259,9 @@ public class ProductCaptureListingsItemServiceImpl implements IProductCaptureLis
 		@Override
 		public void handlerFailure(AmazonAuthority auth, AmzProductRefresh skuRefresh, ApiException e) {
 			// TODO Auto-generated method stub
+			if(skuRefresh!=null&&skuRefresh.getMarketplaceid()==null) {
+				iAmzProductRefreshService.removeById(skuRefresh.getPid());
+			}
 		    if(e.getMessage().contains("Not Found")) {
 		    	      AmzProductRefresh refresh = iAmzProductRefreshService.getOne(new LambdaQueryWrapper<AmzProductRefresh>()
 								.eq(AmzProductRefresh::getMarketplaceid, skuRefresh.getMarketplaceid())
@@ -263,8 +280,13 @@ public class ProductCaptureListingsItemServiceImpl implements IProductCaptureLis
 						.eq(AmzProductRefresh::getSku,skuRefresh.getSku())
 						.eq(AmzProductRefresh::getAmazonauthid, auth.getId())
 						);
-    			refresh.setDetailRefreshTime(LocalDateTime.now());
-    		 	iAmzProductRefreshService.updateById(refresh);
+		        if(refresh==null) {
+		        	iAmzProductRefreshService.removeById(skuRefresh.getPid());
+		        }else {
+		        	refresh.setDetailRefreshTime(LocalDateTime.now());
+	    		 	iAmzProductRefreshService.updateById(refresh);
+		        }
+    			
 		    }
 		
 		}

@@ -2,8 +2,6 @@ package com.wimoor.amazon.summary.service.impl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -21,21 +19,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.common.mapper.DimensionsInfoMapper;
-import com.wimoor.amazon.common.mapper.FBAShipCycleMapper;
 import com.wimoor.amazon.common.mapper.SummaryDataMapper;
 import com.wimoor.amazon.common.pojo.entity.DaysalesFormula;
 import com.wimoor.amazon.common.pojo.entity.DimensionsInfo;
-import com.wimoor.amazon.common.pojo.entity.FBAShipCycle;
 import com.wimoor.amazon.common.pojo.entity.SummaryData;
 import com.wimoor.amazon.common.service.IDaysalesFormulaService;
 import com.wimoor.amazon.common.service.IEstimatedSalesService;
 import com.wimoor.amazon.common.service.IUserSalesRankService;
 import com.wimoor.amazon.common.service.impl.DaysalesFormulaServiceImpl;
+import com.wimoor.amazon.finances.mapper.FBAEstimatedFeeMapper;
+import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
+import com.wimoor.amazon.inbound.mapper.FBAShipCycleMapper;
+import com.wimoor.amazon.inbound.pojo.entity.FBAShipCycle;
+import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
+import com.wimoor.amazon.orders.mapper.OrdersSummaryMapper;
+import com.wimoor.amazon.orders.mapper.SummaryAllMapper;
+import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
+import com.wimoor.amazon.orders.pojo.entity.OrdersSummary;
+import com.wimoor.amazon.orders.pojo.entity.SummaryAll;
 import com.wimoor.amazon.product.mapper.ProductCategoryMapper;
 import com.wimoor.amazon.product.mapper.ProductInOptMapper;
 import com.wimoor.amazon.product.mapper.ProductInOrderMapper;
@@ -45,6 +52,7 @@ import com.wimoor.amazon.product.pojo.entity.ProductCategory;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
 import com.wimoor.amazon.product.pojo.entity.ProductInOrder;
 import com.wimoor.amazon.product.pojo.entity.ProductInProfit;
+import com.wimoor.amazon.product.service.IAmzProductSalesPlanService;
 import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.entity.ReferralFee;
@@ -54,18 +62,10 @@ import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.profit.service.IReferralFeeService;
-import com.wimoor.amazon.report.mapper.FBAEstimatedFeeMapper;
-import com.wimoor.amazon.report.mapper.OrdersReportMapper;
-import com.wimoor.amazon.report.mapper.OrdersSummaryMapper;
 import com.wimoor.amazon.report.mapper.ReportRequestRecordMapper;
-import com.wimoor.amazon.report.mapper.SummaryAllMapper;
-import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
-import com.wimoor.amazon.report.pojo.entity.OrdersReport;
-import com.wimoor.amazon.report.pojo.entity.OrdersSummary;
 import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
 import com.wimoor.amazon.report.pojo.entity.ReportRequestType;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
-import com.wimoor.amazon.report.pojo.entity.SummaryAll;
 import com.wimoor.amazon.report.service.IHandlerReportService;
 import com.wimoor.amazon.report.service.IReportRequestTypeService;
 import com.wimoor.amazon.summary.service.ISummaryOrderReportService;
@@ -131,6 +131,8 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
     SummaryAllMapper summaryAllMapper;
     @Resource
     IEstimatedSalesService estimatedSalesService;
+    @Resource
+    IAmzProductSalesPlanService iAmzProductSalesPlanService;
     ////////////////////////////////更新订单BEGIN//////////////////////////////////////////////////////
     public Boolean needAdd(OrdersReport record) {
 		if (record == null)
@@ -252,7 +254,11 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 					  oldorderssum= oldorderssumlist.get(0);
 			      }else if(oldorderssumlist.size()>1){
 			    	  for(int i=0;i<oldorderssumlist.size();i++){
-			    		  summaryAllMapper.updateById(oldorderssumlist.get(i));
+			    		SummaryAll  item=oldorderssumlist.get(i);
+			    		LambdaQueryWrapper<SummaryAll> query=new LambdaQueryWrapper<SummaryAll>();
+			    		query.eq(SummaryAll::getId, item.getId());
+			    		query.eq(SummaryAll::getPurchaseDate, item.getPurchaseDate());
+						summaryAllMapper.update(item,query);
 			    	  }
 			      }
 				  if(oldorderssum!=null){
@@ -268,7 +274,12 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 						  }else {
 							  sumall.setPrice(one.getItemPrice());
 						  }
-						  summaryAllMapper.updateByPrimaryKey(sumall);
+						  
+				    		LambdaQueryWrapper<SummaryAll> query=new LambdaQueryWrapper<SummaryAll>();
+				    		query.eq(SummaryAll::getId, sumall.getId());
+				    		query.eq(SummaryAll::getPurchaseDate, sumall.getPurchaseDate());
+							summaryAllMapper.update(sumall,query);
+					 
 					  }
 					  if("new".equals(type)){
 						  sumall.setQuantity(oldorderssum.getQuantity()+one.getQuantity());
@@ -282,7 +293,10 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 						  }else {
 							  sumall.setPrice(one.getItemPrice());
 						  }
-						  summaryAllMapper.updateByPrimaryKey(sumall);
+						LambdaQueryWrapper<SummaryAll> query=new LambdaQueryWrapper<SummaryAll>();
+			    		query.eq(SummaryAll::getId, sumall.getId());
+			    		query.eq(SummaryAll::getPurchaseDate, sumall.getPurchaseDate());
+						summaryAllMapper.update(sumall,query);
 					  }
 				  }else{
 					  sumall.setQuantity(one.getQuantity());
@@ -771,7 +785,7 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 			}
 		}
 		deleteProductInOrderAndProfitByDate();
-
+		iAmzProductSalesPlanService.refreshData(shopset);
 	}
 	
 	public Runnable productDateUpdateThread(final List<Map<String, Object>> list) {
@@ -986,8 +1000,8 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 		} else {
 			stockCycle = fBAShipCycleMapper.findShipCycleBySKU(map.get("sku").toString(), map.get("marketplaceid").toString(), map.get("groupid").toString());
 		}
-		if (stockCycle != null) {
-			shipmentfee = stockCycle.getFirstLegCharges();// 头程运费
+		if (stockCycle != null&&stockCycle.getFirstLegCharges()!=null) {
+			shipmentfee =stockCycle.getFirstLegCharges();// 头程运费
 		}
 		CostDetail deatail = null;
 		CostDetail deatail2=null;

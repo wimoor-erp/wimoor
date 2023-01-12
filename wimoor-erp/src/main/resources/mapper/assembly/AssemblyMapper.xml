@@ -25,11 +25,14 @@
 				  left join t_erp_assembly_form_entry e on f.id=e.formid
 				  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
 					   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
+					   and f.ftype='ass'
 					   and f.mainmid=#{materialid,jdbcType=CHAR} 
 				  GROUP BY e.materialid 
 				) e
-				left join t_erp_inventory inv on inv.materialid=e.materialid 	and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+				left join t_erp_inventory inv on inv.materialid=e.materialid 	
+				and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
 	</select>
+ 
 	
 	<select id="findCanAssemblyByInventory" resultType="java.lang.Integer" parameterType="java.lang.String">
 		 SELECT 
@@ -49,18 +52,19 @@
 		left join t_erp_material m on m.id=a.mainmid
 		where mainmid = #{materialid,jdbcType=CHAR}
 		and m.shopid = #{shopid,jdbcType=CHAR}
+		and a.ftype='ass'
 	</select>
 
-	<select id="selectMainBySubid" resultType="java.util.Map" parameterType="java.lang.String">
-		select a.*,IFNULL(pic.location,pic.url) image,m.name mname, m.color mcolor,ifnull(m.boxnum,0) boxnum,
-			m.sku sku ,m.price subprice , m.supplier,c.name suppliername,m.delivery_cycle
+	<select id="selectMainBySubid" resultType="com.wimoor.erp.material.pojo.entity.Material" parameterType="java.lang.String">
+		select IFNULL(pic.location,pic.url) image,m.name name, m.color color,ifnull(m.boxnum,0) boxnum,
+			m.sku sku ,m.price price ,c.name supplier,m.delivery_cycle,a.subnumber MOQ
 		from t_erp_assembly a
 		left join t_erp_material m on a.mainmid = m.id
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_picture pic on m.image=pic.id
 		where submid = #{submid,jdbcType=CHAR}
 		and m.isDelete =0
-		 ORDER BY m.sku desc
+		ORDER BY m.sku desc
 	</select>
 
 

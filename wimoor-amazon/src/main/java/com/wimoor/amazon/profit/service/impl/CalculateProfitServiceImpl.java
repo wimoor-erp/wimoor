@@ -2,23 +2,20 @@ package com.wimoor.amazon.profit.service.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.mapper.DimensionsInfoMapper;
-import com.wimoor.amazon.common.mapper.FBAShipCycleMapper;
 import com.wimoor.amazon.common.pojo.entity.DimensionsInfo;
-import com.wimoor.amazon.common.pojo.entity.FBAShipCycle;
+import com.wimoor.amazon.finances.mapper.FBAEstimatedFeeMapper;
+import com.wimoor.amazon.inbound.mapper.FBAShipCycleMapper;
+import com.wimoor.amazon.inbound.pojo.entity.FBAShipCycle;
 import com.wimoor.amazon.product.mapper.ProductCategoryMapper;
 import com.wimoor.amazon.product.mapper.ProductInOptMapper;
 import com.wimoor.amazon.product.pojo.entity.ProductCategory;
@@ -32,9 +29,6 @@ import com.wimoor.amazon.profit.service.ICalculateProfitService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.profit.service.IReferralFeeService;
-import com.wimoor.amazon.report.mapper.FBAEstimatedFeeMapper;
-import com.wimoor.amazon.report.pojo.entity.FBAEstimatedFee;
-import com.wimoor.common.result.Result;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
@@ -124,29 +118,29 @@ public class CalculateProfitServiceImpl implements ICalculateProfitService {
 		} else {
 			stockCycle = fBAShipCycleMapper.findShipCycleBySKU(info.getSku(), market.getMarketplaceid(), auth.getGroupid());
 		}
-		if (stockCycle != null) {
+		if (stockCycle != null&&stockCycle.getFirstLegCharges()!=null) {
 			shipmentfee = stockCycle.getFirstLegCharges();// 头程运费
 		}
 		CostDetail deatail = null;
 		try {
-			FBAEstimatedFee fbaFee = null;
-			LambdaQueryWrapper<FBAEstimatedFee> queryFbaFee=new LambdaQueryWrapper<FBAEstimatedFee>();
-			queryFbaFee.eq(FBAEstimatedFee::getSku, info.getSku());
-			queryFbaFee.eq(FBAEstimatedFee::getAsin, info.getAsin());
-			queryFbaFee.eq(FBAEstimatedFee::getAmazonauthid, auth.getId());
-			queryFbaFee.eq(FBAEstimatedFee::getMarketplaceid, market.getMarketplaceid());
-			fbaFee = fbaEstimatedFeeMapper.selectOne(queryFbaFee);
+//			FBAEstimatedFee fbaFee = null;
+//			LambdaQueryWrapper<FBAEstimatedFee> queryFbaFee=new LambdaQueryWrapper<FBAEstimatedFee>();
+//			queryFbaFee.eq(FBAEstimatedFee::getSku, info.getSku());
+//			queryFbaFee.eq(FBAEstimatedFee::getAsin, info.getAsin());
+//			queryFbaFee.eq(FBAEstimatedFee::getAmazonauthid, auth.getId());
+//			queryFbaFee.eq(FBAEstimatedFee::getMarketplaceid, market.getMarketplaceid());
+//			fbaFee = fbaEstimatedFeeMapper.selectOne(queryFbaFee);
 			boolean inSnl = info.getInSnl() == null ? false : info.getInSnl();
-			if (fbaFee == null) {
+//			if (fbaFee == null) {
 				deatail = this.profitService.getProfitByLocalData(country, profitcfg, inputDimension_amz,
 						inputDimension_local, isMedia, type, typeid, cost, "RMB", price, "local", inSnl, shipmentfee);
-			}else {
-				if (fbaFee != null && deatail == null) {
-					ref = referralFeeService.findByPgroup(fbaFee.getProductGroup(), country);
-					deatail = this.profitService.getProfitByAmazonData(country, profitcfg, inputDimension_local, isMedia,
-							cost, "RMB", price, fbaFee, ref, inSnl, shipmentfee);
-				}
-			}
+//			}else {
+//				if (fbaFee != null && deatail == null) {
+//					ref = referralFeeService.findByPgroup(fbaFee.getProductGroup(), country);
+//					deatail = this.profitService.getProfitByAmazonData(country, profitcfg, inputDimension_local, isMedia,
+//							cost, "RMB", price, fbaFee, ref, inSnl, shipmentfee);
+//				}
+//			}
 	
 		} catch (Exception e) {
 			e.printStackTrace();
