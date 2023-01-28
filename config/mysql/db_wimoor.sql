@@ -8696,3 +8696,16 @@ CREATE TABLE IF NOT EXISTS `undo_log` (
   UNIQUE KEY `ux_undo_log` (`xid`,`branch_id`)
 ) ENGINE=InnoDB ;
 
+CREATE TABLE `t_erp_material_brand` (
+	`id` CHAR(36) NOT NULL ,
+	`name` CHAR(100) NULL DEFAULT NULL ,
+	`shopid` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	`remark` VARCHAR(500) NULL DEFAULT NULL ,
+	`opttime` DATETIME NULL DEFAULT NULL,
+	`operator` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE,
+	UNIQUE INDEX `Index 2` (`name`, `shopid`) USING BTREE
+)
+ENGINE=InnoDB
+ROW_FORMAT=DYNAMIC
+;
