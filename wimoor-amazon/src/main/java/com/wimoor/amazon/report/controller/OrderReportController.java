@@ -83,7 +83,10 @@ public class OrderReportController {
 			List<ChartLine> lines =new LinkedList<ChartLine>();
 			List<String> legends=new LinkedList<String>();
 			List<ProductInfo> groupList = iProductInfoService.selectByMSku(dto.getMsku(),dto.getMarketplaceid(),dto.getGroupid(),userinfo.getCompanyid());
-		    for(ProductInfo item:groupList) {
+		    if(groupList==null) {
+		    	return Result.success(chart);
+		    }
+			for(ProductInfo item:groupList) {
 		    	   AmazonAuthority auth = iAmazonAuthorityService.getById(item.getAmazonAuthId());
 		    	   AmazonGroup amzstore = iAmazonGroupService.getById(auth.getGroupid());
 		    	   ChartLine line= iSummaryDataService.findOrderSummaryBySku(auth.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
@@ -106,9 +109,10 @@ public class OrderReportController {
 					   legends.add(dto.getSku());
 				   }
 		         }
-				Calendar c = Calendar.getInstance();
 				Calendar end=Calendar.getInstance();
-				end.add(Calendar.DATE, dto.getDaysize()-1);
+				end.add(Calendar.DATE,-1);
+				Calendar c = Calendar.getInstance();
+				c.add(Calendar.DATE, dto.getDaysize()*-1-1);
 				chart.setLabels(ChartPoint.getLabels(SumType.Daily, c.getTime(), end.getTime()));
 				chart.setLines(lines);
 				chart.setLegends(legends);

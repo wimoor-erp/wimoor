@@ -19,5 +19,5 @@ public interface IAmzProductSalesPlanShipItemService extends IService<AmzProduct
 	Map<String,Object> getSummary(String shopid,String groupid,String warehouseid);
 	List<Map<String,Object>> getList(String companyid, String groupid, String warehouseid, String batchnumber);
 	  int updateBatch( String id, String batchnumber);
-	  int moveBatch(String batchnumber);
+	  public int moveBatch(String shopid,String batchnumber);
 }

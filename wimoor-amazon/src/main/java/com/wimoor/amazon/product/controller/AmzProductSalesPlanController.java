@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.api.ErpClientOneFeign;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanService;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -33,12 +37,13 @@ import lombok.RequiredArgsConstructor;
  * @author wimoor team
  * @since 2022-11-28
  */
-@Api(tags = "fba补货计划接口")
+@Api(tags = "产品销量计算后的补货和发货规划接口")
 @RestController
 @RequestMapping("/api/v1/product/salesplan")
 @RequiredArgsConstructor
 public class AmzProductSalesPlanController {
 	final IAmzProductSalesPlanService iAmzProductSalesPlanService;
+	  final ErpClientOneFeign erpClientOneFeign;
     @ApiOperation(value = "计划刷新")
     @GetMapping("/refreshPlanData")
     public Result<?> refreshData() {
@@ -61,24 +66,50 @@ public class AmzProductSalesPlanController {
     }
     
     @ApiOperation(value = "展开的计划")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "groupid", value = "店铺ID", paramType = "query", dataType = "String"),
+        @ApiImplicitParam(name = "warehouseid", value = "仓库ID", paramType = "query", dataType = "String"),
+        @ApiImplicitParam(name = "msku", value = "本地SKU", paramType = "query", dataType = "String"),
+        @ApiImplicitParam(name = "plantype", value = "计划类型ship,purchase", paramType = "query", dataType = "String"),
+        @ApiImplicitParam(name = "iseu", value = "是否EU", paramType = "query", dataType = "Boolean"),
+    })
     @GetMapping("/getExpandCountryData")
-    public Result<?> getExpandCountryData(String groupid,String warehouseid,String msku,Boolean iseu) {
+    public Result<?> getExpandCountryData(String groupid,String warehouseid,String msku,String plantype,Boolean iseu,Integer amount) {
 		UserInfo user = UserInfoContext.get();
 		try {
-			return Result.success(iAmzProductSalesPlanService.ExpandCountryDataByGroup(user.getCompanyid(),groupid,warehouseid,msku,iseu));
+			if(StrUtil.isBlankOrUndefined(groupid)) {
+				groupid=null;
+			}
+			if(StrUtil.isBlankOrUndefined(warehouseid)) {
+				warehouseid=null;
+			} 
+			return Result.success(iAmzProductSalesPlanService.ExpandCountryDataByGroup(user.getCompanyid(),groupid,warehouseid,msku,plantype,iseu,amount));
 		}catch(Exception e) {
 			e.printStackTrace();
 			throw new BizException("计算异常，请联系管理员");
 		}
     }
     
-    @ApiOperation(value = "计划刷新")
-    @PostMapping("/getShipPlanModel")
-    public Result<IPage<Map<String, Object>>> getShipPlanModel(@RequestBody ShipPlanDTO dto) {
+    @ApiOperation(value = "获取计划")
+    @PostMapping("/getPlanModel")
+    public Result<IPage<Map<String, Object>>> getPlanModel(@RequestBody PlanDTO dto) {
     	UserInfo user = UserInfoContext.get();
     	dto.setShopid(user.getCompanyid());
-    	List<Map<String, Object>> list = iAmzProductSalesPlanService.getShipPlanModel(dto);
-    	return Result.success(dto.getListPage(list));
+    	List<Map<String, Object>> list = iAmzProductSalesPlanService.getPlanModel(dto);
+    	IPage<Map<String, Object>> page = dto.getListPage(list);
+    	if(dto.getPlantype().equals("purchase")&&page!=null&&page.getRecords()!=null&&page.getRecords().size()>0) {
+    		 for(Map<String, Object> item:page.getRecords()) {
+				 try{
+					   Result<?> resultLast = erpClientOneFeign.getLastRecordAction(item.get("id").toString());
+					   if(Result.isSuccess(resultLast)&&resultLast.getData()!=null) {
+									item.put("last", resultLast.getData());
+								}
+				 }catch(Exception e) {
+					 e.printStackTrace();
+				 }
+    		 }
+		 }
+    	return Result.success(page);
     }
    
 

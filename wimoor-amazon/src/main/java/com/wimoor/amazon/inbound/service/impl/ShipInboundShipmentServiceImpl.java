@@ -585,9 +585,9 @@ public String saveCartShipment(UserInfo user,ShipCartShipmentDTO dto) {
 		if(market!=null)auth.setMarketPlace(market);
 		shipment.setCarrier(dto.getCarrier());
 		List<ShipInboundItemVo> itemlist = shipInboundItemService.listByShipmentid(dto.getShipmentid());
-		 iFulfillmentInboundService.putTransportDetailsRequest(auth, market, inplan, shipment);
-		  ByteArrayOutputStream stream = createInboundFBAExcel(inplan, shipment, itemlist, dto.getBoxListDetail(), dto.getCaseListDetail(), auth.getSellerid());
-		  Map<String,Object> map = submitfeedService.selectByFeedTypeAndFileName(auth.getId(), inplan.getMarketplaceid(),"POST_FLAT_FILE_FROM_EXCEL_FBA_CREATE_CARTON_INFO",shipment.getShipmentid());
+		iFulfillmentInboundService.putTransportDetailsRequest(auth, market, inplan, shipment);
+		ByteArrayOutputStream stream = createInboundFBAExcel(inplan, shipment, itemlist, dto.getBoxListDetail(), dto.getCaseListDetail(), auth.getSellerid());
+		Map<String,Object> map = submitfeedService.selectByFeedTypeAndFileName(auth.getId(), inplan.getMarketplaceid(),"POST_FLAT_FILE_FROM_EXCEL_FBA_CREATE_CARTON_INFO",shipment.getShipmentid());
 		  //判断状态，上一条请求正在处理中，请稍后再提交;如果请求已经完成，可再次提交。
 		  if(map==null ||map.get("feedstatus")==null
 				||"Error".equals(map.get("feedstatus").toString())
@@ -1203,6 +1203,8 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 					 submitfeedService.callSubmitFeed(auth, market, que);
 				 }
 			 }
+		}catch(BizException e) {
+			throw e;
 		}catch(Exception e) {
 				this.updateById(shipment);
 				throw new BizException("物流商信息提交失败");
@@ -1284,7 +1286,7 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 		try {
 			 result = erpClientOneFeign.outbound(list);
 		 }catch(FeignException e) {
-			 throw new BizException("提交失败" +e.getMessage());
+			 throw new BizException(BizException.getMessage(e, "扣除库存失败"));
 		 }catch(Exception e) {
 			 throw new BizException("提交失败" +e.getMessage());
 		 }

@@ -24,180 +24,63 @@
     shopid, operator, isparent, parent, opttime,sales
   </sql>
   
-  <select id="getWarehouseForPlanIdAndMaterialId" resultType="java.util.Map" parameterType="java.lang.String">
-  	select item.* 
-	from t_erp_purchase_planitem item 
-	left join t_erp_purchase_plansub sub on sub.id = item.subplanid and sub.`status`= 1
-	where sub.planid=#{planid,jdbcType=CHAR} 
-		and item.materialid=#{materialid,jdbcType=CHAR}
-		and item.`status`= 1
+    <select id="getSummary" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT COUNT(0) skunum,SUM(amount) amount FROM  t_erp_v3_purchase_plan_item
+     WHERE planid=#{planid,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  <select id="planhis" resultType="java.util.Map" parameterType="java.lang.String">
+       SELECT h.batchnumber,max(h.opttime) opttime,sum(h.amount) amount 
+		from t_erp_v3_purchase_plan_item_history h
+		WHERE h.shopid=#{shopid,jdbcType=CHAR} AND h.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		AND h.opttime &lt; DATE_ADD(NOW(),INTERVAL -3 MONTH )
+		GROUP BY h.planid,h.warehouseid,h.batchnumber
+		LIMIT 5
+  </select>
+  <select id="listConfirmInfo" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT   p.location image,m.sku,m.name,c.name supplier,w.name warehousename,
+	          m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.delivery_cycle
+	 FROM  t_erp_v3_purchase_plan_item i
+	 left join t_erp_material m on m.id=i.materialid
+	 left join t_erp_customer c on c.id=m.supplier
+	 left join t_erp_warehouse w on w.id=i.warehouseid
+	 left join ( SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_item p on p.materialid=i.materialid and p.warehouseid=i.warehouseid
+					where p.planid=#{planid,jdbcType=CHAR} and p.shopid=#{shopid,jdbcType=CHAR}
+					and i.shopid=#{shopid,jdbcType=CHAR}
+					group by i.materialid
+					) v on v.materialid=i.materialid
+	 left join t_picture p on p.id=m.image
+     WHERE i.planid=#{planid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
   </select>
   
-  <select id="summaryPlan" resultType="java.util.Map" parameterType="java.lang.String">
-	select '采购任务' sfgname,0 issfg,count(p.id) number,sum(p.amount) amount,sum(m.price*p.amount) orderprice 
-		 from t_erp_purchase_planitem p
-		 left join t_erp_material m on p.materialid=m.id
-		 where p.amount!=0 
-		 	and p.status=1 
-		 	and p.subplanid in 
-		 (select ps.id from  t_erp_purchase_plansub ps where  ps.status=1 and ps.planid=#{planid,jdbcType=CHAR} )
-	union 
-	select '组装任务' sfgname,1 issfg,count(p.id) number,IFNULL(sum(p.amount),0) amount,IFNULL(sum(m.price*p.amount),0) orderprice 
-		 from t_erp_purchase_planitem p
-		 left join t_erp_material m on p.materialid=m.id
-		 where p.amount!=0 
-			 and p.status=1 
-			 and m.issfg=1 
-			 and p.subplanid in 
-		 (select ps.id from  t_erp_purchase_plansub ps where  ps.status=1 and ps.planid=#{planid,jdbcType=CHAR} )
+    <select id="listBatchInfo" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT   p.location image,m.sku,m.name,c.name suppliername,m.supplier,w.name warehousename,
+	          m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.delivery_cycle
+	 FROM  t_erp_v3_purchase_plan_item i
+	 left join t_erp_material m on m.id=i.materialid
+	 left join t_erp_customer c on c.id=m.supplier
+	 left join t_erp_warehouse w on w.id=i.warehouseid
+	 left join ( SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_item p on p.materialid=i.materialid and p.warehouseid=i.warehouseid
+					where p.planid=#{planid,jdbcType=CHAR} and p.shopid=#{shopid,jdbcType=CHAR}
+					and i.shopid=#{shopid,jdbcType=CHAR} and p.batchnumber=#{batchnumber,jdbcType=CHAR}
+					group by i.materialid
+					) v on v.materialid=i.materialid
+	 left join t_picture p on p.id=m.image
+     WHERE i.planid=#{planid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR} and i.batchnumber=#{batchnumber,jdbcType=CHAR}
   </select>
   
-  <select id="getSummaryPlanByWarehouse" resultType="java.util.Map" parameterType="java.util.Map">
-	select '采购任务' sfgname,0 issfg,count(p.id) number,IFNULL(sum(p.amount),0) amount,IFNULL(sum(m.price*p.amount),0) orderprice 
-		 from t_erp_purchase_planitem p
-		 left join t_erp_material m on p.materialid=m.id
-		 where p.warehouseid=#{warehouseid,jdbcType=CHAR}
-		 	and p.amount!=0 
-		 	and p.status=1 
-		 	and p.subplanid in 
-		 (select ps.id from t_erp_purchase_plansub ps where ps.status=1 and ps.planid=#{planid,jdbcType=CHAR} )
-		 <if test="item_material_list!=null">
-		     and p.materialid in 
-		     	<foreach collection="item_material_list" item="item" index="i" open="(" separator="," close=" )">
-				   #{item,jdbcType=CHAR}
-			    </foreach>
-		 </if>
-	union 
-	select '组装任务' sfgname,1 issfg,count(p.id) number,IFNULL(sum(p.amount),0) amount,IFNULL(sum(m.price*p.amount),0) orderprice 
-		 from t_erp_purchase_planitem p
-		 left join t_erp_material m on p.materialid=m.id
-		 where p.warehouseid=#{warehouseid,jdbcType=CHAR}
-		 	 and p.amount!=0 
-			 and p.status=1 
-			 and m.issfg=1 
-			 and p.subplanid in 
-		 (select ps.id from t_erp_purchase_plansub ps where ps.status=1 and ps.planid=#{planid,jdbcType=CHAR} )
-		 <if test="item_material_list!=null">
-		     and p.materialid in 
-		     	<foreach collection="item_material_list" item="item" index="i" open="(" separator="," close=" )">
-				   #{item,jdbcType=CHAR}
-			    </foreach>
-		 </if>
-  </select>
-  
- <select id="summaryPlanOrder" resultType="java.util.Map" parameterType="java.lang.String">
-    select 
-         p.id planitemid, m.issfg,m.sku sku,m.id skuid,u.name supplier,u.id supplierid,p.amount,p.itemprice,p.orderprice
-		 from t_erp_purchase_planitem p
-		 left join t_erp_purchase_plansub ps on p.subplanid=ps.id
-		 left join t_erp_material m on p.materialid=m.id
-		 left join t_erp_customer u on u.id=m.supplier
-    where p.amount!=0 and p.status=1 and ps.status=1
-    	and p.warehouseid=#{warehouseid,jdbcType=CHAR}
-    	and ps.planid=#{planid,jdbcType=CHAR}
-    	 <if test="item_material_list!=null">
-		     and p.materialid in 
-		     	<foreach collection="item_material_list" item="item" index="i" open="(" separator="," close=" )">
-				   #{item,jdbcType=CHAR}
-			    </foreach>
-		 </if>
-  </select>
-  
-   <select id="summaryPlanAssembly" resultType="java.util.Map" parameterType="java.lang.String">
-    select 
-         p.id planitemid, m.sku sku,m.id skuid,u.name supplier,u.id supplierid,p.amount,p.itemprice,p.orderprice
-		 from t_erp_purchase_planitem p
-		 left join t_erp_purchase_plansub ps on p.subplanid=ps.id
-		 left join t_erp_material m on p.materialid=m.id
-		 left join t_erp_customer u on u.id=m.supplier
-    where p.amount!=0 and p.status=1 and ps.status=1 
-    	and ps.planid=#{planid,jdbcType=CHAR}
-   		and p.warehouseid=#{warehouseid,jdbcType=CHAR}
-		and m.issfg=1
-		<if test="item_material_list!=null">
-		     and p.materialid in 
-		     	<foreach collection="item_material_list" item="item" index="i" open="(" separator="," close=" )">
-				   #{item,jdbcType=CHAR}
-			    </foreach>
-		 </if>
-  </select>
-  
-  <select id="findPurchaseitemForWarehouseid" resultType="java.util.Map" parameterType="java.lang.String" >
-    select item.* from t_erp_purchase_plan_warahouse pw
-	left join t_erp_purchase_plansub sub on sub.planid = pw.planid
-	left join t_erp_purchase_planitem item on item.subplanid = sub.id  
-	where pw.warehouseid = #{warehouseid,jdbcType=CHAR}
-		and sub.ftype = #{ftype,jdbcType=CHAR}
-		and item.`status`=1 
-  </select>
-  
-  <select id="findPurchaseSubForWarehouseid" resultType="java.util.Map" parameterType="java.lang.String" >
-    select sub.id subid,sub.`status`
-	from t_erp_purchase_plan_warahouse pw
-	left join t_erp_purchase_plansub sub on sub.planid = pw.planid
-	where pw.warehouseid = #{warehouseid,jdbcType=CHAR}
-		and sub.ftype = #{ftype,jdbcType=CHAR}
-		and sub.status = 1   
-  </select>
-  
-  <select id="getPlanInventoryInbound" parameterType="java.lang.String" resultType="java.util.Map" >
-  	SELECT SUM(i.QuantityShipped-IFNULL(i.QuantityReceived,0)) inbound FROM  t_erp_ship_inboundshipment s
-LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
-LEFT JOIN t_erp_ship_inbounditem i ON i.ShipmentId=s.ShipmentId
-LEFT JOIN t_marketplace m ON m.marketplaceId=p.marketplaceid
-WHERE i.SellerSKU=#{sku,jdbcType=CHAR} AND (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) AND  p.amazongroupid=#{groupid,jdbcType=CHAR}
-AND p.auditstatus=3 AND s.`status`&lt;=5 AND s.`status`>1
-  </select>
-  
-  <select id="getShipInventoryInbound" parameterType="java.lang.String" resultType="java.util.Map" >
-  	SELECT IFNULL(r.afn_inbound_working_quantity,0)+
-IFNULL(r.afn_inbound_shipped_quantity,0)+
-IFNULL(r.afn_inbound_receiving_quantity,0) inbound
- FROM t_inventory_report r WHERE sku=#{sku,jdbcType=CHAR} AND r.marketplaceid=#{marketplaceid,jdbcType=CHAR} AND r.amazonAuthId=#{authid,jdbcType=CHAR}
-  </select>
-  
-  <update id="updatePOStatusBySubPlan" parameterType="java.lang.String" >
-    update t_erp_purchase_planitem pi
-    left join t_erp_purchase_form_entry po on po.planitemid = pi.id
-    left join t_erp_purchase_plansub sub on sub.id = pi.subplanid
-    set pi.status = 3
-    where pi.id = #{id,jdbcType=CHAR}
-    and pi.warehouseid = #{warehouseid,jdbcType=CHAR}
-    and sub.ftype='po'
-    and po.id is not null;
-  </update>
-  
-  <update id="updatePOStatusByWarehouse" parameterType="java.lang.String" >
-    update t_erp_purchase_planitem pi
-    left join t_erp_purchase_form_entry po on po.planitemid = pi.id
-    left join t_erp_purchase_plansub sub on sub.id = pi.subplanid
-    set pi.status = 0
-    where pi.warehouseid = #{warehouseid,jdbcType=CHAR}
-    	and pi.status = 1
-    	and sub.ftype='po'
-    	and po.id is not null;
-  </update>
-  
-  <update id="updateAOStatusBySubPlan" parameterType="java.lang.String" >
-    update t_erp_purchase_planitem pi
-    left join t_erp_assembly_form ao on ao.planitem = pi.id
-    left join t_erp_purchase_plansub sub on sub.id = pi.subplanid
-    set pi.status = 3
-    where pi.id = #{id,jdbcType=CHAR} 
-    and pi.warehouseid = #{warehouseid,jdbcType=CHAR}
-    and sub.ftype='ao'
-    and ao.id is not null;
-  </update>
-  
-  <update id="updateAOStatusByWarehouse" parameterType="java.lang.String" >
-    update t_erp_purchase_planitem pi
-    left join t_erp_assembly_form ao on ao.planitem = pi.id
-    left join t_erp_purchase_plansub sub on sub.id = pi.subplanid
-    set pi.status = 0
-    where pi.warehouseid = #{warehouseid,jdbcType=CHAR}
-    	and pi.status = 1
-    	and sub.ftype='ao'
-    	and ao.id is not null;
-  </update>
-  
+  <delete id="moveBatch"  parameterType="java.lang.String">
+         insert into t_erp_v3_purchase_plan_item_history
+		 select* from t_erp_v3_purchase_plan_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
+		 delete from  t_erp_v3_purchase_plan_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
+</delete>
 </mapper>

@@ -561,8 +561,11 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return this.baseMapper.findInvByWarehouseId(materialid, null, shopid);
 	}
 	public Map<String, Object> findInvByWarehouseId(String materialid, String warehouseid, String shopid) {
-		String[] warehouseidArray = warehouseid.split(",");
-		if (warehouseidArray.length == 1) {
+		String[] warehouseidArray =null;
+		if(warehouseid!=null) {
+			warehouseidArray=warehouseid.split(",");
+		}
+		if (warehouseidArray==null||warehouseidArray.length == 1) {
 			return this.baseMapper.findInvByWarehouseId(materialid, warehouseid, shopid);
 		} else {
 			Map<String, Object> maps = new HashMap<String, Object>();

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlanShipItem;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanService;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanShipItemService;
@@ -185,19 +185,20 @@ public Result<String> batchShipPlanItem(@RequestBody List<AmzProductSalesPlanShi
 	return Result.success(number);
 }
 
-    @ApiOperation(value = "计划打包")
+    @ApiOperation(value = "计划归档")
     @PostMapping("/removeBatch")
     public Result<?> moveBatchShipPlanItem(String batchnumber) {
-    	iAmzProductSalesPlanShipItemService.moveBatch(batchnumber);
+    	UserInfo user = UserInfoContext.get();
+    	iAmzProductSalesPlanShipItemService.moveBatch(user.getCompanyid(),batchnumber);
     	return Result.success();
     }
 
     @ApiOperation(value = "检查计划")
     @PostMapping("/checkShipPlan")
-    public Result<IPage<Map<String, Object>>> getShipPlanModel(@RequestBody ShipPlanDTO dto) {
+    public Result<IPage<Map<String, Object>>> getShipPlanModel(@RequestBody PlanDTO dto) {
     	UserInfo user = UserInfoContext.get();
     	dto.setShopid(user.getCompanyid());
-    	List<Map<String, Object>> list = iAmzProductSalesPlanService.getShipPlanModel(dto);
+    	List<Map<String, Object>> list = iAmzProductSalesPlanService.getPlanModel(dto);
     	return Result.success(dto.getListPage(list));
     }
 }

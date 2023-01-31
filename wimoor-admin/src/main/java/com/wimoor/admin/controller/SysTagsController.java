@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -99,6 +102,7 @@ public class SysTagsController {
     @ApiOperation(value = "新增标签项")
     @ApiImplicitParam(name = "dictItem", value = "实体JSON对象", required = true, paramType = "body", dataType = "SysTags")
     @PostMapping
+	@CacheEvict(value = { "tagsCache"}, allEntries = true)
     public Result add(@RequestBody SysTags item) {
     	UserInfo userInfo = UserInfoContext.get();
     	String shopid=userInfo.getCompanyid();
@@ -120,6 +124,7 @@ public class SysTagsController {
             @ApiImplicitParam(name = "dictItem", value = "实体JSON对象", required = true, paramType = "body", dataType = "SysTags")
     })
     @PutMapping(value = "/{id}")
+	@CacheEvict(value = { "tagsCache"}, allEntries = true)
     public Result update(
             @PathVariable String id,
             @RequestBody SysTags item) {
@@ -141,6 +146,7 @@ public class SysTagsController {
     @ApiOperation(value = "删除标签数据")
     @ApiImplicitParam(name = "ids", value = "主键ID集合，以,分割拼接字符串", required = true, paramType = "query", dataType = "String")
     @DeleteMapping("/{ids}")
+	@CacheEvict(value = { "tagsCache"}, allEntries = true)
     public Result delete(@PathVariable String ids) {
         boolean status = iSysTagsService.removeByIds(Arrays.asList(ids.split(",")));
         return Result.judge(status);
@@ -188,5 +194,19 @@ public class SysTagsController {
       return Result.success(list);
     }
     
+    @PostMapping("/mapname/{shopid}")
+	@Cacheable(value = "tagsCache")
+ 	public Result<Map<String, Object>> findTagsName(@PathVariable String shopid) {
+ 	  	  Map<String,Object> map =new HashMap<String,Object>();
+ 	      LambdaQueryWrapper<SysTags> query = new LambdaQueryWrapper<SysTags>().eq(SysTags::getShopid, shopid);
+ 	        List<SysTags> list = iSysTagsService.list(query);
+ 	        for(SysTags item:list) {
+ 	        	Map<String,Object> param=new HashMap<String,Object>();
+ 	        	param.put("name", item.getName());
+ 	        	param.put("color", item.getColor());
+ 	        	map.put(item.getId(),param);
+ 	        }
+ 	      return Result.success(map);
+ 	    }
 }
 

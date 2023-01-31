@@ -206,12 +206,7 @@
 		select s.id,s.marketplaceid, s.asin, s.sku,s.purchase_date, s.amazonAuthId, s.quantity,s.ordersum,s.orderprice 
 		from t_orders_summary s
 		where marketplaceid = #{marketplaceid,jdbcType=CHAR}
-		<if test="skuList != null and skuList.size>0 ">
-			and 
-			<foreach collection="skuList" item="adv" index="index" open="(" close=")" separator=" or ">
-				sku=#{adv,jdbcType=CHAR}
-			</foreach>
-		</if>
+			and s.sku=#{sku,jdbcType=CHAR}
 		<if test="startDate != null">
 			and purchase_date &gt;=#{startDate,jdbcType=CHAR}
 		</if>
@@ -250,12 +245,7 @@
 			and os.amazonauthid=#{amazonAuthId,jdbcType=CHAR}
 		</if>
 	    and m.region='EU'
-		<if test="skuList != null and skuList.size>0 ">
-			and 
-			<foreach collection="skuList" item="adv" index="index" open="(" close=")" separator=" or ">
-				os.sku=#{adv,jdbcType=CHAR}
-			</foreach>
-		</if>
+        and os.sku=#{sku,jdbcType=CHAR}
 		group by os.purchase_date,os.sku
 	</select>
 

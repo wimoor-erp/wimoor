@@ -1,7 +1,6 @@
 package com.wimoor.amazon.auth.service.impl;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
@@ -44,7 +43,6 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-
 import cn.hutool.core.lang.Assert;
 import lombok.Setter;
 
@@ -115,52 +113,104 @@ public class ApiBuildService implements InitializingBean {
 	}
 	
 	public AWSAuthenticationCredentials getAwsAuthenticationCredentials(AmazonAuthority auth) {
-		   AWSAuthenticationCredentials awsAuthenticationCredentials=AWSAuthenticationCredentials.builder()
-	             //IAM user的accessKeyId
-	             .accessKeyId(accessKeyId)
-	             //IAM user的secretKey
-	             .secretKey(secretKey)
-	             //这里按照amazon对不同region的分区填写，例子是北美地区的
-	             .region(auth.getAWSRegion())
-	             .build();
-		 return awsAuthenticationCredentials;
+		   if(auth.getAccessKeyId()!=null) {
+			   AWSAuthenticationCredentials awsAuthenticationCredentials=AWSAuthenticationCredentials.builder()
+			             //IAM user的accessKeyId
+			             .accessKeyId(auth.getAccessKeyId())
+			             //IAM user的secretKey
+			             .secretKey(auth.getSecretKey())
+			             //这里按照amazon对不同region的分区填写，例子是北美地区的
+			             .region(auth.getAWSRegion())
+			             .build();
+				 return awsAuthenticationCredentials;
+		   }else {
+			   AWSAuthenticationCredentials awsAuthenticationCredentials=AWSAuthenticationCredentials.builder()
+			             //IAM user的accessKeyId
+			             .accessKeyId(accessKeyId)
+			             //IAM user的secretKey
+			             .secretKey(secretKey)
+			             //这里按照amazon对不同region的分区填写，例子是北美地区的
+			             .region(auth.getAWSRegion())
+			             .build();
+				 return awsAuthenticationCredentials;
+		   }
+		  
 	}
 
 	 
-	public AWSAuthenticationCredentialsProvider getAWSAuthenticationCredentialsProvider() {
-	     AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider=AWSAuthenticationCredentialsProvider.builder()
-	             //IAM role，特别注意：最好用IAM role当做IAM ARN去申请app
-	              // 而且IAM user需要添加内联策略STS关联上IAM role，具体操作看：https://www.spapi.org.cn/cn/model2/_2_console.html
-	              .roleArn(roleArn)
-	              .roleSessionName("myrolesessioname121231313")
-	              .build();
-	     return awsAuthenticationCredentialsProvider;
+	public AWSAuthenticationCredentialsProvider getAWSAuthenticationCredentialsProvider(AmazonAuthority auth) {
+		  if(auth.getRoleArn()!=null) {
+			  AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider=AWSAuthenticationCredentialsProvider.builder()
+			             //IAM role，特别注意：最好用IAM role当做IAM ARN去申请app
+			              // 而且IAM user需要添加内联策略STS关联上IAM role，具体操作看：https://www.spapi.org.cn/cn/model2/_2_console.html
+			              .roleArn(auth.getRoleArn())
+			              .roleSessionName(auth.getId())
+			              .build();
+			     return awsAuthenticationCredentialsProvider;
+		  }else {
+			  AWSAuthenticationCredentialsProvider awsAuthenticationCredentialsProvider=AWSAuthenticationCredentialsProvider.builder()
+			             //IAM role，特别注意：最好用IAM role当做IAM ARN去申请app
+			              // 而且IAM user需要添加内联策略STS关联上IAM role，具体操作看：https://www.spapi.org.cn/cn/model2/_2_console.html
+			              .roleArn(roleArn)
+			              .roleSessionName("myrolesessioname121231313")
+			              .build();
+			     return awsAuthenticationCredentialsProvider;
+		  }
+	    
 	}
 
 	public LWAAuthorizationCredentials getLWAAuthorizationCredentials(AmazonAuthority auth) {
-	       LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
-	             //申请app后LWA中的clientId
-	             .clientId(clientId)
-	             //申请app后LWA中的clientSecret
-	             .clientSecret(clientSecret)
-	             //店铺授权时产生的refreshToken或者app自授权生成的
-	             .refreshToken(auth.getRefreshToken())
-	             .endpoint("https://api.amazon.com/auth/o2/token")
-	             .build();
-	       return lwaAuthorizationCredentials;
+		   if(auth.getClientId()!=null) {
+			   LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
+			             //申请app后LWA中的clientId
+			             .clientId(auth.getClientId())
+			             //申请app后LWA中的clientSecret
+			             .clientSecret(auth.getSecretKey())
+			             //店铺授权时产生的refreshToken或者app自授权生成的
+			             .refreshToken(auth.getRefreshToken())
+			             .endpoint("https://api.amazon.com/auth/o2/token")
+			             .build();
+			       return lwaAuthorizationCredentials;
+		   }else {
+			   LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
+			             //申请app后LWA中的clientId
+			             .clientId(clientId)
+			             //申请app后LWA中的clientSecret
+			             .clientSecret(clientSecret)
+			             //店铺授权时产生的refreshToken或者app自授权生成的
+			             .refreshToken(auth.getRefreshToken())
+			             .endpoint("https://api.amazon.com/auth/o2/token")
+			             .build();
+			       return lwaAuthorizationCredentials;
+		   }
+	      
 	}
 	
 	public LWAAuthorizationCredentials getLWAAuthorizationCredentialsWithScope(AmazonAuthority auth,String scope) {
-	       LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
-	             //申请app后LWA中的clientId
-	             .clientId(clientId)
-	             //申请app后LWA中的clientSecret
-	             .clientSecret(clientSecret)
-	             .withScope(scope)
-	             //店铺授权时产生的refreshToken或者app自授权生成的
-	             .endpoint("https://api.amazon.com/auth/o2/token")
-	             .build();
-	       return lwaAuthorizationCredentials;
+		 if(auth.getClientId()!=null) {
+			 LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
+		             //申请app后LWA中的clientId
+		             .clientId(auth.getClientId())
+		             //申请app后LWA中的clientSecret
+		             .clientSecret(auth.getClientSecret())
+		             .withScope(scope)
+		             //店铺授权时产生的refreshToken或者app自授权生成的
+		             .endpoint("https://api.amazon.com/auth/o2/token")
+		             .build();
+		       return lwaAuthorizationCredentials;
+		 }else {
+			 LWAAuthorizationCredentials lwaAuthorizationCredentials = LWAAuthorizationCredentials.builder()
+		             //申请app后LWA中的clientId
+		             .clientId(clientId)
+		             //申请app后LWA中的clientSecret
+		             .clientSecret(clientSecret)
+		             .withScope(scope)
+		             //店铺授权时产生的refreshToken或者app自授权生成的
+		             .endpoint("https://api.amazon.com/auth/o2/token")
+		             .build();
+		       return lwaAuthorizationCredentials;
+		 }
+	       
 	}
 	
 	private String getEndPoint(String region) {
@@ -203,7 +253,7 @@ public class ApiBuildService implements InitializingBean {
 	                    ReportsApi api = new ReportsApi.Builder()
 			                 .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 			                 .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-			                 .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+			                 .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 			                 .endpoint(getEndPoint(auth.getAWSRegion()))
 			                 .rateLimitConfigurationOnRequests(auth)
 			                 .build();
@@ -214,7 +264,7 @@ public class ApiBuildService implements InitializingBean {
         ListingsApi api = new ListingsApi.Builder()
 	            .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
 	            .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-	            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+	            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 	            .endpoint(getEndPoint(auth.getAWSRegion()))
 	            .rateLimitConfigurationOnRequests(auth)
 	            .build();
@@ -225,7 +275,7 @@ public class ApiBuildService implements InitializingBean {
 		OrdersV0Api api = new OrdersV0Api.Builder()
             .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
             .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
             .endpoint(getEndPoint(auth.getAWSRegion()))
             .rateLimitConfigurationOnRequests(auth)
             .build();
@@ -237,7 +287,7 @@ public class ApiBuildService implements InitializingBean {
 		  FeedsApi api = new FeedsApi.Builder()
             .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
             .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+            .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
             .endpoint(getEndPoint(auth.getAWSRegion()))
             .rateLimitConfigurationOnRequests(auth)
             .build();
@@ -249,7 +299,7 @@ public class ApiBuildService implements InitializingBean {
 		 FbaInboundApi api = new FbaInboundApi.Builder()
            .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
            .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-           .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+           .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
            .endpoint(getEndPoint(auth.getAWSRegion()))
            .rateLimitConfigurationOnRequests(auth)
            .build();
@@ -261,7 +311,7 @@ public class ApiBuildService implements InitializingBean {
 		FbaInventoryApi api = new FbaInventoryApi.Builder()
           .awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
           .lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
-          .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+          .awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
           .endpoint(getEndPoint(auth.getAWSRegion()))
           .rateLimitConfigurationOnRequests(auth)
           .build();
@@ -280,7 +330,7 @@ public class ApiBuildService implements InitializingBean {
 		 */
 		AuthorizationApi api=new AuthorizationApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentialsWithScope(auth,ScopeConstants.SCOPE_MIGRATION_API))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -291,7 +341,7 @@ public class ApiBuildService implements InitializingBean {
 	public NotificationsApi getNotificationsApiGrantless(AmazonAuthority auth) {
 	       NotificationsApi api=new NotificationsApi.Builder()
 			.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-			.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+			.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 			.lwaAuthorizationCredentials(getLWAAuthorizationCredentialsWithScope(auth,ScopeConstants.SCOPE_NOTIFICATIONS_API))
 	        .endpoint(getEndPoint(auth.getAWSRegion()))
 	        .rateLimitConfigurationOnRequests(auth)
@@ -302,7 +352,7 @@ public class ApiBuildService implements InitializingBean {
 	public CatalogApi  getCatalogApi(AmazonAuthority auth) {
 		CatalogApi api=new CatalogApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -313,7 +363,7 @@ public class ApiBuildService implements InitializingBean {
 	public NotificationsApi getNotificationsApi(AmazonAuthority auth) {
 		NotificationsApi api=new NotificationsApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -324,7 +374,7 @@ public class ApiBuildService implements InitializingBean {
 	public FinancesApi getFinancesApi(AmazonAuthority auth) {
 			FinancesApi api=new FinancesApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -337,7 +387,7 @@ public class ApiBuildService implements InitializingBean {
 	public TokensApi getTokensApi(AmazonAuthority auth) {
 		TokensApi api=new TokensApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -350,7 +400,7 @@ public class ApiBuildService implements InitializingBean {
 	public SellersApi getSellersApi(AmazonAuthority auth){
 		SellersApi api=new SellersApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -361,7 +411,7 @@ public class ApiBuildService implements InitializingBean {
 	public ProductPricingApi getProductPricingApi(AmazonAuthority auth){
 		ProductPricingApi api=new ProductPricingApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -372,7 +422,7 @@ public class ApiBuildService implements InitializingBean {
 	public SolicitationsApi getSolicitationsApi(AmazonAuthority auth){
 		SolicitationsApi api=new SolicitationsApi.Builder()
 				.awsAuthenticationCredentials(getAwsAuthenticationCredentials(auth))
-				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider())
+				.awsAuthenticationCredentialsProvider(getAWSAuthenticationCredentialsProvider(auth))
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 		        .endpoint(getEndPoint(auth.getAWSRegion()))
 		        .rateLimitConfigurationOnRequests(auth)
@@ -445,7 +495,7 @@ public class ApiBuildService implements InitializingBean {
 	             .build(); // Build the request.
 
 	     // Initiate an AWSSigV4Signer instance using your AWS credentials. This example is for an application registered using an AIM Role.
-	     AWSSigV4Signer awsSigV4Signer = new AWSSigV4Signer(getAwsAuthenticationCredentials(auth), getAWSAuthenticationCredentialsProvider());
+	     AWSSigV4Signer awsSigV4Signer = new AWSSigV4Signer(getAwsAuthenticationCredentials(auth), getAWSAuthenticationCredentialsProvider(auth));
 
 	     /*
 	     // Or, if the application was registered using an IAM User, use the following example:

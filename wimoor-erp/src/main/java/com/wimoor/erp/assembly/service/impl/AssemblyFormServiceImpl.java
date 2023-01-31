@@ -408,11 +408,7 @@ public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,Ass
 			}
 			if (!GeneralUtil.isEmpty(planitemid)) {
 				Warehouse planwarehouse = warehouseService.getSelfWarehouse(planwarehouseid);
-				purchasePlanService.afterSaveASForm(planitemid, planwarehouse.getId());
 			}
-		}
-		if (!GeneralUtil.isEmpty(planwarehouseid)) {
-			purchasePlanService.afterSaveASSubplan(user,planwarehouseid);
 		}
 		return msgMap;
 	}
@@ -779,6 +775,9 @@ public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,Ass
 		List<AssemblyForm> formlist = this.baseMapper.getCanAssemblyFormByMaterial(user.getCompanyid(), warehouseid, material.getId());
 		for(int i=0;i<formlist.size()&&needassembly>0;i++) {
 			AssemblyForm item = formlist.get(i);
+			if(item.getAmount_handle()==null) {
+				item.setAmount_handle(0);
+			}
 			int canass = item.getAmount()-item.getAmount_handle();
 			if(canass<needassembly) {
 				//commit

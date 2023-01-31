@@ -65,6 +65,7 @@ import com.wimoor.erp.material.mapper.MaterialSupplierMapper;
 import com.wimoor.erp.material.mapper.MaterialSupplierStepwiseMapper;
 import com.wimoor.erp.material.mapper.MaterialTagsMapper;
 import com.wimoor.erp.material.pojo.dto.MaterialDTO;
+import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
 import com.wimoor.erp.material.pojo.entity.ERPMaterialHistory;
 import com.wimoor.erp.material.pojo.entity.Material;
@@ -90,7 +91,6 @@ import com.wimoor.erp.material.service.IZipRarUploadService;
 import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
 import com.wimoor.erp.purchase.service.IPurchasePlanItemService;
 import com.wimoor.erp.ship.pojo.dto.ConsumableOutFormDTO;
-import com.wimoor.erp.ship.pojo.dto.ShipPlanDTO;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -704,21 +704,27 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	
 	
 	private DimensionsInfo saveItemDim(MaterialInfoVO vo) {
-		// TODO Auto-generated method stub
         if(vo==null||vo.getItemDim()==null)return null;
 		DimensionsInfo dimvo=vo.getItemDim();
+		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
+			return null;
+        }
 		return saveDim(dimvo);
 	}
 	private DimensionsInfo savePkgDim(MaterialInfoVO vo) {
-		// TODO Auto-generated method stub
         if(vo==null||vo.getPkgDim()==null)return null;
 		DimensionsInfo dimvo=vo.getPkgDim();
+		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
+			return null;
+        }
 		return saveDim(dimvo);
 	}
 	private DimensionsInfo saveBoxDim(MaterialInfoVO vo) {
-		// TODO Auto-generated method stub
         if(vo==null||vo.getBoxDim()==null)return null;
 		DimensionsInfo dimvo=vo.getBoxDim();
+		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
+			return null;
+        }
 		return saveDim(dimvo);
 	}
 
@@ -1559,7 +1565,7 @@ public Map<String, Object> getRealityPrice(String materialid){
 	}
 
 	@Override
-	public List<Map<String, Object>> findInventoryByMsku(ShipPlanDTO dto) {
+	public List<Map<String, Object>> findInventoryByMsku(PlanDTO dto) {
 		// TODO Auto-generated method stub
 		if(StrUtil.isBlankOrUndefined(dto.getOwner())) {
 			dto.setOwner(null);
@@ -1578,6 +1584,19 @@ public Map<String, Object> getRealityPrice(String materialid){
 		// TODO Auto-generated method stub
 		return  this.baseMapper.getMaterailBySku(shopid,sku);
 		 
+	}
+
+	@Override
+	public Map<String, String> getTagsIdsListByMsku(String shopid, List<String> mskulist) {
+		Map<String, Object> param=new HashMap<String,Object>();
+		param.put("shopid", shopid);
+		param.put("mskulist", mskulist);
+		List<Map<String,String>> list=materialTagsMapper.getTagsBySku(param);
+		Map<String,String> result=new HashMap<String,String>();
+		for(Map<String,String> item:list) {
+			result.put(item.get("sku"), item.get("tagids"));
+		}
+		return result;
 	}
 
 

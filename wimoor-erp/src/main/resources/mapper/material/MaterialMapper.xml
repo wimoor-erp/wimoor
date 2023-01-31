@@ -56,7 +56,7 @@
 			
 	</select>
 	
-	<select id="findInventoryByMsku" resultType="java.util.Map" parameterType="com.wimoor.erp.ship.pojo.dto.ShipPlanDTO">
+	<select id="findInventoryByMsku" resultType="java.util.Map" parameterType="com.wimoor.erp.material.pojo.dto.PlanDTO">
 	    select 
                m.id,
 		       m.name name, 
@@ -67,13 +67,24 @@
 		       mn.mark notice,
 		       mc.material material,
 		       mc.addfee addfee,
-		       inv.fulfillable quantity,
-		       inv.fulfillable,
-		       inv.outbound,
-		       inv.inbound,
+		      
+		       ifnull(inv.fulfillable,0) fulfillable,
+		       ifnull(inv.outbound,0) outbound,
+		       ifnull(inv.inbound,0) inbound,
+		       <if test="plantype=='ship'">
 		       v.amount canAssembly,
+		        ifnull(inv.fulfillable,0) quantity,
+		       </if>
+		       <if test="plantype=='purchase'">
+		         w.id warehouseid,
+		         w.name warehousename,
+		         item.amount reallyamount,
+		         item.amount,
+		         ifnull(inv.fulfillable,0)+ifnull(inv.inbound,0) quantity,
+		       </if>
 		       m.issfg,
 		       m.price,
+		       m.delivery_cycle,
 		       ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0) pkgcm3,
 		       ifnull(dd.weight,0) pkgweight,
 		       ifnull(bd.length,0)*ifnull(bd.width,0)*ifnull(bd.height,0) boxcm3,
@@ -85,31 +96,50 @@
 		left join t_erp_material_mark mn on mn.materialid=m.id and mn.ftype='notice'
 		left join t_erp_material_mark mh on mh.materialid=m.id and mh.ftype='phide'
 		left join t_userinfo usi on usi.id=mn.operator 
-		left join (SELECT  e.mainmid,   min(FLOOR(case when canas>ifnull(inv.quantity,0)/(e.units)  then ifnull(inv.quantity,0)/(e.units) ELSE canas END)) amount
-		        FROM (
-				 SELECT f.mainmid,e.materialid,
-				      max(e.amount/f.amount) units,
-				      SUM(f.amount-f.amount_handle) canas
-				  from t_erp_assembly_form  f
-				  left join t_erp_assembly_form_entry e on f.id=e.formid
-				  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
-				       and f.ftype='ass'
-					   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
-				  GROUP BY  f.mainmid,e.materialid 
-				) e
-				left join t_erp_inventory inv on inv.materialid=e.materialid 	
-				and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
-				group by mainmid) v on v.mainmid=m.id
-		left join (
-		  SELECT  i.materialid,
-		          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
-				  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
-				  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
-			from t_erp_inventory i
-			where i.shopid=#{shopid,jdbcType=CHAR} 
-              and i.warehouseid=#{warehouseid,jdbcType=CHAR} 
-			  group by i.shopid,warehouseid,i.materialid
-		)  inv on inv.materialid=m.id  
+		<if test="plantype=='ship'">
+			left join (SELECT  e.mainmid,   min(FLOOR(case when canas>ifnull(inv.quantity,0)/(e.units)  then ifnull(inv.quantity,0)/(e.units) ELSE canas END)) amount
+			        FROM (
+					 SELECT f.mainmid,e.materialid,
+					      max(e.amount/f.amount) units,
+					      SUM(f.amount-f.amount_handle) canas
+					  from t_erp_assembly_form  f
+					  left join t_erp_assembly_form_entry e on f.id=e.formid
+					  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
+					       and f.ftype='ass'
+						   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
+					  GROUP BY  f.mainmid,e.materialid 
+					) e
+					left join t_erp_inventory inv on inv.materialid=e.materialid 	
+					and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+					group by mainmid) v on v.mainmid=m.id
+			left join (
+			  SELECT  i.materialid,
+			          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+					  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+					  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+				from t_erp_inventory i
+				where i.shopid=#{shopid,jdbcType=CHAR} 
+	              and i.warehouseid=#{warehouseid,jdbcType=CHAR} 
+				  group by i.shopid,warehouseid,i.materialid
+			)  inv on inv.materialid=m.id  
+		</if>
+	   <if test="plantype=='purchase'">
+				left join (
+				  SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_warehouse w on w.warehouseid=i.warehouseid
+					where i.shopid=#{shopid,jdbcType=CHAR}   and w.planid=#{planid,jdbcType=CHAR} 
+					  group by i.shopid,i.materialid
+				)  inv on inv.materialid=m.id  
+				left join t_erp_v3_purchase_plan_warehouse_material pw on pw.materialid=m.id and pw.planid=#{planid,jdbcType=CHAR}  
+				left join t_erp_v3_purchase_plan_item item on item.materialid=m.id 
+															and item.planid=#{planid,jdbcType=CHAR} 
+															and item.shopid=#{shopid,jdbcType=CHAR}
+				left join t_erp_warehouse w on w.id=pw.warehouseid
+		</if>
 	  	left join t_erp_material_customs mc on mc.matreialid=m.id
 	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
 	  	<if test="mskulist!=null">
@@ -118,6 +148,9 @@
 				 #{msku,jdbcType=CHAR}
 			</foreach>
 		</if>
+	    <if test="selected==true and plantype=='purchase'">
+			        and item.amount>0
+	    </if>
 		<if test="mskulist==null">
 			and m.sku ='###'
 		</if>
@@ -132,6 +165,12 @@
 		  </if>
 		<if test="searchtype=='remark' and search!=null">
 			and mn.mark like #{search,jdbcType=CHAR}
+		</if>
+		<if test='status2 =="shownormal"'>
+			and mh.ftype is null
+		</if>
+		<if test='status2 =="showhid"'>
+			and mh.ftype='phide'
 		</if>
 		<if test="searchtype=='name' and search!=null">
 			and m.name like #{search,jdbcType=CHAR}

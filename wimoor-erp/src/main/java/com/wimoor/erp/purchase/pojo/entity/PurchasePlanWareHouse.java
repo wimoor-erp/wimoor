@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("t_erp_purchase_plan_warahouse")
+@TableName("t_erp_v3_purchase_plan_warehouse")
 public class PurchasePlanWareHouse {
 	
  
@@ -20,5 +20,7 @@ public class PurchasePlanWareHouse {
     @TableField(value= "planid")
     private String planid;
  
+    @TableField(exist = false)
+	private String name;	
 
 }

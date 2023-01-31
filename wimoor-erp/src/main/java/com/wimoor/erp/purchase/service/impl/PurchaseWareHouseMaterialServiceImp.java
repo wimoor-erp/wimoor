@@ -21,7 +21,7 @@ public class PurchaseWareHouseMaterialServiceImp extends  ServiceImpl<PurchaseWa
 		if(purchaseList != null &&purchaseList.size() > 0) {
 			PurchaseWareHouseMaterial purchase = purchaseList.get(0);
 			if(!purchase.getWarehouseid().equals(purchaseWareHouseMaterial.getWarehouseid())) {
-				this.baseMapper.updateById(purchaseWareHouseMaterial);
+				this.baseMapper.update(purchaseWareHouseMaterial,queryWrapper);
 			}
 		}else {
 			this.baseMapper.insert(purchaseWareHouseMaterial);

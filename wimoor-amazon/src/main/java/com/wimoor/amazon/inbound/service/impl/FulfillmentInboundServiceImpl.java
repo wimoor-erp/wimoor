@@ -573,7 +573,6 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 	@Override
 	public String putTransportDetailsRequest(AmazonAuthority amazonAuthority, Marketplace marketplace,ShipInboundPlan inboundplan ,
 			ShipInboundShipment shipment) {
-		
 		 // TODO Auto-generated method stub
 		 FbaInboundApi api = apiBuildService.getInboundApi(amazonAuthority);
 		 PutTransportDetailsRequest body=new PutTransportDetailsRequest();
@@ -605,11 +604,13 @@ public class FulfillmentInboundServiceImpl implements IFulfillmentInboundService
 			 NonPartneredSmallParcelPackageInputList pkglist=new NonPartneredSmallParcelPackageInputList();
 			 List<ShipInboundBox> boxs = shipInboundBoxService.findListByShipmentId(shipment.getShipmentid());
 			 for(ShipInboundBox box:boxs) {
-                  if(StrUtil.isNotBlank(box.getTrackingId())) {
                 	  NonPartneredSmallParcelPackageInput element=new NonPartneredSmallParcelPackageInput();
-     				  element.setTrackingId(box.getTrackingId());
+                	  if(StrUtil.isNotBlank(box.getTrackingId())) {
+                		  element.setTrackingId(box.getTrackingId());
+                	  }else {
+                		  element.setTrackingId("123456");
+                	  }
      				  pkglist.add(element);
-                  }
 			 }
 			 if(pkglist.size()==0) {
 				 NonPartneredSmallParcelPackageInput element=new NonPartneredSmallParcelPackageInput();

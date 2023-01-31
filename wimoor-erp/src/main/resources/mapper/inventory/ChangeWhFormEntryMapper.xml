@@ -16,7 +16,7 @@
   
   <select id="findFormDetailByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
 	    select m.id materialid, m.sku sku,m.name name,IFNULL(p.location,p.url) image,i.fulfillable fulfillable, 
-       		m2.id fromid, m2.sku fromsku, i2.fulfillable fromfulfillable, a.amount 
+       		m2.id fromid, m2.sku fromsku, i2.fulfillable fromfulfillable, a.amount,m2.name fromname 
 		    from t_erp_changewh_form_entry a 
 			left join t_erp_material m on a.material_to = m.id 
 			left join t_erp_material m2 on a.material_from = m2.id 

@@ -20,7 +20,6 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.erp.config.IniConfig;
 import com.wimoor.erp.inventory.mapper.ChangeWhFormMapper;
 import com.wimoor.erp.inventory.pojo.entity.ChangeWhForm;
 import com.wimoor.erp.inventory.pojo.entity.ChangeWhFormEntry;
@@ -41,15 +40,15 @@ import lombok.RequiredArgsConstructor;
 public class ChangeWhFormServiceImpl extends  ServiceImpl<ChangeWhFormMapper,ChangeWhForm> implements IChangeWhFormService {
  
 	 
-	IChangeWhFormEntryService changeWhFormEntryService;
+	final IChangeWhFormEntryService changeWhFormEntryService;
 	 
-	IInventoryFormAgentService inventoryFormAgentService;
+	final IInventoryFormAgentService inventoryFormAgentService;
 	 
-	IWarehouseService warehouseService;
+	final IWarehouseService warehouseService;
 	 
-	IMaterialService materialService;
+	final IMaterialService materialService;
 	 
-	ISerialNumService serialNumService;
+	final ISerialNumService serialNumService;
 
 	public IPage<Map<String, Object>> findByCondition(Page<?> page,Map<String, Object> map) {
 		return this.baseMapper.findByCondition(page,map);
@@ -143,9 +142,6 @@ public class ChangeWhFormServiceImpl extends  ServiceImpl<ChangeWhFormMapper,Cha
 
 	@Transactional
 	public String uploadchangeStockByExcel(Sheet sheet, UserInfo user) {
-		if (IniConfig.isDemo()) {
-			return "演示环境不能上传资料！";
-		}
 		Row whrow = sheet.getRow(0);
 		Cell whnamecell = whrow.getCell(1);
 		String whname = whnamecell.getStringCellValue();
@@ -181,6 +177,7 @@ public class ChangeWhFormServiceImpl extends  ServiceImpl<ChangeWhFormMapper,Cha
 		form.setOperator(user.getId());
 		form.setOpttime(new Date());
 		form.setAuditstatus(1);
+		form.setId(warehouseService.getUUID());
 		
 		List<Map<String, Object>> skumapList = new ArrayList<Map<String, Object>>();
 		List<String> skuList = new ArrayList<String>();

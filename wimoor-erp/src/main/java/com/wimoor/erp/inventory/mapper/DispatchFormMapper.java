@@ -13,9 +13,9 @@ import com.wimoor.erp.inventory.pojo.entity.DispatchForm;
 @Mapper
 public interface DispatchFormMapper  extends BaseMapper<DispatchForm>{
 
-	IPage<Map<String, Object>> findByCondition(Page<?>  page,Map<String,Object> map);
+	IPage<Map<String, Object>> findByCondition(Page<?>  page,@Param("params")Map<String,Object> map);
 	
-	Map<String, Object> findById(String id);
+	Map<String, Object> findById(@Param("id")String id);
 	
 	List<DispatchForm> getDispatchFormByWarehouseid(@Param("warehouseid")String warehouseid);
 }

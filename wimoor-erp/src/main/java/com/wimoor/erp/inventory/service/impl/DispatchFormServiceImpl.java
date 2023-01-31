@@ -23,7 +23,6 @@ import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.EnumByInventory;
 import com.wimoor.erp.common.pojo.entity.Status;
-import com.wimoor.erp.config.IniConfig;
 import com.wimoor.erp.inventory.mapper.DispatchFormMapper;
 import com.wimoor.erp.inventory.pojo.entity.DispatchForm;
 import com.wimoor.erp.inventory.pojo.entity.DispatchFormEntry;
@@ -44,19 +43,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DispatchFormServiceImpl  extends  ServiceImpl<DispatchFormMapper,DispatchForm> implements IDispatchFormService {
 	 
-	DispatchFormMapper dispatchFormMapper;
+	final DispatchFormMapper dispatchFormMapper;
 	 
-	IDispatchFormEntryService dispatchFormEntryService;
+	final IDispatchFormEntryService dispatchFormEntryService;
 	 
-	IInventoryFormAgentService inventoryFormAgentService;
+	final IInventoryFormAgentService inventoryFormAgentService;
 	 
-	IMaterialService materialService;
+	final IMaterialService materialService;
 	 
-	IWarehouseService warehouseService;
+	final IWarehouseService warehouseService;
 	 
-	ISerialNumService serialNumService;
+	final ISerialNumService serialNumService;
 	 
-	IInventoryService inventoryService;
+	final IInventoryService inventoryService;
 
 	public IPage<Map<String, Object>> findByCondition(Page<?> page,Map<String, Object> map) {
 		return dispatchFormMapper.findByCondition(page,map);
@@ -214,9 +213,6 @@ public class DispatchFormServiceImpl  extends  ServiceImpl<DispatchFormMapper,Di
 	
 	@Transactional
 	public String uploadDispatchStockByExcel(Sheet sheet, UserInfo user) throws Exception {
-		if (IniConfig.isDemo()) {
-			return "演示环境不能上传资料！";
-		}
 		Row whrow = sheet.getRow(0);
 		Cell whnamecell = whrow.getCell(1);
 		String whname_out = whnamecell.getStringCellValue();
@@ -240,6 +236,7 @@ public class DispatchFormServiceImpl  extends  ServiceImpl<DispatchFormMapper,Di
 			return "调入仓库无法匹配";
 		}
 		DispatchForm dispatchForm = new DispatchForm();
+		dispatchForm.setId(warehouseService.getUUID());
 		dispatchForm.setShopid(shopid);
 		try {
 			dispatchForm.setNumber(serialNumService.readSerialNumber(shopid, "PD"));
@@ -261,7 +258,7 @@ public class DispatchFormServiceImpl  extends  ServiceImpl<DispatchFormMapper,Di
 		dispatchForm.setOperator(user.getId());
 		dispatchForm.setAuditstatus(1);
 		dispatchForm.setAudittime(new Date());
-		
+		dispatchForm.setOpttime(new Date());
 		Map<String, Object> skuMap = new HashMap<String, Object>();
 		List<String> skuList = new ArrayList<String>();
 		List<String> invList = new ArrayList<String>();

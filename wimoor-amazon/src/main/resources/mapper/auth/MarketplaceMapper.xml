@@ -187,6 +187,7 @@
 			and auth.groupid=#{groupid,jdbcType=CHAR}
 		 </if>
 		 AND t.invalid=0
+	     and ifnull(o.disable,false)=false
 		 GROUP BY t.marketplaceid ORDER BY m.findex asc
 	</select>
 

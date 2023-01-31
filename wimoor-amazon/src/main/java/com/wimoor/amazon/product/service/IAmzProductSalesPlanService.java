@@ -1,7 +1,7 @@
 package com.wimoor.amazon.product.service;
 
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlan;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlanShipItem;
 
@@ -24,7 +24,7 @@ public interface IAmzProductSalesPlanService extends IService<AmzProductSalesPla
 	public void refreshData(String groupid);
 	public void refreshData(String groupid,String marketplaceid,String sku);
 	public void handlePresale(AmazonAuthority auth);
-	public List<Map<String, Object>> getShipPlanModel(ShipPlanDTO dto);
+	public List<Map<String, Object>> getPlanModel(PlanDTO dto);
 	public Integer getAfterSales(AmzProductSalesPlanShipItem item);
-	List<Map<String, Object>> ExpandCountryDataByGroup(String shopid, String groupid, String warehouseid, String msku, Boolean iseu);
+	List<Map<String, Object>> ExpandCountryDataByGroup(String shopid, String groupid, String warehouseid, String msku,String plantype, Boolean iseu, Integer amount);
 }

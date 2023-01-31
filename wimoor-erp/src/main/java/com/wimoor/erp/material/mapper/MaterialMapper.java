@@ -8,9 +8,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
-import com.wimoor.erp.ship.pojo.dto.ShipPlanDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
@@ -52,7 +52,7 @@ public interface MaterialMapper extends BaseMapper<Material> {
 
 	List<Map<String, Object>> selectProPriceHisById(String string);
 
-	List<Map<String, Object>> findInventoryByMsku(ShipPlanDTO dto);
+	List<Map<String, Object>> findInventoryByMsku(PlanDTO dto);
 
 	Material getMaterailBySku(@Param("shopid")String shopid, @Param("sku")String sku);
 }
