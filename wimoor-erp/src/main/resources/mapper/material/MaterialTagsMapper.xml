@@ -30,7 +30,18 @@
 		)
   </select>
   
-  
+     <select id="getTagsBySku" resultType="java.util.Map" parameterType="java.util.Map">
+		    SELECT m.sku,(SELECT GROUP_CONCAT(tagid) FROM t_erp_material_tags WHERE  MID=m.id) tagids
+		from t_erp_material  m
+		WHERE shopid=#{shopid,jdbcType=CHAR}  AND isdelete=0
+		and sku IN(
+			<foreach collection="skulist" item="sku" index="index" separator=",">
+				#{sku,jdbcType=CHAR} 
+		    </foreach>			
+		)
+  </select>
+
+ 
 
  
 </mapper>

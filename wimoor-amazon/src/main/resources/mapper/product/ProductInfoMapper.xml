@@ -46,12 +46,18 @@
 		LEFT JOIN t_amazon_group g ON g.id=auth.groupid 
 		LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
 		WHERE ifnull(o.msku,t.sku)=#{msku,jdbcType=CHAR} 
-		and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		<if test="marketplaceid=='EU'">
+		 and  m.region=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!='EU'">
+		 and  t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		and ifnull(o.disable,false)=false
 		<if test="groupid!=null">
 		   AND g.id=#{groupid,jdbcType=CHAR} 
 		</if>
 		AND g.shopid=#{shopid,jdbcType=CHAR}  AND t.invalid=0
-		GROUP BY t.marketplaceid ORDER BY m.findex asc
+		GROUP BY t.sku 
 	</select>
 	<select id="findShopSku" resultType="java.util.Map" parameterType="java.lang.String">
 		select ifnull(p.location,p.url) location,t.*
@@ -229,7 +235,8 @@
 			when  (review1.refreshtime is null and review2.refreshtime is not null) then review2.refreshtime
 			else  case when(review1.refreshtime > review2.refreshtime) then review1.refreshtime else review2.refreshtime end end revrefreshtime,
 			profit.margin newprorate,op.status optstatus,sd.name optstatusname,sd.color optstatuscolor,m.findex marketindex,op.priceremark
-			,lo.endtime lockedtime,case when NOW()&lt;lo.endtime then 1 ELSE 0 END haslocked,m.market country
+			,lo.endtime lockedtime,case when NOW()&lt;lo.endtime then 1 ELSE 0 END haslocked,m.market country,
+			(SELECT GROUP_CONCAT(tagid) FROM t_product_in_tags WHERE  pid=t.id) tagids
 		from t_product_info t
 		left join t_amazon_auth a on a.id=t.amazonAuthId
 		left join t_amazon_group gro on a.groupid=gro.id

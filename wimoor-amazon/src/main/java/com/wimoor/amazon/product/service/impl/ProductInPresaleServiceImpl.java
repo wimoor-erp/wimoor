@@ -103,10 +103,12 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
 			}
     		Map<String, ProductInPresale> prelist = getPresale(sku,marketplaceid,groupid);
     		Calendar cend=Calendar.getInstance();
+    		cend.add(Calendar.DATE, 10);
     		cend.set(Calendar.DATE, 1);
     		cend.add(Calendar.MONTH, 3);
     		
     		Calendar c=Calendar.getInstance();
+    		c.add(Calendar.DATE, 10);
     		c.set(Calendar.DATE, 1);
     		int month=c.get(Calendar.MONTH);
     		int summonth=0;

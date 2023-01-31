@@ -14,6 +14,7 @@ import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.erp.assembly.service.IAssemblyService;
 import com.wimoor.erp.inventory.service.IInventoryService;
 
+import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,9 @@ public class AssemblyFormController {
 	public Result<List<AssemblyVO>> getSubList(String materialid,String warehouseid){
 		UserInfo userinfo = UserInfoContext.get();
 		List<AssemblyVO> assemblyList = assemblyService.selectByMainmid(materialid);
+		if(StrUtil.isBlankOrUndefined(warehouseid)) {
+			warehouseid=null;
+		}
 		if(assemblyList!=null&&assemblyList.size()>0) {
 			for(AssemblyVO items:assemblyList) {
 	              Map<String, Object> submap = inventoryService.findInvByWarehouseId(items.getSubmid(),warehouseid, userinfo.getCompanyid());

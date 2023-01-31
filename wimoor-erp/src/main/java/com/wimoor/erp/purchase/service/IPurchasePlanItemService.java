@@ -7,9 +7,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
 
 public interface IPurchasePlanItemService extends IService<PurchasePlanItem>{
-	
-	 List<Map<String,Object>> getWarehouseForPlanIdAndMaterialId(String planid, String materialid);
 
-	List<Map<String, Object>> getShipInventory(String groupid, String pidlist);
+	Map<String,Object> getSummary(String shopid, String planid);
+
+	List<Map<String,Object>> getList(String shopid, String planid);
+
+	List<Map<String,Object>> getList(String companyid, String planid, String batchnumber);
+
+	void moveBatch(String shopid,String batchnumber);
+
+	List<Map<String, Object>> getHisList(String shopid, String warehouseid);
 
 }

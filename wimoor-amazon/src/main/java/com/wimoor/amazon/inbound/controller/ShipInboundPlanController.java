@@ -119,7 +119,7 @@ public class ShipInboundPlanController {
 								}
 							}
 							if(StrUtil.isNotBlank(inplan.getBatchnumber()) ) {
-								iAmzProductSalesPlanShipItemService.moveBatch(inplan.getBatchnumber());
+								iAmzProductSalesPlanShipItemService.moveBatch(user.getCompanyid(),inplan.getBatchnumber());
 							}
 						return Result.success(myinplan.getId());
 					}else {

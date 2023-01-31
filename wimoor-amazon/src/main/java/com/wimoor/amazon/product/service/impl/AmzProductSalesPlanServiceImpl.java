@@ -39,7 +39,7 @@ import com.wimoor.amazon.inbound.service.IShipInboundPlanService;
 import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
 import com.wimoor.amazon.product.mapper.AmzProductSalesPlanMapper;
 import com.wimoor.amazon.product.mapper.ProductInOrderMapper;
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlan;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlanShipItem;
 import com.wimoor.amazon.product.pojo.entity.ProductInAftersale;
@@ -543,7 +543,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 
  
 	@Override
-	public List<Map<String, Object>> getShipPlanModel(ShipPlanDTO dto) {
+	public List<Map<String, Object>> getPlanModel(PlanDTO dto) {
 		// TODO Auto-generated method stub
 		 String warehouseid=dto.getWarehouseid();
 		 if(StrUtil.isAllBlank(dto.getSearch())) {
@@ -581,7 +581,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 			 dto.setSkulist(Arrays.asList(dto.getSkuarray().split(",")));
 		 }
 		 
-		 List<Map<String, Object>> list = this.baseMapper.getShipPlanModel(dto);
+		 List<Map<String, Object>> list = this.baseMapper.getPlanModel(dto);
 		 List<String> mskulist=new LinkedList<String>();
 		 Map<String,Map<String,Object>> mskusale=new HashMap<String,Map<String,Object>>();
 		 for(Map<String, Object> item:list) {
@@ -601,7 +601,8 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 					 for(Map<String, Object> item:feignResult.getData()) {
 						 Object id =item.get("id");
 						 String msku= item.get("sku").toString();
-						 if(dto.getIscheck()!=null) {
+						 Object warehouseidObj=item.get("warehouseid");
+						 if(dto.getIscheck()!=null&&dto.getPlantype().equals("ship")) {
 							 Object quantityObj=item.get("quantity");
 							 Object canAssemblyObj=item.get("canAssembly");
 							 int quantity=0;
@@ -629,6 +630,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 								 item.putAll(mskusale.get(msku));
 							 }
 							 item.put("id", id);
+							 item.put("warehouseid", warehouseidObj);
 							 result.add(item);
 						 }
 					 }
@@ -670,13 +672,16 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
    }
    
 	@Override
-	public List<Map<String,Object>> ExpandCountryDataByGroup(String shopid,String groupid,String warehouseid, String msku,Boolean iseu) {
+	public List<Map<String,Object>> ExpandCountryDataByGroup(String shopid,String groupid,String warehouseid, String msku,String plantype,Boolean iseu,Integer amount) {
 		// TODO Auto-generated method stub
 		List<Map<String, Object>> result = null;
 		if(iseu==null || iseu==false) {
-			result=this.baseMapper.ExpandCountryDataByGroup(shopid,groupid,warehouseid,msku);
+			result=this.baseMapper.ExpandCountryDataByGroup(shopid,groupid,warehouseid,msku,plantype);
 		}else {
-			result=this.baseMapper.ExpandEUCountryDataByGroup(shopid,groupid,warehouseid,msku);
+			result=this.baseMapper.ExpandEUCountryDataByGroup(shopid,groupid,warehouseid,msku,plantype);
+		}
+		if(amount==null) {
+			amount=0;
 		}
 		for(Map<String, Object> item:result) {
 			    String psku=item.get("sku").toString();
@@ -730,6 +735,16 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 				    }
 				}catch(FeignException e) {
 					 e.printStackTrace();
+				}
+				if(plantype.equals("purchase")) {
+					Integer needpurchase=item.get("needpurchase")==null?0:Integer.parseInt(item.get("needpurchase").toString());
+					if(needpurchase>amount) {
+						reallyamount=amount;
+						amount=0;
+					}else {
+						reallyamount=needpurchase;
+						amount=amount-needpurchase;
+					}
 				}
 				item.putAll(this.getAfterSales(psku, marketplaceid, groupid, sysavgsales, fbaquantity, overseaqty, reallyamount)); 
 				item.put("overseaqty", overseaqty);

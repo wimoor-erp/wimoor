@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
 import com.wimoor.erp.material.pojo.dto.MaterialDTO;
+import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
@@ -25,7 +26,6 @@ import com.wimoor.erp.material.pojo.vo.MaterialInfoVO;
 import com.wimoor.erp.material.pojo.vo.MaterialSupplierVO;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
 import com.wimoor.erp.ship.pojo.dto.ConsumableOutFormDTO;
-import com.wimoor.erp.ship.pojo.dto.ShipPlanDTO;
 
 public interface IMaterialService extends IService<Material> {
 	MaterialVO findMaterialById(String id);
@@ -136,9 +136,11 @@ public interface IMaterialService extends IService<Material> {
 
 	public List<MaterialCustomsItem> selectCustomsItemListById(String id);
 
-	 List<Map<String,Object>> findInventoryByMsku(ShipPlanDTO dto);
+	 List<Map<String,Object>> findInventoryByMsku(PlanDTO dto);
 
 	Material getBySku(String shopid, String sku);
 
 	int saveInventoryConsumable(UserInfo user, ConsumableOutFormDTO dto);
+
+	Map<String,String> getTagsIdsListByMsku(String shopid, List<String> mskulist);
 }

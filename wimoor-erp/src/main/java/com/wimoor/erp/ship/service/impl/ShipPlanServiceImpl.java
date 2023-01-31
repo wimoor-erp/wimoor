@@ -2,7 +2,6 @@ package com.wimoor.erp.ship.service.impl;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -10,18 +9,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.erp.api.AmazonClientOneFeign;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
 import com.wimoor.erp.assembly.service.IAssemblyFormService;
-import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.purchase.mapper.PurchaseFormEntryMapper;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.service.IPurchaseFormService;
@@ -33,13 +27,12 @@ import com.wimoor.erp.ship.mapper.ShipPlanModelMapper;
 import com.wimoor.erp.ship.mapper.ShipPlanSubMapper;
 import com.wimoor.erp.ship.pojo.entity.ShipPlan;
 import com.wimoor.erp.ship.pojo.entity.ShipPlanItem;
-import com.wimoor.erp.ship.pojo.entity.ShipPlanModel;
-import com.wimoor.erp.ship.pojo.entity.ShipPlanModelItem;
 import com.wimoor.erp.ship.pojo.entity.ShipPlanSub;
 import com.wimoor.erp.ship.pojo.entity.ShipPlanSubEuItem;
 import com.wimoor.erp.ship.service.IShipPlanService;
 import com.wimoor.erp.ship.service.IShipPlanSubEuItemService;
 import com.wimoor.erp.ship.service.IShipPlanSubService;
+
 import lombok.RequiredArgsConstructor;
 
 @Service("shipPlanService")

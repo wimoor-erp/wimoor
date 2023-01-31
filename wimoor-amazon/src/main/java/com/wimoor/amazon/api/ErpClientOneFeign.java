@@ -5,13 +5,14 @@ import java.util.Map;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.api.erp.inventory.pojo.dto.InventoryParameter;
 import com.wimoor.common.result.Result;
 
@@ -69,8 +70,8 @@ public interface ErpClientOneFeign {
     @PostMapping("/erp/api/v1/material/getMskuByTagList")
 	public Result<List<String>> getMskuByTagList(@RequestBody List<String> taglist);
 
-    @GetMapping("/erp/api/v1/material/getTagsIdsListByMsku")
-	public Result<List<String>> getTagsIdsListByMsku(@RequestParam String msku,@RequestParam String shopid);
+    @PostMapping("/erp/api/v1/material/getTagsIdsListByMsku/{shopid}")
+	public Result<Map<String,String>> getTagsIdsListByMsku(@PathVariable String shopid,@RequestBody List<String> mskulist);
     
     
     @GetMapping("/erp/api/v1/material/getMSkuDeliveryAndInv")
@@ -85,9 +86,13 @@ public interface ErpClientOneFeign {
 			                                        @RequestParam String warehouseid);
     
     @PostMapping("/erp/api/v1/material/getMskuInventory")
-	public Result<List<Map<String, Object>>> getMskuInventory(@RequestBody ShipPlanDTO dto);
+	public Result<List<Map<String, Object>>> getMskuInventory(@RequestBody PlanDTO dto);
 
     @PostMapping("/erp/api/v1/shipForm/afterShipInboundPlanSave")
     public Result<?> afterShipInboundPlanSaveAction( @ApiParam("参数") @RequestBody Map<String,Object> param  )  ;
+    
+    @GetMapping("/erp/api/v1/purchase/plan/getLast")
+	public Result<?> getLastRecordAction(@RequestParam String id);
+    
 
 }

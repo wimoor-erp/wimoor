@@ -35,9 +35,9 @@
 </update>
 
 <delete id="moveBatch"  parameterType="java.lang.String">
-         insert into t_amz_product_sales_plan_ship_item_his
-		 select* from t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR};
-		 delete from  t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR};
+         insert into t_amz_product_sales_plan_ship_item_history
+		 select* from t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
+		 delete from  t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
 </delete>
 
 </mapper>

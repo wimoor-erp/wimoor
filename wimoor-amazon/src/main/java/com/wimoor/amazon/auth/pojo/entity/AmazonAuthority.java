@@ -75,9 +75,24 @@ public class AmazonAuthority  extends  BaseEntity  implements RateLimitConfigura
 	 @TableField(value =  "refresh_token_time")
 	 private Date refreshTokenTime;
 	 
-	 @TableField(value =  "aws_region")
-	 private String AWSRegion;
-	 
+	@TableField(value =  "aws_region")
+	private String AWSRegion;
+		
+	@TableField(value =  "access_key_id")
+	private String accessKeyId;
+	    
+	@TableField(value =  "secret_key")
+	private String secretKey;
+	    
+	@TableField(value =  "role_arn")
+	private String roleArn;
+	    
+	@TableField(value =  "client_id")
+	private String clientId;
+	    
+	@TableField(value =  "client_secret")
+	private String clientSecret;
+	    
 	@TableField(exist = false)
 	private Date captureDateTime;
 	@TableField(exist = false)

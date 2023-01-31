@@ -104,7 +104,7 @@ public interface IPurchaseFormService extends IService<PurchaseForm> {
 
 	void setPurchaseSkuItemExcelBook(SXSSFWorkbook workbook, Map<String, Object> param);
 	
-	public List<Map<String, Object>> loadPuechaseFormDate(UserInfo user, String planid, String warehouseid, String ftype, List<String> item_material_list);
+	public List<Map<String, Object>> loadPurchaseFormDate(UserInfo user, String planid, String warehouseid, String ftype, List<String> item_material_list);
 
 	void getPurchaseRecInfoExcelBook(SXSSFWorkbook workbook, Map<String, Object> param);
 

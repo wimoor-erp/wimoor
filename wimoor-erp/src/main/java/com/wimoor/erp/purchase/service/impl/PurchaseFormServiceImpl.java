@@ -93,8 +93,8 @@ import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntryLogistics;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormPayment;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormReceive;
-import com.wimoor.erp.purchase.pojo.vo.PurchaseFormReceiveVo;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseWareHouseStatus;
+import com.wimoor.erp.purchase.pojo.vo.PurchaseFormReceiveVo;
 import com.wimoor.erp.purchase.service.IPurchaseAlibabaAuthService;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryAlibabaInfoService;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
@@ -282,11 +282,11 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		if ("one".equals(ftype)) {
 			PurchaseForm form = new PurchaseForm();
 				try {
-					form.setNumber(serialNumService.readSerialNumber(shopid, "PF"));
+					form.setNumber(serialNumService.readSerialNumber(shopid, "PO"));
 				} catch (Exception e) {
 					e.printStackTrace();
 					try {
-						form.setNumber(serialNumService.readSerialNumber(shopid, "PF"));
+						form.setNumber(serialNumService.readSerialNumber(shopid, "PO"));
 					} catch (Exception e1) {
 						e1.printStackTrace();
 						throw new ERPBizException("编码获取失败,请联系管理员");
@@ -310,11 +310,11 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 			for (String key : itemSupplier.keySet()) {
 				PurchaseForm form = new PurchaseForm();
 					try {
-						form.setNumber(serialNumService.readSerialNumber(shopid, "PF"));
+						form.setNumber(serialNumService.readSerialNumber(shopid, "PO"));
 					} catch (Exception e) {
 						e.printStackTrace();
 						try {
-							form.setNumber(serialNumService.readSerialNumber(shopid, "PF"));
+							form.setNumber(serialNumService.readSerialNumber(shopid, "PO"));
 						} catch (Exception e1) {
 							e1.printStackTrace();
 							throw new ERPBizException("编码获取失败,请联系管理员");
@@ -345,36 +345,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		return msgmap;
 	}
 	
-	public int savePurchaseForm(UserInfo user,List<PurchaseForm> formList, String planwarehouseid) throws ERPBizException {
-		int changecount = 0;
-		Warehouse planwarehouse = warehouseService.getSelfWarehouse(planwarehouseid);
-		if (formList == null || formList.size() <= 0) {
-			throw new ERPBizException("请至少输入一个需要采购的SKU及其数量！");
-		}
-		for (PurchaseForm form : formList) {
-			if(super.save(form)) {
-				changecount++ ;
-			}
-			String planitem = null;
-			List<PurchaseFormEntry> entrylist = form.getEntrylist();
-			for (int i = 0; i < entrylist.size(); i++) {
-				PurchaseFormEntry entry = entrylist.get(i);
-				if(purchaseFormEntryService.save(entry)) {
-					changecount++;
-				}
-				if (entry.getPlanitemid() != null) {
-					planitem = entry.getPlanitemid();
-				}
-				if (GeneralUtil.isNotEmpty(planitem)&& planwarehouse!=null) {
-					purchasePlanService.afterSavePOForm(planitem, planwarehouse.getId());
-				}
-			}
-		}
-		if(planwarehouse!=null) {
-			purchasePlanService.afterSavePOSubPlan(user ,planwarehouse.getId());
-		}
-		return changecount;
-	}
+	 
 
 	public boolean updatePurchaseFormEntry(PurchaseFormEntry item, String warehouseid) throws ERPBizException {
 		PurchaseFormEntry oldentryform = purchaseFormEntryMapper.selectById(item.getId());
@@ -1607,8 +1578,34 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 			}
 		}
 	}
-
-	public List<Map<String, Object>> loadPuechaseFormDate(UserInfo user, String planid, String warehouseid, String ftype,List<String> item_material_list) {
+	public int savePurchaseForm(UserInfo user,List<PurchaseForm> formList, String planwarehouseid) throws ERPBizException {
+		int changecount = 0;
+		Warehouse planwarehouse = warehouseService.getSelfWarehouse(planwarehouseid);
+		if (formList == null || formList.size() <= 0) {
+			throw new ERPBizException("请至少输入一个需要采购的SKU及其数量！");
+		}
+		for (PurchaseForm form : formList) {
+			if(super.save(form)) {
+				changecount++ ;
+			}
+			String planitem = null;
+			List<PurchaseFormEntry> entrylist = form.getEntrylist();
+			for (int i = 0; i < entrylist.size(); i++) {
+				PurchaseFormEntry entry = entrylist.get(i);
+				if(purchaseFormEntryService.save(entry)) {
+					changecount++;
+				}
+				if (entry.getPlanitemid() != null) {
+					planitem = entry.getPlanitemid();
+				}
+			 
+			}
+		}
+ 
+		return changecount;
+	}
+	
+	public List<Map<String, Object>> loadPurchaseFormDate(UserInfo user, String planid, String warehouseid, String ftype,List<String> item_material_list) {
 		// 这里的warehouseid是指的self仓库，因为原有逻辑里面purchaseitem表中跟的是self仓库的id，
 		// 而采购组装记录表中跟的是正品仓的id（应该也要跟self仓库的id，因为现有逻辑采购和组装都默认在正品仓库了，实际上可以在测试仓库组装采购）
 		// 按照现有的逻辑 测试仓库和废品仓库实际上根本用不到 （这里可能是以后修改的地方 做个记录）
@@ -1631,70 +1628,21 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 				precord=this.baseMapper.getLastPurchaseRecord(user.getCompanyid(), warehouse.getId());
 				arecord=assemblyFormService.getLastAssRecord(user.getCompanyid(), warehouse.getId());
 			}
-
-			
-
-			// 用self仓库去purchaseitem表中拿到对应的实际补货数量
-			List<Map<String, Object>> summary = purchasePlanService.getSummaryPlanByWarehouse(planid,
-					warehouseArray[i],item_material_list);
-			boolean hasamount=false;
-			if (summary != null && summary.size() > 0) {
-				for (int j = 0; j < summary.size(); j++) {
-					Object orderprice = summary.get(j).get("orderprice");
-					Object amount=summary.get(j).get("amount");
-					if(amount!=null&&Integer.parseInt(amount.toString())!=0) {
-						hasamount=true;
-					}
-					if (orderprice != null) {
-						summary.get(j).put("orderprice",
-								GeneralUtil.formatterQuantity(Float.parseFloat(orderprice.toString())));
-					}
-				}
-			}
-			if(hasamount==false) {
-				continue;
-			}
 			map.put("precord", precord);
 			map.put("arecord", arecord);
-			map.put("purchaseplan", summary.get(0));
-			map.put("assemplan", summary.get(1));
-
 			// 页面显示self仓库的名字
 			Warehouse selfWarehouse = warehouseService.getWarehouseByid(warehouseArray[i]);
 			map.put("warehouseid", warehouseArray[i]);
 			map.put("warehouseName", selfWarehouse.getName());
 
 			// 获取该仓库下的补货规划有没有提交
-			int purchaseNumber = Integer.parseInt(summary.get(0).get("number").toString());// 需要采购的SKU数量，等于0则为没有采购任务，
-			int assblyNumber = Integer.parseInt(summary.get(1).get("number").toString());// 需要组装的SKU数量，等于0则为没有组装任务，
 			PurchaseWareHouseStatus warehouseStatus = purchaseWareHouseStatusService.getById(warehouseArray[i]);
 			if (warehouseStatus == null) {
 				warehouseStatus = new PurchaseWareHouseStatus();
 			}
 			warehouseStatus.setOpptime(new Date());
 			warehouseStatus.setUserid(user.getId());
-			if ("assebly".equals(ftype)) {
-				warehouseStatus.setPurchaseStatus(2);
-			} else {
-				if (purchaseNumber <= 0) {
-					warehouseStatus.setPurchaseStatus(0);
-				} else {
-					warehouseStatus.setPurchaseStatus(1);
-				}
-				if (assblyNumber <= 0) {
-					warehouseStatus.setAssblyStatus(0);
-				} else {
-					warehouseStatus.setAssblyStatus(1);
-				}
-			}
-			if(!IniConfig.isDemo()) {
-				if (warehouseStatus.getWarehouseid() == null) {
-					warehouseStatus.setWarehouseid(warehouseArray[i]);
-					purchaseWareHouseStatusService.save(warehouseStatus);
-				} else {
-					purchaseWareHouseStatusService.updateById(warehouseStatus);
-				}
-			}
+			  
 			map.put("purchaseStatus", warehouseStatus.getPurchaseStatus());
 			map.put("assblyStatus", warehouseStatus.getAssblyStatus());
 			date.add(map);

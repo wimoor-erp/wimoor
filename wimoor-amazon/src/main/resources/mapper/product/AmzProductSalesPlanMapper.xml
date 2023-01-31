@@ -17,27 +17,43 @@
         <result column="opttime" property="opttime" />
         <result column="short_time" property="shortTime" />
     </resultMap>
-    <select id="getShipPlanModel"  resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.ShipPlanDTO">
-    
+    <select id="getPlanModel"  resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDTO">
           select    
-                v.amount,
+              <if test="plantype=='ship'">
+               v.amount,
+              </if>
 		        m.*
 		         <if test="marketplaceid!=null or status!=null or pidlist!=null or currentRank=='avgsales' or currentRank=='sales_seven' or currentRank=='sales_month'">
 		        ,v2.*
 		        </if>
 		  from (
 		  	 select  msku,shopid,groupid,
-		  	         SUM(needship) needship,
-		  	         SUM(needshipfba) needshipfba,
+				  	 <if test="plantype=='ship'">
+		               SUM(needship) needship,
+		  	           SUM(needshipfba) needshipfba,
+		              </if>
+		  	          <if test="plantype=='purchase'">
+		  	           SUM(needpurchase) needpurchase,
+		              </if>
 		  	         MAX(opttime) opttime
 		  	         <if test=" marketplaceid!=null">
-		  	           ,SUM(case when p.marketplaceid=#{marketplaceid,jdbcType=CHAR} then needship else 0 end ) marketneedship
+		  	           <if test="plantype=='ship'">
+		                 ,SUM(case when p.marketplaceid=#{marketplaceid,jdbcType=CHAR} then needship else 0 end ) marketneedship
+		              </if>
+		  	          <if test="plantype=='purchase'">
+		               ,SUM(case when p.marketplaceid=#{marketplaceid,jdbcType=CHAR} then needpurchase else 0 end ) marketneedpurchase
+		              </if>
 		  	           ,SUM(case when p.marketplaceid=#{marketplaceid,jdbcType=CHAR} then salesday else 0 end ) marketsalesday
 		  	           ,SUM(case when ir.marketplaceid=#{marketplaceid,jdbcType=CHAR} then ir.afn_fulfillable_quantity else 0 end ) afn_fulfillable_quantity
 		  	           ,MIN(case when ir.marketplaceid=#{marketplaceid,jdbcType=CHAR} then short_time else '2399-01-01' end)  short_time
 		  	         </if>
 		  	         <if test=" marketplaceid==null">
-		  	            ,SUM(needship) marketneedship
+		  	          <if test="plantype=='ship'">
+		                 ,SUM(needship) marketneedship
+		              </if>
+		  	          <if test="plantype=='purchase'">
+		  	           ,SUM(needpurchase) marketneedpurchase
+		              </if>
 		  	            ,SUM(salesday) marketsalesday
 		  	            ,sum(ir.afn_fulfillable_quantity) afn_fulfillable_quantity
 		  	            ,MIN(short_time)  short_time
@@ -45,8 +61,10 @@
 		  	 from t_amz_product_sales_plan p
 		  	      left join t_inventory_report ir on ir.amazonAuthId=p.amazonauthid and ir.sku=p.sku   
 		  	                                       and  ir.marketplaceid=p.marketplaceid 
-		  	 where  groupid=#{groupid,jdbcType=CHAR} 
-			    and shopid=#{shopid,jdbcType=CHAR}
+		  	 where  shopid=#{shopid,jdbcType=CHAR} 
+		  	   <if test="groupid!=null">
+			    and groupid=#{groupid,jdbcType=CHAR}
+			    </if>
 			    <if test="searchtype=='sku' and search!=null">
 		        and (p.msku like #{search,jdbcType=CHAR} or p.sku like #{search,jdbcType=CHAR} )
 	           </if> 
@@ -59,6 +77,7 @@
 			  </if>
 			 GROUP BY p.groupid,p.msku
 		  ) m 
+		  <if test="plantype=='ship'">
 		  left join ( 
 			  select msku vmsku,
 			   <if test=" marketplaceid!=null">
@@ -80,6 +99,7 @@
 			    and warehouseid=#{warehouseid,jdbcType=CHAR}
 			  group by msku
 		    )  v on v.vmsku=m.msku 
+		    </if>
 		    <if test="marketplaceid!=null or status!=null or pidlist!=null or currentRank=='avgsales' or currentRank=='sales_seven' or currentRank=='sales_month'">
 		      LEFT JOIN ( 
 			         select 
@@ -93,7 +113,10 @@
 					  left join t_marketplace m on m.marketplaceid=i.marketplaceid
 					  left join t_product_in_order r on r.pid=i.id
 					  where  
-					      a.groupid=#{groupid,jdbcType=CHAR} 			   
+					      a.shop_id=#{shopid,jdbcType=CHAR} 	
+					      <if test="groupid!=null">
+						    and a.groupid=#{groupid,jdbcType=CHAR}
+						 </if>
 					     <if test="status!=null">
 					      and o.status=#{status,jdbcType=CHAR}
 					     </if>
@@ -118,10 +141,13 @@
 					      GROUP BY  ifnull(o.msku,i.sku) 
 						) v2 ON v2.v2msku=m.msku
 		   </if> 
-		   where m.groupid=#{groupid,jdbcType=CHAR}  and m.shopid=#{shopid,jdbcType=CHAR}
-		    <if test="selected==true">
+		   where  m.shopid=#{shopid,jdbcType=CHAR}  
+		   <if test="groupid!=null">
+			      and m.groupid=#{groupid,jdbcType=CHAR}
+		    </if>
+		    <if test="selected==true and plantype=='ship'">
 			        and v.amount>0
-		     </if>   
+		    </if>   
             <if test="marketplaceid!=null or status!=null or pidlist!=null">
 			     and v2.vfield>0
 		    </if>
@@ -136,6 +162,7 @@
 		    </if>
     </select>
     
+    
   <select id="ExpandCountryDataByGroup" resultType="java.util.Map" parameterType="java.lang.String">
       SELECT ifnull(afn_fulfillable_quantity,0)+ifnull(afn_inbound_working_quantity,0)+
 			 ifnull(afn_inbound_shipped_quantity,0)+ifnull(afn_inbound_receiving_quantity,0)+
@@ -144,21 +171,24 @@
 			 ifnull(afn_fulfillable_quantity,0)+ 
 			 case when rr.id is null then ifnull(afn_reserved_quantity,0) 
 			 else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) end localquantity,
-			 v.sku,v.marketname,v.marketplaceid,v.sysavgsales,v.amazonauthid,
+			 v.sku,v.marketname,v.marketplaceid,v.sysavgsales,v.amazonauthid,v.groupname,
 			 v.openDate,v.sum15,v.summonth,v.sumweek,v.msku,v.groupid,v.shopid,v.sumseven, v.statusname,v.statuscolor,
 			 p.avgsales,p.needship,p.needshipfba,p.needpurchase,p.ship_min_cycle_sale,p.short_time,
 			 p.needpurchase,p.salesday,p.shipday,p.delivery_cycle,
 			 r.afn_fulfillable_quantity,    r.afn_inbound_working_quantity,  r.afn_unsellable_quantity,
 			 r.afn_inbound_shipped_quantity,r.afn_inbound_receiving_quantity,r.afn_reserved_quantity,
 			 r.afn_total_quantity,r.afn_researching_quantity,r.afn_reserved_future_supply,
-			 rr.reserved_fc_processing,rr.reserved_fc_transfers,rr.reserved_qty,rr.reserved_customerorders,
-			 i.subnum,i.aftersalesday,ifnull(i.amount,ifnull(p.needship,0)) amount,
-			 ifnull(i.amount,0) reallyamount 
+			 rr.reserved_fc_processing,rr.reserved_fc_transfers,rr.reserved_qty,rr.reserved_customerorders
+			 <if test="plantype=='ship'">
+			 ,i.subnum,i.aftersalesday,ifnull(i.amount,ifnull(p.needship,0)) amount
+			 ,ifnull(i.amount,0) reallyamount 
+			 </if>
 			 FROM (
 		select info.sku sku,
                auth.id amazonauthid,
                auth.shop_id shopid,
                auth.groupid,
+                g.name groupname,
 	           case when mk.region='EU' then 'EU' ELSE mk.marketplaceId END  marketplaceid,
 		       case when mk.region='EU' then '欧洲' ELSE mk.name END marketname,
 		       ifnull(o.msku,info.sku) msku,
@@ -177,6 +207,7 @@
 		LEFT JOIN t_product_in_order t on t.pid = info.id
 		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
 		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		left join t_amazon_group g on g.id=auth.groupid
 		where   auth.disable = FALSE  and (o.disable is null or o.disable=0) 
 			    and info.invalid=0   and info.isparent=0
 			    and auth.shop_id=#{shopid,jdbcType=CHAR}
@@ -190,7 +221,8 @@
         LEFT JOIN t_inventory_report r   ON r.sku=v.sku AND r.marketplaceid=v.marketplaceid AND r.amazonAuthId=v.amazonauthid
         LEFT JOIN t_inventory_reserved_report rr on v.sku=rr.sku and v.marketplaceid=rr.marketplaceid and v.amazonAuthId=rr.amazonAuthId 
         LEFT JOIN t_erp_market_priority pri on pri.marketplaceid=v.marketplaceid and pri.groupid=v.groupid
-        LEFT JOIN (select  shopid,groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end marketplaceid,
+        <if test="plantype=='ship'">
+          LEFT JOIN (select  shopid,groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end marketplaceid,
                     sku,sum(case when m.region='EU' then 2 else 1 end) subnum,max(aftersalesday) aftersalesday,sum(amount)  amount 
                    from t_amz_product_sales_plan_ship_item i
                    left join t_marketplace m on m.marketplaceid=i.marketplaceid
@@ -200,6 +232,7 @@
 				     group by shopid,groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end,sku
                    ) i on i.sku=v.sku and i.amazonauthid=v.amazonauthid and i.shopid=v.shopid and i.groupid=v.groupid
                   and i.marketplaceid=v.marketplaceid 
+        </if>
          order by ifnull(pri.priority,v.findex)
     </select>
     
@@ -220,10 +253,13 @@
 		       d.name statusname,
 		       d.color statuscolor,
 		       mk.findex findex,
-		       null amount,
-		       ic.quantity ,
-		       ifnull(i.amount,0) reallyamount,
-		       i.subnum
+		       g.name groupname,
+		       ic.quantity 
+		       <if test="plantype=='ship'">
+		           ,null amount
+			       ,ifnull(i.amount,0) reallyamount
+			       ,i.subnum
+		       </if>
 		FROM  t_product_info info 
 		left join t_product_in_opt o on o.pid=info.id
 		left join t_product_info_status_define d on d.id=o.status
@@ -231,7 +267,9 @@
 		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
 	    left join t_amz_rpt_inventory_country ic on ic.sku=info.sku and ic.authid=info.amazonauthid and ic.country=mk.market
 		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		left join t_amazon_group g on g.id=auth.groupid
 		LEFT JOIN t_erp_market_priority pri on pri.marketplaceid=mk.marketplaceid and pri.groupid=auth.groupid
+		<if test="plantype=='ship'">
 		LEFT JOIN (select  shopid,groupid,amazonauthid,i.marketplaceid,
                    sku,count(0) subnum,max(aftersalesday) aftersalesday,sum(amount)  amount
                    from t_amz_product_sales_plan_ship_item i
@@ -244,10 +282,13 @@
 				   group by shopid,groupid,amazonauthid,i.marketplaceid,sku
                    ) i on i.sku=info.sku and i.amazonauthid=info.amazonauthid and i.shopid=auth.shop_id and i.groupid=auth.groupid
                   and i.marketplaceid=info.marketplaceid 
+         </if>
 		where   auth.disable = FALSE  and (o.disable is null or o.disable=0) 
 			    and info.invalid=0   and info.isparent=0
 			    and auth.shop_id=#{shopid,jdbcType=CHAR}
-			    and auth.groupid=#{groupid,jdbcType=CHAR}
+			     <if test="groupid!=null">
+			      and auth.groupid=#{groupid,jdbcType=CHAR}
+			    </if>
 				AND IFNULL(o.msku,info.sku) =#{msku,jdbcType=CHAR}
 				and mk.marketplaceid in('A1PA6795UKMFR9','A13V1IB3VIYZZH','A1RKKUPIHCS9HS','APJ6JRA9NG5V4',
 				                        'A1805IZSGTT6HS','A1C3SOZRARQ6R3','A2NODRKZP88ZB9')

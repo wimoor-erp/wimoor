@@ -21,5 +21,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 public interface AmzProductSalesPlanShipItemMapper extends BaseMapper<AmzProductSalesPlanShipItem> {
    Map<String,Object> getSummary(@Param("shopid")String shopid,@Param("groupid")String groupid,@Param("warehouseid") String warehouseid);
    int updateBatch(@Param("id")String id,@Param("batchnumber")String batchnumber);
-   int moveBatch(@Param("batchnumber")String batchnumber);
+   int moveBatch(@Param("shopid")String shopid,@Param("batchnumber")String batchnumber);
 }

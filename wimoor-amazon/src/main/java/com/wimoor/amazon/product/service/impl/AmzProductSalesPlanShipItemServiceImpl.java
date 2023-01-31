@@ -15,13 +15,15 @@ import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.product.mapper.AmzProductSalesPlanShipItemMapper;
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlanShipItem;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanShipItemService;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -53,11 +55,12 @@ public class AmzProductSalesPlanShipItemServiceImpl extends ServiceImpl<AmzProdu
 			query.eq(AmzProductSalesPlanShipItem::getBatchnumber, batchnumber);
 		}
 		List<AmzProductSalesPlanShipItem> list = this.baseMapper.selectList(query);
-		ShipPlanDTO dto=new ShipPlanDTO();
+		PlanDTO dto=new PlanDTO();
 		List<String> skulist=new ArrayList<String>();
 		dto.setWarehouseid(warehouseid);
 		dto.setShopid(shopid);
 		dto.setGroupid(groupid);
+		dto.setPlantype("ship");
 		Map<String, Marketplace> marketMap = iMarketplaceService.findMapByMarketplaceId();
 		for(AmzProductSalesPlanShipItem item:list) {
 			skulist.add(item.getMsku());
@@ -178,8 +181,9 @@ public class AmzProductSalesPlanShipItemServiceImpl extends ServiceImpl<AmzProdu
 		    	}
 		    	return resultdata;
 		    }
-		}catch(Exception e) {
+		}catch(FeignException e) {
 			e.printStackTrace();
+          	throw new BizException(BizException.getMessage(e, "本地产品信息处理异常请联系管理员"));
 		}
 		return null;
 	}
@@ -195,8 +199,8 @@ public class AmzProductSalesPlanShipItemServiceImpl extends ServiceImpl<AmzProdu
   public int updateBatch( String id, String batchnumber) {
 	  return this.baseMapper.updateBatch(id, batchnumber);
   }
-  public int moveBatch(String batchnumber) {
-	  return this.baseMapper.moveBatch(batchnumber);
+  public int moveBatch(String shopid,String batchnumber) {
+	  return this.baseMapper.moveBatch(shopid,batchnumber);
   }
  
 }

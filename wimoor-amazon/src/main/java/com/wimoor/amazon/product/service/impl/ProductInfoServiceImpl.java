@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,6 +96,7 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.user.UserInfo;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 
 /**
@@ -281,61 +284,78 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 													,parameter.get("groupList")
 													,parameter.get("marketplace")));
 		IPage<AmzProductListVo> productList = this.baseMapper.selectDetialByAuth(query.getPage(),parameter);
+		List<String> mskuList=new ArrayList<String>();
 		if(productList!=null && productList.getRecords()!=null && productList.getRecords().size()>0) {
+			Result<Map<String,Object>> tagnamelistResult=adminClientOneFeign.findTagsName(userinfo.getCompanyid());
 			for(AmzProductListVo item:productList.getRecords()) {
 				item.setLandedCurrency(GeneralUtil.formatCurrency(item.getLandedCurrency()));
 				item.setItemshow(false);
 				if(item.getOptstatuscolor()!=null) {
 					item.setOptstatuscolor(GeneralUtil.getColorType(item.getOptstatuscolor()).toString());
 				}
-				LambdaQueryWrapper<AmzInventoryCountryReport> queryWrapper=new LambdaQueryWrapper<AmzInventoryCountryReport>();
-				queryWrapper.eq(AmzInventoryCountryReport::getAuthid, item.getAmazonAuthId());
-				queryWrapper.eq(AmzInventoryCountryReport::getSku, item.getSku());
-				queryWrapper.eq(AmzInventoryCountryReport::getCountry, item.getCountry());
-				List<AmzInventoryCountryReport> list = amzInventoryCountryReportMapper.selectList(queryWrapper);
-				if(list!=null && list.size()>0) {
-					item.setCountryinv(list.get(0).getQuantity());
-				}
-				LambdaQueryWrapper<AmzInventoryCountryReport> queryWrapper2=new LambdaQueryWrapper<AmzInventoryCountryReport>();
-				queryWrapper2.eq(AmzInventoryCountryReport::getAuthid, item.getAmazonAuthId());
-				queryWrapper2.eq(AmzInventoryCountryReport::getSku, item.getSku());
-				List<AmzInventoryCountryReport> eulist = amzInventoryCountryReportMapper.selectList(queryWrapper2);
-				if(eulist!=null && eulist.size()>0) {
-					int sum=0;
-					for (int i = 0; i < eulist.size(); i++) {
-						AmzInventoryCountryReport items = eulist.get(i);
-						if(items.getCountry().equals("DE") || items.getCountry().equals("PL")) {
-							sum+=items.getQuantity();
-						}
-					}
-					item.setCzinv(sum);
-				}
-				String pid=item.getId();
-				LambdaQueryWrapper<ProductInTags> queryTagsIdsList=new LambdaQueryWrapper<ProductInTags>();
-				queryTagsIdsList.eq(ProductInTags::getPid,pid);
-				Set<String> tagsIdsList=new HashSet<String>();
-				List<ProductInTags>  productInTagsList= productInTagsMapper.selectList(queryTagsIdsList);
-				for(ProductInTags tagitem:productInTagsList) {
-					tagsIdsList.add(tagitem.getTagid());
-				}
-				try {
-					if(item!=null&&item.getMsku()!=null) {
-						Result<List<String>> materialTagsIdsListResult  =erpClientOneFeign.getTagsIdsListByMsku(item.getMsku(),userinfo.getCompanyid());
-						List<String> materialTagsIdsList=materialTagsIdsListResult.getData();
-						if(materialTagsIdsList!=null && materialTagsIdsList.size()>0) {
-							for(String tagid:materialTagsIdsList) {
-								tagsIdsList.add(tagid);
+				if(item.getRegion().equals("EU")) {
+					LambdaQueryWrapper<AmzInventoryCountryReport> queryWrapper2=new LambdaQueryWrapper<AmzInventoryCountryReport>();
+					queryWrapper2.eq(AmzInventoryCountryReport::getAuthid, item.getAmazonAuthId());
+					queryWrapper2.eq(AmzInventoryCountryReport::getSku, item.getSku());
+					List<AmzInventoryCountryReport> eulist = amzInventoryCountryReportMapper.selectList(queryWrapper2);
+					if(eulist!=null && eulist.size()>0) {
+						int sum=0;
+						for (int i = 0; i < eulist.size(); i++) {
+							AmzInventoryCountryReport items = eulist.get(i);
+							if(items.getCountry().equals("DE") || items.getCountry().equals("PL")) {
+								sum+=items.getQuantity();
+							}
+							if(items.getCountry().equals(item.getCountry())) {
+								item.setCountryinv(items.getQuantity());
 							}
 						}
-						Result<List<Map<String,Object>>> tagnamelistResult=adminClientOneFeign.findTagsNameByIds(tagsIdsList);
-						List<Map<String,Object>> tagnamelist=tagnamelistResult.getData();
-						item.setTagNameList(tagnamelist);
+						item.setCzinv(sum);
+					}
+				}
+				mskuList.add(item.getMsku());
+			}
+			
+			try {
+				if(mskuList.size()>0) {
+					Result<Map<String,String>> materialTagsIdsListResult  =erpClientOneFeign.getTagsIdsListByMsku(userinfo.getCompanyid(),mskuList);
+					if(materialTagsIdsListResult!=null&&Result.isSuccess(materialTagsIdsListResult)
+							&&tagnamelistResult!=null&&Result.isSuccess(tagnamelistResult)) {
+						Map<String, Object> tagsNameMap = tagnamelistResult.getData();
+						Map<String,String> mskuTagsIdsMap=materialTagsIdsListResult.getData();
+							for(AmzProductListVo item:productList.getRecords()) {
+							    List<String> tags=new ArrayList<String>();
+								if(item.getTagids()!=null) {
+									tags.addAll(Arrays.asList(item.getTagids().split(",")));
+								}
+								if(mskuTagsIdsMap!=null && mskuTagsIdsMap.get(item.getMsku())!=null) {
+									String mtags=mskuTagsIdsMap.get(item.getMsku());
+									tags.addAll(Arrays.asList(mtags.split(",")));
+								}
+								if(tags.size()>0) {
+									List<Map<String, Object>> tagNameList = new ArrayList<Map<String,Object>>();
+									for(String id:tags) {
+										if(StrUtil.isNotBlank(id)) {
+											Object tagobj = tagsNameMap.get(id);
+											if(tagobj!=null) {
+												tagNameList.add(BeanUtil.beanToMap(tagobj));
+											}
+										}
+									}
+									if(tagNameList.size()>0) {
+										item.setTagNameList(tagNameList);
+									}
+								}
+							}
+						 
 					}
 					
-				}catch(Exception e) {
-					e.printStackTrace();
+				
+					 
+					
 				}
 				
+			}catch(Exception e) {
+				e.printStackTrace();
 			}
 		}
 	     getWeekOtherCostForSKU(userinfo, productList);

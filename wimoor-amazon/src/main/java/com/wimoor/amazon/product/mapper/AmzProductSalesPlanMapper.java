@@ -1,6 +1,6 @@
 package com.wimoor.amazon.product.mapper;
 
-import com.wimoor.amazon.product.pojo.dto.ShipPlanDTO;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlan;
 
 import java.util.List;
@@ -20,8 +20,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 @Mapper
 public interface AmzProductSalesPlanMapper extends BaseMapper<AmzProductSalesPlan> {
-	List<Map<String, Object>> getShipPlanModel(ShipPlanDTO dto);
-	Map<String, Object> filterMsku(ShipPlanDTO dto);
-	List<Map<String, Object>> ExpandCountryDataByGroup(String shopid, String groupid,String warehouseid ,String msku);
-	List<Map<String, Object>> ExpandEUCountryDataByGroup(String shopid, String groupid,String warehouseid ,String msku);
+	List<Map<String, Object>> getPlanModel(PlanDTO dto);
+	Map<String, Object> filterMsku(PlanDTO dto);
+	List<Map<String, Object>> ExpandCountryDataByGroup(String shopid, String groupid,String warehouseid ,String msku,String plantype);
+	List<Map<String, Object>> ExpandEUCountryDataByGroup(String shopid, String groupid,String warehouseid ,String msku,String plantype);
 }

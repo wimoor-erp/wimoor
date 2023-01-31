@@ -13,9 +13,9 @@ import com.wimoor.erp.inventory.pojo.entity.ChangeWhForm;
 @Mapper
 public interface ChangeWhFormMapper extends BaseMapper<ChangeWhForm>{
 
-	IPage<Map<String, Object>> findByCondition(Page<?>  page,Map<String, Object> map);
+	IPage<Map<String, Object>> findByCondition(Page<?>  page,@Param("params")Map<String, Object> map);
 
-	Map<String, Object> findById(String id);
+	Map<String, Object> findById(@Param("id")String id);
 	
 	List<ChangeWhForm> getChangeWhFormByWarehouseid(@Param("warehouseid")String warehouseid);
 }

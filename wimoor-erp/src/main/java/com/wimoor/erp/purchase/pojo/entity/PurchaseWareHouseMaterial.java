@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("t_erp_purchase_warahouse_material")
+@TableName("t_erp_v3_purchase_plan_warehouse_material")
 public class PurchaseWareHouseMaterial {
 	
 	@TableField(value= "planid")

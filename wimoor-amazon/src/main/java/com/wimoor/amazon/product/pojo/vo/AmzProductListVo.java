@@ -96,6 +96,7 @@ public class AmzProductListVo {
 	String optstatusname;
 	String optstatuscolor;
 	String priceremark;
+	String tagids;
 	Date lastupdateTime;
 	Date lockedtime;
 	List<Map<String,Object>> tagNameList;

@@ -131,7 +131,7 @@ public class InventoryReportController {
 			workbook.close();
 			fOut.flush();
 			fOut.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		

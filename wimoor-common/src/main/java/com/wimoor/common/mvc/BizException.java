@@ -29,13 +29,13 @@ public class BizException extends RuntimeException {
     	 if(e!=null&&e.getMessage()!=null&&e.getMessage().contains("]:")) {
     		      String[] arraymsg = e.getMessage().split("]:");
     		      if(arraymsg.length>1) {
-    		    	    JSONArray errors = GeneralUtil.getJsonArray(e.getMessage().split("]:")[1]);
+    		    	    JSONArray errors = GeneralUtil.getJsonArray(arraymsg[1]);
     		     		JSONObject errorObj =errors!=null? errors.getJSONObject(0):null;
     		     		String msg=errorObj!=null?errorObj.getString("msg"):null;
     		     		if(msg!=null) {
     		     			message=msg;
     		     		}else {
-    		     			 message=e.getMessage();  
+    		     			 message=arraymsg[1];  
     		     		}
     		      }else {
     		    	  message=e.getMessage();  

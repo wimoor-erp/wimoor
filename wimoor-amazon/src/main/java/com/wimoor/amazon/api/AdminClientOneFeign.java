@@ -26,15 +26,17 @@ public interface AdminClientOneFeign {
      */
 	@RequestMapping("/admin/api/v1/users/sysrole/userid/{userid}")
     public Result<UserInfo>  getUserByUserId(@PathVariable String userid);
-     
 	
     @GetMapping("/admin/api/v1/users/roles/{userid}")
     public Result<List<SysUserRoleDTO>> getUserRoleById(@PathVariable String userid) ;
 
-    @RequestMapping("admin/api/v1/users/sysrole/account/{account}")
+    @RequestMapping("/admin/api/v1/users/sysrole/account/{account}")
     public Result<UserInfo> getUserByUsername(@PathVariable String account);
 
-    @PostMapping("admin/api/v1/sysTags/listname")
+    @PostMapping("/admin/api/v1/sysTags/listname")
 	public Result<List<Map<String,Object>>> findTagsNameByIds(@RequestBody Set<String> tagsIdsList);
+
+    @PostMapping("/admin/api/v1/sysTags/mapname/{shopid}")
+  	public Result<Map<String, Object>> findTagsName(@PathVariable String shopid);
     
 }

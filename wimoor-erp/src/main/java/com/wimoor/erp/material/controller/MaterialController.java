@@ -48,6 +48,7 @@ import com.wimoor.erp.common.service.IExcelDownLoadService;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.pojo.dto.MaterialDTO;
+import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
@@ -64,7 +65,6 @@ import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.material.service.IStepWisePriceService;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
-import com.wimoor.erp.ship.pojo.dto.ShipPlanDTO;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
@@ -589,9 +589,10 @@ public class MaterialController {
 			return Result.success(iMaterialService.getmskuList(taglist));
 	    }
 	    
-	    @GetMapping("/getTagsIdsListByMsku")
-		public Result<List<String>> getTagsIdsListByMsku(@RequestParam String msku,@RequestParam String shopid){
-			return Result.success(iMaterialService.getTagsIdsListByMsku(msku,shopid));
+	 
+	    @PostMapping("/getTagsIdsListByMsku/{shopid}")
+		public Result<Map<String,String>> getTagsIdsListByMsku(@PathVariable String shopid,@RequestBody List<String> mskulist){
+	    	return Result.success(iMaterialService.getTagsIdsListByMsku(shopid,mskulist));
 	    }
 	    
 	    @GetMapping("/saveMaterialTags")
@@ -706,7 +707,7 @@ public class MaterialController {
 	    }
 	 
 	    @PostMapping("/getMskuInventory")
-		public Result<List<Map<String, Object>>> getMskuInventory(@RequestBody ShipPlanDTO dto){
+		public Result<List<Map<String, Object>>> getMskuInventory(@RequestBody PlanDTO dto){
 	    	    return Result.success(iMaterialService.findInventoryByMsku(dto));
 	    }
 	    

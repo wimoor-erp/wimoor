@@ -212,7 +212,7 @@ public class InventorySupplyServiceImpl implements IInventorySupplyService{
 					 report.setAfnInboundShippedQuantity(invdetail.getInboundShippedQuantity());
 					 report.setAfnInboundWorkingQuantity(invdetail.getInboundWorkingQuantity());
 					 if(invdetail.getReservedQuantity()!=null) {
-						 report.setAfnReservedFutureSupply(invdetail.getReservedQuantity().getTotalReservedQuantity());
+						 report.setAfnReservedQuantity(invdetail.getReservedQuantity().getTotalReservedQuantity());
 					 }
 					 if(invdetail.getResearchingQuantity()!=null) {
 						 report.setAfnResearchingQuantity(invdetail.getResearchingQuantity().getTotalResearchingQuantity());
@@ -221,6 +221,7 @@ public class InventorySupplyServiceImpl implements IInventorySupplyService{
 					 if(report.idIsNULL()) {
 						 inventoryReportMapper.insert(report);
 					 }else {
+						 report.setByday(new Date());
 						 inventoryReportMapper.updateById(report);
 					 }
 				 }
