@@ -15,7 +15,6 @@ public interface IShipInboundItemService extends IService<ShipInboundItem> {
 	   public ShipInboundShipmenSummarytVo summaryShipmentItem(String shipmentid) ;
 	   public List<ShipInboundItem> getItemByShipment(String shipmentid);
 	   public List<ShipInboundItemVo> listByShipmentid(String shipmentid);
-	public List<Map<String, Object>> getshotTime(String companyid, String groupid, String marketplaceid, String sku);
-	 
- 
+	   public List<Map<String, Object>> getshotTime(String companyid, String groupid, String marketplaceid, String sku);
+	   public Integer summaryShipmentSku(String groupid, String marketplaceid, String sku);
 }

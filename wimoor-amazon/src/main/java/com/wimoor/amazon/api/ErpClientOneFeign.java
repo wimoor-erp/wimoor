@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,6 +72,8 @@ public interface ErpClientOneFeign {
     @PostMapping("/erp/api/v1/material/getTagsIdsListByMsku/{shopid}")
 	public Result<Map<String,String>> getTagsIdsListByMsku(@PathVariable String shopid,@RequestBody List<String> mskulist);
     
+    @PostMapping("/erp/api/v1/material/getMaterialMap")
+	public Result<Map<String,Object>> getMaterialInfoBySkuList(@RequestBody PlanDTO dto);
     
     @GetMapping("/erp/api/v1/material/getMSkuDeliveryAndInv")
     public Result<Map<String, Object>> getMSkuDeliveryAndInv(   @RequestParam String shopid,

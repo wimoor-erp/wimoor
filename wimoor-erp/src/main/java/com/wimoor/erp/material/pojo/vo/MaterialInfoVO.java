@@ -59,7 +59,7 @@ public class MaterialInfoVO {
 	List<MaterialCustomsItem> customsItemList;
 	
 	@ApiModelProperty(value = "产品父亲列表")
-	List<Material> parentList;
+	List<Map<String, Object>> parentList;
 	
 	@ApiModelProperty(value = "产品标签列表数据")
 	String taglist;

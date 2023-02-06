@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,7 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
+
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -298,6 +300,38 @@ public class ProductInfoController {
 			UserInfo user = UserInfoContext.get();
 			dto.setShopid(user.getCompanyid());
 			IPage<ProductPriceVo> result = iProductInOptService.priceQueue(dto);
+			return Result.success(result);
+		}
+		
+		@GetMapping("/disable")
+		public Result<String> disableAction(String id){
+			String result="";
+			if(StrUtil.isEmpty(id)) {
+				return Result.failed();
+			}
+			UserInfo user = UserInfoContext.get();
+			int i = iProductInfoService.productDisable(user,id);
+			if (i > 0) {
+				result="success";
+			} else {
+				result="fail";
+			}
+			return Result.success(result);
+		}
+		
+		@GetMapping("/undisable")
+		public Result<String> undisableAction(String id){
+			String result="";
+			if(StrUtil.isEmpty(id)) {
+				return Result.failed();
+			}
+			UserInfo user = UserInfoContext.get();
+			int i = iProductInfoService.productUnDisable(user,id);
+			if (i > 0) {
+				result="success";
+			} else {
+				result="fail";
+			}
 			return Result.success(result);
 		}
 	 

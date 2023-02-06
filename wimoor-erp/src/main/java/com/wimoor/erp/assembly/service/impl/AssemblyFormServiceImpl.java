@@ -27,6 +27,7 @@ import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.assembly.mapper.AssemblyFormEntryMapper;
 import com.wimoor.erp.assembly.mapper.AssemblyFormMapper;
 import com.wimoor.erp.assembly.mapper.AssemblyMapper;
+import com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO;
 import com.wimoor.erp.assembly.pojo.entity.Assembly;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyEntryInstock;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
@@ -143,8 +144,8 @@ public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,Ass
 		return numMap;
 	}
 	
-	public IPage<Map<String, Object>> findByCondition(Page<?> page,Map<String,Object> param) {
-		return this.baseMapper.findByCondition(page,param);
+	public IPage<Map<String, Object>> findByCondition(AssemblyFormListDTO dto) {
+		return this.baseMapper.findByCondition(dto.getPage(),dto);
 	}
 
 	public Map<String, Object> findById(String id) {

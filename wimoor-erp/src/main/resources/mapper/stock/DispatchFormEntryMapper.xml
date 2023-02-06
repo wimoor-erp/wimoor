@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.DispatchFormEntryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.DispatchFormEntry" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+  </resultMap>
+  
+   <select id="selectByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
+	    select m.sku sku, a.*
+	    from t_erp_dispatch_form_entry a left join t_erp_material m on a.materialid = m.id
+	    where formid = #{formid,jdbcType=CHAR}
+  </select>
+  
+   <select id="findFormDetailByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
+		select m.sku sku,m.name,c.name supplier,IFNULL(p.location,p.url) image, 
+		       i.from_warehouse_inbound,i.from_warehouse_outbound,i.from_warehouse_fulfillable,
+		       i2.to_warehouse_inbound,i2.to_warehouse_outbound,i2.to_warehouse_fulfillable,
+		   a.*
+		  from t_erp_dispatch_form_entry a 
+		  left join t_erp_dispatch_form form on form.id=a.formid
+		  left join t_erp_material m on a.materialid = m.id 
+		  left join t_erp_customer c on c.id=m.supplier
+		  left join t_picture p on m.image=p.id
+		  left join ( select shopid,warehouseid,materialid , 
+				  	    sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) from_warehouse_inbound,
+						sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) from_warehouse_outbound,
+						sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) from_warehouse_fulfillable
+					 from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR} and  (warehouseid = #{warehouseid2,jdbcType=CHAR})
+					 group by materialid
+					) i  on i.materialid=m.id 
+		 left join ( select shopid,warehouseid,materialid , 
+				      sum( case when  status like 'inbound_%' then quantity else 0 end )     to_warehouse_inbound,
+				      sum( case when  status like 'outbound_%' then quantity else 0 end )    to_warehouse_outbound,
+				      sum( case when  status='fulfillable' then quantity else 0 end ) to_warehouse_fulfillable
+					 from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR} and  (warehouseid = #{warehouseid,jdbcType=CHAR})
+					 group by materialid
+					) i2  on i2.materialid=m.id 
+	    where formid = #{formid,jdbcType=CHAR}
+	     
+  </select>
+  
+ 
+  
+  <!-- <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.DispatchFormEntry" >
+    insert into t_erp_dispatch_form_entry (id, formid, materialid, 
+      amount)
+    values (#{id,jdbcType=CHAR}, #{formid,jdbcType=CHAR}, #{materialid,jdbcType=CHAR}, 
+      #{amount,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.DispatchFormEntry" >
+    insert into t_erp_dispatch_form_entry
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="formid != null" >
+        formid,
+      </if>
+      <if test="materialid != null" >
+        materialid,
+      </if>
+      <if test="amount != null" >
+        amount,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="formid != null" >
+        #{formid,jdbcType=CHAR},
+      </if>
+      <if test="materialid != null" >
+        #{materialid,jdbcType=CHAR},
+      </if>
+      <if test="amount != null" >
+        #{amount,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

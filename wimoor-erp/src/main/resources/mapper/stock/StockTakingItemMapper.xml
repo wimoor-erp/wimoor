@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.StockTakingItemMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.StockTakingItem" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="stocktakingid" property="stocktakingid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+     <result column="overamount" property="overamount" jdbcType="INTEGER" />
+    <result column="lossamount" property="lossamount" jdbcType="INTEGER" />
+  </resultMap>
+  <!-- <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.StockTakingItem" >
+    insert into t_erp_stocktaking_item (id, stocktakingid, materialid, 
+      amount)
+    values (#{id,jdbcType=CHAR}, #{stocktakingid,jdbcType=CHAR}, #{materialid,jdbcType=CHAR}, 
+      #{amount,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.StockTakingItem" >
+    insert into t_erp_stocktaking_item
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="stocktakingid != null" >
+        stocktakingid,
+      </if>
+      <if test="materialid != null" >
+        materialid,
+      </if>
+      <if test="amount != null" >
+        amount,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="stocktakingid != null" >
+        #{stocktakingid,jdbcType=CHAR},
+      </if>
+      <if test="materialid != null" >
+        #{materialid,jdbcType=CHAR},
+      </if>
+      <if test="amount != null" >
+        #{amount,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

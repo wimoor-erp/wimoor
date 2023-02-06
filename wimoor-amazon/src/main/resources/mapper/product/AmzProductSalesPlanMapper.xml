@@ -100,7 +100,7 @@
 			  group by msku
 		    )  v on v.vmsku=m.msku 
 		    </if>
-		    <if test="marketplaceid!=null or status!=null or pidlist!=null or currentRank=='avgsales' or currentRank=='sales_seven' or currentRank=='sales_month'">
+		    <if test="marketplaceid!=null or status!=null or pidlist!=null or small!=null or currentRank=='avgsales' or currentRank=='sales_seven' or currentRank=='sales_month'">
 		      LEFT JOIN ( 
 			         select 
 					  ifnull(o.msku,i.sku) v2msku,count(i.id) vfield,
@@ -113,7 +113,9 @@
 					  left join t_marketplace m on m.marketplaceid=i.marketplaceid
 					  left join t_product_in_order r on r.pid=i.id
 					  where  
-					      a.shop_id=#{shopid,jdbcType=CHAR} 	
+					      a.shop_id=#{shopid,jdbcType=CHAR} 
+					      and  a.disable = FALSE  and (o.disable is null or o.disable=0) 
+			              and  i.invalid=0   and i.isparent=0
 					      <if test="groupid!=null">
 						    and a.groupid=#{groupid,jdbcType=CHAR}
 						 </if>
@@ -125,10 +127,10 @@
 					    </if>
 					    <if test="small!=null">
 					       <if test="small=='true'">
-					         and  i.inSnl=true
+					         and  ifnull(i.inSnl,false)=true
 					       </if>
 					        <if test="small=='false'">
-					         and  (i.inSnl=false or i.inSnl is null)
+					         and  ifnull(i.inSnl,false)=false
 					       </if>  
 					    </if>
 					    <if test="pidlist!=null">
@@ -148,7 +150,7 @@
 		    <if test="selected==true and plantype=='ship'">
 			        and v.amount>0
 		    </if>   
-            <if test="marketplaceid!=null or status!=null or pidlist!=null">
+            <if test="marketplaceid!=null or status!=null or pidlist!=null or small!=null">
 			     and v2.vfield>0
 		    </if>
 		    <if test="shortdays=='15'">
@@ -283,8 +285,9 @@
                    ) i on i.sku=info.sku and i.amazonauthid=info.amazonauthid and i.shopid=auth.shop_id and i.groupid=auth.groupid
                   and i.marketplaceid=info.marketplaceid 
          </if>
-		where   auth.disable = FALSE  and (o.disable is null or o.disable=0) 
-			    and info.invalid=0   and info.isparent=0
+		where   auth.disable = FALSE  
+			    and info.invalid=0   
+			    and info.isparent=0
 			    and auth.shop_id=#{shopid,jdbcType=CHAR}
 			     <if test="groupid!=null">
 			      and auth.groupid=#{groupid,jdbcType=CHAR}

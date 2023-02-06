@@ -73,7 +73,6 @@ import com.wimoor.amazon.product.pojo.entity.AmzProductPriceOpt;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
 import com.wimoor.amazon.product.pojo.entity.ProductInOrder;
 import com.wimoor.amazon.product.pojo.entity.ProductInProfit;
-import com.wimoor.amazon.product.pojo.entity.ProductInTags;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.pojo.entity.ProductInfoStatusDefine;
 import com.wimoor.amazon.product.pojo.entity.ProductPrice;
@@ -1255,5 +1254,29 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 		public String findMSKUBySKUMarket(String psku, String marketplaceid, String id) {
 			// TODO Auto-generated method stub
 			return this.baseMapper.findMSKUBySKUMarket(psku, marketplaceid, id);
+		}
+		@Override
+		public int productDisable(UserInfo user, String id) {
+			ProductInOpt product = new ProductInOpt();
+			product.setPid(new BigInteger(id));
+			product.setDisable(true);
+			product.setLastupdate(LocalDateTime.now());
+			product.setOperator(new BigInteger(user.getId()));
+			ProductInOpt oldone = productInOptMapper.selectById(id);
+			if (oldone != null) {
+				return productInOptMapper.updateById(product);
+			} else {
+				return productInOptMapper.insert(product);
+			}
+		}
+		
+		@Override
+		public int productUnDisable(UserInfo user,String id) {
+			ProductInOpt product = new ProductInOpt();
+			product.setPid(new BigInteger(id));
+			product.setDisable(false);
+			product.setLastupdate(LocalDateTime.now());
+			product.setOperator(new BigInteger(user.getId()));
+			return productInOptMapper.updateById(product);
 		}
 }

@@ -17,6 +17,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 public interface MaterialMapper extends BaseMapper<Material> {
 
 	IPage<Map<String, Object>> findMaterial(Page<?> page,@Param("param")Map<String,Object> map);
+	
+	List<Map<String, Object>> findMaterial(@Param("param")Map<String,Object> map);
 
 	MaterialVO findMaterialById(String id);
 
@@ -55,4 +57,6 @@ public interface MaterialMapper extends BaseMapper<Material> {
 	List<Map<String, Object>> findInventoryByMsku(PlanDTO dto);
 
 	Material getMaterailBySku(@Param("shopid")String shopid, @Param("sku")String sku);
+	
+	List<MaterialVO> getMaterialInfoBySkuList(PlanDTO dto);
 }

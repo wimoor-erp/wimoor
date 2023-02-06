@@ -261,7 +261,7 @@
                      <execution>						
                          <id>install-jar</id>          	
                          <!-- 阶段：设定在 mvn clean 时执行安装,如果设定为 validate，那么就是在 mvn validate 时才安装 -->						
-                         <phase>clean</phase>						
+                         <phase>install</phase>						
                          <configuration>              
                          <!-- 路径：这就是刚才添加的 jar 路径 -->							
                             <file>${project.basedir}/src/main/resources/lib/ocean.client.java.biz.jar</file>							
@@ -280,7 +280,7 @@
                        <execution>						
                          <id>install-AlibabaMessage</id>          	
                          <!-- 阶段：设定在 mvn clean 时执行安装,如果设定为 validate，那么就是在 mvn validate 时才安装 -->						
-                         <phase>clean</phase>						
+                         <phase>install</phase>						
                          <configuration>              
                          <!-- 路径：这就是刚才添加的 jar 路径 -->							
                             <file>${project.basedir}/src/main/resources/lib/aop-sdk-message-0.9.0.jar</file>							

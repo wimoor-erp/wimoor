@@ -28,4 +28,6 @@ public class OutWarehouseItemDTO extends BasePageQuery{
 	String remark;
 	
 	String skumapstr;
+	
+	String customer;
 }

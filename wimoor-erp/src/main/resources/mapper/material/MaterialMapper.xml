@@ -67,7 +67,7 @@
 		       mn.mark notice,
 		       mc.material material,
 		       mc.addfee addfee,
-		      
+		       case when mh.materialid is null then 0 else 1 end ishide,
 		       ifnull(inv.fulfillable,0) fulfillable,
 		       ifnull(inv.outbound,0) outbound,
 		       ifnull(inv.inbound,0) inbound,
@@ -140,7 +140,7 @@
 															and item.shopid=#{shopid,jdbcType=CHAR}
 				left join t_erp_warehouse w on w.id=pw.warehouseid
 		</if>
-	  	left join t_erp_material_customs mc on mc.matreialid=m.id
+	  	left join t_erp_material_customs mc on mc.materialid=m.id
 	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
 	  	<if test="mskulist!=null">
 			and m.sku in
@@ -180,7 +180,7 @@
 		</if>
 		<if test="hasAddFee!=null">
 		   <if test="hasAddFee=='true'">
-		      and mc.addfee>0
+		      and ifnull(mc.addfee,0)>0
 		   </if>
 		    <if test="hasAddFee=='false'">
 		      and ifnull(mc.addfee,0)=0
@@ -213,8 +213,8 @@
 		left join t_picture p on m.image=p.id
 		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
 		left join ( select iv.shopid,iv.warehouseid,iv.materialid ,
-					sum( case when iv.status='inbound' then iv.quantity else 0 end ) inbound,
-					sum( case when iv.status='outbound' then iv.quantity else 0 end ) outbound,
+					sum( case when iv.status like 'inbound_%' then iv.quantity else 0 end ) inbound,
+					sum( case when iv.status like 'outbound_%' then iv.quantity else 0 end ) outbound,
 					sum( case when iv.status='fulfillable' then iv.quantity else 0 end ) fulfillable
 					from t_erp_inventory iv
 					<if test="param.addressid!=null">
@@ -461,7 +461,9 @@
 			select mate.sku materialSKU,mate.name materialName,info.sku infoSKU,
 				max(info.image) imageid,max(info.name) infoName,ifnull(pic.location,pic.url) image,
 				MAX(info.pageDimensions) dimid,
-				dm.length,dm.length_units lenunit,dm.width,dm.width_units wunit,dm.height,dm.height_units hunit,
+				dm.length,dm.length_units lenunit,
+				dm.width,dm.width_units wunit,
+				dm.height,dm.height_units hunit,
 				dm.weight,dm.weight_units weunit
 			from t_erp_material mate
 			left join t_product_in_opt opt on opt.msku = mate.sku
@@ -591,5 +593,37 @@
 		</if>
 		group by t.id
     </select>
-  
+    
+  <select id="getMaterialInfoBySkuList" resultType="com.wimoor.erp.material.pojo.vo.MaterialVO"  parameterType="java.util.Map">
+   select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image,
+		 m.id, m.sku,m.name,m.shopid,m.upc,bran.name brand,bran.id brandid,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
+		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
+	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
+	     m.createdate, m.creator,m.parentid,m.isSmlAndLight,m.assembly_time,m.isDelete,m.effectivedate,m.image imageid,
+	     i.inbound,i.outbound,i.fulfillable
+		from t_erp_material m
+		left join t_erp_material_category g on g.id=m.categoryid
+		left join t_picture p on m.image=p.id
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_userinfo u on u.id=m.owner
+		left join t_erp_material_brand bran on bran.id=m.brand
+		left join ( select shopid,warehouseid,materialid ,
+					sum( case when status like 'inbound_%' then quantity else 0 end ) inbound,
+					sum( case when status like 'outbound_%' then quantity else 0 end ) outbound,
+					sum( case when status='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR}
+					 group by shopid, materialid
+		) i on i.materialid=m.id
+	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
+	  	<if test="owner!=null">
+	  	    and m.owner=#{owner,jdbcType=CHAR}
+	  	</if>
+	  	<if test="mskulist!=null">
+			and m.sku in
+			<foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		</if>
+  </select>
 </mapper>

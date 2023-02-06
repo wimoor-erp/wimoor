@@ -57,5 +57,5 @@ public interface ProductInPresaleMapper extends BaseMapper<ProductInPresale> {
 	List<Map<String, Object>> selectEstimated();
 	void refreshData(AmazonAuthority auth);
 	
-	IPage<Map<String,Object>>  listProduct(Page<?> page,@Param("param")ProductPresaleListDTO dto);
+	List<Map<String,Object>>  listProduct(@Param("param")ProductPresaleListDTO dto);
 }

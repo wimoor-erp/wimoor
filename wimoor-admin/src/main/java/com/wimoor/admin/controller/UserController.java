@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -159,6 +161,7 @@ public class UserController {
 	    @ApiOperation(value = "根据用户账号（电话或邮箱）获取用户信息")
 	    @ApiImplicitParam(name = "account", value = "用户账号", required = true, paramType = "path", dataType = "String")
 	    @GetMapping("/sysrole/account/{account}")
+		@Cacheable(value = "userall")
 	    public Result<UserInfo> getUserByUsername(@PathVariable String account) {
 	    	SysUser user = iSysUserService.getUserAllByAccount(account);
 	    	if(user!=null) {
@@ -202,6 +205,7 @@ public class UserController {
 	    @ApiOperation(value = "根据用户ID获取用户信息")
 	    @ApiImplicitParam(name = "ID", value = "用户ID", required = true, paramType = "path", dataType = "String")
 	    @GetMapping("/sysrole/userid/{userid}")
+		@Cacheable(value = "userall")
 	    public Result<UserInfo> getUserByUserId(@PathVariable String userid) {
 	    	SysUser user = iSysUserService.getUserAllById(userid);
 	    	if(user!=null) {
@@ -220,6 +224,7 @@ public class UserController {
 	     */
 	    @ApiOperation(value = "根据登录用户ID获取用户名称等信息")
 	    @GetMapping("/sysrole/info/{userid}")
+		@Cacheable(value = "userinfo")
 	    public Result<Map<String,Object>> getUserInfoByUserId(@PathVariable String userid) {
 	    	if(userid!=null) {
 	    		Map<String, Object> info = iSysUserService.getUserInfoById(userid) ;
@@ -346,6 +351,7 @@ public class UserController {
 	    @ApiImplicitParam(name = "id", value = "用户ID", required = true, paramType = "path", dataType = "Long")
 	    @PutMapping(value = "/{id}")
 		@Transactional
+		@CacheEvict(value = { "userall","userinfo"}, allEntries = true)
 	    public Result update(
 	            @PathVariable BigInteger id,
 	            @RequestBody UserInsertDTO userDTO) {
@@ -364,6 +370,7 @@ public class UserController {
 			}
 	    
 	    @PostMapping("/updatePassword")
+	    @CacheEvict(value = { "userall","userinfo"}, allEntries = true)
 	    public Result<UserInfo> updatePassword(@RequestBody UserRegisterInfoDTO dto)  {
 	    	    SysUser user = iSysUserService.changePassword(dto);
 			    user.setPassword("***");

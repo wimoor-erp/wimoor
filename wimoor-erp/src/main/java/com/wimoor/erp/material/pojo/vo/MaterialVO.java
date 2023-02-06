@@ -2,7 +2,8 @@ package com.wimoor.erp.material.pojo.vo;
 
 import java.math.BigDecimal;
 import java.util.Date;
- 
+import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -187,11 +188,28 @@ public class MaterialVO  extends ErpBaseEntity{
 	String taglist;
     
     @TableField(exist=false)
+    @ApiModelProperty(value = "产品标签名称列表数据")
+    List<Map<String,Object>> tagNameList;
+    
+    @TableField(exist=false)
     @ApiModelProperty(value = "产品图片ID")
     String imageid;
     
     @TableField(exist=false)
     @ApiModelProperty(value = "产品图片数据")
     Object imgfile;
+ 
+    @TableField(exist=false)
+    @ApiModelProperty(value = "待入库")
+    Integer inbound;
+    
+    @TableField(exist=false)
+    @ApiModelProperty(value = "待出库")
+    Integer outbound;
+    
+    @TableField(exist=false)
+    @ApiModelProperty(value = "可用库存")
+    Integer fulfillable;
+    
  
 }

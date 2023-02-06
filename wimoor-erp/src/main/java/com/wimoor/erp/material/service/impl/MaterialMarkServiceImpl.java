@@ -54,7 +54,7 @@ public class MaterialMarkServiceImpl extends ServiceImpl<MaterialMarkMapper,Mate
 	   query.eq(MaterialMark::getMaterialid, mark.getMaterialid());
 	   MaterialMark old = this.baseMapper.selectOne(query);
 	   int result=0;
-	   if(old==null) {
+	   if(old!=null) {
 		   result= this.baseMapper.delete(query);
 	   }else {
 		   return true;

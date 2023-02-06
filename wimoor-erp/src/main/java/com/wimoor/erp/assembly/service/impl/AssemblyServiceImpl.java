@@ -83,9 +83,9 @@ public class AssemblyServiceImpl extends  ServiceImpl<AssemblyMapper,Assembly> i
 		return assemblyMapper.selectAssemblySub(mainmid);
 	}
 
-	public List<Material> selectBySubid(String materialid) {
+	public List<Map<String,Object>> selectBySubid(String materialid,String shopid) {
 		// TODO Auto-generated method stub
-		List<Material> assemblyMainlist= assemblyMapper.selectMainBySubid(materialid);
+		List<Map<String,Object>> assemblyMainlist= assemblyMapper.selectMainBySubid(materialid,shopid);
 //		for(Material item:assemblyMainlist) {
 //			List<AssemblyVO> assemblysublist= assemblyMapper.selectByMainmid(item.get("mainmid").toString());
 //			item.put("sublist", assemblysublist);

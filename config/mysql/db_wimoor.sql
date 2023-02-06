@@ -219,6 +219,11 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth` (
   `createtime` datetime DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `oldid` char(36)  DEFAULT NULL,
+  `access_key_id` VARCHAR(50) NULL DEFAULT NULL,
+  `secret_key` VARCHAR(50) NULL DEFAULT NULL ,
+  `role_arn` VARCHAR(50) NULL DEFAULT NULL,
+  `client_id` VARCHAR(50) NULL DEFAULT NULL ,
+  `client_secret` VARCHAR(50) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 3` (`sellerid`) USING BTREE,
   KEY `disable` (`disable`),
@@ -653,7 +658,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_media_hsa` (
   `statusMetadata` varchar(100) DEFAULT NULL,
   `publishedMediaUrl` varchar(2000) DEFAULT NULL,
   `operator` bigint(20) unsigned NOT NULL DEFAULT '0',
-  `opttime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`mediaId`),
   KEY `profileid` (`profileid`,`opttime`)
 ) ENGINE=InnoDB;
@@ -3158,20 +3163,6 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_sales_plan_purchase_item 结构
-CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_purchase_item` (
-  `id` bigint(19) unsigned NOT NULL,
-  `msku` char(50) DEFAULT NULL,
-  `shopid` bigint(19) unsigned DEFAULT NULL,
-  `needpurchase` int(10) DEFAULT NULL,
-  `opttime` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `shopid_groupid` (`shopid`,`msku`) USING BTREE,
-  KEY `msku_shopid` (`shopid`,`msku`) USING BTREE
-) ENGINE=InnoDB;
-
--- 数据导出被取消选择。
-
 -- 导出  表 db_plum.t_amz_product_sales_plan_ship_item 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_item` (
   `id` bigint(19) unsigned NOT NULL,
@@ -3220,24 +3211,6 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_item_history` (
   KEY `shopid_groupid` (`shopid`,`groupid`,`amazonauthid`,`marketplaceid`,`sku`) USING BTREE,
   KEY `msku_shopid` (`shopid`,`groupid`,`warehouseid`,`msku`) USING BTREE,
   KEY `groupid_transtype` (`batchnumber`) USING BTREE
-) ENGINE=InnoDB;
-
--- 数据导出被取消选择。
-
--- 导出  表 db_plum.t_amz_product_sales_plan_ship_model 结构
-CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_model` (
-  `id` bigint(19) unsigned NOT NULL,
-  `msku` char(50) DEFAULT NULL,
-  `shopid` bigint(19) unsigned DEFAULT NULL,
-  `groupid` bigint(19) unsigned DEFAULT NULL,
-  `needship` int(10) DEFAULT NULL,
-  `needshipfba` int(10) DEFAULT NULL,
-  `opttime` datetime DEFAULT NULL,
-  `short_time` date DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `shopid_groupid` (`shopid`,`groupid`,`msku`) USING BTREE,
-  KEY `msku_shopid` (`shopid`,`msku`) USING BTREE,
-  KEY `shipday` (`short_time`) USING BTREE
 ) ENGINE=InnoDB;
 
 -- 数据导出被取消选择。
@@ -6147,9 +6120,9 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_address` (
   `remark` varchar(200) DEFAULT '' COMMENT '备注',
   `disabled` bit(1) DEFAULT b'0' COMMENT '是否失效（是否删除）',
   `operator` bigint(20) unsigned DEFAULT '0' COMMENT '修改人',
-  `opttime` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '修改时间',
+  `opttime` datetime DEFAULT NULL COMMENT '修改时间',
   `creator` bigint(20) unsigned DEFAULT '0' COMMENT '创建人',
-  `creattime` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间',
+  `creattime` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `shopid_name` (`shopid`,`name`) USING BTREE,
   UNIQUE KEY `shopid_number` (`shopid`,`number`) USING BTREE
@@ -7859,7 +7832,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank_sales_his` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `market` char(5) NOT NULL DEFAULT '0',
   `name` varchar(50) NOT NULL DEFAULT '0',
-  `byday` date NOT NULL DEFAULT '0000-00-00',
+  `byday` date NOT NULL ,
   `ordersum` int(11) NOT NULL DEFAULT '0',
   `rank` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
@@ -9074,6 +9047,81 @@ CREATE TABLE IF NOT EXISTS `undo_log` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_undo_log` (`xid`,`branch_id`)
 ) ENGINE=InnoDB;
+
+CREATE TABLE `t_erp_v3_purchase_plan` (
+	`id` BIGINT(20) UNSIGNED NOT NULL,
+	`number` CHAR(36) NULL DEFAULT NULL,
+	`creator` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	`mincycle` INT(10) UNSIGNED NULL DEFAULT NULL,
+	`shopid` BIGINT(20) UNSIGNED NOT NULL,
+	`disable` BIT(1) NOT NULL DEFAULT 0,
+	`createtime` DATETIME NULL DEFAULT NULL,
+	`opttime` DATETIME NULL DEFAULT NULL,
+	`operator` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE,
+	INDEX `shopid` (`shopid`) USING BTREE
+)
+ENGINE=InnoDB
+;
+
+CREATE TABLE `t_erp_v3_purchase_plan_item` (
+	`id` CHAR(36) NOT NULL ,
+	`materialid` BIGINT(20) UNSIGNED NOT NULL,
+	`warehouseid` BIGINT(20) UNSIGNED NOT NULL,
+	`planid` BIGINT(20) UNSIGNED NOT NULL,
+	`batchnumber` CHAR(20) NULL DEFAULT NULL,
+	`amount` INT(10) NULL DEFAULT NULL,
+	`shopid` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	`operator` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	`opttime` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE,
+	UNIQUE INDEX `Index 2` (`planid`, `materialid`) USING BTREE,
+	INDEX `materialid` (`warehouseid`) USING BTREE,
+	INDEX `shopid` (`shopid`) USING BTREE
+)
+ENGINE=InnoDB
+;
+
+CREATE TABLE `t_erp_v3_purchase_plan_item_history` (
+	`id` CHAR(36) NOT NULL,
+	`materialid` BIGINT(20) UNSIGNED NOT NULL,
+	`warehouseid` BIGINT(20) UNSIGNED NOT NULL,
+	`planid` BIGINT(20) UNSIGNED NOT NULL,
+	`batchnumber` CHAR(20) NULL DEFAULT NULL,
+	`needamount` INT(10) NULL DEFAULT '0',
+	`amount` INT(10) NULL DEFAULT NULL,
+	`shopid` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	`operator` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	`opttime` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE,
+	UNIQUE INDEX `Index 2` (`planid`, `materialid`, `warehouseid`, `batchnumber`) USING BTREE,
+	INDEX `materialid` (`materialid`) USING BTREE
+)
+ENGINE=InnoDB
+ROW_FORMAT=DYNAMIC
+;
+
+CREATE TABLE `t_erp_v3_purchase_plan_warehouse` (
+	`warehouseid` BIGINT(20) UNSIGNED NOT NULL,
+	`planid` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+	`shopid` BIGINT(20) UNSIGNED NOT NULL,
+	PRIMARY KEY (`planid`, `warehouseid`) USING BTREE,
+	INDEX `shopid` (`shopid`) USING BTREE,
+	INDEX `planid` (`warehouseid`) USING BTREE
+)
+COMMENT='入库仓库和补货规划的映射关系表，一个入库仓库不能在多个补货规划中出现，一个补货规划会有多个入库仓库'
+ENGINE=InnoDB
+;
+
+CREATE TABLE `t_erp_v3_purchase_plan_warehouse_material` (
+	`planid` CHAR(36) NOT NULL ,
+	`materialid` BIGINT(20) UNSIGNED NOT NULL,
+	`warehouseid` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+	PRIMARY KEY (`planid`, `materialid`) USING BTREE
+)
+COMMENT='记录每个sku在补货规划中所默认的入库仓库'
+ENGINE=InnoDB
+;
 
 -- 数据导出被取消选择。
 

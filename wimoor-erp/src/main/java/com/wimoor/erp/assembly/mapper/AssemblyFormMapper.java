@@ -9,11 +9,12 @@ import org.apache.ibatis.annotations.Param;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
 @Mapper
 public interface AssemblyFormMapper extends BaseMapper<AssemblyForm>{
 	
-	IPage<Map<String, Object>> findByCondition(Page<?>  page,Map<String,Object> param);
+	IPage<Map<String, Object>> findByCondition(Page<?>  page,@Param("param")AssemblyFormListDTO dto);
 	
 	Map<String, Object> findById(String id);
 	

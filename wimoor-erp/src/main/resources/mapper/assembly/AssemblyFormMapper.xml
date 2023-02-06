@@ -65,7 +65,7 @@
 		order by a.ftype,a.auditstatus
 	</select>
 
-	<select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+	<select id="findByCondition" resultType="java.util.Map" parameterType="com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO">
 		select ta.id,ta.number number,ta.ftype,m.sku sku, ta.amount,u.name creator, 
 			ta.auditstatus auditstatus, ta.remark remark,ta.opttime opttime , 
 			v.needpo purchaseneed, v.hasqty,v.needin ,ta.createdate,
@@ -79,9 +79,9 @@
 		left join t_picture p on p.id=m.image
 		left join (
 			select entry.formid,
-			<if test="search != null">
-			   <if test="searchtype == 'sku'">
-				max(case when m2.sku like #{search,jdbcType=CHAR} then 1 else 0 end) subhave,
+			<if test="param.search != null">
+			   <if test="param.searchtype == 'sku'">
+				max(case when m2.sku like #{param.search,jdbcType=CHAR} then 1 else 0 end) subhave,
 				</if>
 			</if>
 				max(
@@ -108,57 +108,64 @@
 					end
 				) hasqty
 			from t_erp_assembly_form_entry entry
-			<if test="search != null">
-			   <if test="searchtype == 'sku'">
+			<if test="param.search != null">
+			   <if test="param.searchtype == 'sku'">
 				left join t_erp_material m2 on m2.id=entry.materialid
 				</if>
 			</if>
 			left join t_erp_assembly_form form on entry.formid=form.id
 			left join t_erp_inventory i1 on form.mainmid=i1.materialid and i1.warehouseid=form.warehouseid
-				and i1.shopid=#{shopid,jdbcType=CHAR} and i1.`status` ='fulfillable'
+				and i1.shopid=#{param.shopid,jdbcType=CHAR} and i1.`status` ='fulfillable'
 			left join t_erp_inventory i2 on entry.materialid=i2.materialid and i2.warehouseid=entry.warehouseid
-				and i2.`status` ='fulfillable' and i2.shopid=#{shopid,jdbcType=CHAR}
+				and i2.`status` ='fulfillable' and i2.shopid=#{param.shopid,jdbcType=CHAR}
 			left join t_erp_inventory i3 on entry.materialid=i3.materialid and i3.warehouseid=entry.warehouseid
-				and i3.`status` = 'inbound_purchase' and i3.shopid=#{shopid,jdbcType=CHAR}
-			where form.shopid=#{shopid,jdbcType=CHAR} 
+				and i3.`status` = 'inbound_purchase' and i3.shopid=#{param.shopid,jdbcType=CHAR}
+			where form.shopid=#{param.shopid,jdbcType=CHAR} 
 			group by entry.formid
 		) v on v.formid=ta.id
 		left join (select formid,group_concat(shipmentid) shipmentids,count(0) assnum from t_erp_assembly_from_instock 
            where 1=1
-		  <if test="search != null">
-			<if test="searchtype == 'shipment'">
-		     and shipmentid=#{search,jdbcType=CHAR} 
+		  <if test="param.search != null">
+			<if test="param.searchtype == 'shipment'">
+		     and shipmentid=#{param.search,jdbcType=CHAR} 
 			</if>
 		  </if>
 		group by formid) v2 on v2.formid=ta.id
-		where ta.shopid=#{shopid,jdbcType=CHAR}
-		<if test="search != null">
-		     <if test="searchtype == 'sku'">
-			and (m.sku like #{search,jdbcType=CHAR} or v.subhave=1)
+		where ta.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test="param.search != null">
+		     <if test="param.searchtype == 'sku'">
+			and (m.sku like #{param.search,jdbcType=CHAR} or v.subhave=1)
 			</if>
-			<if test="searchtype == 'number'">
-			and ta.number like #{search,jdbcType=CHAR} 
+			<if test="param.searchtype == 'number'">
+			and ta.number like #{param.search,jdbcType=CHAR} 
 			</if>
-			<if test="searchtype == 'shipment'">
+			<if test="param.searchtype == 'shipment'">
 		     and assnum>0
 			</if>
 		</if>
-		<if test="auditstatus !=null ">
-			and (ta.auditstatus= #{auditstatus,jdbcType=CHAR} )
+		<if test="param.auditstatus !=null ">
+			and (ta.auditstatus= #{param.auditstatus,jdbcType=CHAR} )
 		</if>
-		<if test='auditstatus =="1" and  operate=="true"'>
+		<if test='param.auditstatus =="1" and  param.operate=="true"'>
 			and v.needpo=0
 		</if>
-		<if test='auditstatus =="1" and  operate=="false"'>
+		<if test='param.auditstatus =="1" and  param.operate=="false"'>
 			and v.needpo=1
 		</if>
-		<if test="ftype !=null ">
-			and (ta.ftype= #{ftype,jdbcType=CHAR} )
+		<if test="param.ftype !=null ">
+			and (ta.ftype= #{param.ftype,jdbcType=CHAR} )
 		</if>
-		<if test="warehouseid !=null ">
-			and (w.id= #{warehouseid,jdbcType=CHAR} )
+		<if test="param.supplier!=null ">
+			and  m.supplier= #{param.supplier,jdbcType=CHAR}  
 		</if>
-		ORDER BY ta.number;
+		<if test="param.fromDate !=null ">
+		and ta.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+		and ta.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="param.warehouseid !=null ">
+			and (w.id= #{param.warehouseid,jdbcType=CHAR} )
+		</if>
+		ORDER BY ta.number
 	</select>
 
 	<select id="findById" resultType="java.util.Map" parameterType="java.lang.String">
@@ -191,7 +198,7 @@
 			and t.ftype='ass'
 			and t.warehouseid=#{warehouseid,jdbcType=CHAR}
 			and t.auditstatus = 3
-		order by createdate desc limit 1;
+		order by createdate desc limit 3;
 	</select>
 
 	<select id="getAssemblySumReport" resultType="java.util.Map">

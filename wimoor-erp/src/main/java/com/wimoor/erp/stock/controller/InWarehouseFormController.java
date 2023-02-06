@@ -25,6 +25,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,11 +40,11 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-import com.wimoor.erp.inventory.pojo.entity.InWarehouseForm;
-import com.wimoor.erp.inventory.service.IInWarehouseFormEntryService;
-import com.wimoor.erp.inventory.service.IInWarehouseFormService;
 import com.wimoor.erp.stock.pojo.dto.InWarehouseFormDTO;
 import com.wimoor.erp.stock.pojo.dto.InWarehouseItemDTO;
+import com.wimoor.erp.stock.pojo.entity.InWarehouseForm;
+import com.wimoor.erp.stock.service.IInWarehouseFormEntryService;
+import com.wimoor.erp.stock.service.IInWarehouseFormService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
 import cn.hutool.core.util.StrUtil;
@@ -75,6 +76,7 @@ public class InWarehouseFormController{
 		return Result.success(map);
 	}
 
+	@Transactional
 	@PostMapping("/saveData")
 	public Result<Map<String, Object>> addDataAction(@RequestBody InWarehouseItemDTO dto)  {
 		UserInfo user = UserInfoContext.get();
@@ -261,6 +263,7 @@ public class InWarehouseFormController{
 		}
 	}
 	
+	@Transactional
 	@GetMapping("/deleteData")
 	public Result<String> deleteDataAction(String ids){
 		UserInfo user = UserInfoContext.get();

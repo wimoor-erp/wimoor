@@ -1,6 +1,7 @@
 package com.wimoor.common.pojo.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -79,7 +80,11 @@ public class BasePageQuery {
     	   Date v1=(Date)o1;
     	   Date v2=(Date)o2;
 	    	return v1.compareTo(v2);
-	    }
+	    }else if(o1 instanceof LocalDateTime) {
+	    	LocalDateTime v1=(LocalDateTime)o1;
+	    	LocalDateTime v2=(LocalDateTime)o2;
+		    	return v1.compareTo(v2);
+		 }
         else if(o1 instanceof Integer) {
         	Integer v1=(Integer)o1;
         	Integer v2=(Integer)o2;

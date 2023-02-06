@@ -9,16 +9,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.wimoor.api.amzon.inbound.pojo.dto.ShipInboundShipmentDTO;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
+import com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 
 public interface IAssemblyFormService extends IService<AssemblyForm> {
-	
-	IPage<Map<String,Object>> findByCondition(Page<?> page,Map<String,Object> param);
 	
 	Map<String, Object> findById(String id);
 	
@@ -60,4 +58,6 @@ public interface IAssemblyFormService extends IService<AssemblyForm> {
 	Integer findhasAssemblyFromShipment(String shipmentid);
 
 	public Map<String, Object> resetAssForm(UserInfo user,String id);
+
+	IPage<Map<String, Object>> findByCondition(AssemblyFormListDTO dto);
 }

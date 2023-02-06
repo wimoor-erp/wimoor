@@ -15,6 +15,7 @@ import java.util.Set;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -47,14 +49,11 @@ import com.wimoor.erp.common.pojo.entity.EnumByInventory;
 import com.wimoor.erp.customer.pojo.entity.Customer;
 import com.wimoor.erp.customer.service.ICustomerService;
 import com.wimoor.erp.inventory.mapper.InventoryMapper;
-import com.wimoor.erp.inventory.mapper.OutWarehouseFormEntryMapper;
-import com.wimoor.erp.inventory.mapper.OutWarehouseFormMapper;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
-import com.wimoor.erp.inventory.pojo.entity.OutWarehouseForm;
-import com.wimoor.erp.inventory.pojo.entity.OutWarehouseFormEntry;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.inventory.service.IStockCycleService;
 import com.wimoor.erp.material.mapper.ERPMaterialHistoryMapper;
+import com.wimoor.erp.material.mapper.MaterialBrandMapper;
 import com.wimoor.erp.material.mapper.MaterialCategoryMapper;
 import com.wimoor.erp.material.mapper.MaterialConsumableMapper;
 import com.wimoor.erp.material.mapper.MaterialCustomsFileMapper;
@@ -69,6 +68,7 @@ import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
 import com.wimoor.erp.material.pojo.entity.ERPMaterialHistory;
 import com.wimoor.erp.material.pojo.entity.Material;
+import com.wimoor.erp.material.pojo.entity.MaterialBrand;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
 import com.wimoor.erp.material.pojo.entity.MaterialConsumable;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
@@ -91,7 +91,12 @@ import com.wimoor.erp.material.service.IZipRarUploadService;
 import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
 import com.wimoor.erp.purchase.service.IPurchasePlanItemService;
 import com.wimoor.erp.ship.pojo.dto.ConsumableOutFormDTO;
+import com.wimoor.erp.stock.mapper.OutWarehouseFormEntryMapper;
+import com.wimoor.erp.stock.mapper.OutWarehouseFormMapper;
+import com.wimoor.erp.stock.pojo.entity.OutWarehouseForm;
+import com.wimoor.erp.stock.pojo.entity.OutWarehouseFormEntry;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
+
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
@@ -152,6 +157,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	final AmazonClientOneFeign amazonClientOneFeign;
 	final AdminClientOneFeign adminClientOneFeign;
 	final MaterialCustomsItemMapper materialCustomsItemMapper;
+	final MaterialBrandMapper materialBrandMapper;
 	
 	public MaterialVO findMaterialById(String id) {
 		return this.baseMapper.findMaterialById(id);
@@ -1590,13 +1596,405 @@ public Map<String, Object> getRealityPrice(String materialid){
 	public Map<String, String> getTagsIdsListByMsku(String shopid, List<String> mskulist) {
 		Map<String, Object> param=new HashMap<String,Object>();
 		param.put("shopid", shopid);
-		param.put("mskulist", mskulist);
+		param.put("skulist", mskulist);
 		List<Map<String,String>> list=materialTagsMapper.getTagsBySku(param);
 		Map<String,String> result=new HashMap<String,String>();
 		for(Map<String,String> item:list) {
 			result.put(item.get("sku"), item.get("tagids"));
 		}
 		return result;
+	}
+
+	@Override
+	public void setMaterialExcelBook(Workbook workbook, MaterialDTO dto, UserInfo userinfo) {
+		Map<String, Object> map = new HashMap<String, Object>();
+    	String ftype= GeneralUtil.getValueWithoutBlank( dto.getFtype());
+		String shopid = userinfo.getCompanyid();
+		String search=dto.getSearch();
+		String searchlist=dto.getSearchlist();
+		String issfg=dto.getIssfg();
+		String warehouseid = GeneralUtil.getValueWithoutBlank(dto.getWarehouseid());
+		String isDelete = GeneralUtil.getValueWithoutBlank(dto.getIsDelete());
+		String categoryid = GeneralUtil.getValueWithoutBlank(dto.getCategoryid());
+		String supplier = GeneralUtil.getValueWithoutBlank(dto.getSupplier());
+		String owner = GeneralUtil.getValueWithoutBlank(dto.getOwner());
+		String name=GeneralUtil.getValueWithoutBlank(dto.getName()); 
+		String remark= GeneralUtil.getValueWithoutBlank(dto.getRemark()); 
+		String color=dto.getColor();
+		String addressid= GeneralUtil.getValueWithoutBlank(dto.getAddressid());
+		String materialid=GeneralUtil.getValueWithoutBlank(dto.getMaterialid());
+		if (StrUtil.isBlankOrUndefined(search)) {
+			search = null;
+		} else {
+			search = "%" + search.trim()+ "%";
+		}
+
+		String[] list = null;
+		if (StrUtil.isNotEmpty(searchlist)) {
+			list = searchlist.split(",");
+		}
+		List<String> skulist = new ArrayList<String>();
+		if (list != null) {
+			for (int i = 0; i < list.length; i++) {
+				if (StrUtil.isNotEmpty(list[i])) {
+					skulist.add("%" + list[i] + "%");
+				}
+			}
+		} else {
+			skulist = null;
+		}
+	 
+		if ( !StrUtil.isBlankOrUndefined(issfg) && issfg.equals("true")) {
+			issfg = "2";
+		} else if (StrUtil.isBlankOrUndefined(issfg) || issfg.equals("false")) {
+			issfg = null;
+		}
+		List<Integer> issfglist = new ArrayList<Integer>();
+		if (issfg != null) {
+			String[] issfgarray = issfg.split(",");
+			for (int i = 0; i < issfgarray.length; i++) {
+				if (StrUtil.isNotEmpty(issfgarray[i])) {
+					issfglist.add(Integer.parseInt(issfgarray[i]));
+				}
+			}
+		} else {
+			issfglist = null;
+		}
+
+		 
+		if (StrUtil.isBlankOrUndefined(name)) {
+			name = null;
+		} else {
+			name = "%" + name + "%";
+		}
+		 
+		if (StrUtil.isBlankOrUndefined(remark)) {
+			remark = null;
+		} else {
+			remark = "%" + remark + "%";
+		}
+	 
+		if (StrUtil.isBlankOrUndefined(color) || "all".equals(color)) {
+			color = null;
+		} else {
+			color = "%" + color.trim() + "%";
+		}
+		map.put("shopid", shopid);
+		map.put("search", search);
+		map.put("searchtype", dto.getSearchtype());
+		map.put("searchsku", skulist);
+		map.put("issfglist", issfglist);
+		map.put("supplierid", supplier);
+		map.put("categoryid", categoryid);
+		map.put("name", name);
+		map.put("remark", remark);
+		map.put("owner", owner);
+		map.put("color", color);
+		map.put("warehouseid", warehouseid);
+		map.put("ftype", ftype);
+		map.put("isDelete", isDelete);
+		map.put("addressid", addressid);
+		map.put("materialid", materialid);
+		List<Map<String, Object>> records = this.baseMapper.findMaterial(map);
+		if(records!=null && records.size()>0) {
+			Sheet sheet = workbook.getSheet("Sheet1");
+			//处理组装关系数据
+			if("MaterialAssembly".equals(dto.getDowntype())) {
+				for(int i=0;i<records.size();i++) {
+					Map<String, Object> item = records.get(i);
+					String sku=item.get("sku").toString();
+					String mid=item.get("id").toString();
+					List<AssemblyVO> assemblyList = assemblyService.selectByMainmid(mid);
+					Row row = sheet.createRow(i + 1);
+					Cell cell = row.createCell(0); // 在索引0的位置创建单元格(左上端) {A001:2},{A002:1}
+					cell.setCellValue(sku);
+					Cell cell2 = row.createCell(1);
+					String strs="";
+					if(assemblyList!=null && assemblyList.size()>0) {
+						for (int j = 0; j < assemblyList.size(); j++) {
+							AssemblyVO assvo = assemblyList.get(j);
+							strs+=("{"+assvo.getSku()+":"+assvo.getSubnumber()+("},"));
+						}
+					}else {
+						strs="暂无";
+					}
+					cell2.setCellValue(strs);
+				}
+			}
+			//处理海关关系数据
+			if("MaterialCustoms".equals(dto.getDowntype())) {
+				for(int i=0;i<records.size();i++) {
+					Map<String, Object> item = records.get(i);
+					String sku=item.get("sku").toString();
+					String mid=item.get("id").toString();
+					List<MaterialCustomsItem> customsItemList=this.selectCustomsItemListById(mid);
+					MaterialCustoms Customs=this.selectCustomsByMaterialId(mid);
+					Row row = sheet.createRow(i + 1);
+					Cell cell = row.createCell(0); 
+					cell.setCellValue(sku);
+					if(Customs!=null) {
+						Cell cell2 = row.createCell(1);
+						cell2.setCellValue(Customs.getNameCn());
+						Cell cell3 = row.createCell(2);
+						cell3.setCellValue(Customs.getNameEn());
+						Cell cell4 = row.createCell(3);
+						cell4.setCellValue(Customs.getMaterial());
+						Cell cell5 = row.createCell(4);
+						cell5.setCellValue(Customs.getModel());
+						Cell cell6 = row.createCell(5);
+						cell6.setCellValue(Customs.getMaterialUse());
+						Cell cell7 = row.createCell(6);
+						cell7.setCellValue(Customs.getBrand());
+						Cell cell8 = row.createCell(7);
+						if(Customs.getIselectricity()==true) {
+							cell8.setCellValue("是");
+						}else {
+							cell8.setCellValue("否");
+						}
+						Cell cell9 = row.createCell(8);
+						if(Customs.getIsdanger()==true) {
+							cell9.setCellValue("是");
+						}else {
+							cell9.setCellValue("否");
+						}
+						Cell cell10 = row.createCell(9);
+						if(Customs.getUnitprice()!=null) {
+							cell10.setCellValue(Customs.getUnitprice().toString());
+						}
+						Cell cell11 = row.createCell(10);
+						if(Customs.getAddfee()!=null) {
+							cell11.setCellValue(Customs.getAddfee().toString());
+						}
+					}
+					Cell cell12 = row.createCell(11);
+					String strs="";
+					// {UK-12344AA-9.99-18} 国家-编码-费用-税率
+					if(customsItemList!=null && customsItemList.size()>0) {
+						for (int j = 0; j < customsItemList.size(); j++) {
+							MaterialCustomsItem consitem = customsItemList.get(j);
+							strs+=("{"+consitem.getCountry()+"-"+consitem.getCode()+"-"+consitem.getFee()+"-"+consitem.getTaxrate()+("},"));
+						}
+					}else {
+						strs="";
+					}
+					cell12.setCellValue(strs);
+				}
+			}
+			//处理基础数据
+			if("MaterialBaseInfo".equals(dto.getDowntype())) {
+				for(int i=0;i<records.size();i++) {
+					Map<String, Object> item = records.get(i);
+					String sku=item.get("sku").toString();
+					String mid=item.get("id").toString();
+					Material material = this.getById(mid); 
+					Row row = sheet.createRow(i + 1);
+					Cell cell = row.createCell(0); 
+					cell.setCellValue(sku);
+					if(material!=null) {
+						Cell cell2 = row.createCell(1);
+						cell2.setCellValue(material.getName());
+						Cell cell3 = row.createCell(2);
+						if(material.getPrice()!=null) {
+							cell3.setCellValue(material.getPrice().toString());
+						}
+						if(StrUtil.isNotEmpty(material.getPkgdimensions()) ) {
+							DimensionsInfo dim = dimensionsInfoService.getById(material.getPkgdimensions());
+							if(dim!=null) {
+								if(dim.getLength()!=null) {
+									Cell cell4 = row.createCell(3);
+									cell4.setCellValue(dim.getLength().toString());
+								}
+								if(dim.getWidth()!=null) {
+									Cell cell5 = row.createCell(4);
+									cell5.setCellValue(dim.getWidth().toString());
+								}
+								if(dim.getHeight()!=null) {
+									Cell cell6 = row.createCell(5);
+									cell6.setCellValue(dim.getHeight().toString());
+								}
+								if(dim.getWeight()!=null) {
+									Cell cell7 = row.createCell(6);
+									cell7.setCellValue(dim.getWeight().toString());
+								}
+							}
+						}
+						if(StrUtil.isNotEmpty(material.getItemdimensions()) ) {
+							DimensionsInfo dim = dimensionsInfoService.getById(material.getItemdimensions());
+							if(dim!=null) {
+								if(dim.getLength()!=null) {
+									Cell cell8 = row.createCell(7);
+									cell8.setCellValue(dim.getLength().toString());
+								}
+								if(dim.getWidth()!=null) {
+									Cell cell9 = row.createCell(8);
+									cell9.setCellValue(dim.getWidth().toString());
+								}
+								if(dim.getHeight()!=null) {
+									Cell cell10 = row.createCell(9);
+									cell10.setCellValue(dim.getHeight().toString());
+								}
+								if(dim.getWeight()!=null) {
+									Cell cell11 = row.createCell(10);
+									cell11.setCellValue(dim.getWeight().toString());
+								}
+							}
+						}
+						if(StrUtil.isNotEmpty(material.getBoxdimensions()) ) {
+							DimensionsInfo dim = dimensionsInfoService.getById(material.getBoxdimensions());
+							if(dim!=null) {
+								if(dim.getLength()!=null) {
+									Cell cell12 = row.createCell(11);
+									cell12.setCellValue(dim.getLength().toString());
+								}
+								if(dim.getWidth()!=null) {
+									Cell cell13 = row.createCell(12);
+									cell13.setCellValue(dim.getWidth().toString());
+								}
+								if(dim.getHeight()!=null) {
+									Cell cell14 = row.createCell(13);
+									cell14.setCellValue(dim.getHeight().toString());
+								}
+								if(dim.getWeight()!=null) {
+									Cell cell15 = row.createCell(14);
+									cell15.setCellValue(dim.getWeight().toString());
+								}
+							}
+						}
+						Cell cell16 = row.createCell(15);
+						if(material.getBoxnum()!=null) {
+							cell16.setCellValue(material.getBoxnum().toString());
+						}
+						Cell cell17 = row.createCell(16);
+						if(material.getBrand()!=null) {
+							MaterialBrand brandpojo = materialBrandMapper.selectById(material.getBrand());
+							if(brandpojo!=null) {
+								cell17.setCellValue(brandpojo.getName());
+							}
+						}
+						Cell cell18 = row.createCell(17);
+						if(material.getOtherCost()!=null) {
+							cell18.setCellValue(material.getOtherCost().toString());
+						}
+						Cell cell19 = row.createCell(18);
+						if(material.getCategoryid()!=null) {
+							MaterialCategory catepojo = materialCategoryMapper.selectById(material.getCategoryid());
+							if(catepojo!=null) {
+								cell19.setCellValue(catepojo.getName());
+							}
+						}
+						Cell cell20 = row.createCell(19);
+						cell20.setCellValue(material.getRemark());
+						Cell cell21 = row.createCell(20);
+						cell21.setCellValue(GeneralUtil.formatDate(material.getEffectivedate(), "yyyy-MM-dd"));
+					}
+				}
+			}
+			//处理耗材关系数据
+			if("MaterialConsumable".equals(dto.getDowntype())) {
+				int rownum=1;
+				for(int i=0;i<records.size();i++) {
+					Map<String, Object> item = records.get(i);
+					String sku=item.get("sku").toString();
+					String mid=item.get("id").toString();
+					List<MaterialConsumableVO> consumableList =  this.selectConsumableByMainmid(mid,shopid);
+					Row row = sheet.createRow(rownum);
+					Cell cell = row.createCell(0); 
+					cell.setCellValue(sku);
+					Cell cell2 = row.createCell(1);
+					//当有耗材清单时 且清单>1 rownum要++
+					if(consumableList!=null && consumableList.size()>0) {
+						if(consumableList.size()<=1) {
+							cell2.setCellValue(consumableList.get(0).getSku());
+							Cell cell3 = row.createCell(2);
+							cell3.setCellValue(consumableList.get(0).getAmount());
+						}else {
+							for (int j = 1; j < consumableList.size(); j++) {
+								rownum++;
+								MaterialConsumableVO vo = consumableList.get(j);
+								Row conrow = sheet.createRow(rownum);
+								Cell concell = conrow.createCell(0); 
+								concell.setCellValue(sku);
+								Cell concell2 = conrow.createCell(1); 
+								concell2.setCellValue(vo.getSku());
+								Cell concell3 = conrow.createCell(2); 
+								concell3.setCellValue(vo.getAmount());
+							}
+						}
+					}else {
+						cell2.setCellValue("");
+					}
+					rownum++;
+				}
+			}
+			//处理供应商关系数据
+			if("MaterialSupplier".equals(dto.getDowntype())) {
+				for(int i=0;i<records.size();i++) {
+					Map<String, Object> item = records.get(i);
+					String sku=item.get("sku").toString();
+					String mid=item.get("id").toString();
+					List<MaterialSupplierVO> lists =this.selectSupplierByMainmid(mid);
+					MaterialSupplierVO listvo=null;
+					if(lists!=null && lists.size()>0) {
+						for (int k = 0; k < lists.size(); k++) {
+							if(lists.get(k).getIsdefault()==true) {
+								listvo=lists.get(k);
+							}
+						}
+					}
+					Row row = sheet.createRow(i + 1);
+					Cell cell = row.createCell(0); // 在索引0的位置创建单元格(左上端) {100-9.9},{500-9.5}
+					cell.setCellValue(sku);
+					if(listvo==null) {
+						continue;
+					}
+					Cell cell2 = row.createCell(1);
+					cell2.setCellValue(listvo.getName());
+					Cell cell3 = row.createCell(2);
+					cell3.setCellValue(listvo.getProductCode());
+					Cell cell4 = row.createCell(3);
+					cell4.setCellValue(listvo.getPurchaseUrl());
+					Cell cell5 = row.createCell(4);
+					if(listvo.getOtherCost()!=null) {
+						cell5.setCellValue(listvo.getOtherCost().toString());
+					}
+					Cell cell6 = row.createCell(5);
+					cell6.setCellValue(listvo.getDeliverycycle());
+					Cell cell7 = row.createCell(6);
+					if(listvo.getBadrate()!=null) {
+						cell7.setCellValue(listvo.getBadrate().toString());
+					}
+					Cell cell8 = row.createCell(7);
+					cell8.setCellValue(listvo.getMOQ());
+					Cell cell9 = row.createCell(8);
+					String strs="";
+					if(listvo.getStepList()!=null && listvo.getStepList().size()>0) {
+						for (int j = 0; j < listvo.getStepList().size(); j++) {
+							MaterialSupplierStepwise vo = listvo.getStepList().get(j);
+							strs+=("{"+vo.getAmount()+"-"+vo.getPrice()+("},"));
+						}
+					}else {
+						strs="无";
+					}
+					cell9.setCellValue(strs);
+				}
+			}
+			
+			
+		}
+		
+	}
+
+	@Override
+	public Map<String,Object> getMaterialInfoBySkuList(PlanDTO dto){
+		// TODO Auto-generated method stub
+		 List<MaterialVO> list = this.baseMapper.getMaterialInfoBySkuList(dto);
+		 Map<String,Object> result=new HashMap<String,Object>();
+		 if(list!=null&&list.size()>0) {
+			 for(MaterialVO item:list) {
+				 result.put(item.getSku(), item);
+			 }
+		 }
+		 return result;
 	}
 
 

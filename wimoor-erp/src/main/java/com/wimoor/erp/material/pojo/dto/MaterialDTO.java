@@ -43,5 +43,7 @@ public class MaterialDTO extends BasePageQuery{
 	
 	String remark;
 	
+	String downtype;
+	
 	List<String> taglist;
 }

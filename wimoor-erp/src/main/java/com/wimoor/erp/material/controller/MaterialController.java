@@ -10,12 +10,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +43,7 @@ import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.api.AdminClientOneFeign;
 import com.wimoor.erp.assembly.pojo.entity.Assembly;
 import com.wimoor.erp.assembly.service.IAssemblyService;
@@ -232,6 +236,9 @@ public class MaterialController {
 			} else {
 				color = "%" + color.trim() + "%";
 			}
+			if (userinfo.isLimit(UserLimitDataType.owner)) {
+				owner=userinfo.getId();
+    		}
 			map.put("shopid", shopid);
 			map.put("search", search);
 			map.put("searchtype", dto.getSearchtype());
@@ -281,7 +288,7 @@ public class MaterialController {
 			List<MaterialSupplierVO> supplierList =iMaterialService.selectSupplierByMainmid(data.getId());
 			List<MaterialCustomsItem> customsItemList=iMaterialService.selectCustomsItemListById(data.getId());
 			MaterialCustoms Customs=iMaterialService.selectCustomsByMaterialId(data.getId());
-			List<Material> parentList = assemblyService.selectBySubid(data.getId());
+			List<Map<String, Object>> parentList = assemblyService.selectBySubid(data.getId(),shopid);
 			if (data.getOperator() != null) {
 				Result<Map<String, Object>> info = adminClientOneFeign.getUserByUserId(data.getOperator());
 				if (info != null&&info.getData()!=null) {
@@ -588,7 +595,10 @@ public class MaterialController {
 		public Result<List<String>> getMskuByTagList(@RequestBody List<String> taglist){
 			return Result.success(iMaterialService.getmskuList(taglist));
 	    }
-	    
+	    @PostMapping("/getMaterialMap")
+		public Result<Map<String,Object>> getMaterialInfoBySkuList(@RequestBody PlanDTO dto){
+	    	return Result.success(iMaterialService.getMaterialInfoBySkuList(dto));
+	    }
 	 
 	    @PostMapping("/getTagsIdsListByMsku/{shopid}")
 		public Result<Map<String,String>> getTagsIdsListByMsku(@PathVariable String shopid,@RequestBody List<String> mskulist){
@@ -678,6 +688,7 @@ public class MaterialController {
 	    }
 	    
 	    @ApiOperation("还原material")
+	    @Transactional
 	    @GetMapping("/recoverData")
 	    public Result<String> recoverDataAction(String id,String sku){
 	    	UserInfo user = UserInfoContext.get();
@@ -935,6 +946,39 @@ public class MaterialController {
 				list.add(maps);
 			}
 			return Result.success(iMaterialService.copyDimsForProduct(list, user));
+		}
+	    
+	    //下载各个模板的数据 导出记录行
+	    @PostMapping("/downExcelRecords")
+		public void downExcelTempAction(@RequestBody MaterialDTO dto, HttpServletResponse response) {
+			Workbook workbook = null;
+			UserInfo userinfo = UserInfoContext.get();
+			ServletOutputStream fOut = null;
+			try {
+				response.setContentType("application/force-download");// 设置强制下载不打开
+				response.addHeader("Content-Disposition", "attachment;fileName=" + dto.getDowntype() +"Records.xlsx");// 设置文件名
+				fOut = response.getOutputStream();
+				InputStream is = new ClassPathResource("template/"+dto.getDowntype() +".xlsx").getInputStream();
+				// 创建新的Excel工作薄
+				workbook = WorkbookFactory.create(is);
+				//插入记录条
+				iMaterialService.setMaterialExcelBook(workbook,dto,userinfo);
+				workbook.write(fOut);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}finally {
+				try {
+					if(fOut != null) {
+						fOut.flush();
+						fOut.close();
+					}
+					if(workbook != null) {
+						workbook.close();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	    
 	    

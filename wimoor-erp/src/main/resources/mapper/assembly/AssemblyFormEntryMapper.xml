@@ -16,8 +16,11 @@
   </sql>
   <!-- 查询当前id的entrylist集合 -->
    <select id="selectByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
-    select m.sku sku, a.*,wh.name warename,ifnull(i.quantity,0) invcount,ifnull(i2.quantity,0) inbound,m.name mname,IFNULL(pic.location,pic.url) image,m.color color,a.warehouseid warehouseid
+    select m.sku sku, a.*,wh.name warename,ifnull(i.quantity,0) invcount,ifnull(i2.quantity,0) inbound,
+    m.name mname,IFNULL(pic.location,pic.url) image,m.color color,a.warehouseid warehouseid,
+    round(a.amount/ifnull(f.amount,1),0)  num,f.amount totalamount,m.delivery_cycle,m.supplier
     from t_erp_assembly_form_entry a 
+     left join t_erp_assembly_form f on f.id=a.formid
  	 left join t_erp_material m on a.materialid = m.id
  	 left join t_picture pic on m.image=pic.id
      left join t_erp_warehouse wh on wh.id=a.warehouseid

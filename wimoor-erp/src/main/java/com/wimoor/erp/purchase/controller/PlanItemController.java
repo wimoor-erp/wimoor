@@ -122,6 +122,7 @@ public class PlanItemController {
 
 	@ApiOperation(value = "计划打包")
 	@PostMapping("/batch")
+	@Transactional
 	public Result<String> batchShipPlanItem(@RequestBody List<PurchasePlanItem> list) {
 		UserInfo user = UserInfoContext.get();
 		String number=null;
@@ -148,6 +149,7 @@ public class PlanItemController {
 
     @ApiOperation(value = "计划打包")
     @GetMapping("/removeBatch")
+	@Transactional
     public Result<?> moveBatchShipPlanItem(String batchnumber) {
     	UserInfo user = UserInfoContext.get();
     	iPurchasePlanItemService.moveBatch(user.getCompanyid(),batchnumber);

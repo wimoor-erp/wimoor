@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,11 +41,11 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-import com.wimoor.erp.inventory.pojo.entity.OutWarehouseForm;
-import com.wimoor.erp.inventory.service.IOutWarehouseFormEntryService;
-import com.wimoor.erp.inventory.service.IOutWarehouseFormService;
 import com.wimoor.erp.stock.pojo.dto.OutWarehouseFormDTO;
 import com.wimoor.erp.stock.pojo.dto.OutWarehouseItemDTO;
+import com.wimoor.erp.stock.pojo.entity.OutWarehouseForm;
+import com.wimoor.erp.stock.service.IOutWarehouseFormEntryService;
+import com.wimoor.erp.stock.service.IOutWarehouseFormService;
 
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
@@ -334,7 +335,7 @@ public class OutWarehouseFormController {
 		}
 	}
 
-	 
+	@Transactional 
 	@GetMapping("/deleteData")
 	public Result<String> deleteDataAction(String ids){
 		UserInfo user = UserInfoContext.get();
@@ -358,7 +359,7 @@ public class OutWarehouseFormController {
 		return Result.success(map);
 	}
 
-	
+	@Transactional
 	@PostMapping("/saveData")
 	public Result<Map<String, Object>> addData(@RequestBody OutWarehouseItemDTO dto) {
 		UserInfo user = UserInfoContext.get();
@@ -372,6 +373,7 @@ public class OutWarehouseFormController {
 		String expressno = dto.getExpressno();
 		String remark = dto.getRemark();
 		String skumapstr = dto.getSkumapstr();
+		String customer=dto.getCustomer();
 		if (StrUtil.isEmpty(skumapstr)) {
 			throw new BizException("出库商品不能为空！");
 		}
@@ -403,6 +405,9 @@ public class OutWarehouseFormController {
 		}
 		if (StrUtil.isNotEmpty(toaddress)) {
 			outWarehouseForm.setToaddress(toaddress);
+		}
+		if (StrUtil.isNotEmpty(customer)) {
+			outWarehouseForm.setCustomer(customer);
 		}
 		outWarehouseForm.setExpress(express);
 		outWarehouseForm.setExpressno(expressno);

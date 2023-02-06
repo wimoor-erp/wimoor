@@ -61,5 +61,8 @@ public class ShipInboundItemServiceImpl extends  ServiceImpl<ShipInboundItemMapp
 			return this.baseMapper.getshotTime(companyid, groupid, marketplaceid, sku);
 		}
 		
-	
+		public Integer summaryShipmentSku(String groupid, String marketplaceid, String sku) {
+			// TODO Auto-generated method stub
+			return this.baseMapper.summaryShipmentSku(groupid, marketplaceid, sku);
+		}
 }

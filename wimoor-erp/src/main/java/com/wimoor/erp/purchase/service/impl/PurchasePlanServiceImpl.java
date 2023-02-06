@@ -4,14 +4,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.erp.api.AdminClientOneFeign;
 import com.wimoor.erp.assembly.pojo.entity.AssemblyForm;
@@ -190,10 +193,33 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
 		// TODO Auto-generated method stub
 		
 	}
-
+    void checkPlan(PurchasePlan plan){
+    	Set<String> warehouseid=new HashSet<String>();
+    	for(PurchasePlanWareHouse warehouse:plan.getWarehouseList()) {
+        	warehouseid.add(warehouse.getWarehouseid());
+		}
+    	List<PurchasePlan> oldplanlist = this.getPlanByShopid(plan.getShopid());
+    	for(PurchasePlan oldplan:oldplanlist) {
+    		if(!oldplan.getId().equals(plan.getId())) {
+    			boolean isdifferent=true;
+    			if(plan.getWarehouseList().size()==oldplan.getWarehouseList().size()) {
+	    				isdifferent=false;
+    	    			for(PurchasePlanWareHouse warehouse:oldplan.getWarehouseList()) {
+    	    				if(!warehouseid.contains(warehouse.getWarehouseid())) {
+    	    					isdifferent=true;break;
+    	    				}
+    	    			}
+    			 }
+              if(isdifferent==false) {
+            	  throw new BizException("已经存在相同的计划无法保存");
+              }
+    		}
+    	}
+    }
 	@Override
 	public PurchasePlan savePlan(PurchasePlan plan) {
 		// TODO Auto-generated method stub
+		checkPlan(plan);
 		plan.setDisable(false);
 		this.baseMapper.insert(plan);
 		for(PurchasePlanWareHouse item:plan.getWarehouseList()) {
@@ -207,6 +233,7 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
 	@Override
 	public PurchasePlan updatePlan(PurchasePlan plan) {
 		// TODO Auto-generated method stub
+		checkPlan(plan);
 		PurchasePlan oldone = this.baseMapper.selectById(plan.getId());
 		if(oldone==null)return savePlan(plan);
 		else {

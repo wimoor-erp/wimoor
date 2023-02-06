@@ -63,7 +63,7 @@
 				and inbound.ShipmentId = #{param.shipmentid,jdbcType=CHAR}
 			</if>
 			<if test="param.auditstatus == 6">
-				and inbound.`status` in (2,3,4,5,6)
+				and inbound.`status` = 6
 			</if>
 			<if test="param.auditstatus == 5">
 				and inbound.status = 5 and inbound.ShipmentStatus!='RECEIVING'
