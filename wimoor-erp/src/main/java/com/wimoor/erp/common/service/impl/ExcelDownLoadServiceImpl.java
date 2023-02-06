@@ -294,40 +294,29 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 			info.getCell(15).setCellType(CellType.STRING);
 			boxnum = info.getCell(15).getStringCellValue();
 		}
-		String badrate = null;
-		if (info.getCell(16) != null) {
-			info.getCell(16).setCellType(CellType.STRING);
-			badrate = info.getCell(16).getStringCellValue();
-		}
 		String brandname = null;
-		if (info.getCell(17) != null) {
-			brandname = info.getCell(17).getStringCellValue();
-		}
-		String deliveryCycle = null;
-		if (info.getCell(18) != null) {
-			info.getCell(18).setCellType(CellType.STRING);
-			deliveryCycle = info.getCell(18).getStringCellValue();
+		if (info.getCell(16) != null) {
+			brandname = info.getCell(16).getStringCellValue();
 		}
 		String othercost = null;
-		if (info.getCell(19) != null) {
-			info.getCell(19).setCellType(CellType.STRING);
-			othercost = info.getCell(19).getStringCellValue();
+		if (info.getCell(17) != null) {
+			info.getCell(17).setCellType(CellType.STRING);
+			othercost = info.getCell(17).getStringCellValue();
 		}
 		String categoryname = null;
-		if (info.getCell(20) != null) {
-			categoryname = info.getCell(20).getStringCellValue();
+		if (info.getCell(18) != null) {
+			categoryname = info.getCell(18).getStringCellValue();
 		}
 		String remark = null;
-		if (info.getCell(21) != null) {
-			info.getCell(21).setCellType(CellType.STRING);
-			remark = info.getCell(21).getStringCellValue();
+		if (info.getCell(19) != null) {
+			info.getCell(19).setCellType(CellType.STRING);
+			remark = info.getCell(19).getStringCellValue();
 		}
 		String effectivedate = null;
-		if (info.getCell(22) != null) {
-			info.getCell(22).setCellType(CellType.STRING);
-			effectivedate = info.getCell(22).getStringCellValue();
+		if (info.getCell(20) != null) {
+			info.getCell(20).setCellType(CellType.STRING);
+			effectivedate = info.getCell(20).getStringCellValue();
 		}
-		
 		if (StrUtil.isEmpty(sku)) {
 			throw new BizException("Excel文件中必填字段为空！");
 		}
@@ -417,9 +406,6 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 		if(StrUtil.isNotEmpty(boxnum)) {
 			material.setBoxnum(Integer.parseInt(boxnum));
 		}
-		if(StrUtil.isNotEmpty(badrate)) {
-			material.setBadrate(Float.parseFloat(badrate));
-		}
 		if(StrUtil.isNotEmpty(brandname)) {
 			QueryWrapper<MaterialBrand> brandqueryWrapper=new QueryWrapper<MaterialBrand>();
 			brandqueryWrapper.eq("shopid", user.getCompanyid());
@@ -441,9 +427,6 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 			}else {
 				material.setCategoryid(null);
 			}
-		}
-		if(StrUtil.isNotEmpty(deliveryCycle)) {
-			material.setDeliveryCycle(Integer.parseInt(deliveryCycle));
 		}
 		if(StrUtil.isNotEmpty(othercost)) {
 			material.setOtherCost(new BigDecimal(othercost));

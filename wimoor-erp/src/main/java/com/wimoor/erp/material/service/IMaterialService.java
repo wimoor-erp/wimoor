@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -143,4 +145,8 @@ public interface IMaterialService extends IService<Material> {
 	int saveInventoryConsumable(UserInfo user, ConsumableOutFormDTO dto);
 
 	Map<String,String> getTagsIdsListByMsku(String shopid, List<String> mskulist);
+
+	void setMaterialExcelBook(Workbook workbook, MaterialDTO dto, UserInfo userinfo);
+
+	Map<String,Object> getMaterialInfoBySkuList(PlanDTO dto);
 }

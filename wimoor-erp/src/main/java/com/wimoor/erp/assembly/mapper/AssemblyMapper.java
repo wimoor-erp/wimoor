@@ -26,7 +26,7 @@ public interface AssemblyMapper  extends BaseMapper<Assembly> {
 	List<Map<String,Object>>  selectByMainDetailmid(@Param("mainmid")String mainmid,@Param("warehouseid")String warehouseid);
 	List<Assembly> selectAssemblySub(@Param("mainmid")String mainmid);
 
-	List<Material> selectMainBySubid(@Param("submid")String submid);
+	List<Map<String,Object>> selectMainBySubid(@Param("submid")String submid,@Param("shopid")String shopid);
 
 	Integer findCanAssembly(@Param("materialid")String materialid,@Param("warehouseid") String warehouseid,@Param("shopid") String shopid);
 	

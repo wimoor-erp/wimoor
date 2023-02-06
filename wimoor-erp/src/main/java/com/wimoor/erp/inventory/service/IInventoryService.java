@@ -16,8 +16,8 @@ import com.wimoor.erp.common.pojo.entity.Status;
 import com.wimoor.erp.inventory.pojo.dto.InvDayDetailDTO;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
-import com.wimoor.erp.inventory.pojo.entity.StockTaking;
 import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
+import com.wimoor.erp.stock.pojo.entity.StockTaking;
 
 public interface IInventoryService extends IService<Inventory> {
 

@@ -35,6 +35,7 @@ import com.wimoor.amazon.inbound.pojo.entity.AmzInboundFbaCycle;
 import com.wimoor.amazon.inbound.pojo.entity.FBAShipCycle;
 import com.wimoor.amazon.inbound.service.IAmzInboundFbaCycleService;
 import com.wimoor.amazon.inbound.service.IFBAShipCycleService;
+import com.wimoor.amazon.inbound.service.IShipInboundItemService;
 import com.wimoor.amazon.inbound.service.IShipInboundPlanService;
 import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
 import com.wimoor.amazon.product.mapper.AmzProductSalesPlanMapper;
@@ -91,7 +92,7 @@ public class AmzProductSalesPlanServiceImpl extends ServiceImpl<AmzProductSalesP
     final IAmazonAuthorityService iAmazonAuthorityService;
     final IAmazonGroupService iAmazonGroupService;
     final IShipInboundPlanService shipInboundPlanService;
-    
+    final IShipInboundItemService iShipInboundItemService;
     String distribution="EFN";
 	
 /**
@@ -629,8 +630,12 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 							 if(item!=null&&mskusale.get(msku)!=null) {
 								 item.putAll(mskusale.get(msku));
 							 }
+							 if(dto.getPlantype().equals("purchase")) {
+								 item.put("warehouseid", warehouseidObj);
+							 }else {
+								 item.put("warehouseid", warehouseid);
+							 }
 							 item.put("id", id);
-							 item.put("warehouseid", warehouseidObj);
 							 result.add(item);
 						 }
 					 }
@@ -686,6 +691,7 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 		for(Map<String, Object> item:result) {
 			    String psku=item.get("sku").toString();
 			    String marketplaceid=item.get("marketplaceid").toString();
+			    groupid=item.get("groupid").toString();
 				List<AmzInboundFbaCycle> cycleList = iAmzInboundFbaCycleService.getInboundFbaCycle(shopid,marketplaceid);
 				AmzInboundFbaCycle myfbacycle =iAmzInboundFbaCycleService.getDefaultInboundFbaCycle(cycleList);
 				item.put("defaultTranstype", myfbacycle.getTranstype());
@@ -693,6 +699,17 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 			    if(cycle!=null&&cycle.getTranstype()!=null) {
 		        	myfbacycle=iAmzInboundFbaCycleService.getTransInboundFbaCycle(cycleList,cycle.getTranstype());
 		        }
+			    if(iseu!=null&&iseu==true) {
+			    	Integer inbound = iShipInboundItemService.summaryShipmentSku(groupid, marketplaceid, psku);
+			    	if(inbound!=null) {
+			    		if(item.get("quantity")==null) {
+			    			item.put("quantity", inbound);
+			    		}else {
+			    			Integer myqty=Integer.parseInt(item.get("quantity").toString());
+			    			item.put("quantity", inbound+myqty);
+			    		}
+			    	}
+			    }
 				Integer shipcycle=getShipCycle(cycle,myfbacycle);
 				Integer mincycle=getMinShipCycle(cycle,myfbacycle);
 				item.put("shipday", shipcycle);
@@ -862,7 +879,7 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 		 int totalqty=overseaqty+fbaInventoryQty+amount;
 		 int totalqtyinv=overseaqty+fbaInventoryQty;
 		 for(int i=1;i<=180;i++) {
-			   ProductInPresale old = prelist.get(GeneralUtil.formatDate(c.getTime()));
+			ProductInPresale old = prelist.get(GeneralUtil.formatDate(c.getTime()));
 			int sales;
 			if(old==null) {
 				sales=avgsales;
@@ -871,14 +888,15 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 			}
 			totalqty=totalqty-sales;
 			totalqtyinv=totalqtyinv-sales;
-			if(totalqtyinv>=0) {
+			if(totalqtyinv>0) {
 				salesday++;
 			}
-			if(totalqty>=0) {
+			if(totalqty>0) {
 				afterSales++;
 			}else {
 				break;
 			}
+			c.add(Calendar.DATE, 1);
 		 }
 		Map<String,Object> result=new HashMap<String,Object>();
 		result.put("salesday", salesday);

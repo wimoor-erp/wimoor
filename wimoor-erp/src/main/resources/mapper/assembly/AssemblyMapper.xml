@@ -55,13 +55,23 @@
 		and a.ftype='ass'
 	</select>
 
-	<select id="selectMainBySubid" resultType="com.wimoor.erp.material.pojo.entity.Material" parameterType="java.lang.String">
+	<select id="selectMainBySubid" resultType="java.util.Map" parameterType="java.lang.String">
 		select IFNULL(pic.location,pic.url) image,m.name name, m.color color,ifnull(m.boxnum,0) boxnum,
-			m.sku sku ,m.price price ,c.name supplier,m.delivery_cycle,a.subnumber MOQ
+			m.sku sku ,m.price price ,c.name supplier,m.delivery_cycle,a.subnumber MOQ,i2.inbound,
+			i2.outbound,i2.fulfillable
 		from t_erp_assembly a
 		left join t_erp_material m on a.mainmid = m.id
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_picture pic on m.image=pic.id
+		left join ( select shopid,warehouseid,materialid , 
+				      sum( case when  status like 'inbound_%' then quantity else 0 end )  inbound,
+				      sum( case when  status like 'outbound_%' then quantity else 0 end ) outbound,
+				      sum( case when  status='fulfillable' then quantity else 0 end ) fulfillable
+					 from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR}
+					 group by materialid
+		 ) i2  on i2.materialid=a.submid  
+		
 		where submid = #{submid,jdbcType=CHAR}
 		and m.isDelete =0
 		ORDER BY m.sku desc

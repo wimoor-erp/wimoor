@@ -68,6 +68,10 @@ public class AmzProductSalesPlanShipItemServiceImpl extends ServiceImpl<AmzProdu
 		try {
 			dto.setMskulist(skulist);
 			Map<String,Map<String,Object>> map=new HashMap<String,Map<String,Object>>();
+			if(skulist.size()==0) {
+				List<Map<String,Object>> resultdata=new ArrayList<Map<String,Object>>();
+		    	return resultdata;
+			}
 		    Result<List<Map<String, Object>>> result=erpClientOneFeign.getMskuInventory(dto);
 		    if(Result.isSuccess(result)&&result.getData()!=null) {
 		    	List<Map<String, Object>> data = result.getData();

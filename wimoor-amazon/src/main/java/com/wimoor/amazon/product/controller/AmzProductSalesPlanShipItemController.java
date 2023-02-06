@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +51,7 @@ final IAmzProductSalesPlanService iAmzProductSalesPlanService;
 final ISerialNumService serialNumService;
 @ApiOperation(value = "计划刷新")
 @PostMapping("/save")
+@Transactional
 public Result<Integer> saveShipPlanItem(@RequestBody List<AmzProductSalesPlanShipItem> list) {
 	UserInfo user = UserInfoContext.get();
 	Map<String,List<AmzProductSalesPlanShipItem>> oldmap=new HashMap<String,List<AmzProductSalesPlanShipItem>>();
@@ -165,6 +167,7 @@ public Result<?> getBatch(String groupid,String warehouseid,String batchnumber) 
 
 @ApiOperation(value = "计划打包")
 @PostMapping("/batch")
+@Transactional
 public Result<String> batchShipPlanItem(@RequestBody List<AmzProductSalesPlanShipItem> list) {
 	UserInfo user = UserInfoContext.get();
 	String number=null;
@@ -187,6 +190,7 @@ public Result<String> batchShipPlanItem(@RequestBody List<AmzProductSalesPlanShi
 
     @ApiOperation(value = "计划归档")
     @PostMapping("/removeBatch")
+	@Transactional
     public Result<?> moveBatchShipPlanItem(String batchnumber) {
     	UserInfo user = UserInfoContext.get();
     	iAmzProductSalesPlanShipItemService.moveBatch(user.getCompanyid(),batchnumber);

@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -136,7 +135,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	
  
 	public SysUser getUserAllByAccount(String account) {
-		//account="18824232880";
 		SysUser m_user = this.findOneByAccountOrEmail(account);
 		String shopid = getUserShopByUser(m_user);
 		m_user.setShopid(shopid);
@@ -145,7 +143,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	}
 	
 	public SysUser getUserAllByOpenid(String openid) {
-		//account="18824232880";
 		SysUserWechatMP user_wechatMp=iSysUserWechatMPService.getById(openid);
 		if(user_wechatMp==null) {
 			return null;
@@ -170,7 +167,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 			return null;
 		}
 		m_user.setShopid(shopid);
-		m_user.setUserinfo( this.baseMapper.findUserInfoById(m_user.getId()));
+		Map<String, Object> map = this.baseMapper.findUserInfoById(m_user.getId());
+		SysCompany company = sysCompanyMapper.selectById(shopid);
+		if(map!=null) {
+            map.put("companyname", company.getName());
+		}
+		m_user.setUserinfo(map);
 		return m_user;
 	}
 	
@@ -246,7 +248,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     		 List<SysUserGroup> grouplist = sysUserGroupMapper.selectList(query);
              List<String> groups = grouplist.stream().map(item -> item.getGroupid().toString()).collect(Collectors.toList());
              info.setGroups(groups);
-	    		
 	    	 LambdaQueryWrapper<SysUserRole> queryRole=new LambdaQueryWrapper<SysUserRole>();
 	    	 queryRole.eq(SysUserRole::getUserId, user.getId());
 			 List<SysUserRole> rolelist = iSysUserRoleService.list(queryRole);

@@ -37,14 +37,14 @@ import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.pojo.entity.InventoryHis;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.pojo.entity.InventoryRecord;
-import com.wimoor.erp.inventory.pojo.entity.StockTaking;
 import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 import com.wimoor.erp.inventory.service.IInventoryHisService;
 import com.wimoor.erp.inventory.service.IInventoryRecordService;
 import com.wimoor.erp.inventory.service.IInventoryService;
-import com.wimoor.erp.inventory.service.IStockTakingService;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
+import com.wimoor.erp.stock.pojo.entity.StockTaking;
+import com.wimoor.erp.stock.service.IStockTakingService;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 

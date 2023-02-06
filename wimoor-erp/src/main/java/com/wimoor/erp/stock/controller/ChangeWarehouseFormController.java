@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,11 +39,11 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-import com.wimoor.erp.inventory.pojo.entity.ChangeWhForm;
-import com.wimoor.erp.inventory.service.IChangeWhFormEntryService;
-import com.wimoor.erp.inventory.service.IChangeWhFormService;
 import com.wimoor.erp.stock.pojo.dto.ChangeWarehouseFormDTO;
 import com.wimoor.erp.stock.pojo.dto.ChangeWarehouseItemDTO;
+import com.wimoor.erp.stock.pojo.entity.ChangeWhForm;
+import com.wimoor.erp.stock.service.IChangeWhFormEntryService;
+import com.wimoor.erp.stock.service.IChangeWhFormService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
 import cn.hutool.core.util.StrUtil;
@@ -96,6 +97,7 @@ public class ChangeWarehouseFormController{
 		return Result.success(changeWhFormService.findByCondition(dto.getPage(),map));
 	}
 
+	@Transactional
 	@GetMapping("/deleteData")
 	public Result<String> deleteDataAction(String ids) {
 		String[] idlist = ids.split(",");
@@ -119,7 +121,7 @@ public class ChangeWarehouseFormController{
 		return Result.success(map);
 	}
 
-	 
+	@Transactional
 	@PostMapping("/saveData")
 	public Result<Map<String, Object>> addDataAction(@RequestBody ChangeWarehouseItemDTO dto) {
 		UserInfo user = UserInfoContext.get();
@@ -320,6 +322,7 @@ public class ChangeWarehouseFormController{
 		return Result.failed();
 	}
 	
+	@Transactional
 	@GetMapping("/submitData")
 	public Result<String> submitDataAction(String id){
 		ChangeWhForm form = new ChangeWhForm();

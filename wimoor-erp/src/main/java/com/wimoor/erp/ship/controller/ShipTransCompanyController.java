@@ -356,7 +356,7 @@ public class ShipTransCompanyController {
             ErpShipTransType oldone = oldMap.get(item.getName());
             if(!nameset.contains(item.getName())) {
             	nameset.add(item.getName());
-            }else if(!oldone.getId().equals(item.getId())) {
+            }else if(oldone==null||oldone.getId().equals(item.getId())) {
             	throw new BizException("运输方式名称不能重复");
             }
 			if(oldone!=null) {

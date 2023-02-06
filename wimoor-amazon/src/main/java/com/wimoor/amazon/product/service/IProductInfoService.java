@@ -61,5 +61,9 @@ public interface IProductInfoService extends IService<ProductInfo> {
 	Map<String, Object> productSimpleInfoOnlyone(String amazonAuthId, String sku, String marketplaceid);
 
 	public String findMSKUBySKUMarket(String psku, String marketplaceid, String id);
+
+	public int productDisable(UserInfo user, String id);
+
+	public int productUnDisable(UserInfo user, String id);
  
 }

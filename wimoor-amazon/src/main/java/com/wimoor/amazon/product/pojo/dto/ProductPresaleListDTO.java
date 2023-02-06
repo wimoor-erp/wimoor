@@ -1,6 +1,8 @@
 package com.wimoor.amazon.product.pojo.dto;
 
 
+import java.util.Date;
+
 import com.wimoor.common.pojo.entity.BasePageQuery;
 
 import io.swagger.annotations.ApiModel;
@@ -18,5 +20,7 @@ public class ProductPresaleListDTO extends BasePageQuery{
 	String marketplaceid;
 	String asin;
 	String owner;
-
+	Boolean needplan;
+	Date fromDate;
+	Date toDate;
 }

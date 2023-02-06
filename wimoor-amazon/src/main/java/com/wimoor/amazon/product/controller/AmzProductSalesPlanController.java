@@ -1,6 +1,8 @@
 package com.wimoor.amazon.product.controller;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wimoor.amazon.api.AdminClientOneFeign;
 import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanService;
@@ -21,6 +24,7 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -43,7 +47,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AmzProductSalesPlanController {
 	final IAmzProductSalesPlanService iAmzProductSalesPlanService;
-	  final ErpClientOneFeign erpClientOneFeign;
+	final ErpClientOneFeign erpClientOneFeign;
+	final AdminClientOneFeign adminClientOneFeign;
     @ApiOperation(value = "计划刷新")
     @GetMapping("/refreshPlanData")
     public Result<?> refreshData() {
@@ -97,17 +102,56 @@ public class AmzProductSalesPlanController {
     	dto.setShopid(user.getCompanyid());
     	List<Map<String, Object>> list = iAmzProductSalesPlanService.getPlanModel(dto);
     	IPage<Map<String, Object>> page = dto.getListPage(list);
-    	if(dto.getPlantype().equals("purchase")&&page!=null&&page.getRecords()!=null&&page.getRecords().size()>0) {
-    		 for(Map<String, Object> item:page.getRecords()) {
-				 try{
-					   Result<?> resultLast = erpClientOneFeign.getLastRecordAction(item.get("id").toString());
-					   if(Result.isSuccess(resultLast)&&resultLast.getData()!=null) {
-									item.put("last", resultLast.getData());
-								}
+    	if(page!=null&&page.getRecords()!=null&&page.getRecords().size()>0) {
+    		List<String> skulist=new ArrayList<String>();
+    		
+    		for(Map<String, Object> item:page.getRecords()) {
+    			 try{
+					 skulist.add(item.get("sku").toString());
+					 if(dto.getPlantype().equals("purchase")) {
+						   Result<?> resultLast = erpClientOneFeign.getLastRecordAction(item.get("id").toString());
+						   if(Result.isSuccess(resultLast)&&resultLast.getData()!=null) {
+										item.put("last", resultLast.getData());
+						   } 
+					 }
 				 }catch(Exception e) {
 					 e.printStackTrace();
 				 }
     		 }
+    		try{
+	    		 Result<Map<String, String>> skutaglist = erpClientOneFeign.getTagsIdsListByMsku(user.getCompanyid(), skulist);
+				 if(Result.isSuccess(skutaglist)&&skutaglist.getData()!=null) {
+						Result<Map<String,Object>> tagnamelistResult=adminClientOneFeign.findTagsName(user.getCompanyid());
+						if(Result.isSuccess(tagnamelistResult)&&tagnamelistResult.getData()!=null) {
+							Map<String, Object> tagsNameMap = tagnamelistResult.getData();
+							Map<String,String> mskuTagsIdsMap=skutaglist.getData();
+							for(Map<String, Object> record:page.getRecords()) {
+								 List<String> tags=new ArrayList<String>();
+								     String tagsids = mskuTagsIdsMap.get(record.get("sku").toString());
+									if(tagsids!=null) {
+										tags.addAll(Arrays.asList(tagsids.split(",")));
+									}
+									if(tags.size()>0) {
+										List<Map<String, Object>> tagNameList = new ArrayList<Map<String,Object>>();
+										for(String id:tags) {
+											if(StrUtil.isNotBlank(id)) {
+												Object tagobj = tagsNameMap.get(id);
+												if(tagobj!=null) {
+													tagNameList.add(BeanUtil.beanToMap(tagobj));
+												}
+											}
+										}
+										if(tagNameList.size()>0) {
+											record.put("tagNameList",tagNameList);
+										}
+									}
+								 
+				    		 }
+						}
+				 }
+    		 }catch(Exception e) {
+				 e.printStackTrace();
+			 }
 		 }
     	return Result.success(page);
     }

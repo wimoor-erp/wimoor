@@ -12,16 +12,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Resource;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.amazon.api.ErpClientOneFeign;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
@@ -37,6 +36,7 @@ import com.wimoor.amazon.common.service.impl.DaysalesFormulaServiceImpl;
 import com.wimoor.amazon.product.mapper.ProductInOrderMapper;
 import com.wimoor.amazon.product.mapper.ProductInPresaleMapper;
 import com.wimoor.amazon.product.mapper.ProductInfoMapper;
+import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.dto.ProductPresaleListDTO;
 import com.wimoor.amazon.product.pojo.entity.ProductInPresale;
 import com.wimoor.amazon.product.service.IProductInPresaleService;
@@ -44,9 +44,10 @@ import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.amazon.util.ExcelUtil;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
-
 import cn.hutool.core.util.StrUtil;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
  
 
@@ -61,7 +62,7 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
     final IAmazonGroupService amazonGroupService;
     @Resource
     IDaysalesFormulaService daysalesFormulaService;
-    
+    final ErpClientOneFeign erpClientOneFeign;
     public IPage<Map<String, Object>> listProduct(ProductPresaleListDTO dto){
     	if(StrUtil.isBlankOrUndefined(dto.getMarketplaceid())) {
     		dto.setMarketplaceid(null);
@@ -72,6 +73,8 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
     	if(StrUtil.isBlankOrUndefined(dto.getSku())) {
     		dto.setSku(null);
     	}else {
+    		dto.setFromDate(null);
+    		dto.setToDate(null);
     		dto.setSku("%"+dto.getSku().trim()+"%");
     	}
     	if(StrUtil.isBlankOrUndefined(dto.getMsku())) {
@@ -87,9 +90,10 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
     	if(StrUtil.isBlankOrUndefined(dto.getGroupid())) {
     		dto.setGroupid(null);
     	}
-    	IPage<Map<String, Object>> list = this.baseMapper.listProduct(dto.getPage(), dto);
-        for(Map<String, Object> item:list.getRecords()) {
-        	String sku=item.get("sku").toString();
+    	List<Map<String, Object>> list = this.baseMapper.listProduct(dto);
+    	List<String> mskulist=new ArrayList<String>();
+        for(Map<String, Object> item:list) {
+        	String sku=item.get("psku").toString();
     		String marketplaceid=item.get("marketplaceid").toString();
     		String groupid=item.get("groupid").toString();
     		if(marketplaceid.equals("EU")) {
@@ -101,6 +105,7 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
 				Integer qty = DaysalesFormulaServiceImpl.getAvgSales(formula , summonth, sumseven, sum15, openDate);
 				item.put("avgsales", qty);
 			}
+    		mskulist.add(item.get("msku").toString());
     		Map<String, ProductInPresale> prelist = getPresale(sku,marketplaceid,groupid);
     		Calendar cend=Calendar.getInstance();
     		cend.add(Calendar.DATE, 10);
@@ -154,10 +159,36 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
     			}
     			
     		}
-    				
-			
         }
-    	return list;
+        
+        try {
+        	PlanDTO plandto=new PlanDTO();
+        	plandto.setShopid(dto.getShopid());
+        	plandto.setMskulist(mskulist);
+        	plandto.setOwner(dto.getOwner());
+        	List<Map<String,Object>> listMap=new LinkedList<Map<String,Object>>();
+        	if(plandto.getMskulist()==null||plandto.getMskulist().size()==0) {
+        		return dto.getListPage(listMap);
+        	}
+        	Result<Map<String, Object>> result = erpClientOneFeign.getMaterialInfoBySkuList(plandto);
+        	if(Result.isSuccess(result)&&result.getData()!=null) {
+        		Map<String, Object> mskuInfoMap=result.getData();
+        	     for(Map<String, Object> item:list) {
+        	    	 String msku=item.get("msku").toString();
+        	    	 if(mskuInfoMap.get(msku)!=null) {
+        	    		 @SuppressWarnings("unchecked")
+						 Map<String, Object> mskuinfo =  (Map<String, Object>)mskuInfoMap.get(msku);
+        	    		 item.putAll(mskuinfo);
+        	    		 listMap.add(item);
+        	    	 }
+        	     }
+        	     return dto.getListPage(listMap);
+        	}
+        }catch(FeignException e) {
+        	e.printStackTrace();
+        	throw new BizException(BizException.getMessage(e, "本地SKU信息获取失败,请联系管理员"));
+        }
+    	return null;
     }
     
     public void convertEstimatToPresale() {

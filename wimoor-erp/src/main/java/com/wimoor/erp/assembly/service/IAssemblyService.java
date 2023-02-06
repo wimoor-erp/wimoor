@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.api.erp.assembly.pojo.vo.AssemblyVO;
 import com.wimoor.erp.assembly.pojo.entity.Assembly;
-import com.wimoor.erp.material.pojo.entity.Material;
 
 public interface IAssemblyService extends IService<Assembly> {
 
@@ -25,7 +24,7 @@ public interface IAssemblyService extends IService<Assembly> {
 	
 	List<Assembly> selectAssemblySub(String mainmid);
 	
-	List<Material> selectBySubid(String materialid);
+	List<Map<String, Object>> selectBySubid(String materialid,String shopid);
 	List<Map<String, Object>> selectByMainDetailmid(String materialid,String warehouseid);
 	Integer findCanAssembly(String materialid, String warehouseid, String shopid);
 

@@ -19,49 +19,64 @@
     id,sku,marketplaceid,groupid, date, quantity, operator, opttime, start, end, month,hasdaysales
   </sql>
   <select id="listProduct" resultType="java.util.Map" parameterType="java.util.Map">
-     SELECT
-		  MAX(g.name) groupname,
-		  MAX(g.id) groupid,
-		  MAX(a.id) amazonauthid,
-		  MAX( case when m.region='EU' then '欧洲' ELSE m.name END ) marketname,
-		  MAX(i.openDate) openDate,
-		  MAX(i.asin) asin,
-		  MAX(i.name) name,
-		  MAX(i.sku) sku,
-		  IFNULL(MAX(o.msku),max(i.sku)) msku,
-		  case when m.region='EU' then 'EU' ELSE m.marketplaceId END  marketplaceid,
-		  max(ifnull(p.location,p.url)) image,
-		  SUM(r.avgsales) avgsales,
-		  SUM(r.sales_seven) sumseven,
-		  SUM(r.sales_month) summonth,
-		  SUM(r.sales_fifteen) sum15,
-		  max(d.name) statusname,
-		  max(d.color)  statuscolor
-		 FROM t_product_info i 
-		LEFT JOIN t_product_in_opt o ON o.pid=i.id
-		LEFT JOIN t_product_in_order r ON r.pid=i.id
-		LEFT JOIN t_product_info_status_define d on d.id=o.status
-		LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
-		LEFT JOIN t_amazon_group g ON g.id=a.groupid
-		LEFT JOIN t_marketplace m ON m.marketplaceId=i.marketplaceid
-		LEFT JOIN t_picture p ON p.id=i.image
-		WHERE a.shop_id=#{param.shopid,jdbcType=CHAR}
-		 <if test="param.groupid!=null">
-			AND a.groupid=#{param.groupid,jdbcType=CHAR}
-		</if>
-		 <if test="param.marketplaceid!=null">
-			AND (m.marketplaceId=#{param.marketplaceid,jdbcType=CHAR} OR m.region=#{param.marketplaceid,jdbcType=CHAR})
-		</if>
-		<if test="param.sku!=null">
-			AND sku like #{param.sku,jdbcType=CHAR}
-		</if>
-	     <if test="param.msku!=null">
-			AND IFNULL(o.msku,i.sku) like #{param.sku,jdbcType=CHAR}
-		</if>
-		 <if test="param.asin!=null">
-			AND  i.asin like #{param.asin,jdbcType=CHAR}
-		</if>
-		GROUP BY i.amazonAuthId,i.sku,case when m.region='EU' then 'EU' ELSE m.marketplaceId END 
+     select v.* from (SELECT
+			  MAX(g.name) groupname,
+			  MAX(g.id) groupid,
+			  MAX(a.id) amazonauthid,
+			  MAX( case when m.region='EU' then '欧洲' ELSE m.name END ) marketname,
+			  MAX(i.openDate) openDate,
+			  MAX(i.asin) asin,
+			  MAX(i.name) name,
+			  MAX(i.sku) psku,
+			  IFNULL(MAX(o.msku),max(i.sku)) msku,
+			  case when m.region='EU' then 'EU' ELSE m.marketplaceId END  marketplaceid,
+			  max(ifnull(p.location,p.url)) image,
+			  SUM(r.avgsales) avgsales,
+			  SUM(r.sales_seven) sumseven,
+			  SUM(r.sales_month) summonth,
+			  SUM(r.sales_fifteen) sum15,
+			  max(d.name) statusname,
+			  max(d.color)  statuscolor
+			 FROM t_product_info i 
+			LEFT JOIN t_product_in_opt o ON o.pid=i.id
+			LEFT JOIN t_product_in_order r ON r.pid=i.id
+			LEFT JOIN t_product_info_status_define d on d.id=o.status
+			LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+			LEFT JOIN t_amazon_group g ON g.id=a.groupid
+			LEFT JOIN t_marketplace m ON m.marketplaceId=i.marketplaceid
+			LEFT JOIN t_picture p ON p.id=i.image
+			WHERE a.shop_id=#{param.shopid,jdbcType=CHAR}
+			    and  a.disable = FALSE  and (o.disable is null or o.disable=0) 
+			    and  i.invalid=0   and i.isparent=0
+			 <if test="param.groupid!=null">
+				AND a.groupid=#{param.groupid,jdbcType=CHAR}
+			</if>
+			 <if test="param.marketplaceid!=null">
+				AND (m.marketplaceId=#{param.marketplaceid,jdbcType=CHAR} OR m.region=#{param.marketplaceid,jdbcType=CHAR})
+			</if>
+			<if test="param.sku!=null">
+				AND sku like #{param.sku,jdbcType=CHAR}
+			</if>
+			<if test="param.fromDate!=null">
+				AND i.openDate>= #{param.fromDate,jdbcType=DATE}
+			</if>
+			<if test="param.toDate!=null">
+				AND i.openDate &lt;= #{param.toDate,jdbcType=DATE}
+			</if>
+		     <if test="param.msku!=null">
+				AND IFNULL(o.msku,i.sku) like #{param.sku,jdbcType=CHAR}
+			</if>
+			 <if test="param.asin!=null">
+				AND  i.asin like #{param.asin,jdbcType=CHAR}
+			</if>
+			GROUP BY i.amazonAuthId,i.sku,case when m.region='EU' then 'EU' ELSE m.marketplaceId END 
+			) v
+			left join t_amz_product_sales_plan p on p.groupid=v.groupid and p.marketplaceid=v.marketplaceid
+			and v.psku=p.sku
+			<if test="param.needplan==true">
+			   where  p.id is null
+			</if>
+			
   </select>
   
   <select id="selectDateEvent" resultMap="BaseResultMap" parameterType="java.lang.String" >

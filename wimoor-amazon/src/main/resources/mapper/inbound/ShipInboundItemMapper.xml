@@ -88,6 +88,22 @@
 			where item.ShipmentId = #{shipmentid,jdbcType=CHAR}
     </select>
     
+    
+    <select id="summaryShipmentSku"  resultType="java.lang.Integer"   parameterType="java.lang.String">
+         select   
+            sum(ifnull(item.QuantityShipped,0)-ifnull(item.QuantityReceived,0)) quantity
+			from t_erp_ship_inbounditem item
+			left join t_erp_ship_inboundshipment inbound on inbound.ShipmentId=item.ShipmentId
+			left join t_erp_ship_inboundPlan plan on plan.id=item.inboundplanid
+			left join t_erp_warehouse w on w.id = plan.warehouseid
+			left join t_amazon_group ag on ag.id=plan.amazongroupid
+			left join t_marketplace m on m.marketplaceId=plan.marketplaceid
+			where item.SellerSKU = #{sku,jdbcType=CHAR}
+			and plan.marketplaceid= #{marketplaceid,jdbcType=CHAR}
+			and plan.amazongroupid= #{groupid,jdbcType=CHAR}
+			and inbound.status>=2 and inbound.status &lt;6
+    </select>
+    
 	<select id="selectObjByShipmentid" resultType="com.wimoor.api.amzon.inbound.pojo.vo.ShipInboundItemVo"  parameterType="java.lang.String">
 			select distinct item.id, item.ShipmentId, m.sku sku,
 			     (select  GROUP_CONCAT(c.name) from t_product_category c where c.pid=info.id )  typename,
@@ -260,7 +276,7 @@
 		     where a.shop_id=#{shopid,jdbcType=CHAR} and a.groupid = #{groupid,jdbcType=CHAR}
 			and (m.marketplaceId = #{marketplaceid,jdbcType=CHAR} or m.region = #{marketplaceid,jdbcType=CHAR})
 			and p.sku=#{sku,jdbcType=CHAR}
-		group by p.amazonAuthId,p.sku,case when m.region='EU' then 'EU' else m.marketplaceId end) v 
+		    group by p.amazonAuthId,p.sku,case when m.region='EU' then 'EU' else m.marketplaceId end) v 
 		left join t_erp_warehouse_fba w on w.shopid=v.shop_id and w.marketplaceid=v.marketplaceId 
 		left join t_erp_estimated_sales tsale on tsale.sku=v.psku and tsale.marketplaceid = w.marketplaceid and tsale.groupid=v.groupid and tsale.isInvalid=0
 		left join t_inventory_report ir on ir.marketplaceid=w.marketplaceid and ir.amazonAuthId=v.amazonAuthId and ir.sku=v.psku 

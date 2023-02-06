@@ -27,6 +27,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,9 +45,6 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-import com.wimoor.erp.inventory.pojo.entity.DispatchForm;
-import com.wimoor.erp.inventory.service.IDispatchFormEntryService;
-import com.wimoor.erp.inventory.service.IDispatchFormService;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.ship.mapper.ShipPlanItemMapper;
@@ -56,6 +54,9 @@ import com.wimoor.erp.ship.service.IShipPlanService;
 import com.wimoor.erp.ship.service.IShipPlanSubService;
 import com.wimoor.erp.stock.pojo.dto.DispatchWarehouseFormDTO;
 import com.wimoor.erp.stock.pojo.dto.DispatchWarehouseItemDTO;
+import com.wimoor.erp.stock.pojo.entity.DispatchForm;
+import com.wimoor.erp.stock.service.IDispatchFormEntryService;
+import com.wimoor.erp.stock.service.IDispatchFormService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 
 import cn.hutool.core.util.StrUtil;
@@ -136,7 +137,7 @@ public class DispatchWarehouseFormController{
 			return 	Result.success(list);	
 		}
 
-		
+	    @Transactional
 		@GetMapping("/deleteData")
 		public Result<Integer> deleteAction(String ids){
 			UserInfo user = UserInfoContext.get();
@@ -328,6 +329,7 @@ public class DispatchWarehouseFormController{
 		}
 
 		//提交调库
+		@Transactional
 		@PostMapping("/saveData")
 		public Result<Map<String, Object>> addDataAction(@RequestBody DispatchWarehouseItemDTO dto) {
 			UserInfo user = UserInfoContext.get();
@@ -394,6 +396,7 @@ public class DispatchWarehouseFormController{
 			return Result.success(map);
 		}
 
+		@Transactional
 		@GetMapping("/examine")
 		public Result<String> examineAction(String status,String ids){
 			UserInfo user = UserInfoContext.get();
