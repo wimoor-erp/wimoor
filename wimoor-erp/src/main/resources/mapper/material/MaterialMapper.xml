@@ -212,7 +212,7 @@
 		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
 		left join t_picture p on m.image=p.id
 		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
-		left join ( select iv.shopid,iv.warehouseid,iv.materialid ,
+		left join ( select MAX(iv.shopid) shopid,MAX(iv.warehouseid) warehouseid,iv.materialid ,
 					sum( case when iv.status like 'inbound_%' then iv.quantity else 0 end ) inbound,
 					sum( case when iv.status like 'outbound_%' then iv.quantity else 0 end ) outbound,
 					sum( case when iv.status='fulfillable' then iv.quantity else 0 end ) fulfillable
