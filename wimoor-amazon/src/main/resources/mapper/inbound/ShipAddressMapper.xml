@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipAddressMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipAddress" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+     <result column="groupid" property="groupid" jdbcType="CHAR" />
+     <result column="isfrom" property="isfrom" jdbcType="BIT" />
+    <result column="addressLine1" property="addressline1" jdbcType="CHAR" />
+    <result column="addressLine2" property="addressline2" jdbcType="CHAR" />
+    <result column="city" property="city" jdbcType="CHAR" />
+    <result column="districtOrCounty" property="districtorcounty" jdbcType="CHAR" />
+    <result column="stateOrProvinceCode" property="stateorprovincecode" jdbcType="CHAR" />
+    <result column="countryCode" property="countrycode" jdbcType="CHAR" />
+    <result column="postalCode" property="postalcode" jdbcType="CHAR" />
+    <result column="phone" property="phone" jdbcType="CHAR" />
+    <result column="isdefault" property="isdefault" jdbcType="BIT" />
+    <result column="disable" property="disable" jdbcType="BIT" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name,groupid,isfrom, addressLine1, addressLine2, city, districtOrCounty, stateOrProvinceCode, 
+    countryCode, postalCode,phone,isdefault, shopid, opttime, operator
+  </sql>
+  
+  <select id="findByCondition" resultMap="BaseResultMap"  parameterType="java.lang.String">
+  	select t.id,t.name name,isfrom,t.postalCode,t.phone,t.isdefault,t.addressLine1 addressLine1,t.addressLine2 addressLine2,t.city city,
+  	t.districtOrCounty districtOrCounty,t.shopid,t.opttime opttime,t.countrycode,t.stateOrProvinceCode,
+  	u.name operator ,t.groupid 
+  	    from t_erp_ship_address t 
+		left join t_userinfo u on u.id=t.operator
+		where t.shopid=#{shopid,jdbcType=CHAR} 
+		and  t.isfrom=1 
+		<if test="groupid != null">
+		    and t.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="disable == null">
+			and t.disable=0
+		</if>
+		<if test="disable != null">
+			and t.disable=1
+		</if>
+		<if test="search != null">
+			and (t.name like #{search,jdbcType=CHAR}
+			or t.city like
+			#{search,jdbcType=CHAR}
+			)
+		</if>
+  </select>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_ship_address
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_ship_address
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipAddress" >
+    insert into t_erp_ship_address (id, name, addressLine1, 
+      addressLine2, city, districtOrCounty, 
+      stateOrProvinceCode, countryCode, postalCode, 
+      shopid, opttime, operator
+      )
+    values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{addressline1,jdbcType=CHAR}, 
+      #{addressline2,jdbcType=CHAR}, #{city,jdbcType=CHAR}, #{districtorcounty,jdbcType=CHAR}, 
+      #{stateorprovincecode,jdbcType=CHAR}, #{countrycode,jdbcType=CHAR}, #{postalcode,jdbcType=CHAR}, 
+      #{shopid,jdbcType=CHAR}, #{opttime,jdbcType=TIMESTAMP}, #{operator,jdbcType=CHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipAddress" >
+    insert into t_erp_ship_address
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="addressline1 != null" >
+        addressLine1,
+      </if>
+      <if test="addressline2 != null" >
+        addressLine2,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="districtorcounty != null" >
+        districtOrCounty,
+      </if>
+      <if test="stateorprovincecode != null" >
+        stateOrProvinceCode,
+      </if>
+      <if test="countrycode != null" >
+        countryCode,
+      </if>
+      <if test="postalcode != null" >
+        postalCode,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=CHAR},
+      </if>
+      <if test="addressline1 != null" >
+        #{addressline1,jdbcType=CHAR},
+      </if>
+      <if test="addressline2 != null" >
+        #{addressline2,jdbcType=CHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=CHAR},
+      </if>
+      <if test="districtorcounty != null" >
+        #{districtorcounty,jdbcType=CHAR},
+      </if>
+      <if test="stateorprovincecode != null" >
+        #{stateorprovincecode,jdbcType=CHAR},
+      </if>
+      <if test="countrycode != null" >
+        #{countrycode,jdbcType=CHAR},
+      </if>
+      <if test="postalcode != null" >
+        #{postalcode,jdbcType=CHAR},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.ShipAddress" >
+    update t_erp_ship_address
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=CHAR},
+      </if>
+      <if test="addressline1 != null" >
+        addressLine1 = #{addressline1,jdbcType=CHAR},
+      </if>
+      <if test="addressline2 != null" >
+        addressLine2 = #{addressline2,jdbcType=CHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=CHAR},
+      </if>
+      <if test="districtorcounty != null" >
+        districtOrCounty = #{districtorcounty,jdbcType=CHAR},
+      </if>
+      <if test="stateorprovincecode != null" >
+        stateOrProvinceCode = #{stateorprovincecode,jdbcType=CHAR},
+      </if>
+      <if test="countrycode != null" >
+        countryCode = #{countrycode,jdbcType=CHAR},
+      </if>
+      <if test="postalcode != null" >
+        postalCode = #{postalcode,jdbcType=CHAR},
+      </if>
+      <if test="shopid != null" >
+        shopid = #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ShipAddress" >
+    update t_erp_ship_address
+    set name = #{name,jdbcType=CHAR},
+      addressLine1 = #{addressline1,jdbcType=CHAR},
+      addressLine2 = #{addressline2,jdbcType=CHAR},
+      city = #{city,jdbcType=CHAR},
+      districtOrCounty = #{districtorcounty,jdbcType=CHAR},
+      stateOrProvinceCode = #{stateorprovincecode,jdbcType=CHAR},
+      countryCode = #{countrycode,jdbcType=CHAR},
+      postalCode = #{postalcode,jdbcType=CHAR},
+      shopid = #{shopid,jdbcType=CHAR},
+      opttime = #{opttime,jdbcType=TIMESTAMP},
+      operator = #{operator,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.warehouse.mapper.WhseUnsalableReportMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.warehouse.pojo.entity.WhseUnsalableReport">
+		<id column="shopid" property="shopid" jdbcType="CHAR" />
+		<id column="wid" property="wid" jdbcType="CHAR" />
+		<id column="mtid" property="mtid" jdbcType="CHAR" />
+		<id column="sku" property="sku" jdbcType="CHAR" />
+		<id column="groupid" property="groupid" jdbcType="CHAR"></id>
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="qtysum" property="qtysum" jdbcType="DECIMAL" />
+		<result column="qtyablesum" property="qtyablesum" jdbcType="DECIMAL" />
+		<result column="qtysum30" property="qtysum30" jdbcType="DECIMAL" />
+		<result column="qtysum60" property="qtysum60" jdbcType="DECIMAL" />
+		<result column="qtysum90" property="qtysum90" jdbcType="DECIMAL" />
+		<result column="qtysum180" property="qtysum180" jdbcType="DECIMAL" />
+		<result column="qtysum365" property="qtysum365" jdbcType="DECIMAL" />
+		<result column="salesum30" property="salesum30" jdbcType="DECIMAL" />
+		<result column="salesum60" property="salesum60" jdbcType="DECIMAL" />
+		<result column="salesum90" property="salesum90" jdbcType="DECIMAL" />
+		<result column="salesum180" property="salesum180" jdbcType="DECIMAL" />
+		<result column="salesum365" property="salesum365" jdbcType="DECIMAL" />
+		<result column="nostock30" property="nostock30" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		shopid, wid, mtid, sku, groupid,name, qtysum,
+		qtyablesum,qtysum30,qtysum60,qtysum90, qtysum180, qtysum365,
+		salesum30, salesum60, salesum90,
+		salesum180, salesum365,nostock30
+	</sql>
+	
+	<select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select r.shopid, wid, mtid, r.sku, r.name datename,m.name,ifnull(p.location,p.url) image, r.qtysum , r.qtyablesum, 
+			case when r.qtysum  >= (case when qtysum30>salesum30 then qtysum30-salesum30 else 0 end) then 
+				r.qtysum - (case when qtysum30>salesum30 then qtysum30-salesum30 else 0 end)
+			else r.qtysum  end qtysum0,
+			case when qtysum30>salesum30 then 
+				case when qtysum30-salesum30  >=(case when qtysum60>salesum60 then qtysum60-salesum60 else 0 end) then 
+				 qtysum30-salesum30 - (case when qtysum60>salesum60 then qtysum60-salesum60 else 0 end)
+				 else qtysum30-salesum30  end
+			else 0 end qtysum30,
+			case when qtysum60>salesum60 then 
+				case when qtysum60-salesum60  >=(case when qtysum90>salesum90 then qtysum90-salesum90 else 0 end) then 
+				 qtysum60-salesum60  - (case when qtysum90>salesum90 then qtysum90-salesum90 else 0 end)
+				 else qtysum60-salesum60  end
+			else 0 end qtysum60,
+			case when qtysum90>salesum90 then 
+				case when qtysum90-salesum90 >=(case when qtysum180>salesum180 then qtysum180-salesum180 else 0 end) then 
+				 qtysum90-salesum90 - (case when qtysum180>salesum180 then qtysum180-salesum180 else 0 end)
+				 else qtysum90-salesum90 end
+			else 0 end qtysum90,
+			case when qtysum180>salesum180 then  
+				case when qtysum180-salesum180 >=(case when qtysum365>salesum365 then qtysum365-salesum365 else 0 end) then 
+				 qtysum180-salesum180 - (case when qtysum365>salesum365 then qtysum365-salesum365 else 0 end) 
+				 else qtysum180-salesum180 end
+			else 0 end qtysum180,
+			case when qtysum365>salesum365 then qtysum365-salesum365 else 0 end qtysum365,
+			case when r.qtysum>r.salesum90 then r.qtysum-r.salesum90 else 0 end nowinv90,
+			salesum30, salesum60, salesum90, salesum180, salesum365,nostock30,m.price
+		from t_erp_whse_unsalable_rpt r
+		left join t_erp_material m on m.sku=r.sku and m.shopid=r.shopid and m.isDelete=0
+		left join t_picture p on p.id=m.image
+		where r.shopid = #{param.shopid,jdbcType=CHAR}
+			and r.qtysum>=qtysum90-salesum90
+		<if test="param.wid != null">
+			and wid = #{param.wid,jdbcType=CHAR}
+		</if>
+		 <if test="param.myself != null">
+			and m.owner = #{param.myself,jdbcType=CHAR}
+		</if>
+		<if test="param.search != null">
+			and r.sku like #{param.search,jdbcType=CHAR}
+		</if>
+	</select>
+	 
+	
+	<select id="getLocalDeadRpt" parameterType="java.lang.String" resultType="java.util.LinkedHashMap">
+		select
+			w.name '仓库',
+			r.sku 'SKU',
+			IFNULL(m.name,"") '产品名称',
+			m.price '采购单价' ,
+			IFNULL(i.name,"") '责任人' ,
+			r.qtysum '当前库存',
+			r.qtysum '0~30天库龄',
+			case when qtysum30>salesum30 then qtysum30-salesum30 else 0 end
+			'30~60天库龄',
+			case when qtysum60>salesum60 then qtysum60-salesum60 else 0 end
+			'60~90天库龄',
+			case when qtysum90>salesum90 then qtysum90-salesum90 else 0 end
+			'90~180天库龄',
+			case when qtysum180>salesum180 then qtysum180-salesum180 else 0 end
+			'180~365天库龄',
+			case when qtysum365>salesum365 then qtysum365-salesum365 else 0 end
+			'365天以上库龄',
+			salesum30 '30天内出库数量',
+			salesum60 '60天内出库数量',
+			salesum90 '90天内出库数量',
+			salesum180 '180天内出库数量',
+			salesum365 '365天内出库数量',
+			case when r.qtysum>r.salesum90 then r.qtysum-r.salesum90 else 0 end '冗余库存'
+		from t_erp_whse_unsalable_rpt r
+		left join t_erp_warehouse w on w.id=r.wid
+		left join t_erp_material m on m.id=r.`mtid` and m.shopid=r.shopid and m.isDelete = 0
+		left join t_userinfo i on i.id=m.owner
+		where r.shopid = #{shopid,jdbcType=CHAR} 
+			and r.qtysum>=qtysum90-salesum90
+		<if test="warehouseid != null">
+			and r.wid = #{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="search != null">
+			and r.sku like #{search,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and r.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+	    <if test="myself !=null">
+			and m.owner = #{myself,jdbcType=CHAR}
+		</if>
+	</select>
+ 
+
+	<select id="findPageTotalSum" parameterType="java.util.Map" resultType="java.util.Map">
+		select sum(nostock30) totalnostock, sum(r.qtysum) totalqty , sum(r.qtyablesum) totaluseqty,
+			sum(case when qtysum30>salesum30 then qtysum30-salesum30 else 0 end) totalqtysum30,
+			sum(case when qtysum60>salesum60 then qtysum60-salesum60 else 0 end) totalqtysum60,
+			sum(case when qtysum90>salesum90 then qtysum90-salesum90 else 0 end) totalqtysum90,
+			sum(case when qtysum180>salesum180 then qtysum180-salesum180 else 0 end) totalqtysum180,
+			sum(case when qtysum365>salesum365 then qtysum365-salesum365 else 0 end) totalqtysum365,
+			sum(salesum30) totalsales30, sum(salesum60) totalsales60, sum(salesum90) totalsales90,
+			sum(salesum180) totalsales180, sum(salesum365) toatlsales365 ,
+			sum(case when r.qtysum>r.salesum90 then r.qtysum-r.salesum90 else 0 end) totalnowinv
+		from t_erp_whse_unsalable_rpt r
+		where r.shopid = #{shopid,jdbcType=CHAR} 
+			and r.qtysum>=qtysum90-salesum90
+		<if test="groupid != null">
+			and r.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="wid != null">
+			and wid = #{wid,jdbcType=CHAR}
+		</if>
+		<if test="search != null">
+			and r.sku like #{search,jdbcType=CHAR}
+		</if>
+	</select>
+ 
+	<!-- 本地仓库当前库存 -->
+	<select id="selectLocalInventory" parameterType="java.util.Map" resultType="java.util.Map">
+		select  inv.shopid,inv.warehouseid,inv.materialid,
+			ifnull(sum(case when `status`='fulfillable' or LOCATE(`status`,'outbound')&gt;0 then inv.quantity else 0 end ),0) qtysum
+		from t_erp_inventory inv
+		where  inv.shopid=#{shopid,jdbcType=CHAR} 
+		       and inv.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		group by inv.shopid,inv.warehouseid,inv.materialid
+	</select>
+	
+	 <select id="localByDay" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (select   CAST(SUM(ifnull(his.quantity,0))  AS CHAR) invqty  
+		from (select shopid,warehouseid,materialid,`status`,max(modifyday) modifyday, max(opttime) opttime
+			   from t_erp_inventory_his
+				where   shopid=#{shopid,jdbcType=BIGINT}
+				    and materialid=#{materialid,jdbcType=BIGINT}
+					and warehouseid=#{warehouseid,jdbcType=BIGINT}
+					and (`status`='fulfillable' or `status` like 'outbound%')
+					and modifyday &lt;= #{byday,jdbcType=DATE}
+				group by shopid,warehouseid,materialid,status
+		        ) v
+	  	     left join t_erp_inventory_his his on his.shopid=v.shopid and his.warehouseid=v.warehouseid
+			 and his.materialid=v.materialid and his.`status`=v.`status` and his.modifyday=v.modifyday
+			 and his.opttime=v.opttime
+			 ) v2
+	</select>
+		<select id="localOutInventoryByRange" parameterType="java.util.Map" resultType="java.util.Map">
+		select sum(quantity) salesum
+		from t_erp_inventory_record re
+		where re.opttime&gt;=#{fromDate,jdbcType=CHAR} 
+		<if test="endDate!=null">
+		 and re.opttime&lt;=#{endDate,jdbcType=CHAR}
+		</if> 
+			and re.operate='out' and (re.`status`='fulfillable' or re.`status`='outbound') and re.shopid=#{shopid,jdbcType=CHAR}
+		<if test="materialid!=null">
+			and re.materialid=#{materialid,jdbcType=CHAR}
+		</if>
+		 <if test="shopid!=null">
+			and re.shopid=#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="warehouseid!=null">
+			and re.warehouseid=#{warehouseid,jdbcType=CHAR}
+		</if>
+	 
+ 
+	</select>
+	<!-- 本地仓库当前库存 >0 -->
+	<select id="selectLocalInventoryInwh" parameterType="java.util.Map" resultType="java.util.Map">
+		select distinct inv.shopid,wh.parentid,inv.materialid,
+			sum(case when `status`='fulfillable' or LOCATE(`status`,'outbound')&gt;0 then inv.quantity else 0 end ) qtysum,m.sku
+		from t_erp_inventory_his inv
+		left join t_erp_warehouse wh on wh.id=inv.warehouseid
+		left join t_erp_material m on m.id=inv.materialid
+		where (wh.ftype='self_test' or wh.ftype='self_usable')
+		<if test="parentid!=null">
+			and wh.parentid=#{parentid,jdbcType=CHAR}
+		</if>
+		<if test="shopid!=null">
+			and inv.shopid=#{shopid,jdbcType=CHAR}
+		</if>
+		group by inv.shopid,m.id
+	</select>
+
+	<!-- fba仓库 可用库存 库存 -->
+	<select id="selectFbaUseInventory" parameterType="java.util.Map" resultType="java.util.Map">
+		select distinct auth.shop_id,inv.marketplaceid parentid,inv.sku,
+			sum(afn_fulfillable_quantity+afn_reserved_quantity+afn_inbound_shipped_quantity +afn_inbound_receiving_quantity) qtysum,
+			sum(afn_fulfillable_quantity) qtyablesum
+		from t_inventory_report inv
+		left join t_amazon_auth auth on inv.amazonAuthId=auth.id
+		left join t_erp_warehouse_fba wh on wh.marketplaceid=inv.marketplaceid and wh.shopid=auth.shop_id
+		left join t_erp_material m on m.sku=inv.sku and m.isDelete = 0
+		where inv.isnewest=true
+			and auth.groupid=#{groupid,jdbcType=CHAR} and auth.`disable`=0
+		<if test="shopid!=null">
+			and auth.shop_id=#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="parentid!=null">
+			and wh.id=#{parentid,jdbcType=CHAR}
+		</if>
+		group by auth.shop_id,inv.marketplaceid,inv.sku
+	</select>
+	
+	<!-- fba仓库30天缺货率(无人调用) -->
+	<select id="selectFbaNotStockMonth" resultType="java.util.Map" parameterType="java.util.Map">
+		select distinct auth.shop_id,i.marketplaceid,i.sku,
+			sum(case when afn_warehouse_quantity=0 then 1 else 0 end)*100/30 qty
+		from t_inventory_report_his i
+		left join t_amazon_auth auth on i.amazonAuthId=auth.id
+		left join t_erp_material m on m.sku=i.sku and m.shopid=auth.shop_id and m.isdelete=false
+		where byday&gt;=Date_add(now(),interval -30 day)
+			and auth.groupid=#{groupid,jdbcType=CHAR}
+		<if test="shopid!=null">
+			and auth.shop_id=#{shopid,jdbcType=CHAR} and auth.`disable`=0
+		</if>
+		<if test="parentid!=null">
+			and i.marketplaceid=#{parentid,jdbcType=CHAR}
+		</if>
+		<if test="materialid!=null">
+			and m.id=#{materialid,jdbcType=CHAR}
+		</if>
+		group by auth.shop_id,i.marketplaceid,i.sku
+	</select>
+	
+	<delete id="deleteAllData">
+		TRUNCATE t_erp_whse_unsalable_rpt;
+	</delete>
+	
+	<select id="findAllShop" resultType="java.util.Map">
+		select shop_id shopid from t_amazon_auth
+		union
+		select shopid from t_amz_adv_auth a where a.disable = 0
+	</select>
+
+	<select id="findAllGroupByShop" resultType="java.util.Map" parameterType="java.lang.String">
+		select t.groupid,t.shop_id shopid,g.name name 
+		from t_amazon_auth t
+		left join t_amazon_group g on g.id=t.groupid
+		where t.`disable`=0 
+			and t.shop_id=#{shopid,jdbcType=CHAR}
+		group by t.groupid
+	</select>
+
+   <select id="findByDay" resultType="java.util.Map" parameterType="java.util.Map">
+	   SELECT vnx.*,case when (vn.qty1-vn.salesum)>(vnx.fulfillable+vnx.outbound) 
+			then (vnx.fulfillable+vnx.outbound)  ELSE   (vn.qty1-vn.salesum) end
+			qtyx FROM (	SELECT v1.qty1,v1.materialid,v2.salesum FROM (	
+			SELECT  ifnull(sum(his.quantity),0) qty1,his.materialid
+					from (select shopid,materialid,warehouseid,`status`,max(modifyday) modifyday, max(opttime) opttime
+					from t_erp_inventory_his
+					where modifyday &lt;=#{byday,jdbcType=DATE}
+						and (`status`='fulfillable' or `status` like 'outbound%')
+						and shopid=#{shopid,jdbcType=CHAR} 
+					group by shopid,warehouseid,materialid,status
+					) v
+					left join t_erp_inventory_his his on his.shopid=v.shopid and his.warehouseid=v.warehouseid
+						and his.materialid=v.materialid and his.`status`=v.`status` and his.modifyday=v.modifyday
+						and his.opttime=v.opttime
+					left join t_erp_warehouse w on w.id=his.warehouseid
+						where w.parentid=#{parentid,jdbcType=CHAR}
+					group by his.shopid,w.parentid 	,his.materialid
+					) v1
+					LEFT JOIN (
+							SELECT   ifnull(sum(quantity),0) salesum ,re.materialid
+					from t_erp_inventory_record re
+					left join t_erp_warehouse wh on re.warehouseid=wh.id
+					where re.opttime>=#{byday,jdbcType=DATE}
+						and re.operate='out' and re.`status`!='inbound' and re.shopid=#{shopid,jdbcType=CHAR} 
+			 	        and wh.parentid =#{parentid,jdbcType=CHAR}
+					group by re.shopid,wh.parentid 	,re.materialid
+					) v2 ON    v1.materialid=v2.materialid
+			    WHERE v1.qty1>v2.salesum
+			    ) vn 
+			    LEFT JOIN (
+			    	select w.id, w.name warehouse,m.sku,m.name pname,m.id skuid, sum(i.inbound) inbound,SUM(i.fulfillable) fulfillable,sum(i.outbound) outbound,
+					ifnull(p.location,p.url) image
+					from t_erp_warehouse w
+					left join t_erp_warehouse wp on w.parentid=wp.id
+					left join (
+						SELECT   warehouseid,materialid ,
+							sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+							sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+							sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+						from t_erp_inventory
+						where shopid=#{shopid,jdbcType=CHAR} 
+						group by shopid,warehouseid,materialid
+					) i on w.id=i.warehouseid
+					left join t_erp_material m on i.materialid=m.id AND m.shopid=#{shopid,jdbcType=CHAR} 
+					left join t_picture p on p.id=m.image
+					where wp.ftype ='self' 
+						and w.shopid=#{shopid,jdbcType=CHAR} 
+						and w.disabled=0
+			         AND w.parentid=#{parentid,jdbcType=CHAR}
+			         GROUP BY w.parentid ,m.id
+					   ) vnx ON vnx.skuid=materialid 
+			 WHERE  ifnull(vnx.fulfillable,0)>0
+   
+   </select>
+</mapper>

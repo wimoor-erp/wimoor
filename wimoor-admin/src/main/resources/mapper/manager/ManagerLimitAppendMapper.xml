@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.ManagerLimitAppendMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.ManagerLimitAppend">
+        <id column="id" property="id" />
+        <result column="shopid" property="shopid" />
+        <result column="tariffpackage" property="tariffpackage" />
+        <result column="tariffpackage_append_id" property="tariffpackageAppendId" />
+        <result column="ftype" property="ftype" />
+        <result column="num" property="num" />
+        <result column="effecttime" property="effecttime" />
+        <result column="losingeffect" property="losingeffect" />
+        <result column="isclose" property="isclose" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+
+</mapper>

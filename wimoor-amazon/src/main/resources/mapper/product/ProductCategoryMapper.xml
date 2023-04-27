@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductCategoryMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductCategory">
+		<id column="CategoryId" property="categoryid" jdbcType="CHAR" />
+		<id column="pid" property="pid" jdbcType="CHAR" />
+		<result column="Name" property="name" jdbcType="VARCHAR" />
+		<result column="parentId" property="parentid" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		CategoryId, pid, Name, parentId
+	</sql>
+	
+   <insert id="insertBatch"   parameterType="java.util.List">
+	    replace into t_product_category(CategoryId, pid, Name, parentId)
+	    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+	    (
+	      #{adv.categoryid,jdbcType=CHAR}, #{adv.pid,jdbcType=CHAR}, #{adv.name,jdbcType=CHAR}, #{adv.parentid,jdbcType=CHAR}
+	    )
+    </foreach>
+  </insert>
+	
+</mapper> 

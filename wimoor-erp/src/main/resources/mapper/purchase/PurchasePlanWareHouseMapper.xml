@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchasePlanWareHouseMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchasePlanWareHouse" >
+    <id column="warehouseid" property="warehouseid" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="planid" property="planid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    warehouseid, shopid, planid 
+  </sql>
+  
+  <select id="getWareHouseIdForPlanId" resultType="com.wimoor.erp.purchase.pojo.entity.PurchasePlanWareHouse" parameterType="java.lang.String">
+    select t.warehouseid,t.shopid,t.planid,tw.name 
+    from t_erp_v3_purchase_plan_warehouse t 
+    left join t_erp_warehouse tw on t.warehouseid = tw.id
+    where t.planid = #{planid, jdbcType=CHAR} 
+    	and t.shopid = #{shopid, jdbcType=CHAR}
+  </select>  
+  
+  <select id="getPurchasePlanWareHouseForShopId" resultType="com.wimoor.erp.purchase.pojo.entity.PurchasePlanWareHouse" parameterType="java.lang.String">
+    select t.*,tw.name
+    from t_erp_v3_purchase_plan_warehouse t 
+    left join t_erp_warehouse tw on tw.id = t.warehouseid
+    where t.shopid = #{shopid, jdbcType=CHAR}
+  </select>
+  
+</mapper>

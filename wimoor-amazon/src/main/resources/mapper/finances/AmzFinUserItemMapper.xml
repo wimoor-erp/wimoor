@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzFinUserItemMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzFinUserItem" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="creator" property="creator" jdbcType="BIGINT" />
+    <result column="disable" property="disable" jdbcType="BIT" />
+    <result column="isused" property="isused" jdbcType="BIT" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, name, creator, disable, isused, createdate
+  </sql>
+  
+  <select id="findFinListByShopid" resultType="java.util.Map"  parameterType="java.lang.String">
+    select *
+    from t_amz_fin_user_item
+    where shopid = #{shopid,jdbcType=CHAR} and disable=0
+  </select>
+  
+</mapper>

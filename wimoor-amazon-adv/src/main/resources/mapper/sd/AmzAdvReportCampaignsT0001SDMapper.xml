@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sd.dao.AmzAdvReportCampaignsT0001SDMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sd.pojo.AmzAdvReportCampaignsT0001SD" >
+    <id column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="campaignStatus" property="campaignstatus" jdbcType="CHAR" />
+    <result column="campaignName" property="campaignname" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="attributedDPV14d" property="attributeddpv14d" jdbcType="INTEGER" />
+    <result column="attributedUnitsSold14d" property="attributedunitssold14d" jdbcType="INTEGER" />
+    <result column="attributedSales14d" property="attributedsales14d" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    campaignId, bydate, profileid, campaignStatus, campaignName, impressions, clicks, 
+    cost, currency, attributedDPV14d, attributedUnitsSold14d, attributedSales14d
+  </sql>
+       <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sd_campaigns_t00001 ( 
+     campaignId, bydate, profileid, campaignStatus, campaignName, impressions, clicks, 
+     cost, currency, attributedDPV14d, attributedUnitsSold14d, attributedSales14d)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.campaignid,jdbcType=BIGINT},  
+      #{adv.bydate,jdbcType=DATE},
+      #{adv.profileid,jdbcType=BIGINT}, 
+      #{adv.campaignstatus,jdbcType=BIGINT}, 
+      #{adv.campaignname,jdbcType=CHAR},
+      #{adv.impressions,jdbcType=INTEGER},
+      #{adv.clicks,jdbcType=INTEGER}, 
+      #{adv.cost,jdbcType=DECIMAL}, 
+      #{adv.currency,jdbcType=CHAR}, 
+      #{adv.attributeddpv14d,jdbcType=INTEGER}, 
+      #{adv.attributedunitssold14d,jdbcType=INTEGER}, 
+      #{adv.attributedsales14d,jdbcType=INTEGER}     
+       
+    )
+    </foreach>
+  </insert>
+</mapper>

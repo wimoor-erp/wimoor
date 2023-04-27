@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sd.dao.AmzAdvAdgroupsSDMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sd.pojo.AmzAdvAdgroupsSD" >
+    <id column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="CHAR" />
+    <result column="defaultBid" property="defaultbid" jdbcType="DECIMAL" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    adGroupId, campaignId, profileid, name, state, defaultBid, opttime
+  </sql>
+ 	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_adgroups_sd ( adGroupId, campaignId, profileid, name, state, defaultBid, opttime)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.adgroupid,jdbcType=BIGINT},
+			#{adv.campaignid,jdbcType=BIGINT},
+			#{adv.profileid,jdbcType=BIGINT},
+			#{adv.name,jdbcType=CHAR}, 
+			#{adv.state,jdbcType=CHAR},
+            #{adv.defaultbid,jdbcType=DECIMAL},
+		    #{adv.opttime,jdbcType=TIMESTAMP}
+			)
+		</foreach>
+	</insert>
+	
+	<select id="getAdgroupList" resultType="java.util.Map" parameterType="java.util.Map">
+		select CAST(t.campaignId AS CHAR) campaignId, CAST(t.adGroupId AS CHAR) id,
+			CAST(t.profileid AS CHAR) profileid, t.name,t.defaultBid,t.state status,mk.name market,
+			tr.iswarn iswarn,tr.cycle,tr.fcondition,tr.subtrahend,tr.quota,tr.amount,
+			tk.remark,p.marketplaceId marketplaceid,CAST(a.groupid AS CHAR) groupid,tg.name groupname,
+			v.*, tc.name campaignName,'' targetingtype,tc.state campaignStatus,t.opttime,'SD' campaignType
+		from t_amz_adv_adgroups_sd t
+		left join(
+			select t.campaignId campaignId1,t.profileid profileid1,t.adGroupId adGroupid,
+				sum(impressions) impressions,sum(clicks) clicks,sum(cost) cost,
+				ifnull((sum(cost) / sum(clicks)),0) avgcost,
+				ifnull((sum(clicks) / sum(impressions)),0) CTR,
+		
+			    case when ifnull(sum(cost),0)>0 and ifnull(sum(ifnull(attributedSales7d,0)),0)=0
+				then 10000000000
+				else ifnull((sum(cost) / sum(ifnull(attributedSales7d,0))),0)
+				end ACOS,
+				ifnull((sum(ifnull(attributedSales7d,0)) / sum(cost)),0) ROAS,
+				ifnull(sum(ifnull(attributedSales7d,0)),0) sumSales,
+				ifnull(sum(ifnull(attributedUnitsOrdered7d,0)),0) sumUnits,
+				ifnull((sum(ifnull(attributedConversions7d,0)) / sum(clicks)),0) CSRT,
+				ifnull(sum(attributedConversions7d) - sum(attributedConversions7dSameSKU),0) attributedConversions,
+				ifnull(sum(attributedConversions7dSameSKU),0) attributedConversionsSameSKU,
+				ifnull(sum(ifnull(attributedConversions7d,0)),0) attributedUnitsOrdered,
+				ifnull(sum(attributedSales7dSameSKU),0) attributedSalesSameSKU,
+				ifnull(sum(ifnull(attributedSales7d,0)) - sum(attributedSales7dSameSKU),0) attributedSales,
+		
+				case when ifnull(sum(cost),0)>0 and ifnull(sum(attributedSales1d),0)=0
+				then 10000000000
+				else ifnull((sum(cost) / sum(attributedSales1d)),0)
+				end ACOS1d,
+				ifnull((sum(attributedSales1d) / sum(cost)),0) ROAS1d,
+				ifnull(sum(attributedSales1d),0) sumSales1d,
+				ifnull(sum(attributedUnitsOrdered1d),0) sumUnits1d,
+				ifnull((sum(attributedConversions1d) / sum(clicks)),0) CSRT1d,
+				ifnull(sum(attributedConversions1d) - sum(attributedConversions1dSameSKU),0) attributedConversions1d,
+				ifnull(sum(attributedConversions1dSameSKU),0) attributedConversionsSameSKU1d,
+				ifnull(sum(attributedConversions1d),0) attributedUnitsOrdered1d,
+				ifnull(sum(attributedSales1dSameSKU),0) attributedSalesSameSKU1d,
+				ifnull(sum(attributedSales1d) - sum(attributedSales1dSameSKU),0) attributedSales1d,
+		
+				case when ifnull(sum(cost),0)>0 and ifnull(sum(attributedSales7d),0)=0
+				then 10000000000
+				else ifnull((sum(cost) / sum(attributedSales7d)),0)
+				end ACOS7d,
+				ifnull((sum(attributedSales7d) / sum(cost)),0) ROAS7d,
+				ifnull(sum(attributedSales7d),0) sumSales7d,
+				ifnull(sum(attributedUnitsOrdered7d),0) sumUnits7d,
+				ifnull((sum(attributedConversions7d) / sum(clicks)),0) CSRT7d,
+				ifnull(sum(attributedConversions7d) - sum(attributedConversions7dSameSKU),0) attributedConversions7d,
+				ifnull(sum(attributedConversions7dSameSKU),0) attributedConversionsSameSKU7d,
+				ifnull(sum(attributedConversions7d),0) attributedUnitsOrdered7d,
+				ifnull(sum(attributedSales7dSameSKU),0) attributedSalesSameSKU7d,
+				ifnull(sum(attributedSales7d) - sum(attributedSales7dSameSKU),0) attributedSales7d,
+		
+				case when ifnull(sum(cost),0)>0 and ifnull(sum(attributedSales14d),0)=0
+				then 10000000000
+				else ifnull((sum(cost) / sum(attributedSales14d)),0)
+				end ACOS14d,
+				ifnull((sum(attributedSales14d) / sum(cost)),0) ROAS14d,
+				ifnull(sum(attributedSales14d),0) sumSales14d,
+				ifnull(sum(attributedUnitsOrdered14d),0) sumUnits14d,
+				ifnull((sum(attributedConversions14d) / sum(clicks)),0) CSRT14d,
+				ifnull(sum(attributedConversions14d) - sum(attributedConversions14dSameSKU),0) attributedConversions14d,
+				ifnull(sum(attributedConversions14dSameSKU),0) attributedConversionsSameSKU14d,
+				ifnull(sum(attributedConversions14d),0) attributedUnitsOrdered14d,
+				ifnull(sum(attributedSales14dSameSKU),0) attributedSalesSameSKU14d,
+				ifnull(sum(attributedSales14d) - sum(attributedSales14dSameSKU),0) attributedSales14d,
+		
+				case when ifnull(sum(cost),0)>0 and ifnull(sum(attributedSales30d),0)=0
+				then 10000000000
+				else ifnull((sum(cost) / sum(attributedSales30d)),0)
+				end ACOS30d,
+				ifnull((sum(attributedSales30d) / sum(cost)),0) ROAS30d,
+				ifnull(sum(attributedSales30d),0) sumSales30d,
+				ifnull(sum(attributedUnitsOrdered30d),0) sumUnits30d,
+				ifnull((sum(attributedConversions30d) / sum(clicks)),0) CSRT30d,
+				ifnull(sum(attributedConversions30d) - sum(attributedConversions30dSameSKU),0) attributedConversions30d,
+				ifnull(sum(attributedConversions30dSameSKU),0) attributedConversionsSameSKU30d,
+				ifnull(sum(attributedConversions30d),0) attributedUnitsOrdered30d,
+				ifnull(sum(attributedSales30dSameSKU),0) attributedSalesSameSKU30d,
+				ifnull(sum(attributedSales30d) - sum(attributedSales30dSameSKU),0) attributedSales30d
+			from t_amz_adv_rpt2_sd_adgroups t
+		    left join t_amz_adv_rpt2_sd_adgroups_attributed d on d.adGroupId=t.adGroupId and d.bydate=t.bydate
+		    left join t_amz_adv_rpt2_sd_adgroups_attributed_same s on s.adGroupId=t.adGroupId and s.bydate=t.bydate
+		    left join t_amz_adv_rpt2_sd_adgroups_attributed_view v on  v.adGroupId=t.adGroupId and v.bydate=t.bydate
+			where t.bydate &gt;= #{fromDate,jdbcType=DATE} and t.bydate &lt;= #{endDate,jdbcType=DATE}
+			<if test="profileid != null">
+				and t.profileid = #{profileid,jdbcType=BIGINT}
+			</if>
+			<if test="campaignid != null">
+				and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			</if>
+			<if test="adGroupid != null">
+				and t.adGroupId = #{adGroupid,jdbcType=BIGINT}
+			</if>
+			group by adGroupid,campaignId1,profileid1
+		) v on t.adGroupId= v.adGroupid and t.campaignId = v.campaignId1 and t.profileid = v.profileid1
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		left join t_amz_adv_campaigns_sd tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_remind tr on tr.adgroupid = t.adGroupId and t.campaignId = tr.campaignid and p.id = tr.profileid 
+				and tr.keywordid = 0 and tr.adid = 0 and tr.targetid = 0
+		left join t_amz_adv_remark tk on tk.adgroupId = t.adGroupId and t.campaignId = tk.campaignId and p.id = tk.profileid 
+				and tk.keywordId = 0 and tk.adId = 0 and tk.targetId = 0
+		where a.shopid = #{shopid,jdbcType=CHAR}
+		<if test="adGroupid != null">
+			and t.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignid != null">
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignName != null">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="targetingType != null">
+			and tc.targetingType = #{targetingType,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus != 'runing' and adGroupsStatus != 'stoping'">
+			and t.state = #{adGroupsStatus,jdbcType=CHAR}
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'runing'">
+			and t.state = 'enabled'
+			and tc.state = 'enabled'
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'stoping'">
+			and (t.state = 'paused' or (t.state = 'enabled' 
+			and (tc.state = 'paused' or tc.state = 'archived')))
+		</if>
+		<if test="adGroupsStatus == null">
+			and (t.state = 'paused' or t.state = 'enabled')
+		</if>
+		<if test="adGroupsName != null and adGroupsName != ''">
+			and t.name like #{adGroupsName,jdbcType=CHAR}
+		</if>
+		<if test="paralist != null">
+			and ${paralist}
+		</if>
+	</select>
+	<select id="getSumAdGroup" resultType="java.util.Map" parameterType="java.util.Map">
+		select sum(impressions) impressions, sum(clicks) clicks, sum(cost) cost,
+			ifnull((sum(cost) / sum(clicks)),0) avgcost,
+			ifnull((sum(clicks) / sum(impressions)),0) CTR,
+			case when ifnull(sum(cost),0)>0 and ifnull(sum(ifnull(attributedSales7d,0)),0)=0
+			then 10000000000
+			else ifnull((sum(cost) / sum(ifnull(attributedSales7d,0))),0)
+			end ACOS,
+			ifnull((sum(ifnull(attributedSales7d,0)) / sum(cost)),0) ROAS,
+			ifnull(sum(ifnull(attributedSales7d,0)),0) sumSales,
+			ifnull(sum(ifnull(attributedUnitsOrdered7d,0)),0) sumUnits,
+			ifnull((sum(attributedConversions7d) / sum(clicks)),0) CSRT,
+			ifnull(sum(attributedConversions7d) - sum(attributedConversions7dSameSKU),0) attributedConversions,
+			ifnull(sum(attributedConversions7dSameSKU),0) attributedConversionsSameSKU,
+			ifnull(sum(attributedConversions7d),0) attributedUnitsOrdered,
+			ifnull(sum(attributedSales7dSameSKU),0) attributedSalesSameSKU,
+			ifnull(sum(attributedSales7d) - sum(attributedSales7dSameSKU),0) attributedSales
+		from t_amz_adv_rpt2_sd_adgroups v
+		left join t_amz_adv_rpt2_sd_adgroups_attributed d on d.adGroupId=v.adGroupId and d.bydate=v.bydate
+		left join t_amz_adv_rpt2_sd_adgroups_attributed_same sa on sa.adGroupId=v.adGroupId and sa.bydate=v.bydate
+		left join t_amz_adv_rpt2_sd_adgroups_attributed_view v1 on  v1.adGroupId=v.adGroupId and v1.bydate=v.bydate
+		left join t_amz_adv_adgroups_sd t on t.adGroupId = v.adGroupId and t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_campaigns_sd tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		where v.bydate &gt;= #{fromDate,jdbcType=DATE}  and v.bydate &lt;= #{endDate,jdbcType=DATE} and a.shopid = #{shopid,jdbcType=CHAR}
+		<if test="adGroupid != null">
+			and v.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignName != null">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="targetingType != null">
+			and tc.targetingType = #{targetingType,jdbcType=CHAR}
+		</if>
+		<if test="profileid != null">
+			and v.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus != 'runing' and adGroupsStatus != 'stoping'">
+			and t.state = #{adGroupsStatus,jdbcType=CHAR}
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'runing'">
+			and t.state = 'enabled'
+			and tc.state = 'enabled'
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'stoping'">
+			and (t.state = 'paused' or (t.state = 'enabled' 
+			and (tc.state = 'paused' or tc.state = 'archived')))
+		</if>
+		<if test="adGroupsStatus == null">
+			and (t.state = 'paused' or t.state = 'enabled')
+		</if>
+		<if test="adGroupsName != null and adGroupsName != ''">
+			and t.name like #{adGroupsName,jdbcType=CHAR}
+		</if>
+		<if test="paralist != null">
+			and ${paralist}
+		</if>
+	</select>
+	
+		<select id="getAdgroupChart" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(v.bydate,'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(v.bydate) ,'-' ,month(v.bydate)) bydate,
+		</if>
+		<if test="serchlist != null">
+			${serchlist}
+		</if>
+		from t_amz_adv_rpt2_sd_adgroups v
+		left join t_amz_adv_rpt2_sd_adgroups_attributed d on d.adGroupId=v.adGroupId and d.bydate=v.bydate
+		left join t_amz_adv_rpt2_sd_adgroups_attributed_same sa on sa.adGroupId=v.adGroupId and sa.bydate=v.bydate
+		left join t_amz_adv_adgroups_sd t on t.adGroupId= v.adGroupId and t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_campaigns_sd tc on v.campaignId = tc.campaignId and v.profileid = tc.profileid
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and v.bydate &gt;= #{fromDate,jdbcType=DATE} and v.bydate &lt;= #{endDate,jdbcType=DATE}
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupid != null">
+			and v.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignName != null">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="targetingType != null">
+			and tc.targetingType = #{targetingType,jdbcType=CHAR}
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus != 'runing' and adGroupsStatus != 'stoping'">
+			and t.state = #{adGroupsStatus,jdbcType=CHAR}
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'runing'">
+			and t.state = 'enabled'
+			and tc.state = 'enabled'
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'stoping'">
+			and (t.state = 'paused' or (t.state = 'enabled' 
+			and (tc.state = 'paused' or tc.state = 'archived')))
+		</if>
+		<if test="adGroupsStatus == null">
+			and (t.state = 'paused' or t.state = 'enabled')
+		</if>
+		<if test="adGroupsName != null and adGroupsName != ''">
+			and t.name like #{adGroupsName,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(v.bydate,'%y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(v.bydate) ,'-' ,month(v.bydate))
+		</if>
+	</select>
+	
+		<select id="getAdgroupByRemind" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="serchstr != null">
+			${serchstr}
+		</if>
+	    from t_amz_adv_rpt2_sd_adgroups t
+		left join t_amz_adv_rpt2_sd_adgroups_attributed d on d.adGroupId=t.adGroupId and d.bydate=t.bydate
+		left join t_amz_adv_rpt2_sd_adgroups_attributed_same sa on sa.adGroupId=t.adGroupId and sa.bydate=t.bydate
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			and t.adGroupId = #{adgroupid,jdbcType=BIGINT}
+		<if test="yesterDay != null">
+			and t.bydate = #{yesterDay,jdbcType=DATE}
+		</if>
+		<if test="severDayBegin != null and severDayEnd != null">
+			and t.bydate &gt;= #{severDayBegin,jdbcType=DATE} and t.bydate &lt;= #{severDayEnd,jdbcType=DATE}
+		</if>
+		group by t.adGroupId,t.campaignId,t.profileid
+	</select>
+	
+		<select id="getAdgroupByRemindlast" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="serchstr != null">
+			${serchstr}
+		</if>
+		 from t_amz_adv_rpt2_sd_adgroups t
+		left join t_amz_adv_rpt2_sd_adgroups_attributed d on d.adGroupId=t.adGroupId and d.bydate=t.bydate
+		left join t_amz_adv_rpt2_sd_adgroups_attributed_same sa on sa.adGroupId=t.adGroupId and sa.bydate=t.bydate
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			and t.adGroupId = #{adgroupid,jdbcType=BIGINT}
+		<if test="lastDay != null">
+			and t.bydate = #{lastDay,jdbcType=DATE}
+		</if>
+		<if test="lastSeverDayBegin != null and lastSeverDayEnd != null">
+			and t.bydate &gt;= #{lastSeverDayBegin,jdbcType=DATE} and t.bydate &lt;= #{lastSeverDayEnd,jdbcType=DATE}
+		</if>
+		group by t.adGroupId,t.campaignId,t.profileid
+	</select>
+	
+</mapper>

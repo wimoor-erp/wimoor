@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.task.dao.SysTimeTaskLogMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.task.pojo.SysTimeTaskLog" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="job_id" property="jobId" jdbcType="CHAR" />
+    <result column="reason" property="reason" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, createdate, job_id, reason, state
+  </sql>
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_sys_timetask_log
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_sys_timetask_log
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.plum.frame.pojo.SysTimeTaskLog" >
+    insert into t_sys_timetask_log (id, createdate, job_id, 
+      reason, state)
+    values (#{id,jdbcType=CHAR}, #{createdate,jdbcType=TIMESTAMP}, #{jobId,jdbcType=CHAR}, 
+      #{reason,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.plum.frame.pojo.SysTimeTaskLog" >
+    insert into t_sys_timetask_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="jobId != null" >
+        job_id,
+      </if>
+      <if test="reason != null" >
+        reason,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="jobId != null" >
+        #{jobId,jdbcType=CHAR},
+      </if>
+      <if test="reason != null" >
+        #{reason,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.plum.frame.pojo.SysTimeTaskLog" >
+    update t_sys_timetask_log
+    <set >
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="jobId != null" >
+        job_id = #{jobId,jdbcType=CHAR},
+      </if>
+      <if test="reason != null" >
+        reason = #{reason,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.plum.frame.pojo.SysTimeTaskLog" >
+    update t_sys_timetask_log
+    set createdate = #{createdate,jdbcType=TIMESTAMP},
+      job_id = #{jobId,jdbcType=CHAR},
+      reason = #{reason,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

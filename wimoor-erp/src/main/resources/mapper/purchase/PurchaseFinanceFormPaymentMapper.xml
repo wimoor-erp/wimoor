@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseFinanceFormPaymentMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseFinanceFormPayment" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="formentryid" property="formentryid" jdbcType="CHAR" />
+    <result column="acct" property="acct" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="payprice" property="payprice" jdbcType="DECIMAL" />
+    <result column="projectid" property="projectid" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+  </resultMap>
+    
+        
+   
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvReportAsinsMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sp.pojo.AmzAdvReportAsins">
+		<id column="bydate" property="bydate" jdbcType="DATE" />
+		<id column="keywordId" property="keywordid" jdbcType="BIGINT" />
+		<id column="asin" property="asin" jdbcType="CHAR" />
+		<id column="otherAsin" property="otherasin" jdbcType="CHAR" />
+		<result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+		<result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="profileid" property="profileid" jdbcType="BIGINT" />
+		<result column="campaignName" property="campaignname" jdbcType="CHAR" />
+		<result column="keywordText" property="keywordtext" jdbcType="CHAR" />
+		<result column="adGroupName" property="adgroupname" jdbcType="CHAR" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="matchType" property="matchtype" jdbcType="CHAR" />
+		<result column="attributedUnitsOrdered1dOtherSKU" property="attributedunitsordered1dothersku" jdbcType="DECIMAL" />
+		<result column="attributedUnitsOrdered7dOtherSKU" property="attributedunitsordered7dothersku" jdbcType="DECIMAL" />
+		<result column="attributedUnitsOrdered14dOtherSKU" property="attributedunitsordered14dothersku" jdbcType="DECIMAL" />
+		<result column="attributedUnitsOrdered30dOtherSKU" property="attributedunitsordered30dothersku" jdbcType="DECIMAL" />
+		<result column="attributedSales1dOtherSKU" property="attributedsales1dothersku" jdbcType="DECIMAL" />
+		<result column="attributedSales7dOtherSKU" property="attributedsales7dothersku" jdbcType="DECIMAL" />
+		<result column="attributedSales14dOtherSKU" property="attributedsales14dothersku" jdbcType="DECIMAL" />
+		<result column="attributedSales30dOtherSKU" property="attributedsales30dothersku" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		campaignId, bydate, adGroupId, keywordId, asin, sku, otherAsin, profileid, campaignName,
+		keywordText, adGroupName, currency, matchType, attributedUnitsOrdered1dOtherSKU,
+		attributedUnitsOrdered7dOtherSKU, attributedUnitsOrdered14dOtherSKU, attributedUnitsOrdered30dOtherSKU,
+		attributedSales1dOtherSKU, attributedSales7dOtherSKU, attributedSales14dOtherSKU, attributedSales30dOtherSKU
+	</sql>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_sp_asins
+		(
+		campaignId, bydate, adGroupId, keywordId, targetId,asin, sku, otherAsin,
+		profileid, 
+		attributedUnitsOrdered1d,
+		attributedUnitsOrdered7d,
+		attributedUnitsOrdered14d,
+		attributedUnitsOrdered30d,
+		attributedUnitsOrdered1dOtherSKU,
+		attributedUnitsOrdered7dOtherSKU,
+		attributedUnitsOrdered14dOtherSKU, 
+		attributedUnitsOrdered30dOtherSKU,
+		attributedSales1dOtherSKU, 
+		attributedSales7dOtherSKU,
+		attributedSales14dOtherSKU, 
+		attributedSales30dOtherSKU,
+		opttime
+		)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.campaignid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},
+			#{adv.adgroupid,jdbcType=BIGINT},#{adv.keywordid,jdbcType=BIGINT},#{adv.targetid,jdbcType=BIGINT},
+			#{adv.asin,jdbcType=CHAR},#{adv.sku,jdbcType=CHAR},#{adv.otherasin,jdbcType=CHAR},
+			#{adv.profileid,jdbcType=BIGINT},
+
+			#{adv.attributedUnitsOrdered1d,jdbcType=INTEGER},
+			#{adv.attributedUnitsOrdered7d,jdbcType=INTEGER},
+			#{adv.attributedUnitsOrdered14d,jdbcType=INTEGER},
+			#{adv.attributedUnitsOrdered30d,jdbcType=INTEGER},
+			
+			#{adv.attributedunitsordered1dothersku,jdbcType=INTEGER},
+			#{adv.attributedunitsordered7dothersku,jdbcType=INTEGER},
+			#{adv.attributedunitsordered14dothersku,jdbcType=INTEGER},
+			#{adv.attributedunitsordered30dothersku,jdbcType=INTEGER},
+			
+			#{adv.attributedsales1dothersku,jdbcType=DECIMAL},
+			#{adv.attributedsales7dothersku,jdbcType=DECIMAL},
+			#{adv.attributedsales14dothersku,jdbcType=DECIMAL},
+			#{adv.attributedsales30dothersku,jdbcType=DECIMAL},
+			#{adv.opttime,jdbcType=DATE}
+			)
+		</foreach>
+	</insert>
+
+	<select id="getAsins" resultType="java.util.LinkedHashMap" parameterType="java.util.Map">
+		select
+		<if test="dateType == 'daily'">
+			t.bydate,
+		</if>
+			c.name campaignName,g.name adGroupName,k.matchType matchType,k.keywordText keywordText,
+			t.asin 'Advertised ASIN',t.sku 'Advertised SKU',t.otherAsin 'Purchased ASIN',
+			sum(attributedSales7dOtherSKU) '7 Day Other SKU Sales' ,
+			sum(attributedUnitsOrdered7dOtherSKU) '7 Day Other SKU Orders'
+		from t_amz_adv_rpt2_sp_asins t
+		left join t_amz_adv_campaigns c on c.campaignId=t.campaignId
+		left join t_amz_adv_adgroups g on g.adGroupId=t.adGroupId
+		left join t_amz_adv_keywords k on k.keywordId=t.keywordId 
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.bydate&lt;=#{endDate,jdbcType=CHAR}
+			and t.bydate&gt;=#{fromDate,jdbcType=CHAR}
+		<if test="dateType == 'daily'">
+			group by t.bydate,t.campaignId,t.adGroupId,t.keywordId,t.asin,t.sku,t.otherAsin
+		</if>
+		<if test="dateType == 'total'">
+			group by t.campaignId,t.adGroupId,t.keywordId,t.asin,t.sku,t.otherAsin
+		</if>
+	</select>
+
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.feed.mapper.AmzSubmitFeedQueueMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="amazonAuthId" property="amazonauthid" jdbcType="BIGINT" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="feed_type" property="feedType" jdbcType="CHAR" />
+    <result column="feedoptions" property="feedoptions" jdbcType="VARCHAR" />
+    <result column="process_date" property="processDate" jdbcType="TIMESTAMP" />
+    <result column="filename" property="filename" jdbcType="VARCHAR" />
+    <result column="process_log" property="processLog" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="submitfeedid" property="submitfeedid" jdbcType="BIGINT" />
+     <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARBINARY" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, amazonAuthId, marketplaceid, feed_type, process_date, filename, process_log, 
+    operator, submitfeedid, createtime,feedoptions
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  
+  <select id="selectByFeedTypeAndFileName" resultType="java.util.Map" parameterType="java.lang.String" >
+    SELECT q.*,s.feed_processing_status feedstatus from t_amz_submitfeed_queue q 
+		left join t_amz_submitfeed s on q.submitfeedid=s.feed_submissionid 
+	 where  q.amazonAuthId=#{authorityid,jdbcType=BIGINT} and q.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+	 and q.feed_type=#{feedtype,jdbcType=CHAR} and q.filename=#{shipmentid,jdbcType=VARCHAR} 
+	order by s.opttime desc limit 1 
+  </select>
+  
+    <select id="findQueue" resultType="java.util.Map" parameterType="java.lang.String" >
+    SELECT q.*,s.feed_processing_status feedstatus from t_amz_submitfeed_queue q 
+		left join t_amz_submitfeed s on q.submitfeedid=s.feed_submissionid 
+	 where  q.amazonAuthId=#{authorityid,jdbcType=BIGINT} and q.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+	 and q.feed_type=#{feedtype,jdbcType=CHAR} and q.filename=#{shipmentid,jdbcType=VARCHAR} 
+	order by s.opttime desc limit 1 
+  </select>
+   
+     <select id="findProcessing" resultMap="BaseResultMap" parameterType="java.lang.String" >
+      SELECT q.id, q.shopid, q.amazonAuthId, q.marketplaceid, q.feed_type, q.process_date, q.filename, q.process_log, 
+                q.operator, q.submitfeedid, q.createtime,q.feedoptions
+	    from  t_amz_submitfeed_queue q left join t_amz_submitfeed s on q.submitfeedid=s.feed_submissionid 
+        where q.amazonAuthId=#{authorityid,jdbcType=BIGINT} and q.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+        and createtime>date_add(NOW(), INTERVAL -30 day)
+        and q.process_date is not null and q.submitfeedid is not null and 
+        ifnull(s.feed_processing_status,'IN_PROGRESS') in ('IN_PROGRESS','IN_QUEUE','SUBMITTED') 
+        limit 15;
+  </select>
+  
+    <select id="selectByKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_submitfeed_queue
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  
+    <select id="findByMarket" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from t_amz_submitfeed_queue
+    where shopid=#{shopid,jdbcType=BIGINT} 
+    and amazonAuthId=#{authid,jdbcType=BIGINT} 
+    and marketplaceid=#{marketplaceid,jdbcType=BIGINT} 
+    and process_date is null
+    and createtime>date_add(NOW(), INTERVAL -30 day)
+    ORDER by createtime asc 
+    limit 1;
+  </select>
+  
+ 
+</mapper>

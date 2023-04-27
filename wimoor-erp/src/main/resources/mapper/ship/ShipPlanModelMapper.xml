@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipPlanModelMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipPlanModel" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="planid" property="planid" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <result column="groupid" property="groupid" jdbcType="CHAR" />
+    <result column="refreshtime" property="refreshtime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, planid, warehouseid, groupid, refreshtime,operator
+  </sql>
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_ship_planmodel
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_ship_planmodel
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipPlanModel" >
+    insert into t_erp_ship_planmodel (id, planid, warehouseid, 
+      groupid, refreshtime)
+    values (#{id,jdbcType=CHAR}, #{planid,jdbcType=CHAR}, #{warehouseid,jdbcType=CHAR}, 
+      #{groupid,jdbcType=CHAR}, #{refreshtime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipPlanModel" >
+    insert into t_erp_ship_planmodel
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="planid != null" >
+        planid,
+      </if>
+      <if test="warehouseid != null" >
+        warehouseid,
+      </if>
+      <if test="groupid != null" >
+        groupid,
+      </if>
+      <if test="refreshtime != null" >
+        refreshtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="planid != null" >
+        #{planid,jdbcType=CHAR},
+      </if>
+      <if test="warehouseid != null" >
+        #{warehouseid,jdbcType=CHAR},
+      </if>
+      <if test="groupid != null" >
+        #{groupid,jdbcType=CHAR},
+      </if>
+      <if test="refreshtime != null" >
+        #{refreshtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.ShipPlanModel" >
+    update t_erp_ship_planmodel
+    <set >
+      <if test="planid != null" >
+        planid = #{planid,jdbcType=CHAR},
+      </if>
+      <if test="warehouseid != null" >
+        warehouseid = #{warehouseid,jdbcType=CHAR},
+      </if>
+      <if test="groupid != null" >
+        groupid = #{groupid,jdbcType=CHAR},
+      </if>
+      <if test="refreshtime != null" >
+        refreshtime = #{refreshtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ShipPlanModel" >
+    update t_erp_ship_planmodel
+    set planid = #{planid,jdbcType=CHAR},
+      warehouseid = #{warehouseid,jdbcType=CHAR},
+      groupid = #{groupid,jdbcType=CHAR},
+      refreshtime = #{refreshtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>
