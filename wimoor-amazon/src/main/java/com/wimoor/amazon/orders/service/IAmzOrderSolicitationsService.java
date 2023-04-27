@@ -1,0 +1,13 @@
+package com.wimoor.amazon.orders.service;
+
+import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+
+public interface IAmzOrderSolicitationsService {
+	/**
+	 * 获取订单的Review，调用此API将向买家发送评论邀请
+	 * @param auth
+	 * @param orderid
+	 * @param marketplaceid
+	 */
+   public void createProductReviewAndSellerFeedbackSolicitation(AmazonAuthority auth,String orderid,String marketplaceid);
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementSummaryReturnsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzSettlementSummaryReturns" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="amazonAuthId" property="amazonauthid" jdbcType="BIGINT" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="marketplace_name" property="marketplaceName" jdbcType="CHAR" />
+    <result column="posted_date" property="postedDate" jdbcType="DATE" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, amazonAuthId, sku, marketplace_name, posted_date, quantity
+  </sql>
+   <delete id="refreshSummary" parameterType="java.util.Map">
+		delete from t_amz_settlement_summary_returns
+		where settlementid=#{settlement_id,jdbcType=CHAR};
+	       
+		insert into t_amz_settlement_summary_returns 
+		select UUID_SHORT(),r.settlement_id,r.amazonauthid,IFNULL(r.sku,'*'),
+		rt.marketplace_name,posted_date,
+		count(order_id) order_amount,
+		count(case when fulfillment_id='MFN' then 1 else null end  ) mfnqty
+		from t_amz_settlement_report r
+		left  JOIN t_amz_settlement_acc_report rt ON r.settlement_id=rt.settlement_id
+		where r.transaction_type='Refund' 
+		  and r.amount_description='Principal' 
+		  and r.amount_type='ItemPrice' 
+          and r.settlement_id=#{settlement_id,jdbcType=CHAR}
+		group BY r.amazonAuthId,sku,rt.marketplace_name ,r.posted_date
+	</delete>
+	
+	
+	<select id="selectTable" resultType="java.util.Map" parameterType="java.lang.Long" >
+	    select * from ${table}
+	</select>
+	
+	<insert id="insertTable"  parameterType="java.util.Map" >
+	   insert ignore into ${table} 
+	   		<foreach collection="list" item="map" index="index" separator=",">
+	   		  <if test="index==0">
+	   		    ( 
+		        <foreach collection="map.entrySet()" index="key" item="value" separator=",">
+		          `${key}`
+		        </foreach>	
+		        )
+		        values
+	   		   </if>
+	   			( 
+	   			<foreach collection="map.entrySet()" index="key" item="value" separator=",">
+	   			  <if test="value==null">
+	   			      NULL
+	   			  </if>
+	   			  <if test="value!=null">
+	   			    <if test="value!=''">
+		             '${value}' 
+	   			    </if>
+	   			    <if test="value==''">
+		              NULL
+	   			    </if>
+	   			  </if>
+		        </foreach>	
+		        )
+		</foreach>
+	</insert>
+	 
+</mapper>

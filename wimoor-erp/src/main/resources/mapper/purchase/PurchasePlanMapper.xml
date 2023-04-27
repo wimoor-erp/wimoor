@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchasePlanMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchasePlan">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="number" property="number" jdbcType="CHAR" />
+		<result column="status" property="status" jdbcType="TINYINT" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="VARCHAR" />
+		<result column="totalnum" property="totalnum" jdbcType="INTEGER" />
+		<result column="totalbuyqty" property="totalbuyqty" jdbcType="INTEGER" />
+		<result column="totalpayprice" property="totalpayprice" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, number, status, creator, shopid, createtime,o pttime, operator ,totalnum, totalbuyqty, totalpayprice
+	</sql>
+
+	<select id="getPurchasePlanForShopId" resultType="java.util.Map" parameterType="java.lang.String">
+	    select plan.id planid,plan.opttime,plan.operator,pw.warehouseid,tw.name 
+	    from t_erp_v3_purchase_plan plan
+		left join t_erp_v3_purchase_plan_warehouse pw on pw.planid = plan.id and pw.shopid = plan.shopid
+		left join t_erp_warehouse tw on tw.id = pw.warehouseid  
+		where plan.shopid = #{shopid, jdbcType=CHAR}
+		and plan.disable=0
+    </select>
+    
+ 
+ 
+</mapper>

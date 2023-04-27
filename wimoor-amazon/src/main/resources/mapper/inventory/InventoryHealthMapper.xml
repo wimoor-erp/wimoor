@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inventory.mapper.InventoryHealthMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.InventoryHealth">
+        <id column="shopid" property="shopid" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="sku" property="sku" />
+        <result column="authid" property="authid" />
+        <result column="snapshot_date" property="snapshotDate" />
+        <result column="fnsku" property="fnsku" />
+        <result column="asin" property="asin" />
+        <result column="name" property="name" />
+        <result column="fcondition" property="fcondition" />
+        <result column="sales_rank" property="salesRank" />
+        <result column="product_group" property="productGroup" />
+        <result column="total_quantity" property="totalQuantity" />
+        <result column="sellable_quantity" property="sellableQuantity" />
+        <result column="unsellable_quantity" property="unsellableQuantity" />
+        <result column="inv_age_0to90days" property="invAge0to90days" />
+        <result column="inv_age_91to180days" property="invAge91to180days" />
+        <result column="inv_age_181to270days" property="invAge181to270days" />
+        <result column="inv_age_271to365days" property="invAge271to365days" />
+        <result column="inv_age_365plusdays" property="invAge365plusdays" />
+        <result column="units_shipped_last24hrs" property="unitsShippedLast24hrs" />
+        <result column="units_shipped_last7days" property="unitsShippedLast7days" />
+        <result column="units_shipped_last30days" property="unitsShippedLast30days" />
+        <result column="units_shipped_last90days" property="unitsShippedLast90days" />
+        <result column="units_shipped_last180days" property="unitsShippedLast180days" />
+        <result column="units_shipped_last365days" property="unitsShippedLast365days" />
+        <result column="weeks_of_cover_t7" property="weeksOfCoverT7" />
+        <result column="weeks_of_cover_t30" property="weeksOfCoverT30" />
+        <result column="weeks_of_cover_t90" property="weeksOfCoverT90" />
+        <result column="weeks_of_cover_t180" property="weeksOfCoverT180" />
+        <result column="weeks_of_cover_t365" property="weeksOfCoverT365" />
+        <result column="num_afn_new_sellers" property="numAfnNewSellers" />
+        <result column="num_afn_used_sellers" property="numAfnUsedSellers" />
+        <result column="currency" property="currency" />
+        <result column="your_price" property="yourPrice" />
+        <result column="sales_price" property="salesPrice" />
+        <result column="lowest_afn_new_price" property="lowestAfnNewPrice" />
+        <result column="lowest_afn_used_price" property="lowestAfnUsedPrice" />
+        <result column="lowest_mfn_new_price" property="lowestMfnNewPrice" />
+        <result column="lowest_mfn_used_price" property="lowestMfnUsedPrice" />
+        <result column="qty_to_be_charged_ltsf_12mo" property="qtyToBeChargedLtsf12mo" />
+        <result column="qty_in_long_term_storage_program" property="qtyInLongTermStorageProgram" />
+        <result column="qty_with_removals_in_progress" property="qtyWithRemovalsInProgress" />
+        <result column="projected_ltsf_12_mo" property="projectedLtsf12Mo" />
+        <result column="per_unit_volume" property="perUnitVolume" />
+        <result column="is_hazmat" property="isHazmat" />
+        <result column="in_bound_quantity" property="inBoundQuantity" />
+        <result column="asin_limit" property="asinLimit" />
+        <result column="inbound_recommend_quantity" property="inboundRecommendQuantity" />
+        <result column="qty_to_be_charged_ltsf_6mo" property="qtyToBeChargedLtsf6mo" />
+        <result column="projected_ltsf_6mo" property="projectedLtsf6mo" />
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.inventory.mapper.InventoryMonthSummaryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.inventory.pojo.entity.InventoryMonthSummary" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="materialid" property="materialid" jdbcType="BIGINT" />
+    <result column="warehouseid" property="warehouseid" jdbcType="BIGINT" />
+    <result column="month" property="month" jdbcType="TIMESTAMP" />
+    <result column="startqty" property="startqty" jdbcType="INTEGER" />
+    <result column="endqty" property="endqty" jdbcType="INTEGER" />
+    <result column="shipment" property="shipment" jdbcType="INTEGER" />
+    <result column="dispatch" property="dispatch" jdbcType="INTEGER" />
+    <result column="assembly" property="assembly" jdbcType="INTEGER" />
+    <result column="purchase" property="purchase" jdbcType="INTEGER" />
+    <result column="otherout" property="otherout" jdbcType="INTEGER" />
+    <result column="otherin" property="otherin" jdbcType="INTEGER" />
+    <result column="diff" property="diff" jdbcType="INTEGER" />
+    <result column="refreshtime" property="refreshtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, materialid, warehouseid,month, startqty, endqty, shipment, dispatch, assembly, purchase, 
+    otherout, otherin, diff, refreshtime
+  </sql>
+   <select id="getpurchase"  parameterType="java.util.Map" resultType="java.util.Map">
+      SELECT SUM(case when r.ftype='in' then r.amount ELSE case when r.ftype='out' then r.amount*-1 ELSE 0 END END) qty
+		 FROM t_erp_purchase_form_receive r
+		LEFT JOIN  t_erp_purchase_form_entry e ON r.formentryid=e.id
+		LEFT JOIN t_erp_purchase_form f ON f.id=e.formid
+		WHERE f.shopid=#{shopid,jdbcType=CHAR} 
+	    AND r.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		AND e.materialid=#{materialid,jdbcType=CHAR}  
+		AND r.opttime>=#{begindate,jdbcType=DATE} 
+		AND r.opttime &lt; #{enddate,jdbcType=DATE}
+   </select>
+   
+      <select id="getOtherOut"  parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT sum(e.amount) qty  FROM  t_erp_outwh_form_entry e
+		LEFT JOIN t_erp_outwh_form f ON f.id=e.formid
+		WHERE e.materialid=#{materialid,jdbcType=CHAR} 
+		AND f.warehouseid=#{warehouseid,jdbcType=CHAR}  
+		AND f.shopid=#{shopid,jdbcType=CHAR} 
+		AND f.opttime>=#{begindate,jdbcType=DATE}  
+		AND f.opttime&lt;  #{enddate,jdbcType=DATE}
+   </select>
+   
+      <select id="getOtherIn"  parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT sum(e.amount) qty  FROM  t_erp_inwh_form_entry e
+		LEFT JOIN t_erp_inwh_form f ON f.id=e.formid
+		WHERE e.materialid=#{materialid,jdbcType=CHAR} 
+		AND f.warehouseid=#{warehouseid,jdbcType=CHAR}  
+		AND f.shopid=#{shopid,jdbcType=CHAR} 
+		AND f.opttime>=#{begindate,jdbcType=DATE}  
+		AND f.opttime&lt;  #{enddate,jdbcType=DATE}
+   </select>
+   
+    <select id="getShip"  parameterType="java.util.Map" resultType="java.util.Map">
+     SELECT sum( i.QuantityShipped) qty FROM t_erp_ship_inbounditem i
+		 LEFT JOIN t_erp_ship_inboundplan p ON p.id=i.inboundplanid
+		 LEFT JOIN t_erp_ship_inboundshipment s ON s.ShipmentId=i.ShipmentId AND s.inboundplanid=i.inboundplanid AND s.inboundplanid=p.id
+		 LEFT JOIN t_product_info  pinfo ON pinfo.sku=i.SellerSKU AND pinfo.marketplaceid=p.marketplaceid  
+		 LEFT JOIN t_product_in_opt o ON o.pid=pinfo.id
+		 LEFT JOIN t_amazon_auth auth ON auth.id=pinfo.amazonAuthId AND auth.shop_id=p.shopid
+		 LEFT JOIN t_erp_material m ON m.sku=IFNULL(o.msku,i.SellerSKU) AND m.shopid=p.shopid AND m.isDelete=false
+		 WHERE s.`status`>=5 AND auth.groupid=p.amazongroupid
+		 AND (s.sync_inv=2 OR s.sync_inv=0)
+		 AND m.id=#{materialid,jdbcType=CHAR}
+		 AND p.shopid=#{shopid,jdbcType=CHAR}
+		 AND p.warehouseid=#{warehouseid,jdbcType=CHAR}
+		 AND s.shiped_date>= #{begindate,jdbcType=DATE}
+		 AND  s.shiped_date &lt;  #{enddate,jdbcType=DATE}
+   </select>
+   
+       <select id="getStock"  parameterType="java.util.Map" resultType="java.util.Map">
+           SELECT sum(ifnull(i.overamount,0)-IFNULL(i.lossamount,0)) qty 
+			FROM t_erp_stocktaking_item i
+			LEFT JOIN t_erp_stocktaking  f ON f.id=i.stocktakingid
+			WHERE i.warehouseid=#{warehouseid,jdbcType=CHAR}
+			AND i.materialid=#{materialid,jdbcType=CHAR}
+			AND f.shopid=#{shopid,jdbcType=CHAR}
+			AND f.opttime>=#{begindate,jdbcType=DATE}
+			AND f.opttime &lt;  #{enddate,jdbcType=DATE}
+        </select>
+   
+
+
+   <select id="getDispathIn"  parameterType="java.util.Map" resultType="java.util.Map">
+       		  SELECT SUM(e.amount) qty 
+				from t_erp_dispatch_form_entry e
+				LEFT JOIN t_erp_dispatch_form f ON e.formid=f.id
+				WHERE e.materialid=#{materialid,jdbcType=CHAR}
+				AND f.to_warehouseid=#{warehouseid,jdbcType=CHAR}
+				AND f.shopid=#{shopid,jdbcType=CHAR}
+				AND f.audittime>=#{begindate,jdbcType=DATE}
+				and f.audittime&lt;#{enddate,jdbcType=DATE}
+   </select>
+   
+    <select id="getDispathOut"  parameterType="java.util.Map" resultType="java.util.Map">
+       		  SELECT SUM(e.amount) qty 
+				from t_erp_dispatch_form_entry e
+				LEFT JOIN t_erp_dispatch_form f ON e.formid=f.id
+				WHERE e.materialid=#{materialid,jdbcType=CHAR}
+				AND f.from_warehouseid=#{warehouseid,jdbcType=CHAR}
+				AND f.shopid=#{shopid,jdbcType=CHAR}
+				AND f.audittime>=#{begindate,jdbcType=DATE}
+				and f.audittime&lt;#{enddate,jdbcType=DATE}
+   </select>
+      
+    <select id="getAssemblyOut"  parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT SUM((e.amount/f.amount)*i.amount) qty
+		FROM t_erp_assembly_from_instock i
+		LEFT JOIN t_erp_assembly_form f ON f.id=i.formid
+		LEFT JOIN 	t_erp_assembly_form_entry e ON e.formid=f.id  
+		WHERE f.shopid=#{shopid,jdbcType=CHAR}
+		AND e.materialid=#{materialid,jdbcType=CHAR}
+		AND f.warehouseid=#{warehouseid,jdbcType=CHAR} 
+	    AND f.amount_handle>0
+		AND i.opttime>=#{begindate,jdbcType=DATE}
+		AND i.opttime&lt; #{enddate,jdbcType=DATE}
+   </select>
+      
+    <select id="getAssemblyIn"  parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT SUM(i.amount) qty
+		FROM t_erp_assembly_from_instock i
+		LEFT JOIN t_erp_assembly_form f ON f.id=i.formid
+		WHERE f.shopid=#{shopid,jdbcType=CHAR}
+		AND f.mainmid=#{materialid,jdbcType=CHAR}
+		AND f.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		AND i.opttime>=#{begindate,jdbcType=DATE}
+		AND i.opttime&lt; #{enddate,jdbcType=DATE}
+   </select>
+   
+      <select id="getChangeOut"  parameterType="java.util.Map" resultType="java.util.Map">
+       		  SELECT SUM(e.amount) qty 
+				from t_erp_changewh_form_entry e
+				LEFT JOIN t_erp_changewh_form f ON e.formid=f.id
+				WHERE e.material_from=#{materialid,jdbcType=CHAR}
+				AND f.warehouseid=#{warehouseid,jdbcType=CHAR}
+				AND f.shopid=#{shopid,jdbcType=CHAR}
+				AND f.opttime>=#{begindate,jdbcType=DATE}
+				and f.opttime&lt;#{enddate,jdbcType=DATE} 
+   </select>
+  
+   <select id="getChangeIn"  parameterType="java.util.Map" resultType="java.util.Map">
+       		  SELECT SUM(e.amount) qty 
+				from t_erp_changewh_form_entry e
+				LEFT JOIN t_erp_changewh_form f ON e.formid=f.id
+				WHERE e.material_to=#{materialid,jdbcType=CHAR}
+				AND f.warehouseid=#{warehouseid,jdbcType=CHAR}
+				AND f.shopid=#{shopid,jdbcType=CHAR}
+				AND f.opttime>=#{begindate,jdbcType=DATE}
+				and f.opttime&lt;#{enddate,jdbcType=DATE}
+   </select>
+	
+       <select id="findHaveInv"  parameterType="java.util.Map" resultType="java.util.Map">
+			SELECT  distinct f.materialid
+			FROM   t_erp_inventory_his f 
+			WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} 
+			AND f.shopid=#{shopid,jdbcType=CHAR}
+			AND f.STATUS='fulfillable'
+			AND modifyday>=#{begindate,jdbcType=DATE}
+			AND modifyday&lt; #{enddate,jdbcType=DATE}
+       </select>
+       
+       
+       <select id="findReport"  parameterType="java.util.Map" resultType="java.util.Map">
+			 SELECT s.*,m.name ,m.price,p.location image,i.name ownername,m.sku ,w.name warehousename
+			 from t_erp_inventory_month_summary s
+			LEFT JOIN t_erp_material m ON m.id=s.materialid
+			LEFT JOIN t_erp_warehouse w ON w.id=s.warehouseid
+			LEFT JOIN t_picture p ON p.id=m.image
+			LEFT JOIN t_userinfo i ON i.id=m.owner
+			where m.shopid=#{param.shopid,jdbcType=CHAR} 
+				AND s.month=#{param.month,jdbcType=CHAR}
+			    <if test="param.warehouseid != null" >
+			    and s.warehouseid=#{param.warehouseid,jdbcType=CHAR} 
+			    </if>
+			    <if test="param.materialid != null" >
+			    and s.materialid=#{param.materialid,jdbcType=CHAR} 
+			    </if>
+			     <if test="param.sku != null" >
+			    and m.sku like #{param.sku,jdbcType=CHAR} 
+			    </if>
+       </select>
+      
+ 
+</mapper>

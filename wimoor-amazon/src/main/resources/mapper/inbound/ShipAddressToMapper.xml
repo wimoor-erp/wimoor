@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipAddressToMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipAddressTo" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="isfrom" property="isfrom" jdbcType="BIT" />
+    <result column="addressLine1" property="addressline1" jdbcType="CHAR" />
+    <result column="addressLine2" property="addressline2" jdbcType="CHAR" />
+    <result column="city" property="city" jdbcType="CHAR" />
+    <result column="districtOrCounty" property="districtorcounty" jdbcType="CHAR" />
+    <result column="stateOrProvinceCode" property="stateorprovincecode" jdbcType="CHAR" />
+    <result column="countryCode" property="countrycode" jdbcType="CHAR" />
+    <result column="postalCode" property="postalcode" jdbcType="CHAR" />
+    <result column="phone" property="phone" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, isfrom, addressLine1, addressLine2, city, districtOrCounty, stateOrProvinceCode, 
+    countryCode, postalCode, phone, shopid, opttime, operator
+  </sql>
+   
+</mapper>
