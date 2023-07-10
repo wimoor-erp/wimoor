@@ -1,0 +1,61 @@
+<!doctype html>
+	<html>
+	  <head>
+	<meta charset="utf-8">
+	    <title>Wimoor</title>
+	    <style>
+	    *{margin:0;padding:0}	
+	      body {
+	        min-width: 357px;
+	        overflow-x: hidden;
+	        background:#fff;
+	      }
+	      .othertitle{margin-bottom:24px;}
+	      .title{font-size:16px;color:#000;padding:16px 24px ; border-bottom:1px solid #ddd;}
+	      .outbox{padding:24px 24px 16px 24px;border-bottom:1px solid #ddd;}
+	      .inbox{padding:24px 24px 16px 24px; background:#f9fafd;}
+	      .flowbox{display:flex; flex-direction:row;}
+	      .items{width:100%;margin:8px;text-align: center;font-size: 12px;position: relative;}
+	     .items span{color:#999;}
+	     .items p{position: absolute;color:#bbb;left:4px;top:-20px}
+	      .items div{margin-bottom:4px;}
+	      .review{background:url(img/reviews.png);display:block;width: 32px;height: 32px;margin-right:8px;}
+	     .uploud{background:url(img/uploud.png);display:inline-block;width: 40px;height:32px;margin-bottom:8px;}
+	      .downloud{background:url(img/downloud.png) center center no-repeat;display:inline-block;width: 100%;height:32px;margin-bottom:8px;}
+	     .file{background:url(img/file.png);display:inline-block;width: 32px;height:32px;margin-bottom:8px;}
+	      #startsubmit {display:flex; flex-direction:row;align-items:center;width:100%;justify-content: center;font-size: 16px;}
+	     #smessage{
+	     padding-top:10px;
+	     padding-bottom:10px;
+	     }
+	      button:hover{border:1px solid #ffce76;}
+	      button:active,button:focus{
+	      	outline:none;background:#fff4e0;
+	      }
+	      #downloadPageView{
+	      width:100%;
+	      }
+	     button{
+	     border:1px solid #ddd;
+	     background:#fff;
+	     padding:16px 24px;
+	     cursor: pointer;
+	     }
+	     #filetext{width:100%}
+	     #smessage{color:#999;}
+	    </style>
+	
+	    <script src="js/jquery-3.3.1.js"></script>
+	    <script src="popup.js"></script>
+	  </head>
+	  <body>
+	  	<div class="title"> Wimoor亚马逊卖家插件</div>
+	  	<div class="outbox">
+	  <button id="startsubmit"> <i class="review"></i><div>开始自动获取review</div></button>
+	  <div id="smessage">帮助卖家获取更多评论，在亚马逊后台"订单管理页面"点击该按钮才能生效</div>
+	  </div>
+ 
+	  </body>
+	  <script type="text/javascript" src="js/jquery-3.3.1.js"></script>
+	  <script type="text/javascript" src="js/popup.js"></script>
+	</html>

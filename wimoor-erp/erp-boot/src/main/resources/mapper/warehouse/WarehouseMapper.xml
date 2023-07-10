@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.warehouse.mapper.WarehouseMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.warehouse.pojo.entity.Warehouse">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="ftype" property="ftype" jdbcType="CHAR" />
+		<result column="flevel" property="flevel" jdbcType="CHAR" />
+		<result column="number" property="number" jdbcType="CHAR" />
+		<result column="address" property="address" jdbcType="VARCHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="parentid" property="parentid" jdbcType="CHAR" />
+		<result column="findex" property="findex" jdbcType="INTEGER" />
+		<result column="isdefault" property="isdefault" jdbcType="BIT" />
+		<result column="fbawareid" property="fbawareid" jdbcType="CHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="stocking_cycle" property="stockingCycle" jdbcType="INTEGER" />
+		<result column="disabled" property="disabled" jdbcType="BIT" />
+		<result column="isstocktaking" property="isstocktaking" jdbcType="BIT" />
+		<result column="min_cycle" property="mincycle" jdbcType="INTEGER" />
+	</resultMap>
+	<!-- 显示仓库信息 -->
+	<select id="selectAllByShopId" resultType="java.util.Map" parameterType="java.lang.String">
+		select *
+		from t_erp_warehouse tw
+		where tw.shopid = #{shopid,jdbcType=CHAR}
+	</select>
+    <select id="getUUID"   resultType="java.lang.String">
+      select uuid_short();
+    </select>
+	<select id="findByCondition" resultType="com.wimoor.erp.warehouse.pojo.entity.Warehouse" parameterType="java.lang.String">
+		select w.id, w.name,t.name ftype,w.flevel,w.number,w.address,w.remark,w.findex findex,d.name addressid,
+			   w.shopid,w.parentid,u.name operator,w.opttime,w.stocking_cycle,w.isdefault,w.ishungry,w.groupid,w.country
+		from t_erp_warehouse w
+		left join t_erp_warehouse_type t on t.id=w.ftype
+		left join t_erp_warehouse_address d on d.id=w.addressid
+		left join t_userinfo u on u.id=w.operator
+		where w.shopid=#{shopid,jdbcType=CHAR} and w.disabled ='0'
+		<if test="search != null">
+			and (w.name like #{search,jdbcType=CHAR} or w.number like #{search,jdbcType=CHAR})
+		</if>
+		<if test="ftype ==null">
+			and w.ftype = 'self'
+		</if>
+		<if test="parentid !=null">
+			and w.parentid = #{parentid,jdbcType=CHAR}
+		</if>
+		<if test="ftype != null">
+			and w.ftype like #{ftype,jdbcType=CHAR}
+		</if>
+		order by ifnull(w.findex,9999) asc,w.name
+	</select>
+
+	<select id="findByType" resultType="com.wimoor.erp.warehouse.pojo.entity.Warehouse" parameterType="java.lang.String">
+		select * from (select w.id, 
+		      w.name,
+		      t.name ftype,
+		      w.flevel,
+		      w.number,
+		      w.address,
+		      w.remark,
+		      ifnull(p.findex*10000,999999999)+ifnull(w.findex,0) findex,
+		      d.name addressid,
+		      w.country,
+			  w.shopid,
+			  w.parentid,
+			  u.name operator,
+			  w.opttime,
+			  w.stocking_cycle,
+			  w.isdefault,
+			  w.ishungry
+		from t_erp_warehouse w
+		left join t_erp_warehouse_type t on t.id=w.ftype
+		left join t_erp_warehouse_address d on d.id=w.addressid
+		left join t_erp_warehouse p on p.id=w.parentid
+		left join t_userinfo u on u.id=w.operator
+		where w.shopid=#{shopid,jdbcType=CHAR} and w.disabled ='0'
+			and w.ftype like #{ftype,jdbcType=CHAR}
+			) v
+		order by v.findex asc,v.name
+	</select>
+	
+	<select id="findAll" resultType="com.wimoor.erp.warehouse.pojo.entity.Warehouse" parameterType="java.lang.String">
+		select * 
+		from t_erp_warehouse w
+		where w.shopid=#{shopid,jdbcType=CHAR} and w.disabled ='0'
+			and (w.ftype ='self_usable' or w.ftype ='self_test')
+	 
+	</select>
+	
+	<select id="getOverseaWarehouse" resultType="com.wimoor.erp.warehouse.pojo.entity.Warehouse" parameterType="java.lang.String">
+		select * from (select w.id, 
+		      w.name,
+		      t.name ftype,
+		      w.flevel,
+		      w.number,
+		      w.address,
+		      w.remark,
+		      ifnull(p.findex*10000,999999999)+ifnull(w.findex,0) findex,
+		      d.name addressid,
+		      w.country,
+			  w.shopid,
+			  w.parentid,
+			  u.name operator,
+			  w.opttime,
+			  w.stocking_cycle,
+			  w.isdefault,
+			  w.ishungry
+		from t_erp_warehouse w
+		left join t_erp_warehouse_type t on t.id=w.ftype
+		left join t_erp_warehouse_address d on d.id=w.addressid
+		left join t_erp_warehouse p on p.id=w.parentid
+		left join t_userinfo u on u.id=w.operator
+		where w.shopid=#{shopid,jdbcType=CHAR} and w.disabled ='0'
+			and w.ftype like #{ftype,jdbcType=CHAR}
+			<if test="groupid">
+			and (w.groupid = #{groupid,jdbcType=CHAR} or w.groupid is null)
+			</if>
+			<if test="country">
+			   and (w.country = #{country,jdbcType=CHAR})
+			</if>
+			) v
+		order by v.findex asc,v.name
+	</select>
+	
+	<!-- 查询当前ftypeid -->
+	<select id="selectTypeByName" resultType="java.lang.String">
+		SELECT tt.id 
+		FROM t_erp_warehouse_type tt 
+		where tt.name=#{fname,jdbcType=CHAR} limit 0,1
+	</select>
+
+	<select id="findByType" resultType="java.util.Map" parameterType="java.lang.String">
+		<if test="ftype == 'FBA'">
+			SELECT case when m.region='EU' then 'EU' else m.marketplaceid end parentid,
+				case when m.region='EU' then 'EU' else m.marketplaceid END id,
+				case when m.region='EU' then CONCAT('FBA-',m.region_name) else CONCAT('FBA-',m.name) END name
+			from t_amazon_auth w
+			left join t_amazonseller_market mk on mk.sellerid=w.sellerid
+			left join t_marketplace m on m.marketplaceid=mk.marketplace_id
+			where w.shop_id=#{shopid,jdbcType=CHAR} 
+				and ifnull(w.disable,0)=0 
+				and ifnull(mk.disable,0)=0 
+				AND m.marketplaceId IS NOT null
+			group by case
+			when m.region='EU' then 'EU' else m.marketplaceid end
+			ORDER BY m.findex;
+		</if>
+		<if test="ftype != 'FBA'">
+			select w.* 
+			from t_erp_warehouse w
+			left join t_erp_warehouse wp on w.parentid=wp.id
+			where w.shopid=#{shopid,jdbcType=CHAR} 
+				and wp.ftype ='self' and w.disabled ='0'
+			ORDER BY ifnull(wp.findex,99999) ASC,w.name;
+		</if>
+	</select>
+
+	
+	<select id="selectSelfSale" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.id, w.id warehouseid, w.name,'self' groupid, ifnull(max(ifnull(sc.stockingCycle,w.stocking_cycle)),0) stocking_cycle,
+			ifnull(ifnull(sc.min_cycle,w.min_cycle),0) min_cycle,
+			ifnull(sum(case when substring_index(i.`status`,'_',1) ='inbound' or i.`status`='fulfillable'
+			then ifnull(i.quantity,0) else 0 end ),0) quantity
+		from t_erp_warehouse w
+		left join t_erp_warehouse wcell on wcell.parentid=w.id
+		left join t_erp_stockcycle sc on sc.warehouseid=w.id and sc.materialid=#{materialid,jdbcType=CHAR}
+		left join t_erp_inventory i on i.warehouseid=wcell.id and i.materialid=#{materialid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
+		where
+		<if test="warehouseidList != null and warehouseidList.size>0 ">
+			w.id in
+			<foreach collection="warehouseidList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		    and (wcell.ftype='self_usable' or wcell.ftype='self_test')
+			and w.disabled ='0'
+			and w.shopid=#{shopid,jdbcType=CHAR}
+		group by w.id
+	</select>
+	<!-- 默认添加三个子仓库 -->
+	<insert id="saveCheckOut" parameterType="java.lang.String">
+		replace into t_erp_warehouse
+		(`id` , `name` , `ftype` , `flevel`, `number` ,`address` , `remark` ,
+		`findex` , `shopid` , `parentid`, `operator` , `opttime` , `stocking_cycle`,`min_cycle`,`disabled`,`isdefault`) 
+		select UUID_SHORT(),concat(#{wname,jdbcType=CHAR},'-测试仓'), 'self_test',2,#{sernum,jdbcType=CHAR},tw.address,
+		concat(tw.address,'测试仓库'), 2,tw.shopid,tw.id,tw.operator,tw.opttime,tw.stocking_cycle,tw.min_cycle,0,1
+		from t_erp_warehouse tw
+		where tw.id=#{parentid,jdbcType=CHAR};
+	</insert>
+	
+	<insert id="saveQuality" parameterType="java.lang.String">
+		replace into t_erp_warehouse 
+		(`id` , `name` , `ftype` , `flevel`, `number` , `address` , `remark` , `findex` , `shopid` ,
+		`parentid`, `operator` , `opttime` , `stocking_cycle`,`min_cycle`,`disabled`,`isdefault`) 
+		select UUID_SHORT(),concat(#{wname,jdbcType=CHAR},'-正品仓'),
+		'self_usable',2,#{sernum,jdbcType=CHAR},tw.address,concat(tw.address,'正品仓库'),
+		1,tw.shopid,tw.id,tw.operator,tw.opttime,tw.stocking_cycle,tw.min_cycle,0,1
+		from t_erp_warehouse tw
+		where tw.id=#{parentid,jdbcType=CHAR};
+	</insert>
+	
+	<insert id="saveScrap" parameterType="java.lang.String">
+		replace into t_erp_warehouse 
+		(`id` , `name` , `ftype` , `flevel`, `number` , `address` , `remark` ,
+		`findex` , `shopid` , `parentid`, `operator` , `opttime` , `stocking_cycle`,`min_cycle`,`disabled`,`isdefault`) 
+		select UUID_SHORT(),concat(#{wname,jdbcType=CHAR},'-废品仓'),
+		'self_unusable',2,#{sernum,jdbcType=CHAR},tw.address,concat(tw.address,'废品仓库'),
+		3,tw.shopid,tw.id,tw.operator,tw.opttime,tw.stocking_cycle,tw.min_cycle,0,1
+		from t_erp_warehouse tw
+		where tw.id=#{parentid,jdbcType=CHAR};
+	</insert>
+
+	<select id="getTotalInvAndWorth" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.name , sum(i.quantity) totalqty,sum(i.quantity*m.price) worth
+		from t_erp_inventory i
+		left join t_erp_material m on i.materialid=m.id
+		left join t_erp_warehouse w on i.warehouseid=w.id
+		where w.id =#{warehouseid,jdbcType=CHAR} 
+			and i.`status` not like 'inbound%'
+		group by w.id
+	</select>
+
+	<select id="getParentWarehouse" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT * from t_erp_warehouse wp
+		LEFT JOIN t_erp_warehouse w on wp.id=w.parentid
+		where w.id=#{warehouseid,jdbcType=CHAR}
+	</select>
+
+
+
+	<update id="clearWareDefault" parameterType="java.lang.String">
+		update t_erp_warehouse t 
+		set t.isdefault=0 
+		where t.shopid=#{shopid,jdbcType=CHAR} and ftype=#{ftype,jdbcType=CHAR}
+	</update>
+
+	<select id="findWareDefault" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select * 
+		from t_erp_warehouse t 
+		where t.isdefault=1 
+			and t.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+
+</mapper>

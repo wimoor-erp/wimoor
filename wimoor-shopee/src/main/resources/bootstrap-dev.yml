@@ -1,0 +1,24 @@
+server:
+  port: 8090
+  servlet: 
+     context-path: /shopee
+spring:
+  application:
+    name: wimoor-shopee
+  cloud:
+    nacos:
+      # 注册中心
+      discovery:
+        server-addr: localhost:8848
+      # 配置中心
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+        # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
+

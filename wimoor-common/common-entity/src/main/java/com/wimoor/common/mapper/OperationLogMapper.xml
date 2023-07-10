@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.common.mapper.OperationLogMapper" >
+ <resultMap id="BaseResultMap" type="com.wimoor.common.pojo.entity.OperationLog" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="time" property="time" jdbcType="TIMESTAMP" />
+    <result column="ip" property="ip" jdbcType="CHAR" />
+    <result column="userid" property="userid" jdbcType="CHAR" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="logType" property="logtype" jdbcType="VARCHAR" />
+    <result column="method" property="method" jdbcType="CHAR" />
+    <result column="exceptionDetail" property="exceptiondetail" jdbcType="CHAR" />
+    <result column="param" property="param" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, time, ip, userid, username, logType, method, exceptionDetail, param, description 
+  </sql>
+  <select id="getLoglist" resultType="java.util.Map" parameterType="java.lang.String" >
+  		select sg.id,u.name username,DATE_FORMAT(sg.time,'%H:%i:%S') timestr,DATE_FORMAT(sg.time,'%Y-%m-%d') timestr2,
+  		sg.time,sg.description,sg.method,sg.userid from t_sys_operationlog sg
+		left join t_userinfo u on u.id=sg.userid
+		where sg.userid=#{userid,jdbcType=CHAR} order by sg.time DESC limit 0,50
+  </select>
+  <select id="getLogCount" resultType="java.util.Map" parameterType="java.lang.String">
+  	 select count(id) logcount from  t_sys_operationlog  t where t.time>=DATE_FORMAT(date_sub(now(),interval 24 hour),'%Y-%m-%d')  and t.userid=#{userid,jdbcType=CHAR} 
+  </select>
+   <select id="getOperateRecoedLast5" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select  id, time, ip, userid, username, logType, method, exceptionDetail, description  from  t_sys_operationlog t where t.userid=#{userid,jdbcType=CHAR}
+  	<if test="description != null">
+  	 and t.description=#{description,jdbcType=CHAR}
+  	</if>
+  	order by t.time desc limit 9
+  </select>
+
+</mapper>

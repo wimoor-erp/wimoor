@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.assembly.mapper.AssemblyFormEntryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.assembly.pojo.entity.AssemblyFormEntry" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+     <result column="subnumber" property="subnumber" jdbcType="INTEGER" />
+    <result column="whamount" property="whamount" jdbcType="INTEGER" />
+     <result column="phamount" property="phamount" jdbcType="INTEGER" />
+     <result column="phedamount" property="phedamount" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, formid, materialid, warehouseid, amount,whamount,phamount,phedamount
+  </sql>
+  <!-- 查询当前id的entrylist集合 -->
+   <select id="selectByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
+    select m.sku sku, a.*,wh.name warename,ifnull(i.quantity,0) invcount,ifnull(i2.quantity,0) inbound,
+    m.name mname,IFNULL(pic.location,pic.url) image,m.color color,a.warehouseid warehouseid,
+    round(a.amount/ifnull(f.amount,1),0)  num,f.amount totalamount,m.delivery_cycle,m.supplier
+    from t_erp_assembly_form_entry a 
+     left join t_erp_assembly_form f on f.id=a.formid
+ 	 left join t_erp_material m on a.materialid = m.id
+ 	 left join t_picture pic on m.image=pic.id
+     left join t_erp_warehouse wh on wh.id=a.warehouseid
+     left join t_erp_inventory i on i.warehouseid=a.warehouseid  and i.materialid=a.materialid and i.`status`='fulfillable'
+     left join t_erp_inventory i2 on i2.warehouseid=a.warehouseid  and i2.materialid=a.materialid and i2.`status`='inbound_purchase'
+    where a.formid =  #{formid,jdbcType=CHAR}  ;
+  </select>
+  
+  <select id="selectEntityByFormid" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select a.* from t_erp_assembly_form_entry a 
+    where a.formid =  #{formid,jdbcType=CHAR}  ;
+  </select>
+  
+     <select id="selectAssemblyFormByPurchaseEntryId" resultType="java.util.Map" parameterType="java.lang.String" >
+    select  a.formid,f.number,w.name warehousename,m.sku mainsku ,m.name skuname,f.amount,f.auditstatus
+    from t_erp_assembly_form_entry a 
+    left join t_erp_assembly_form f on f.id=a.formid
+    left join t_erp_warehouse w ON w.id=f.warehouseid
+    LEFT JOIN t_erp_material m ON m.id=f.mainmid
+    where a.purchase_from_entry_id =  #{entryid,jdbcType=CHAR} ;
+  </select>
+  
+  
+</mapper>

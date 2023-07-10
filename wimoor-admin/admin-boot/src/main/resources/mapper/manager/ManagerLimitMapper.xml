@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.ManagerLimitMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.ManagerLimit">
+        <id column="id" property="id" />
+        <result column="shopId" property="shopId" />
+        <result column="maxShopCount" property="maxShopCount" />
+        <result column="maxMarketCount" property="maxMarketCount" />
+        <result column="maxProductCount" property="maxProductCount" />
+        <result column="maxOrderCount" property="maxOrderCount" />
+        <result column="maxMember" property="maxMember" />
+        <result column="maxProfitPlanCount" property="maxProfitPlanCount" />
+        <result column="maxdayOpenAdvCount" property="maxdayOpenAdvCount" />
+        <result column="existShopCount" property="existShopCount" />
+        <result column="existMarketCount" property="existMarketCount" />
+        <result column="existProductCount" property="existProductCount" />
+        <result column="existOrderCount" property="existOrderCount" />
+        <result column="existMember" property="existMember" />
+        <result column="existProfitPlanCount" property="existProfitPlanCount" />
+        <result column="existdayOpenAdvCount" property="existdayOpenAdvCount" />
+        <result column="tariffpackage" property="tariffpackage" />
+        <result column="losingEffect" property="losingEffect" />
+        <result column="remark" property="remark" />
+        <result column="opratetime" property="opratetime" />
+        <result column="createtime" property="createtime" />
+        <result column="oprate" property="oprate" />
+        <result column="logicVersion" property="logicVersion" />
+        <result column="saleskey" property="saleskey" />
+        <result column="neverNoticeShop" property="neverNoticeShop" />
+        <result column="afterNnoticeTariff" property="afterNnoticeTariff" />
+    </resultMap>
+
+</mapper>
