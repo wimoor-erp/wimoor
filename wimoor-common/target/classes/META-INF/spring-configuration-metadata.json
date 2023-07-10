@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "aliyun",
+      "type": "com.wimoor.common.service.impl.OSSApiService",
+      "sourceType": "com.wimoor.common.service.impl.OSSApiService"
+    }
+  ],
+  "properties": [
+    {
+      "name": "aliyun.bucket-name",
+      "type": "java.lang.String",
+      "sourceType": "com.wimoor.common.service.impl.OSSApiService"
+    },
+    {
+      "name": "aliyun.bucket-path",
+      "type": "java.lang.String",
+      "sourceType": "com.wimoor.common.service.impl.OSSApiService"
+    }
+  ],
+  "hints": []
+}

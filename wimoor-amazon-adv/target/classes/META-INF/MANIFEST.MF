@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Build-Jdk-Spec: 15
+Implementation-Title: wimoor-amazon-adv
+Implementation-Version: 1.0.0
+Created-By: Maven Integration for Eclipse
+
