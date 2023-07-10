@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.common.mapper.ImportRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.common.pojo.entity.ImportRecord" >
+        <id column="id" property="id" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="issuccess" property="issuccess" jdbcType="BIT" />
+		<result column="importtype" property="importtype" jdbcType="CHAR" />
+		<result column="log" property="log" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List">
+		id, opttime, operator, issuccess, importtype, log,shopid
+	</sql>
+  <select id="selectByShopid" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select r.id, opttime,u.name operator, issuccess, importtype, log,shopid
+		from t_sys_importrecord r
+		left join t_userinfo u on r.operator=u.id
+		where shopid = #{shopid,jdbcType=CHAR} 
+			and importtype= #{importtype,jdbcType=CHAR}
+		order by opttime desc
+		limit 5
+	</select>
+ 
+</mapper>

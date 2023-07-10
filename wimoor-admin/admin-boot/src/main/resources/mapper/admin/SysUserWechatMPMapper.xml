@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SysUserWechatMPMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SysUserWechatMP" >
+    <id column="openid" property="openid" jdbcType="CHAR" />
+    <result column="userid" property="userid" jdbcType="BIGINT" />
+    <result column="access_token" property="accessToken" jdbcType="CHAR" />
+    <result column="refresh_token" property="refreshToken" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    openid, userid, access_token, refresh_token
+  </sql>
+  
+  <select id="selectByUserId"  resultMap="BaseResultMap" parameterType="java.lang.String">
+  	select * from t_user_wechat_mp t where t.userid=#{userid,jdbcType=CHAR} and t.ftype='mp'
+  </select>
+  
+</mapper>

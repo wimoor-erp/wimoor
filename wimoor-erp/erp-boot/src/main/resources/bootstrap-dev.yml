@@ -1,0 +1,53 @@
+server:
+  port: 8086
+  servlet: 
+     context-path: /erp
+spring:
+  application:
+    name: wimoor-erp
+  cloud:
+    nacos:
+      # 注册中心
+      discovery:
+        server-addr: localhost:8848
+      # 配置中心
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+        # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
+seata:
+  application-id: device
+  enabled: true
+  tx-service-group: default_tx_group
+  service:
+    # 事务组对应的集群民称
+    vgroup-mapping: 
+       default_tx_group: default #和上面的nacos的上面的配置一致
+    # seata-server的地址
+    default:
+      grouplist: 127.0.0.1:8091
+    enable-auto-data-source-proxy: true
+  config:
+    type: nacos
+    nacos:
+      namespace: SEATA_GROUP #配置上面的namespace
+      serverAddr: http://localhost:8848 #nacos地址
+      group: SEATA_GROUP
+      userName: nacos
+      password: nacos
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      serverAddr: http://localhost:8848
+      group: SEATA_GROUP
+      namespace: SEATA_GROUP
+      userName: nacos
+      password: nacos
+      cluster: default

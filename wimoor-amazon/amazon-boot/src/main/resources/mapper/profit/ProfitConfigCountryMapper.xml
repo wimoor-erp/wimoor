@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.ProfitConfigCountryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="profitid" property="profitid" jdbcType="CHAR" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="constantw" property="constantw" jdbcType="DECIMAL" />
+    <result column="constantd" property="constantd" jdbcType="DECIMAL" />
+    <result column="constantm" property="constantm" jdbcType="DECIMAL" />
+    <result column="storagefee" property="storagefee" jdbcType="DECIMAL" />
+    <result column="taxRate" property="taxrate" jdbcType="DECIMAL" />
+    <result column="lostRate" property="lostrate" jdbcType="DECIMAL" />
+    <result column="sellerRate" property="sellerrate" jdbcType="DECIMAL" />
+    <result column="otherfee" property="otherfee" jdbcType="DECIMAL" />
+    <result column="costRate" property="costrate" jdbcType="DECIMAL" />
+    <result column="logistics" property="logistics" jdbcType="CHAR" />
+    <result column="subscriptionfee" property="subscriptionfee" jdbcType="DECIMAL" />
+    <result column="prepservice" property="prepservice" jdbcType="BIT" />
+    <result column="labelService" property="labelService" jdbcType="BIT" />
+    <result column="manualProcessing" property="manualProcessing" jdbcType="DECIMAL" />
+    <result column="unprepservice" property="unprepservice" jdbcType="DECIMAL" />
+    <result column="invplacefee" property="invplacefee" jdbcType="CHAR" />
+    <result column="promotion" property="promotion" jdbcType="DECIMAL" />
+     <result column="amonth" property="amonth" jdbcType="INTEGER" />
+     <result column="fba_month" property="fbaMonth" jdbcType="INTEGER" />
+     <result column="dispatch_type" property="fenpeiType" jdbcType="CHAR" />
+      <result column="warehouse_site" property="warehousesite" jdbcType="CHAR" />
+      <result column="hasAddedSite" property="hasAddedSite" jdbcType="BIT" />
+     <result column="vat_rate" property="vatRate" jdbcType="DECIMAL" />
+     <result column="fba_taxes" property="fbaTaxes" jdbcType="DECIMAL" />
+     <result column="hasDeclaredValue" property="hasDeclaredValue" jdbcType="BIT" />
+     <result column="declared_value" property="declaredValue" jdbcType="DECIMAL" />
+     <result column="gst_rate" property="gstrate" jdbcType="DECIMAL" />
+     <result column="selling_GSTRate" property="sellingGSTRate" jdbcType="DECIMAL" />
+     <result column="corporate_InRate" property="corporateInRate" jdbcType="DECIMAL" />
+  </resultMap>
+  
+  <select id="findByProfitId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select *   from t_profitcfgcountry
+    where profitid = #{profitid,jdbcType=CHAR}
+  </select>
+</mapper>

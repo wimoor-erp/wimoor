@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseFormPaymentMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseFormPayment" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="formentryid" property="formentryid" jdbcType="VARCHAR" />
+    <result column="payprice" property="payprice" jdbcType="DECIMAL" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+    <result column="projectid" property="projectid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, formentryid, payprice, opttime, operator,projectid
+  </sql>
+  <select id="paymentReport" resultType="java.util.Map" >
+        select pay.opttime,pay.payprice,form.number,entry.paystatus,entry.totalin,
+        form.createdate,m.sku,
+		p.location image,m.name mname,entry.amount purchases,w.name wname,c.name cname,
+		tp.name fee_type ,
+		pay.remark,
+		entry.orderprice,
+		pmd.name payment_method,entry.totalpay,
+		(entry.orderprice-entry.totalpay) need_pay,
+		u.name 
+		from t_erp_purchase_form_payment pay
+        left join t_erp_purchase_form_payment_method pmd on pmd.id=pay.payment_method
+		left join t_erp_fin_project tp on tp.id=pay.projectid  
+		left join t_erp_purchase_form_entry entry on entry.id=pay.formentryid
+		left join t_userinfo u on u.id=pay.operator
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_purchase_form form on form.id=entry.formid 
+		left join t_erp_customer c on c.id=entry.supplier
+        left join t_picture p on p.id=m.image
+        left join t_erp_warehouse w on w.id=form.warehouseid
+	where entry.auditstatus>1 and form.shopid=#{param.shopid,jdbcType=CHAR}   and pay.auditstatus=1
+	and pay.opttime &gt;=#{param.fromDate,jdbcType=DATE}
+    and pay.opttime &lt;=#{param.endDate,jdbcType=DATE} 
+    <if test="param.search!=null">
+    	<if test="param.searchtype!=null">
+    		<if test="param.searchtype=='sku'">
+    			and	m.sku like #{param.search,jdbcType=CHAR}
+    		</if>
+    		<if test="param.searchtype=='number'">
+    			 and (form.number like #{param.search,jdbcType=CHAR} )
+    		</if>
+    	</if>
+     </if>
+ 		<if test="param.projectid!=null">
+    			 and   pay.projectid= #{param.projectid,jdbcType=CHAR} 
+   		</if>
+   		<if test="param.warehouseid!=null">
+    			 and   form.warehouseid= #{param.warehouseid,jdbcType=CHAR} 
+   		</if>
+   		<if test="param.supplierid!=null">
+    			 and   entry.supplier= #{param.supplierid,jdbcType=CHAR} 
+   		</if>
+   		<if test="param.paymethod!=null">
+    			 and   pay.payment_method= #{param.paymethod,jdbcType=CHAR} 
+   		</if>
+    	 
+  </select>
+<select id="paymentReportSummary" resultType="java.util.Map">
+          select sum(pay.payprice) totalpayprice,sum(entry.amount*entry.itemprice-entry.totalpay) totalneedpay ,sum(entry.orderprice) totalorderprice
+		from t_erp_purchase_form_payment pay
+		left join t_erp_purchase_form_entry entry on entry.id=pay.formentryid
+		left join t_userinfo u on u.id=pay.operator
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_purchase_form form on form.id=entry.formid 
+	where entry.auditstatus>1 and form.shopid=#{shopid,jdbcType=CHAR} and pay.auditstatus=1
+	 and pay.opttime &gt;=#{fromDate,jdbcType=DATE}
+    and  pay.opttime &lt;=#{endDate,jdbcType=DATE} 
+    <if test="search!=null">
+    	<if test="searchtype!=null">
+    		<if test="searchtype=='sku'">
+    			and	m.sku like #{search,jdbcType=CHAR}
+    		</if>
+    		<if test="searchtype=='number'">
+    			 and  form.number like #{search,jdbcType=CHAR} 
+    		</if>
+    	</if>
+     </if>
+     <if test="warehouseid!=null">
+    			 and   form.warehouseid= #{warehouseid,jdbcType=CHAR} 
+   		</if>
+     <if test="projectid!=null">
+    			 and   pay.projectid= #{projectid,jdbcType=CHAR} 
+   		</if>
+   		<if test="supplierid!=null">
+    			 and   entry.supplier= #{supplierid,jdbcType=CHAR} 
+   		</if>
+   		<if test="paymethod!=null">
+    			 and   pay.payment_method= #{paymethod,jdbcType=CHAR} 
+   		</if>
+</select>
+
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_purchase_form_payment
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_purchase_form_payment
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormPayment" >
+    insert into t_erp_purchase_form_payment (id, formentryid, payprice, 
+      opttime, operator)
+    values (#{id,jdbcType=VARCHAR}, #{formentryid,jdbcType=VARCHAR}, #{payprice,jdbcType=DECIMAL}, 
+      #{opttime,jdbcType=TIMESTAMP}, #{operator,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormPayment" >
+    insert into t_erp_purchase_form_payment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="formentryid != null" >
+        formentryid,
+      </if>
+      <if test="payprice != null" >
+        payprice,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="formentryid != null" >
+        #{formentryid,jdbcType=VARCHAR},
+      </if>
+      <if test="payprice != null" >
+        #{payprice,jdbcType=DECIMAL},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormPayment" >
+    update t_erp_purchase_form_payment
+    <set >
+      <if test="formentryid != null" >
+        formentryid = #{formentryid,jdbcType=VARCHAR},
+      </if>
+      <if test="payprice != null" >
+        payprice = #{payprice,jdbcType=DECIMAL},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormPayment" >
+    update t_erp_purchase_form_payment
+    set formentryid = #{formentryid,jdbcType=VARCHAR},
+      payprice = #{payprice,jdbcType=DECIMAL},
+      opttime = #{opttime,jdbcType=TIMESTAMP},
+      operator = #{operator,jdbcType=CHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update> -->
+</mapper>

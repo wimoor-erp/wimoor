@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzRegionMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzRegion">
+		<id column="code" property="code" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="advname" property="advname" jdbcType="CHAR" />
+		<result column="advpoint" property="advpoint" jdbcType="CHAR" />
+		<result column="client_id" property="clientId" jdbcType="CHAR" />
+		<result column="client_secret" property="clientSecret" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		code, name, advname, advpoint, client_id, client_secret
+	</sql>
+	
+	<select id="getNoBindAdvRegion" resultType="java.util.Map" parameterType="java.lang.String">
+		select * from t_amz_region r
+		where r.code != 'TT' 
+			and r.code not in(
+				select a.region 
+				from t_amz_adv_auth a 
+				where a.shopid= #{shopid,jdbcType=CHAR}
+					and a.groupid= #{groupid,jdbcType=CHAR})
+	</select>
+
+</mapper>

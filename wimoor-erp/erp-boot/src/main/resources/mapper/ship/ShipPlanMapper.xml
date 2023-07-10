@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipPlanMapper">
+	<resultMap id="BaseResultMap"
+		type="com.wimoor.erp.ship.pojo.entity.ShipPlan">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+		<result column="amazongroupid" property="amazongroupid" jdbcType="CHAR" />
+		<result column="totalnum" property="totalnum" jdbcType="INTEGER" />
+		<result column="totalamount" property="totalamount" jdbcType="INTEGER" />
+		<result column="totalweight" property="totalweight" jdbcType="DECIMAL" />
+		<result column="goodsworth" property="goodsworth" jdbcType="DECIMAL" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, shopid, warehouseid, amazongroupid, totalnum, totalamount,
+		totalweight, goodsworth, opttime, operator, status
+	</sql>
+
+	<select id="selectByGroupAndWarehouse" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT * from t_erp_ship_plan where
+		amazongroupid=#{amazongroupid,jdbcType=CHAR}
+		and warehouseid=#{warehouseid,jdbcType=CHAR}
+		and `status`=1
+	</select>
+	
+	<select id="getPlanAmountByMaterial" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT sum(case when p.id=#{planid,jdbcType=CHAR} then 0 else amount end) amount FROM 
+		t_erp_ship_planitem i
+		LEFT JOIN t_erp_ship_plansub s ON s.id=i.plansubid
+		left join t_erp_ship_plan p ON p.id=s.planid
+		WHERE p.shopid=#{shopid,jdbcType=CHAR}
+		AND i.materialid=#{materialid,jdbcType=CHAR}
+	    and p.warehouseid=#{warehouseid,jdbcType=CHAR}
+	    and i.status=1 and s.status=1 and p.status=1
+	</select>
+ 
+	
+</mapper>

@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvAuthMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvAuth">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="groupid" property="groupid" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="code" property="code" jdbcType="CHAR" />
+		<result column="region" property="region" jdbcType="CHAR" />
+		<result column="access_token" property="accessToken" jdbcType="VARCHAR" />
+		<result column="refresh_token" property="refreshToken" jdbcType="VARCHAR" />
+		<result column="token_type" property="tokenType" jdbcType="CHAR" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="disable" property="disable" jdbcType="BIT" />
+		<result column="disableTime" property="disableTime" jdbcType="TIMESTAMP" />
+		<result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, groupid, shopid, code, region, access_token, refresh_token, token_type, creator, opttime, disable, disableTime,createtime
+	</sql>
+	
+	<update id="updateAdvAuthDisable" parameterType="java.util.Map">
+		update t_amz_adv_auth tp 
+		set tp.disable=#{disable,jdbcType=BIT} 
+		where tp.groupid=#{groupid,jdbcType=CHAR}
+			and tp.region=#{region,jdbcType=CHAR};
+	</update>
+
+	<select id="findViewList" resultType="java.util.Map" parameterType="java.lang.String">
+		select g.name,g.id,a.code 
+		from t_amazon_group g
+		left join t_amz_adv_auth a on a.groupid=g.id and a.disable = 0
+		where a.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+    
+	<select id="selectProfileByGroup" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.groupid,p.id id,m.name,ifnull(p.type,'seller') ftype
+		from t_amz_adv_profile p
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		where a.groupid=#{groupid,jdbcType=CHAR}
+		order by m.findex asc
+	</select>
+
+	<select id="getProfileByGroupAndmarkplace" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.groupid,p.id id,m.name region,tg.name groupname,p.currencyCode currency
+		from t_amz_adv_profile p
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		where p.marketplaceId=#{marketplaceid,jdbcType=CHAR} 
+			and a.groupid=#{groupid,jdbcType=CHAR}
+	</select>
+
+	<select id="getRegionByAdvgroup" resultType="com.wimoor.amazon.adv.common.pojo.Marketplace" parameterType="java.lang.String">
+		select distinct m.*
+		from t_amz_adv_profile p
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		<if test="advgroupid != null and advgroupid !='all'">
+			and a.groupid=#{advgroupid,jdbcType=CHAR}
+		</if>
+			and m.marketplaceId is not null
+		order by m.findex asc
+	</select>
+
+	<select id="getProfileIdByGroup" resultType="com.wimoor.amazon.adv.common.pojo.AmzAdvProfile" parameterType="java.lang.String">
+		select p.*
+		from t_amz_adv_profile p
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		where a.shopid=#{shopid,jdbcType=CHAR}
+			and a.groupid=#{advgroupid,jdbcType=CHAR}
+			and m.marketplaceId is not null
+		order by m.findex asc
+	</select>
+
+	<select id="findBindAdvCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(t.id) nums
+		from t_amz_adv_auth t
+		where t.shopid=#{shopid,jdbcType=CHAR}
+			and t.disable = 0
+	</select>
+
+	<select id="findgroupBySellerId" resultType="java.util.Map">
+		select auth.id authid, gro.name groName, gro.id groId, g.name gName,g.id gId,auth.shopid
+		from t_amz_adv_auth auth
+		left join t_amz_adv_profile pro on auth.id = pro.advauthId
+		left join t_amazon_auth amz on amz.sellerid = pro.sellerId
+		left join t_amazon_group g on g.id = amz.groupid
+		left join t_amz_adv_group gro on gro.id = auth.groupid
+		where auth.region != 'TT'
+		group by auth.id,pro.sellerid
+	</select>
+	<select id="selectNotDisableList" resultMap="BaseResultMap">
+		SELECT * FROM t_amz_adv_auth t 
+		WHERE t.`disable`=0 GROUP BY t.shopid
+	</select>
+
+	<delete id="deleteAdventDateForSellerId" parameterType="java.lang.String">
+		delete from t_amz_advert_report where sellerid = #{sellerid,jdbcType=CHAR};
+		delete from t_amz_advert_report_summary where sellerid = #{sellerid,jdbcType=CHAR};
+	</delete>
+
+	<delete id="deleteAdventDateForProfileId" parameterType="java.math.BigInteger">
+		delete from t_amz_adv_profile where id = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_adgroups where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_adgroups_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_assets where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_brand where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_campaigns where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_campaigns_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_campkeywords_negativa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_keywords where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_keywords_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_keywords_negativa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_operate_log where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_portfolios where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_productads where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_product_targe where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_product_targe_negativa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_remark where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_adgroups where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_adgroups_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_asins where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_campaignsplace_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_campaigns_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_compaigns where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_compaignsplace where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_keywords where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_keywordsquery where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_keywords_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_productads where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_product_targe where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_product_target_query where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_product_targe_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_stores where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_sumalltype where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_sumpdtads where profileid = #{profileid,jdbcType=BIGINT};
+	</delete>
+
+	<select id="findAmzAdvAuthWithDisable" resultType="java.util.Map">
+		select t.id authid, t.disable, t.disableTime, t.groupid, tp.id profileid, tp.sellerId
+		from t_amz_adv_auth t
+		left join t_amz_adv_profile tp on tp.advauthId = t.id
+		where t.disable = 1
+			and tp.id is not null
+			and 90 &lt;= datediff(now(), ifnull(t.disableTime,now()))
+	</select>
+
+	<update id="advAndSettmentDemoDataGenerate3">
+		update t_amz_adv_schedule_plan t set t.createtime = now(),t.startdate=now()
+		where 1=1 ;
+		update t_amz_adv_operate_log t set t.opttime = now() where 1=1;
+
+		insert ignore into t_amz_adv_sumalltype
+		select profileid,now(),state,'sp','campaign',count(*),now()
+		from t_amz_adv_campaigns group by profileid,state
+		union
+		select profileid,now(),state,'hsa','campaign',count(*),now()
+		from t_amz_adv_campaigns_hsa group by profileid,state
+		union
+		select profileid,now(),state,'sp','adGroup',count(*),now()
+		from t_amz_adv_adgroups group by profileid,state
+		union
+		select profileid,now(),state,'sp','productAd',count(*),now()
+		from t_amz_adv_productads group by profileid,state
+		union
+		select profileid,now(),state,'sp','keyword',count(*),now()
+		from t_amz_adv_keywords group by profileid,state
+		union
+		select profileid,now(),state,'sp','targets',count(*),now()
+		from t_amz_adv_product_targe group by profileid,state
+		union
+		select profileid,now(),state,'sp','negativeKeyword',count(*),now()
+		from t_amz_adv_keywords_negativa group by profileid,state
+		union
+		select profileid,now(),state,'sp','negativeTargets',count(*),now()
+		from t_amz_adv_product_targe_negativa group by profileid,state;
+
+		INSERT INTO `t_erp_purchase_form_receive` 
+		(`id`, `formentryid`, `warehouseid`, `ftype`, `amount`, `remark`, `opttime`, `operator`)
+		VALUES 
+		(rand()*100000000000000, '83441cbd-042a-4d9e-8e19-bd4fb506dcd9',
+		'd1d7891a-6e0e-11e8-8b3e-000ec6a65593', 'in', rand()*1000, '',
+		now(), 'd678fda9-da2d-4a92-b660-07e1a62e2b93');
+
+		INSERT INTO `t_erp_assembly_from_instock` 
+		(`id`, `formid`, `amount`, `remark`, `operator`, `opttime`, `warehouseid`)
+		VALUES 
+		(rand()*100000000000000, '26138972997277731', rand()*1000, '',
+		'd678fda9-da2d-4a92-b660-07e1a62e2b93', now(), 'd1d7891a-6e0e-11e8-8b3e-000ec6a65593');
+
+		insert ignore into t_amz_adv_sumpdtads
+		select profileid,bydate,sum(impressions) impressions,sum(clicks)
+		clicks,sum(cost) cost, max(currency) currency,
+		sum(attributedUnitsOrdered7d) attributedUnitsOrdered,
+		attributedSales7d ,attributedConversions7dSameSKU
+		from t_amz_adv_rpt_productads
+		where bydate>=CURDATE()
+		group by profileid;
+
+
+		INSERT ignore INTO `t_amz_settlement_report` 
+		(`id`, `settlement_id`, `currency`, `transaction_type`, `order_id`, `merchant_order_id`,
+		`adjustment_id`, `shipment_id`, `marketplace_name`, `amount_type`, `amount_description`, `amount`, 
+		`fulfillment_id`, `posted_date`, `posted_date_time`, `order_item_code`, `merchant_order_item_id`,
+		`merchant_adjustment_item_id`, `sku`, `quantity_purchased`, `promotion_id`, `amazonAuthId`)
+		select
+		uuid_short(), 11758248911, 'USD', 'Refund', '112-6582575-4407404',
+		'112-6582575-4407404', 'amzn1:crow:pZCYUa/lSoaowFEdHbPAnA', '',
+		'Amazon.com', 'ItemFees', 'Commission', rand()*10, 'AFN', now(),
+		now(), '36846440054402', '', '1074716321607', sku, NULL, NULL,
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a'
+		from t_erp_material;
+
+		INSERT ignore INTO `t_amz_settlement_summary_day` (`amazonAuthId`, `sku`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', sku, 'Amazon.com',
+		now(), 'Order', 'ItemFees', 'Commission', 'AFN', 'USD', 8-rand()*10
+		from t_erp_material;
+
+		INSERT ignore INTO `t_amz_settlement_summary_day` (`amazonAuthId`, `sku`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', sku, 'Amazon.com',
+		now(), 'Order', 'ItemPrice', 'Principal', 'AFN', 'USD', rand()*10
+		from t_erp_material;
+
+		INSERT ignore INTO `t_amz_settlement_summary_month` (`amazonAuthId`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', 'Amazon.com', now(), 'Order', 'ItemFees', 'Commission', 'AFN', 'USD',
+		80-rand()*100;
+
+		INSERT ignore INTO `t_amz_settlement_summary_sku` (`amazonAuthId`, `sku`,
+		`marketplace_name`, `posted_date`, `order_amount`, `sales`,
+		`principal`, `commission`,
+		`fbafee`, `refund`, `otherfee`, `refundnum`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', sku, 'Amazon.com', now(), rand()*10, rand()*10, rand()*10, rand()*10,
+		rand()*10, rand()*10, rand()*10, rand()*10
+		from t_erp_material;
+
+		INSERT ignore INTO `t_amz_returns_report_summary` (`sku`, `return_date`,
+		`sellerid`, `marketplaceid`, `quantity`)
+		select
+		sku, now(), 'TESTSELLERID001', 'ATVPDKIKX0DER', 1
+		from t_erp_material;
+
+		INSERT ignore INTO `t_amz_settlement_summary_month` (`amazonAuthId`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', 'Amazon.com', now(), 'Order', 'Principal', 'Commission', 'AFN',
+		'USD', rand()*100;
+
+		INSERT ignore INTO `t_amz_settlement_summary_month` (`amazonAuthId`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', 'Amazon.com', now(), 'Order', 'Principal', 'FBA Inventory
+		Reimbursement', 'AFN', 'USD', rand()*100;
+
+		INSERT ignore INTO `t_amz_settlement_summary_month` (`amazonAuthId`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', 'Amazon.com', now(), 'Order', 'Principal', 'Cost of Advertising',
+		'AFN', 'USD', rand()*100;
+
+		INSERT ignore INTO `t_amz_settlement_summary_month` (`amazonAuthId`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', 'Amazon.com', now(), 'Order', 'Principal', 'Principal', 'AFN', 'USD',
+		rand()*100;
+
+		INSERT ignore INTO `t_amz_settlement_summary_month` (`amazonAuthId`,
+		`marketplace_name`, `posted_date`, `transaction_type`, `amount_type`,
+		`amount_description`, `fulfillment_type`, `currency`, `amount`)
+		select
+		'99dd2de0-f6e5-4181-ad8c-470b88abdc0a', 'Amazon.com', now(), 'Refund', 'Principal', 'Cost of Advertising',
+		'AFN', 'USD', rand()*100;
+	</update>
+	
+	<update id="advAndSettmentDemoDataGenerate2">
+		INSERT ignore INTO `t_amz_adv_rpt_adgroups` (`adGroupId`, `bydate`,
+		`campaignId`, `profileid`, `adGroupName`, `campaignName`,
+		`impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`, `attributedConversions14d`,
+		`attributedConversions30d`, `attributedConversions1dSameSKU`,
+		`attributedConversions7dSameSKU`, `attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`,
+		`attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`, `attributedSales1d`,
+		`attributedSales7d`, `attributedSales14d`, `attributedSales30d`,
+		`attributedSales1dSameSKU`, `attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select t.adGroupId,now(),t.campaignId,t.profileid,t.name,tc.name,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		floor(rand()), 2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()),
+		floor(rand()), rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_adgroups t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid;
+
+		INSERT ignore INTO `t_amz_adv_rpt_adgroups_hsa` (`campaignId`, `adGroupId`,
+		`bydate`, `profileid`, `campaignBudgetType`, `campaignName`,
+		`adGroupName`,
+		`campaignBudget`, `campaignStatus`, `impressions`, `clicks`, `cost`, `opttime`,
+		`attributedSales14d`, `attributedSales14dSameSKU`,
+		`attributedConversions14d`,
+		`attributedConversions14dSameSKU`)
+		select t.campaignId, floor(rand()*1000000000000), now(), t.profileid,
+		t.budgetType, t.name, 'adgroup1',
+		t.budget, t.state, floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		now(), (rand()*100+40), rand(), 2, 0
+		from t_amz_adv_campaigns_hsa t;
+
+		INSERT ignore INTO `t_amz_adv_rpt_adgroups_hsa` (`campaignId`, `adGroupId`,
+		`bydate`, `profileid`, `campaignBudgetType`, `campaignName`,
+		`adGroupName`,
+		`campaignBudget`, `campaignStatus`, `impressions`, `clicks`, `cost`, `opttime`,
+		`attributedSales14d`, `attributedSales14dSameSKU`,
+		`attributedConversions14d`,
+		`attributedConversions14dSameSKU`)
+		select t.campaignId, floor(rand()*1000000000000), now(), t.profileid,
+		t.budgetType, t.name, 'adgroup2',
+		t.budget, t.state, floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		now(), (rand()*100+40), rand(), 2, 0
+		from t_amz_adv_campaigns_hsa t;
+
+		INSERT ignore INTO `t_amz_adv_rpt_productads` (`adId`, `bydate`,
+		`profileid`, `campaignId`, `adGroupId`, `campaignName`, `adGroupName`,
+		`impressions`,
+		`clicks`, `cost`, `currency`, `asin`, `sku`, `attributedConversions1d`,
+		`attributedConversions7d`, `attributedConversions14d`,
+		`attributedConversions30d`,
+		`attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`, `attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`,
+		`attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`, `attributedUnitsOrdered14d`,
+		`attributedUnitsOrdered30d`, `attributedSales1d`,
+		`attributedSales7d`, `attributedSales14d`, `attributedSales30d`,
+		`attributedSales1dSameSKU`, `attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`,
+		`attributedSales30dSameSKU`)
+		select
+		t.adId,now(),t.profileid,t.campaignId,t.adGroupId,tc.name,tg.name,floor((rand()*1000+40)),
+		floor((rand()*10+3)), rand()*10,'USD',t.asin,t.sku,
+		floor(rand()), 2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_productads t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid;
+
+		INSERT ignore INTO `t_amz_adv_rpt_keywords` (`keywordId`, `bydate`,
+		`campaignId`, `adGroupId`, `profileid`, `keywordText`, `adGroupName`,
+		`campaignName`,
+		`matchType`, `impressions`, `clicks`, `cost`, `attributedConversions1d`,
+		`attributedConversions7d`, `attributedConversions14d`,
+		`attributedConversions30d`,
+		`attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`, `attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`,
+		`attributedUnitsOrdered7d`, `attributedUnitsOrdered14d`,
+		`attributedUnitsOrdered30d`, `attributedSales1d`, `attributedSales7d`,
+		`attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`, `attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select
+		t.keywordId,now(),t.campaignId,t.adGroupId,t.profileid,t.keywordText,tg.name,tc.name,t.matchType,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		floor(rand()), 2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()),
+		floor(rand()), rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_keywords t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where t.campaignType = 'sp';
+
+		INSERT ignore INTO `t_amz_adv_rpt_keywords_hsa` (`campaignId`, `adGroupId`,
+		`keywordId`, `bydate`, `profileid`, `campaignBudgetType`,
+		`campaignName`, `adGroupName`, `campaignStatus`,
+		`keywordStatus`, `keywordText`, `matchType`, `keywordBid`, `impressions`, `clicks`,
+		`cost`, `opttime`, `attributedSales14d`, `attributedSales14dSameSKU`,
+		`attributedConversions14d`, `attributedConversions14dSameSKU`)
+		select
+		t.campaignId,t.adGroupId,t.keywordId,now(),t.profileid,tc.budgetType,tc.name,'adgroup1',tc.state,t.state,t.keywordText,t.matchType,t.bid,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10, now(),
+		(rand()*100+40), rand(), 2, 0
+		from t_amz_adv_keywords t
+		left join t_amz_adv_campaigns_hsa tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		where t.campaignType = 'hsa';
+
+		INSERT ignore INTO `t_amz_adv_rpt_keywordsquery` (`keywordId`, `bydate`,
+		`adGroupId`, `campaignId`, `profileid`, `query`, `keywordText`,
+		`adGroupName`,
+		`campaignName`, `matchType`, `impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`,
+		`attributedConversions14d`,
+		`attributedConversions30d`, `attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`,
+		`attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`,
+		`attributedSales1d`, `attributedSales7d`, `attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`,
+		`attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select
+		t.keywordId,now(),t.adGroupId,t.campaignId,t.profileid,'keywordquery1',t.keywordText,tg.name,tc.name,t.matchType,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		floor(rand()), 2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()),
+		floor(rand()), rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_keywords t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where t.campaignType = 'sp';
+
+		INSERT ignore INTO `t_amz_adv_rpt_keywordsquery` (`keywordId`, `bydate`,
+		`adGroupId`, `campaignId`, `profileid`, `query`, `keywordText`,
+		`adGroupName`,
+		`campaignName`, `matchType`, `impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`,
+		`attributedConversions14d`,
+		`attributedConversions30d`, `attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`,
+		`attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`,
+		`attributedSales1d`, `attributedSales7d`, `attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`,
+		`attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select
+		t.keywordId,now(),t.adGroupId,t.campaignId,t.profileid,'keywordquery2',t.keywordText,tg.name,tc.name,t.matchType,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		floor(rand()), 2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()),
+		floor(rand()), rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_keywords t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where t.campaignType = 'sp';
+
+		INSERT ignore INTO `t_amz_adv_rpt_keywordsquery` (`keywordId`, `bydate`,
+		`adGroupId`, `campaignId`, `profileid`, `query`, `keywordText`,
+		`adGroupName`,
+		`campaignName`, `matchType`, `impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`,
+		`attributedConversions14d`,
+		`attributedConversions30d`, `attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`,
+		`attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`,
+		`attributedSales1d`, `attributedSales7d`, `attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`,
+		`attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select
+		t.keywordId,now(),t.adGroupId,t.campaignId,t.profileid,'keywordquery3',t.keywordText,tg.name,tc.name,t.matchType,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10,
+		floor(rand()), 2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()),
+		floor(rand()), rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_keywords t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where t.campaignType = 'sp';
+
+		INSERT ignore INTO `t_amz_adv_rpt_product_targe` (`targetId`, `campaignId`,
+		`adGroupId`, `bydate`, `profileid`, `targetingType`,
+		`targetingExpression`, `campaignName`,
+		`targetingText`, `impressions`, `clicks`, `cost`, `attributedConversions1d`,
+		`attributedConversions7d`, `attributedConversions14d`,
+		`attributedConversions30d`,
+		`attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`, `attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`,
+		`attributedUnitsOrdered7d`, `attributedUnitsOrdered14d`,
+		`attributedUnitsOrdered30d`, `attributedSales1d`, `attributedSales7d`,
+		`attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`, `attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select
+		t.targetId,t.campaignId,t.adGroupId,now(),t.profileid,'TARGETING_EXPRESSION','category="5248501031"',tc.name,'category="Gift
+		Wrapping Paper"',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10, floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_product_targe t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid;
+
+
+		INSERT ignore INTO `t_amz_adv_rpt_product_target_query` (`targetId`,
+		`bydate`, `adGroupId`, `campaignId`, `profileid`, `query`,
+		`targetingExpression`, `adGroupName`,
+		`campaignName`, `targetingType`,`targetingText`,`impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`,
+		`attributedConversions14d`, `attributedConversions30d`,
+		`attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`,
+		`attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`,
+		`attributedSales1d`, `attributedSales7d`, `attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`,
+		`attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select t.targetId
+		,now(),t.adGroupId,t.campaignId,t.profileid,'targetquery3','category="5248501031"',tg.name,tc.name,'TARGETING_EXPRESSION',
+		'category="Gift Wrapping Paper"',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10, floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_product_targe t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where tc.targetingType = 'auto';
+
+		INSERT ignore INTO `t_amz_adv_rpt_product_target_query` (`targetId`,
+		`bydate`, `adGroupId`, `campaignId`, `profileid`, `query`,
+		`targetingExpression`, `adGroupName`,
+		`campaignName`, `targetingType`,`targetingText`,`impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`,
+		`attributedConversions14d`, `attributedConversions30d`,
+		`attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`,
+		`attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`,
+		`attributedSales1d`, `attributedSales7d`, `attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`,
+		`attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select t.targetId
+		,now(),t.adGroupId,t.campaignId,t.profileid,'targetquery2','category="5248501031"',tg.name,tc.name,'TARGETING_EXPRESSION',
+		'category="Gift Wrapping Paper"',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10, floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_product_targe t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where tc.targetingType = 'auto';
+
+		INSERT ignore INTO `t_amz_adv_rpt_product_target_query` (`targetId`,
+		`bydate`, `adGroupId`, `campaignId`, `profileid`, `query`,
+		`targetingExpression`, `adGroupName`,
+		`campaignName`, `targetingType`,`targetingText`,`impressions`, `clicks`, `cost`,
+		`attributedConversions1d`, `attributedConversions7d`,
+		`attributedConversions14d`, `attributedConversions30d`,
+		`attributedConversions1dSameSKU`, `attributedConversions7dSameSKU`,
+		`attributedConversions14dSameSKU`,
+		`attributedConversions30dSameSKU`, `attributedUnitsOrdered1d`, `attributedUnitsOrdered7d`,
+		`attributedUnitsOrdered14d`, `attributedUnitsOrdered30d`,
+		`attributedSales1d`, `attributedSales7d`, `attributedSales14d`,
+		`attributedSales30d`, `attributedSales1dSameSKU`,
+		`attributedSales7dSameSKU`,
+		`attributedSales14dSameSKU`, `attributedSales30dSameSKU`)
+		select t.targetId
+		,now(),t.adGroupId,t.campaignId,t.profileid,'targetquery1','category="5248501031"',tg.name,tc.name,'TARGETING_EXPRESSION',
+		'category="Gift Wrapping Paper"',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand()*10, floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_product_targe t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and
+		t.profileid = tg.profileid
+		where tc.targetingType = 'auto';
+
+		INSERT ignore INTO `t_amz_adv_rpt_asins` (`campaignId`, `adGroupId`,
+		`keywordId`, `bydate`, `profileid`, `asin`, `sku`, `otherAsin`,
+		`campaignName`, `keywordText`,
+		`adGroupName`, `currency`, `matchType`, `attributedUnitsOrdered1dOtherSKU`,
+		`attributedUnitsOrdered7dOtherSKU`,
+		`attributedUnitsOrdered14dOtherSKU`,
+		`attributedUnitsOrdered30dOtherSKU`, `attributedSales1dOtherSKU`,
+		`attributedSales7dOtherSKU`, `attributedSales14dOtherSKU`,
+		`attributedSales30dOtherSKU`)
+		select
+		t.campaignId,t.adGroupId,tk.keywordId,now(),t.profileid,t.asin,t.sku,'B28Y57VP8J',tc.name,tk.keywordText,tg.name,'USD','BROAD',
+		rand()
+		, rand(), rand(), rand(), rand(), rand(), rand(), rand()
+		from t_amz_adv_productads t
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and
+		t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tg on t.campaignId = tg.campaignId and
+		t.profileid = tg.profileid and t.adGroupId = tg.adGroupId
+		left join t_amz_adv_keywords tk on t.adGroupId = tk.adGroupId and
+		t.campaignId = tk.campaignId and t.profileid = tk.profileid and
+		tk.campaignType = 'sp';
+	</update>
+	
+	<update id="advAndSettmentDemoDataGenerate1">
+		INSERT ignore INTO `t_amz_adv_rpt_campaigns_hsa`
+		select
+		h.campaignId, now(), profileid, budgetType, name, budget, state,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(), now(),
+		(rand()*100+40), 0, 2, 0
+		from t_amz_adv_campaigns_hsa h;
+
+		INSERT ignore INTO `t_amz_adv_rpt_compaigns`
+		select
+		h.campaignId, now(), profileid, h.state, name, premiumBidAdjustment, dailyBudget,
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(), floor(rand()),
+		2, floor(rand()), floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_campaigns h;
+
+		INSERT ignore INTO `t_amz_adv_rpt_compaignsplace`
+		select
+		campaignId, now(), profileid, state, name, premiumBidAdjustment, dailyBudget,
+		'Top of Search on-Amazon',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(), floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_campaigns;
+
+		INSERT ignore INTO `t_amz_adv_rpt_compaignsplace`
+		select
+		campaignId, now(), profileid, state, name, premiumBidAdjustment, dailyBudget,
+		'Other on-Amazon',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(), floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_campaigns;
+
+		INSERT ignore INTO `t_amz_adv_rpt_compaignsplace`
+		select
+		campaignId, now(), profileid, state, name, premiumBidAdjustment, dailyBudget,
+		'Detail Page on-Amazon',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(), floor(rand()), 2, floor(rand()),
+		floor(rand()), floor(rand()), 0,
+		floor(rand()), floor(rand()), floor(rand()), 2, floor(rand()), floor(rand()),
+		rand()*100, (rand()*100+40), rand()*100, rand()*100,
+		rand()*10, 0, rand()*10, rand()*10
+		from t_amz_adv_campaigns;
+
+		INSERT ignore INTO `t_amz_adv_rpt_campaignsplace_hsa`
+		select
+		campaignId, now(), profileid, budgetType,name, budget, state, 'Andere
+		Platzierungen',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(),now(), (rand()*100+40), 0, 2, 0
+		from t_amz_adv_campaigns_hsa;
+
+		INSERT ignore INTO `t_amz_adv_rpt_campaignsplace_hsa`
+		select
+		campaignId, now(), profileid, budgetType,name, budget, state, 'Top of Search',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(),now(),
+		(rand()*100+40), 0, 2, 0
+		from t_amz_adv_campaigns_hsa;
+
+		INSERT ignore INTO `t_amz_adv_rpt_campaignsplace_hsa`
+		select
+		campaignId, now(), profileid, budgetType,name, budget, state, 'En haut de la
+		recher',
+		floor((rand()*1000+40)), floor((rand()*10+3)), rand(),now(), (rand()*100+40), 0, 2, 0
+		from t_amz_adv_campaigns_hsa;
+
+		update t_erp_changewh_form t set t.opttime = now() where 1=1;
+		update t_erp_dispatch_form t set t.opttime = now() where 1=1;
+		update t_erp_inwh_form t set t.opttime = now() where 1=1;
+		update t_erp_outwh_form t set t.opttime = now() where 1=1;
+		update t_erp_stocktaking t set t.createdate = now() where 1=1;
+		update t_erp_purchase_form t set t.createdate = now() where 1=1;
+		update t_erp_ship_inboundplan t set t.createdate = now() where 1=1;
+		update t_erp_inventory_record t set t.opttime = now() where 1=1;
+
+		INSERT ignore INTO `t_amz_product_pageviews` (`amazonAuthid`,
+		`marketplaceid`, `SKU`, `byday`, `parent_asin`, `child_asin`,
+		`Sessions`, `Session_Percentage`,
+		`Page_Views`, `Page_Views_Percentage`, `Buy_Box_Percentage`, `Units_Ordered`,
+		`Units_Ordered_B2B`, `Unit_Session_Percentage`,
+		`Unit_Session_Percentage_B2B`,
+		`Ordered_Product_Sales`, `Ordered_Product_Sales_B2B`, `Total_Order_Items`,
+		`Total_Order_Items_B2B`)
+		select t.amazonAuthId, t.marketplaceid, t.sku, now(), 'B07D74WK11',
+		'B07D74WK11', rand()*10, rand()*0.1, rand()*10, rand()*0.1,
+		rand()*100, rand(), NULL, rand()*10, NULL, floor(rand()*10), NULL,
+		rand(), NULL
+		from t_product_info t;
+
+		INSERT ignore INTO `t_product_rank_his` (`id`, `byday`, `categoryId`,
+		`rank`,`product_id`,`isMain`,`isNewest`)
+		select uuid(), now(), 'home_improvement_display_on_website', rand()+1,t.id,
+		1 , 1 from t_product_info t;
+
+		INSERT ignore INTO `t_product_rank` (`id`, `byday`, `categoryId`,
+		`rank`,`product_id`,`isMain`,`isNewest`)
+		select uuid(), now(), 'home_improvement_display_on_website', rand()+1,t.id,
+		1 , 1 from t_product_info t;
+
+		INSERT ignore INTO `t_amz_advert_report_summary` (`sellerid`, `id`,
+		`marketplaceid`, `sku`, `asin`, `bydate`, `clicks`, `impressions`,
+		`ctr`, `currency`,
+		`spend`, `cpc`, `acos`, `RoAS`, `orders`, `units`, `spc`, `totalsales`)
+		select '99dd2de0-f6e5-4181-ad8c-470b88abdc0a', uuid_short(),
+		'ATVPDKIKX0DER', t.sku, t.asin ,
+		now(),rand()*80,rand()*800,rand()*0.01,'CAD',
+		rand()*1.1,rand()*0.12,rand()*0.12,rand(),rand(),rand(),rand()*1.123,rand()*500.5
+		from t_product_info t;
+	</update>
+</mapper>

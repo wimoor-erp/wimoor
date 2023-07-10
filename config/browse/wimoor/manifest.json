@@ -1,0 +1,193 @@
+﻿{
+	"manifest_version": 2,
+	"name": "wimoor亚马逊卖家插件",
+	"version": "1.0.20",
+	"description": "wimoor亚马逊卖家插件",
+	"icons":
+	   {
+		"16": "img/icon.png",
+		"48": "img/icon.png",
+		"128": "img/icon.png"
+    	},
+     "permissions": [
+    	        "https://photo.wimoor.com/*",
+				"https://erp.wimoor.com/*",
+				"https://app.wimoor.com/*",
+				"http://localhost:8080/*",
+				"http://localhost:8099/*",
+				"https://sellercentral.amazon.com/*", 
+				"https://sellercentral.amazon.co.uk/*", 
+				"https://sellercentral-japan.amazon.com/*", 
+				"https://sellercentral.amazon.ca/*", 
+				"https://sellercentral.amazon.de/*", 
+				"https://sellercentral.amazon.fr/*", 
+				"https://sellercentral.amazon.it/*", 
+				"https://sellercentral.amazon.es/*", 
+				"https://sellercentral.amazon.com.mx/*", 
+				"https://sellercentral.amazon.in/*", 
+				"https://sellercentral.amazon.cn/*", 
+				"https://sellercentral.amazon.com.au/*", 
+				"https://apac.account.amazon.com/ap/*", 
+				"https://na.account.amazon.com/ap/*", 
+				"https://eu.account.amazon.com/ap/*", 
+				"https://sellercentral-europe.amazon.com/*", 
+				"https://sellercentral.amazon.co.jp/*", 
+				"https://sellercentral.amazon.nl/*", 
+				"https://sellercentral.amazon.ae/*", 
+				"https://sellercentral.amazon.sa/*", 
+				"https://sellercentral.amazon.se/*", 
+				"https://sellercentral.amazon.sg/*", 
+				"https://sellercentral.amazon.com.br/*", 
+				"https://*.amazonaws.com/*"
+    	   ],
+    "background": {
+    	"page":"js/background.html" 
+    	},
+	"browser_action": 
+	{
+		"default_icon": "img/icon.png",
+		"default_title": "Wimoor",
+        "default_badge": "Wimoor",
+		"default_popup": "popup.html"
+	},
+	"content_scripts": 
+	[
+		{
+			"matches": ["https://sellercentral.amazon.com/orders-v3/*",
+				        "https://sellercentral.amazon.com/messaging/*",
+				        "https://sellercentral.amazon.co.uk/orders-v3/*",
+				        "https://sellercentral.amazon.co.uk/messaging/*",
+				        "https://sellercentral.amazon.ca/orders-v3/*",
+				        "https://sellercentral.amazon.ca/messaging/*",
+				        "https://sellercentral-japan.amazon.com/orders-v3/*",
+				        "https://sellercentral-japan.amazon.com/messaging/*",
+				        "https://sellercentral.amazon.fr/orders-v3/*",
+				        "https://sellercentral.amazon.fr/messaging/*",
+				        "https://sellercentral.amazon.de/orders-v3/*",
+				        "https://sellercentral.amazon.de/messaging/*",
+				        "https://sellercentral.amazon.com.au/orders-v3/*",
+				        "https://sellercentral.amazon.com.au/messaging/*",    
+				        "https://sellercentral.amazon.com.mx/orders-v3/*",
+				        "https://sellercentral.amazon.com.mx/messaging/*",
+				        "https://sellercentral.amazon.in/orders-v3/*",
+				        "https://sellercentral.amazon.in/messaging/*",
+				        "https://sellercentral.amazon.it/orders-v3/*",
+				        "https://sellercentral.amazon.it/messaging/*",
+				        "https://sellercentral.amazon.es/orders-v3/*",
+				        "https://sellercentral.amazon.es/messaging/*",
+				        "https://sellercentral.amazon.se/orders-v3/*",
+				        "https://sellercentral.amazon.se/messaging/*",
+				        "https://sellercentral.amazon.nl/orders-v3/*",
+				        "https://sellercentral.amazon.nl/messaging/*"],
+			"js": ["js/jquery-3.3.1.js", "js/content-script.js"],
+			"run_at": "document_end"
+		},
+		{
+			"matches": [
+		        "https://sellercentral.amazon.com/home*",
+		        "https://sellercentral.amazon.co.uk/home*",
+		        "https://sellercentral.amazon.ca/home*",
+		        "https://sellercentral-japan.amazon.com/home*",
+		        "https://sellercentral.amazon.com.au/home*",
+		        "https://sellercentral.amazon.fr/home*",
+		        "https://sellercentral.amazon.de/home*",
+		        "https://sellercentral.amazon.com.mx/home*",
+		        "https://sellercentral.amazon.in/home*",
+		        "https://sellercentral.amazon.it/home*",
+		        "https://sellercentral.amazon.es/home*",
+		        "https://sellercentral.amazon.se/home*",
+		        "https://sellercentral.amazon.nl/home*",
+		        "https://sellercentral.amazon.com/gp/home*",
+		        "https://sellercentral.amazon.co.uk/gp/home*",
+		        "https://sellercentral.amazon.ca/gp/home*",
+		        "https://sellercentral-japan.amazon.com/gp/home*",
+		        "https://sellercentral.amazon.com.au/gp/home*",
+		        "https://sellercentral.amazon.fr/gp/home*",
+		        "https://sellercentral.amazon.de/gp/home*",
+		        "https://sellercentral.amazon.com.mx/gp/home*",
+		        "https://sellercentral.amazon.in/gp/home*",
+		        "https://sellercentral.amazon.it/gp/home*",
+		        "https://sellercentral.amazon.es/gp/home*",
+		        "https://sellercentral.amazon.se/gp/home*",
+		        "https://sellercentral.amazon.nl/gp/home*"],
+		        
+		        
+			"js": ["js/jquery-3.3.1.js", "js/content-script-main.js"],
+			"css": ["css/main.css"],
+			"run_at": "document_end"
+		}, {
+			"matches": [
+		        "https://sellercentral.amazon.com/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.com/business-reports/*",
+		        
+		        "https://sellercentral.amazon.co.uk/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.co.uk/business-reports/*",
+		        
+		        "https://sellercentral.amazon.ca/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.ca/business-reports/*",
+		        
+		        "https://sellercentral-japan.amazon.com/gp/site-metrics/home.html/*",
+		        "https://sellercentral-japan.amazon.com/business-reports/*",
+		        
+		        "https://sellercentral.amazon.com.au/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.com.au/business-reports/*",
+		        
+		        "https://sellercentral.amazon.fr/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.fr/business-reports/*",
+		        
+		        "https://sellercentral.amazon.de/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.de/business-reports/*",
+		        
+		        "https://sellercentral.amazon.com.mx/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.com.mx/business-reports/*",
+		        
+		        "https://sellercentral.amazon.in/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.in/business-reports/*",
+		        
+		        "https://sellercentral.amazon.it/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.it/business-reports/*",
+		        
+		        "https://sellercentral.amazon.es/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.es/business-reports/*",
+		        
+		        "https://sellercentral.amazon.se/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.se/business-reports/*",
+		        
+		        "https://sellercentral.amazon.nl/gp/site-metrics/home.html/*",
+		        "https://sellercentral.amazon.nl/business-reports/*"
+		        ],
+			"js": ["js/jquery-3.3.1.js", "js/content-script-report.js"],
+			"css": ["css/businessreport.css"],
+			"run_at": "document_end"
+		}, {
+			"matches": ["https://www.amazon.com/*/dp/*",
+				        "https://www.amazon.co.uk/*/dp/*",
+				        "https://www.amazon.ca/*/dp/*",
+				        "https://www.amazon.co.jp/*/dp/*",
+				        "https://www.amazon.fr/*/dp/*",
+				        "https://www.amazon.de/*/dp/*",
+				        "https://www.amazon.com.mx/*/dp/*",
+				        "https://www.amazon.in/*/dp/*",
+				        "https://www.amazon.it/*/dp/*",
+				        "https://www.amazon.es/*/dp/*",
+				        "https://www.amazon.se/*/dp/*",
+				        "https://www.amazon.nl/*/dp/*",
+				        "https://www.amazon.com/dp/*",
+				        "https://www.amazon.co.uk/dp/*",
+				        "https://www.amazon.ca/dp/*",
+				        "https://www.amazon.co.jp/dp/*",
+				        "https://www.amazon.fr/dp/*",
+				        "https://www.amazon.de/dp/*",
+				        "https://www.amazon.com.mx/dp/*",
+				        "https://www.amazon.in/dp/*",
+				        "https://www.amazon.it/dp/*",
+				        "https://www.amazon.es/dp/*",
+				        "https://www.amazon.se/dp/*",
+				        "https://www.amazon.nl/dp/*"],
+			"js": ["js/jquery-3.3.1.js","js/juicer-min.js","js/content-script-select.js"],
+			"css": ["css/custom.css"],
+			"run_at": "document_end"
+		}
+	],
+	"homepage_url": "https://www.wimoor.com"
+}

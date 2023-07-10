@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipTransDetailMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipTransDetail" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="company" property="company" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="chaname" property="channame" jdbcType="CHAR" />
+    <result column="pretime" property="pretime" jdbcType="INTEGER" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  
+   
+</mapper>

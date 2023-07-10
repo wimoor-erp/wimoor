@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.auth.mapper.AmazonSellerMarketMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.AmazonSellerMarket">
+        <id column="sellerid" property="sellerid" />
+        <result column="marketplace_id" property="marketplaceId" />
+        <result column="country" property="country" />
+        <result column="name" property="name" />
+        <result column="language" property="language" />
+        <result column="currency" property="currency" />
+        <result column="domain" property="domain" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="opttime" property="opttime" />
+        <result column="disable" property="disable" />
+    </resultMap>
+	<update id="deleteByLogic" parameterType="com.wimoor.amazon.auth.pojo.entity.AmazonSellerMarketPlace">
+		update t_amazonseller_market 
+		set disable = true,opttime=now()
+		where sellerid = #{sellerid,jdbcType=CHAR}
+			and marketplace_id = #{marketplaceId,jdbcType=CHAR} ;
+			
+		update t_amazon_auth 
+		set disable=true ,opttime=now() 
+		where sellerid = #{sellerid,jdbcType=CHAR} 
+			and 0=(select count(sellerid) from t_amazonseller_market where sellerid = #{sellerid,jdbcType=CHAR} and disable=false)
+	</update>
+
+	<select id="getCurrentMarketCountByShopId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_amazonseller_market am
+		left join t_amazon_auth a on am.sellerid=a.sellerid and am.disable = false
+		where a.shop_id = #{shopId,jdbcType=CHAR}
+	</select>
+
+	<select id="selectBySellerIdLogic" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1)
+		from t_amazonseller_market
+		where sellerid = #{sellerid,jdbcType=CHAR}
+			and disable = false
+	</select>
+
+	<select id="selectAllBySellerId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select *
+		from t_amazonseller_market
+		where sellerid = #{sellerid,jdbcType=CHAR}
+	</select>
+
+    <select id="selectByGroup"  resultType="java.util.Map" parameterType="java.lang.String">
+        SELECT mp.name,mp.marketplaceid,mp.market,mp.currency,a.id amazonauthid,mp.region
+		FROM t_amazonseller_market m
+		LEFT JOIN t_amazon_auth a ON a.sellerid=m.sellerid
+		inner JOIN t_marketplace mp ON mp.marketplaceId=m.marketplace_id
+		WHERE a.groupid=#{groupid,jdbcType=CHAR}
+    </select>
+    
+</mapper>

@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.ProductAdvertReportMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.ProductAdvertReport" >
+    <id column="sellerid" property="sellerid" jdbcType="CHAR" />
+    <id column="sku" property="sku" jdbcType="CHAR" />
+    <id column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <id column="bydate" property="bydate" jdbcType="TIMESTAMP" />
+    <id column="campaign_name" property="campaignName" jdbcType="VARCHAR" />
+    <id column="Ad_Group_Name" property="adGroupName" jdbcType="VARCHAR" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="ctr" property="ctr" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="spend" property="spend" jdbcType="DECIMAL" />
+    <result column="cpc" property="cpc" jdbcType="DECIMAL" />
+    <result column="acos" property="acos" jdbcType="DOUBLE" />
+    <result column="RoAS" property="roas" jdbcType="DOUBLE" />
+    <result column="orders" property="orders" jdbcType="INTEGER" />
+    <result column="spc" property="spc" jdbcType="DOUBLE" />
+    <result column="totalsales" property="totalsales" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    sellerid, sku, marketplaceid, bydate, campaign_name, Ad_Group_Name, 
+    clicks, id, impressions, ctr, currency, asin,
+    spend,cpc,acos,RoAS,orders,spc  ,totalsales
+  </sql>
+    <insert id="insertBatch"   parameterType="java.util.List">
+    insert ignore into t_amz_advert_report ( 
+    sellerid, sku,asin, marketplaceid,
+    bydate, campaign_name, Ad_Group_Name, 
+    clicks, id, impressions, 
+    ctr, currency, spend,
+    cpc,acos,RoAS,
+    orders,spc  ,totalsales,units)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.sellerid,jdbcType=CHAR}, #{adv.sku,jdbcType=CHAR}, #{adv.asin,jdbcType=CHAR} ,#{adv.marketplaceid,jdbcType=CHAR}, 
+      #{adv.bydate,jdbcType=TIMESTAMP}, #{adv.campaignName,jdbcType=CHAR}, #{adv.adGroupName,jdbcType=CHAR}, 
+      #{adv.clicks,jdbcType=INTEGER}, #{adv.id,jdbcType=VARCHAR}, #{adv.impressions,jdbcType=INTEGER}, 
+      #{adv.ctr,jdbcType=DECIMAL},#{adv.currency,jdbcType=CHAR},  #{adv.spend,jdbcType=DECIMAL}, 
+      #{adv.cpc,jdbcType=DECIMAL}, #{adv.acos,jdbcType=DECIMAL}, #{adv.roas,jdbcType=DECIMAL}, 
+      #{adv.orders,jdbcType=DECIMAL} , #{adv.spc,jdbcType=DECIMAL}, #{adv.totalsales,jdbcType=DECIMAL}, #{adv.units,jdbcType=INTEGER}
+    )
+    </foreach>
+  </insert>
+   <select id="findAdvert" resultType="java.util.Map"  >
+    select 
+    bydate,sum(clicks) cks,sum(impressions) imp,sum(ROUND(ctr*100,2)) ctr, max(currency) currency, 
+    sum(spend) spd,sum(cpc) cpc,sum(ROUND(`acos`*100,2))/count(0) `acos`,sum(ROUND(RoAS*100,2))/count(0) roas,sum(orders) orders,sum(units) aus,
+    sum(ROUND(spc*100,2))/count(0) spc ,sum(totalsales) tos,case when sum(clicks)!=0 then ROUND(sum(orders)*100/sum(clicks),2) else 0 end cr
+    from t_amz_advert_report_summary r
+    left join t_amazon_auth a on a.sellerid=r.sellerid
+    where  a.shop_id=#{shopid,jdbcType=CHAR}
+     <if test="sellerid != null" >
+        and    sellerid = #{sellerid,jdbcType=CHAR}
+      </if>
+      <if test="amazonauthid != null" >
+        and    a.id = #{amazonauthid,jdbcType=CHAR}
+      </if>
+     <if test="sku != null" >
+        and    sku = #{sku,jdbcType=CHAR}
+      </if>
+      <if test="marketplaceid != null" >
+        and    marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      </if>
+       <if test="begindate != null" >
+        and    bydate &gt;= #{begindate,jdbcType=CHAR}
+      </if>
+        <if test="enddate != null" >
+        and    bydate &lt;= #{enddate,jdbcType=CHAR}
+      </if>
+      group by bydate
+  </select>
+  
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.common.pojo.AmazonAdvertReportKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_advert_report
+    where amazonAuthid = #{amazonauthid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and enddate = #{enddate,jdbcType=TIMESTAMP}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmazonAdvertReportKey" >
+    delete from t_amz_advert_report
+    where amazonAuthid = #{amazonauthid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and enddate = #{enddate,jdbcType=TIMESTAMP}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.AmazonAdvertReport" >
+    insert into t_amz_advert_report (amazonAuthid, sku, marketplaceid, 
+      enddate, id, startdate, 
+      merchantname, campaign_name, Ad_Group_Name, 
+      Advertised_SKU, Keyword, Match_Type, 
+      clicks, impressions, ctr, 
+      currency, totalspend, avgcpc, 
+      1_day_Orders_Placed, 1_day_Ordered_Product_Sales, 
+      1_day_Conversion_Rate, 1_day_Same_SKU_Units_Ordered, 
+      1_day_Other_SKU_Units_Ordered, 1_day_Same_SKU_Units_Ordered_Product_Sales, 
+      1_day_Other_SKU_Units_Ordered_Product_Sales, 1_week_Orders_Placed, 
+      1_week_Ordered_Product_Sales, 1_week_Conversion_Rate, 
+      1_week_Same_SKU_Units_Ordered, 1_week_Other_SKU_Units_Ordered, 
+      1_week_Same_SKU_Units_Ordered_Product_Sales, 1_week_Other_SKU_Units_Ordered_Product_Sales, 
+      1_month_Orders_Placed, 1_month_Ordered_Product_Sales, 
+      1_month_Conversion_Rate, 1_month_Same_SKU_Units_Ordered, 
+      1_month_Other_SKU_Units_Ordered, 1_month_Same_SKU_Units_Ordered_Product_Sales, 
+      1_month_Other_SKU_Units_Ordered_Product_Sales)
+    values (#{amazonauthid,jdbcType=CHAR}, #{sku,jdbcType=CHAR}, #{marketplaceid,jdbcType=CHAR}, 
+      #{enddate,jdbcType=TIMESTAMP}, #{id,jdbcType=CHAR}, #{startdate,jdbcType=TIMESTAMP}, 
+      #{merchantname,jdbcType=CHAR}, #{campaignName,jdbcType=VARCHAR}, #{adGroupName,jdbcType=VARCHAR}, 
+      #{advertisedSku,jdbcType=VARCHAR}, #{keyword,jdbcType=VARCHAR}, #{matchType,jdbcType=VARCHAR}, 
+      #{clicks,jdbcType=INTEGER}, #{impressions,jdbcType=INTEGER}, #{ctr,jdbcType=DECIMAL}, 
+      #{currency,jdbcType=CHAR}, #{totalspend,jdbcType=DECIMAL}, #{avgcpc,jdbcType=DECIMAL}, 
+      #{1DayOrdersPlaced,jdbcType=DECIMAL}, #{1DayOrderedProductSales,jdbcType=DECIMAL}, 
+      #{1DayConversionRate,jdbcType=DECIMAL}, #{1DaySameSkuUnitsOrdered,jdbcType=DECIMAL}, 
+      #{1DayOtherSkuUnitsOrdered,jdbcType=DECIMAL}, #{1DaySameSkuUnitsOrderedProductSales,jdbcType=DECIMAL}, 
+      #{1DayOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL}, #{1WeekOrdersPlaced,jdbcType=DECIMAL}, 
+      #{1WeekOrderedProductSales,jdbcType=DECIMAL}, #{1WeekConversionRate,jdbcType=DECIMAL}, 
+      #{1WeekSameSkuUnitsOrdered,jdbcType=DECIMAL}, #{1WeekOtherSkuUnitsOrdered,jdbcType=DECIMAL}, 
+      #{1WeekSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL}, #{1WeekOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL}, 
+      #{1MonthOrdersPlaced,jdbcType=DECIMAL}, #{1MonthOrderedProductSales,jdbcType=DECIMAL}, 
+      #{1MonthConversionRate,jdbcType=DECIMAL}, #{1MonthSameSkuUnitsOrdered,jdbcType=DECIMAL}, 
+      #{1MonthOtherSkuUnitsOrdered,jdbcType=DECIMAL}, #{1MonthSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL}, 
+      #{1MonthOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmazonAdvertReport" >
+    insert into t_amz_advert_report
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="amazonauthid != null" >
+        amazonAuthid,
+      </if>
+      <if test="sku != null" >
+        sku,
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid,
+      </if>
+      <if test="enddate != null" >
+        enddate,
+      </if>
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="startdate != null" >
+        startdate,
+      </if>
+      <if test="merchantname != null" >
+        merchantname,
+      </if>
+      <if test="campaignName != null" >
+        campaign_name,
+      </if>
+      <if test="adGroupName != null" >
+        Ad_Group_Name,
+      </if>
+      <if test="advertisedSku != null" >
+        Advertised_SKU,
+      </if>
+      <if test="keyword != null" >
+        Keyword,
+      </if>
+      <if test="matchType != null" >
+        Match_Type,
+      </if>
+      <if test="clicks != null" >
+        clicks,
+      </if>
+      <if test="impressions != null" >
+        impressions,
+      </if>
+      <if test="ctr != null" >
+        ctr,
+      </if>
+      <if test="currency != null" >
+        currency,
+      </if>
+      <if test="totalspend != null" >
+        totalspend,
+      </if>
+      <if test="avgcpc != null" >
+        avgcpc,
+      </if>
+      <if test="1DayOrdersPlaced != null" >
+        1_day_Orders_Placed,
+      </if>
+      <if test="1DayOrderedProductSales != null" >
+        1_day_Ordered_Product_Sales,
+      </if>
+      <if test="1DayConversionRate != null" >
+        1_day_Conversion_Rate,
+      </if>
+      <if test="1DaySameSkuUnitsOrdered != null" >
+        1_day_Same_SKU_Units_Ordered,
+      </if>
+      <if test="1DayOtherSkuUnitsOrdered != null" >
+        1_day_Other_SKU_Units_Ordered,
+      </if>
+      <if test="1DaySameSkuUnitsOrderedProductSales != null" >
+        1_day_Same_SKU_Units_Ordered_Product_Sales,
+      </if>
+      <if test="1DayOtherSkuUnitsOrderedProductSales != null" >
+        1_day_Other_SKU_Units_Ordered_Product_Sales,
+      </if>
+      <if test="1WeekOrdersPlaced != null" >
+        1_week_Orders_Placed,
+      </if>
+      <if test="1WeekOrderedProductSales != null" >
+        1_week_Ordered_Product_Sales,
+      </if>
+      <if test="1WeekConversionRate != null" >
+        1_week_Conversion_Rate,
+      </if>
+      <if test="1WeekSameSkuUnitsOrdered != null" >
+        1_week_Same_SKU_Units_Ordered,
+      </if>
+      <if test="1WeekOtherSkuUnitsOrdered != null" >
+        1_week_Other_SKU_Units_Ordered,
+      </if>
+      <if test="1WeekSameSkuUnitsOrderedProductSales != null" >
+        1_week_Same_SKU_Units_Ordered_Product_Sales,
+      </if>
+      <if test="1WeekOtherSkuUnitsOrderedProductSales != null" >
+        1_week_Other_SKU_Units_Ordered_Product_Sales,
+      </if>
+      <if test="1MonthOrdersPlaced != null" >
+        1_month_Orders_Placed,
+      </if>
+      <if test="1MonthOrderedProductSales != null" >
+        1_month_Ordered_Product_Sales,
+      </if>
+      <if test="1MonthConversionRate != null" >
+        1_month_Conversion_Rate,
+      </if>
+      <if test="1MonthSameSkuUnitsOrdered != null" >
+        1_month_Same_SKU_Units_Ordered,
+      </if>
+      <if test="1MonthOtherSkuUnitsOrdered != null" >
+        1_month_Other_SKU_Units_Ordered,
+      </if>
+      <if test="1MonthSameSkuUnitsOrderedProductSales != null" >
+        1_month_Same_SKU_Units_Ordered_Product_Sales,
+      </if>
+      <if test="1MonthOtherSkuUnitsOrderedProductSales != null" >
+        1_month_Other_SKU_Units_Ordered_Product_Sales,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="amazonauthid != null" >
+        #{amazonauthid,jdbcType=CHAR},
+      </if>
+      <if test="sku != null" >
+        #{sku,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="enddate != null" >
+        #{enddate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="startdate != null" >
+        #{startdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="merchantname != null" >
+        #{merchantname,jdbcType=CHAR},
+      </if>
+      <if test="campaignName != null" >
+        #{campaignName,jdbcType=VARCHAR},
+      </if>
+      <if test="adGroupName != null" >
+        #{adGroupName,jdbcType=VARCHAR},
+      </if>
+      <if test="advertisedSku != null" >
+        #{advertisedSku,jdbcType=VARCHAR},
+      </if>
+      <if test="keyword != null" >
+        #{keyword,jdbcType=VARCHAR},
+      </if>
+      <if test="matchType != null" >
+        #{matchType,jdbcType=VARCHAR},
+      </if>
+      <if test="clicks != null" >
+        #{clicks,jdbcType=INTEGER},
+      </if>
+      <if test="impressions != null" >
+        #{impressions,jdbcType=INTEGER},
+      </if>
+      <if test="ctr != null" >
+        #{ctr,jdbcType=DECIMAL},
+      </if>
+      <if test="currency != null" >
+        #{currency,jdbcType=CHAR},
+      </if>
+      <if test="totalspend != null" >
+        #{totalspend,jdbcType=DECIMAL},
+      </if>
+      <if test="avgcpc != null" >
+        #{avgcpc,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOrdersPlaced != null" >
+        #{1DayOrdersPlaced,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOrderedProductSales != null" >
+        #{1DayOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayConversionRate != null" >
+        #{1DayConversionRate,jdbcType=DECIMAL},
+      </if>
+      <if test="1DaySameSkuUnitsOrdered != null" >
+        #{1DaySameSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOtherSkuUnitsOrdered != null" >
+        #{1DayOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1DaySameSkuUnitsOrderedProductSales != null" >
+        #{1DaySameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOtherSkuUnitsOrderedProductSales != null" >
+        #{1DayOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOrdersPlaced != null" >
+        #{1WeekOrdersPlaced,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOrderedProductSales != null" >
+        #{1WeekOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekConversionRate != null" >
+        #{1WeekConversionRate,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekSameSkuUnitsOrdered != null" >
+        #{1WeekSameSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOtherSkuUnitsOrdered != null" >
+        #{1WeekOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekSameSkuUnitsOrderedProductSales != null" >
+        #{1WeekSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOtherSkuUnitsOrderedProductSales != null" >
+        #{1WeekOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOrdersPlaced != null" >
+        #{1MonthOrdersPlaced,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOrderedProductSales != null" >
+        #{1MonthOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthConversionRate != null" >
+        #{1MonthConversionRate,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthSameSkuUnitsOrdered != null" >
+        #{1MonthSameSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOtherSkuUnitsOrdered != null" >
+        #{1MonthOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthSameSkuUnitsOrderedProductSales != null" >
+        #{1MonthSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOtherSkuUnitsOrderedProductSales != null" >
+        #{1MonthOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmazonAdvertReport" >
+    update t_amz_advert_report
+    <set >
+      <if test="id != null" >
+        id = #{id,jdbcType=CHAR},
+      </if>
+      <if test="startdate != null" >
+        startdate = #{startdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="merchantname != null" >
+        merchantname = #{merchantname,jdbcType=CHAR},
+      </if>
+      <if test="campaignName != null" >
+        campaign_name = #{campaignName,jdbcType=VARCHAR},
+      </if>
+      <if test="adGroupName != null" >
+        Ad_Group_Name = #{adGroupName,jdbcType=VARCHAR},
+      </if>
+      <if test="advertisedSku != null" >
+        Advertised_SKU = #{advertisedSku,jdbcType=VARCHAR},
+      </if>
+      <if test="keyword != null" >
+        Keyword = #{keyword,jdbcType=VARCHAR},
+      </if>
+      <if test="matchType != null" >
+        Match_Type = #{matchType,jdbcType=VARCHAR},
+      </if>
+      <if test="clicks != null" >
+        clicks = #{clicks,jdbcType=INTEGER},
+      </if>
+      <if test="impressions != null" >
+        impressions = #{impressions,jdbcType=INTEGER},
+      </if>
+      <if test="ctr != null" >
+        ctr = #{ctr,jdbcType=DECIMAL},
+      </if>
+      <if test="currency != null" >
+        currency = #{currency,jdbcType=CHAR},
+      </if>
+      <if test="totalspend != null" >
+        totalspend = #{totalspend,jdbcType=DECIMAL},
+      </if>
+      <if test="avgcpc != null" >
+        avgcpc = #{avgcpc,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOrdersPlaced != null" >
+        1_day_Orders_Placed = #{1DayOrdersPlaced,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOrderedProductSales != null" >
+        1_day_Ordered_Product_Sales = #{1DayOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayConversionRate != null" >
+        1_day_Conversion_Rate = #{1DayConversionRate,jdbcType=DECIMAL},
+      </if>
+      <if test="1DaySameSkuUnitsOrdered != null" >
+        1_day_Same_SKU_Units_Ordered = #{1DaySameSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOtherSkuUnitsOrdered != null" >
+        1_day_Other_SKU_Units_Ordered = #{1DayOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1DaySameSkuUnitsOrderedProductSales != null" >
+        1_day_Same_SKU_Units_Ordered_Product_Sales = #{1DaySameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1DayOtherSkuUnitsOrderedProductSales != null" >
+        1_day_Other_SKU_Units_Ordered_Product_Sales = #{1DayOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOrdersPlaced != null" >
+        1_week_Orders_Placed = #{1WeekOrdersPlaced,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOrderedProductSales != null" >
+        1_week_Ordered_Product_Sales = #{1WeekOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekConversionRate != null" >
+        1_week_Conversion_Rate = #{1WeekConversionRate,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekSameSkuUnitsOrdered != null" >
+        1_week_Same_SKU_Units_Ordered = #{1WeekSameSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOtherSkuUnitsOrdered != null" >
+        1_week_Other_SKU_Units_Ordered = #{1WeekOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekSameSkuUnitsOrderedProductSales != null" >
+        1_week_Same_SKU_Units_Ordered_Product_Sales = #{1WeekSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1WeekOtherSkuUnitsOrderedProductSales != null" >
+        1_week_Other_SKU_Units_Ordered_Product_Sales = #{1WeekOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOrdersPlaced != null" >
+        1_month_Orders_Placed = #{1MonthOrdersPlaced,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOrderedProductSales != null" >
+        1_month_Ordered_Product_Sales = #{1MonthOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthConversionRate != null" >
+        1_month_Conversion_Rate = #{1MonthConversionRate,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthSameSkuUnitsOrdered != null" >
+        1_month_Same_SKU_Units_Ordered = #{1MonthSameSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOtherSkuUnitsOrdered != null" >
+        1_month_Other_SKU_Units_Ordered = #{1MonthOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthSameSkuUnitsOrderedProductSales != null" >
+        1_month_Same_SKU_Units_Ordered_Product_Sales = #{1MonthSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+      <if test="1MonthOtherSkuUnitsOrderedProductSales != null" >
+        1_month_Other_SKU_Units_Ordered_Product_Sales = #{1MonthOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where amazonAuthid = #{amazonauthid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and enddate = #{enddate,jdbcType=TIMESTAMP}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmazonAdvertReport" >
+    update t_amz_advert_report
+    set id = #{id,jdbcType=CHAR},
+      startdate = #{startdate,jdbcType=TIMESTAMP},
+      merchantname = #{merchantname,jdbcType=CHAR},
+      campaign_name = #{campaignName,jdbcType=VARCHAR},
+      Ad_Group_Name = #{adGroupName,jdbcType=VARCHAR},
+      Advertised_SKU = #{advertisedSku,jdbcType=VARCHAR},
+      Keyword = #{keyword,jdbcType=VARCHAR},
+      Match_Type = #{matchType,jdbcType=VARCHAR},
+      clicks = #{clicks,jdbcType=INTEGER},
+      impressions = #{impressions,jdbcType=INTEGER},
+      ctr = #{ctr,jdbcType=DECIMAL},
+      currency = #{currency,jdbcType=CHAR},
+      totalspend = #{totalspend,jdbcType=DECIMAL},
+      avgcpc = #{avgcpc,jdbcType=DECIMAL},
+      1_day_Orders_Placed = #{1DayOrdersPlaced,jdbcType=DECIMAL},
+      1_day_Ordered_Product_Sales = #{1DayOrderedProductSales,jdbcType=DECIMAL},
+      1_day_Conversion_Rate = #{1DayConversionRate,jdbcType=DECIMAL},
+      1_day_Same_SKU_Units_Ordered = #{1DaySameSkuUnitsOrdered,jdbcType=DECIMAL},
+      1_day_Other_SKU_Units_Ordered = #{1DayOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      1_day_Same_SKU_Units_Ordered_Product_Sales = #{1DaySameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      1_day_Other_SKU_Units_Ordered_Product_Sales = #{1DayOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      1_week_Orders_Placed = #{1WeekOrdersPlaced,jdbcType=DECIMAL},
+      1_week_Ordered_Product_Sales = #{1WeekOrderedProductSales,jdbcType=DECIMAL},
+      1_week_Conversion_Rate = #{1WeekConversionRate,jdbcType=DECIMAL},
+      1_week_Same_SKU_Units_Ordered = #{1WeekSameSkuUnitsOrdered,jdbcType=DECIMAL},
+      1_week_Other_SKU_Units_Ordered = #{1WeekOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      1_week_Same_SKU_Units_Ordered_Product_Sales = #{1WeekSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      1_week_Other_SKU_Units_Ordered_Product_Sales = #{1WeekOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      1_month_Orders_Placed = #{1MonthOrdersPlaced,jdbcType=DECIMAL},
+      1_month_Ordered_Product_Sales = #{1MonthOrderedProductSales,jdbcType=DECIMAL},
+      1_month_Conversion_Rate = #{1MonthConversionRate,jdbcType=DECIMAL},
+      1_month_Same_SKU_Units_Ordered = #{1MonthSameSkuUnitsOrdered,jdbcType=DECIMAL},
+      1_month_Other_SKU_Units_Ordered = #{1MonthOtherSkuUnitsOrdered,jdbcType=DECIMAL},
+      1_month_Same_SKU_Units_Ordered_Product_Sales = #{1MonthSameSkuUnitsOrderedProductSales,jdbcType=DECIMAL},
+      1_month_Other_SKU_Units_Ordered_Product_Sales = #{1MonthOtherSkuUnitsOrderedProductSales,jdbcType=DECIMAL}
+    where amazonAuthid = #{amazonauthid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and enddate = #{enddate,jdbcType=TIMESTAMP}
+  </update>
+   -->
+</mapper>

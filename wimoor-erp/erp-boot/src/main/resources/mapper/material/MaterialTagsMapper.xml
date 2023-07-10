@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialTagsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialTags" >
+    <id column="mid" property="mid" jdbcType="CHAR" />
+    <id column="tagid" property="tagid" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  
+  <select id="getmskuList" resultType="java.lang.String" parameterType="java.util.List">
+    SELECT m.sku FROM   t_erp_material_tags t  
+	LEFT JOIN t_erp_material m ON m.id=t.mid
+	WHERE 
+		t.tagid IN(
+			<foreach collection="list" item="tagid" index="index" separator=",">
+				#{tagid,jdbcType=CHAR} 
+		    </foreach>			
+		)
+  </select>
+  
+   <select id="getMidList" resultType="java.lang.String" parameterType="java.util.List">
+    SELECT m.id FROM   t_erp_material_tags t  
+	LEFT JOIN t_erp_material m ON m.id=t.mid
+	WHERE 
+		t.tagid IN(
+			<foreach collection="taglist" item="tagid" index="index" separator=",">
+				#{tagid,jdbcType=CHAR} 
+		    </foreach>			
+		)
+  </select>
+  
+     <select id="getTagsBySku" resultType="java.util.Map" parameterType="java.util.Map">
+		    SELECT m.sku,(SELECT GROUP_CONCAT(tagid) FROM t_erp_material_tags WHERE  MID=m.id) tagids
+		from t_erp_material  m
+		WHERE shopid=#{shopid,jdbcType=CHAR}  AND isdelete=0
+		and sku IN(
+			<foreach collection="skulist" item="sku" index="index" separator=",">
+				#{sku,jdbcType=CHAR} 
+		    </foreach>			
+		)
+  </select>
+
+ 
+
+ 
+</mapper>

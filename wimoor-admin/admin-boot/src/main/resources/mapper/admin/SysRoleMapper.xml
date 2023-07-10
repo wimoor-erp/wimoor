@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SysRoleMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SysRole" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+     <result column="issystem" property="issystem" jdbcType="BIT" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, type,issystem,shopid
+  </sql>
+  <select id="selectByShopId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    SELECT DISTINCT a.* from t_role a 
+    	LEFT JOIN t_user_role b on a.id=b.role_id
+ 	where a.shopid= #{shopid,jdbcType=CHAR}
+ 		<if test="userid!=null">
+		 	and b.user_id=#{userid,jdbcType=CHAR}
+		 </if>
+  </select>
+  
+    <select id="findRoleByUseID" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+      r.id, r.name, r.type,r.issystem,r.shopid
+    from t_user_role u left join 
+    t_role r on u.role_id=r.id 
+    where u.user_id = #{userid,jdbcType=CHAR}
+  </select>
+   <select id="findManagerByUseID" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+       r.id, r.name, r.type,r.issystem,r.shopid
+    from t_user_role u left join 
+    t_role r on u.role_id=r.id 
+    where u.user_id = #{userid,jdbcType=CHAR} and r.type='manager'
+  </select>
+  
+  <select id="findUseIDByRole" resultType="java.lang.String" parameterType="java.lang.String" >
+    select 
+     user_id
+    from t_user_role
+    where role_id = #{roleid,jdbcType=CHAR}
+  </select>
+    <select id="findMenuIDByRole" resultType="java.lang.String" parameterType="java.lang.String" >
+    select 
+     menu_id
+    from t_role_menu
+    where role_id = #{roleid,jdbcType=CHAR}
+  </select>
+
+  <select id="selectByType" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_role
+    where type = #{type,jdbcType=VARCHAR}
+  </select>
+  <select id="findRoleByShopid" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select distinct * from t_role t  
+ 	where t.shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  <select id="findCommRole" resultType="java.util.Map" parameterType="java.lang.String" >
+    select a.id,a.name from t_role_authority t
+ 	left join t_authority a on a.id=t.authority_id
+  	where t.role_id=#{roleid,jdbcType=CHAR}
+ 	and a.menuid='00d42d7d-db12-11e7-969d-00e04c023f0e'
+  </select>
+  
+   <delete id="deleteRole" parameterType="java.lang.String" >
+    delete from t_role where id = #{id,jdbcType=CHAR};
+    delete from t_role_menu where role_id = #{id,jdbcType=CHAR};
+    delete from t_role_authority where role_id = #{id,jdbcType=CHAR};
+    delete from t_role_group where roleid = #{id,jdbcType=CHAR};
+    delete from t_role_adv_group where roleid = #{id,jdbcType=CHAR};
+  </delete>
+</mapper>
