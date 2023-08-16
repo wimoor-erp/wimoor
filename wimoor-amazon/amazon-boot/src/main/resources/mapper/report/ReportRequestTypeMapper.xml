@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.report.mapper.ReportRequestTypeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.report.pojo.entity.ReportRequestType">
+        <id column="id" property="id" />
+        <result column="cname" property="cname" />
+        <result column="ename" property="ename" />
+        <result column="code" property="code" />
+        <result column="description" property="description" />
+        <result column="bean" property="bean" />
+        <result column="day" property="day" />
+        <result column="disabled" property="disabled" />
+        <result column="reportOptions" property="reportOptions" />
+    </resultMap>
+
+</mapper>

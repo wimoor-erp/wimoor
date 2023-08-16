@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvOperateLogMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvOperateLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="beanclasz" property="beanclasz" jdbcType="CHAR" />
+    <result column="beforeobject" property="beforeobject" jdbcType="VARCHAR" />
+    <result column="afterobject" property="afterobject" jdbcType="VARCHAR" /> 
+    <result column="remark" property="remark" jdbcType="VARCHAR" /> 
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, profileid, campaignId, adGroupId, opttime, 
+    operator, beanclasz, beforeobject, afterobject, remark
+  </sql>
+  
+  <select id="getOperateLogList" resultType="java.util.Map" parameterType="java.util.Map" >
+	select  t.* ,g.name groupname,m.name maketname,
+	ifnull(tg.name,tgsd.name) adGroupName,u.name username, 
+	ifnull(ifnull(tc.name,th.name),tcsd.name) campaignName,tg.defaultBid  
+		from t_amz_adv_operate_log t 
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId
+	    left join t_amz_adv_campaigns_hsa th on t.campaignId = th.campaignId
+	    left join t_amz_adv_adgroups tg on t.adGroupId = tg.adGroupId and t.campaignId = tg.campaignId
+	    left join t_amz_adv_campaigns_sd tcsd on t.campaignId = tcsd.campaignId
+	    left join t_amz_adv_adgroups_sd tgsd on t.adGroupId = tgsd.adGroupId and t.campaignId = tgsd.campaignId
+	    left join t_amz_adv_profile p on t.profileid = p.id
+	    left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group g on g.id = a.groupid
+		left join t_userinfo u on u.id=t.operator
+		where a.shopid = #{shopid,jdbcType=CHAR}
+	    <if test="search != null and search != ''" >
+			and (tc.name like #{search,jdbcType=CHAR} 
+			    or th.name like #{search,jdbcType=CHAR}
+		        or  tg.name like #{search,jdbcType=CHAR}  )
+		</if>
+		<if test="profileid != null and profileid != 'all'">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+	    <if test="marketplaceid!=null and marketplaceid != 'all'">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null and groupid != 'all'">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+			and t.opttime &gt;= #{fromDate,jdbcType=DATE} and t.opttime &lt;= #{endDate,jdbcType=DATE}
+  </select>
+ 
+</mapper>

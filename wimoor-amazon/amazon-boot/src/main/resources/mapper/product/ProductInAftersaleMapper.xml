@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInAftersaleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInAftersale">
+        <id column="id" property="id" />
+        <result column="groupid" property="groupid" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="sku" property="sku" />
+        <result column="date" property="date" />
+        <result column="quantity" property="quantity" />
+    </resultMap>
+    <insert id="insertBatch"  parameterType="java.util.List">
+      insert into t_product_in_aftersale (  id, groupid, amazonauthid, marketplaceid,sku, date, quantity)
+      values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (uuid_short(), #{stm.groupid,jdbcType=CHAR}, #{stm.amazonauthid,jdbcType=CHAR}, #{stm.marketplaceid,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR}, #{stm.date,jdbcType=TIMESTAMP}, #{stm.quantity,jdbcType=INTEGER})
+      </foreach> 
+  </insert>
+ 
+</mapper>

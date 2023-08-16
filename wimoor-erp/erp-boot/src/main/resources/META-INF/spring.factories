@@ -1,0 +1,10 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.wimoor.common.mybatisplus.MybatisPlusConfig,\
+  com.wimoor.common.mybatisplus.MyMetaObjectHandler,\
+  com.wimoor.common.mvc.WebMvcConfig,\
+  com.wimoor.common.mvc.GlobalExceptionHandler,\
+  com.wimoor.common.service.impl.SystemLogAspect,\
+  com.wimoor.common.service.impl.PictureServiceImpl,\
+  com.wimoor.common.mvc.FileUpload,\
+  com.wimoor.common.service.impl.OSSApiService
+

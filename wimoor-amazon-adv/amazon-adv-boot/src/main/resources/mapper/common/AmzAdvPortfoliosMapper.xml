@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvPortfoliosMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvPortfolios">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<id column="profileid" property="profileid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="policy" property="policy" jdbcType="CHAR" />
+		<result column="currencyCode" property="currencycode" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="DECIMAL" />
+		<result column="state" property="state" jdbcType="CHAR" />
+		<result column="inBudget" property="inbudget" jdbcType="BIT" />
+		<result column="startDate" property="startdate" jdbcType="DATE" />
+		<result column="endDate" property="enddate" jdbcType="DATE" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, profileid, name, policy, currencyCode, amount, state, inBudget, startDate, endDate, opttime 
+	</sql>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_portfolios (id, profileid, name, policy, currencyCode, amount, state, inBudget, startDate, endDate, opttime)
+		values
+		<foreach collection="list" item="adv" index="index"
+			separator=",">
+			(
+			#{adv.id,jdbcType=BIGINT}, #{adv.profileid,jdbcType=BIGINT}, #{adv.name,jdbcType=CHAR},#{adv.policy,jdbcType=CHAR},
+			#{adv.currencycode,jdbcType=CHAR},#{adv.amount,jdbcType=DECIMAL},
+			#{adv.state,jdbcType=CHAR},#{adv.inbudget,jdbcType=BIT},#{adv.startdate,jdbcType=DATE},
+			#{adv.enddate,jdbcType=DATE},#{adv.opttime,jdbcType=TIMESTAMP} 
+			)
+		</foreach>
+	</insert>
+	
+	<select id="getPortfoliosForProfileId" resultMap="BaseResultMap" parameterType="java.util.Map" >
+		select tp.*
+		from t_amz_adv_portfolios tp
+		left join t_amz_adv_profile p on tp.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR} 
+		<if test="profileid != null and profileid != 'all'">
+			and tp.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null and marketplaceid != 'all'">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null and groupid != 'all'">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+	</select>
+
+</mapper>

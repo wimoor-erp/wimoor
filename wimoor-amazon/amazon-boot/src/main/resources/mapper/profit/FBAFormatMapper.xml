@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.FBAFormatMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.FBAFormat" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="ismedia" property="ismedia" jdbcType="BIT" />
+    <result column="producttierId" property="producttierid" jdbcType="CHAR" />
+    <result column="fba_format" property="fbaFormat" jdbcType="VARCHAR" />
+    <result column="month" property="month" jdbcType="VARCHAR" />
+    <result column="weight" property="weight" jdbcType="DECIMAL" />
+    <result column="effective_date" property="effectiveDate" jdbcType="TIMESTAMP" />
+    <result column="expiry_date" property="expiryDate" jdbcType="TIMESTAMP" />
+    <result column="dispatch_type" property="dispatchType" jdbcType="CHAR" />
+  </resultMap>
+ 
+  <select id="findByProductTierId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select * 
+    from t_fbaformat
+    where producttierId = #{productTierId,jdbcType=CHAR} and month like #{month,jdbcType=CHAR}
+     and country like #{country,jdbcType=CHAR}
+     and   ( effective_date &lt; now()  or effective_date is null)
+     and  (expiry_date &gt;=now() or   expiry_date is null)
+  </select>
+ 
+  <select id="findEUfbaFormat" resultMap="BaseResultMap" >
+    select * 
+    from t_fbaformat
+    where producttierId = #{productTierId,jdbcType=CHAR} 
+    and country like #{country,jdbcType=CHAR} 
+    and dispatch_type=#{fenpeiType,jdbcType=CHAR} and IFNULL(weight,1000000)  &gt;= #{weight,jdbcType=DECIMAL} 
+    and   ( effective_date &lt; now()  or effective_date is null)
+    and  (expiry_date &gt;=now() or   expiry_date is null)
+    order by IFNULL(weight,1000000)  limit 0,1
+  </select>
+  
+  <select id="findByProductTierIdAndWeight" resultMap="BaseResultMap" >
+    select *  from t_fbaformat 
+    where producttierId = #{productTierId,jdbcType=CHAR} 
+     and IFNULL(weight,1000000)   &gt;= #{outboundWeight,jdbcType=DECIMAL} 
+     and country like #{country,jdbcType=CHAR}
+     and   ( effective_date &lt; now()  or effective_date is null)
+     and  (expiry_date &gt;=now() or   expiry_date is null)
+    order by IFNULL(weight,1000000)  limit 0,1 
+  </select>
+  
+    <select id="findByProductTierIdAndWeightSL" resultMap="BaseResultMap" >
+    select *  from t_fbaformat 
+    where producttierId = #{productTierId,jdbcType=CHAR} 
+    and IFNULL(weight,1000000) &gt;= #{outboundWeight,jdbcType=DECIMAL} 
+    and dispatch_type=#{fenpeiType,jdbcType=CHAR} 
+    and country like #{country,jdbcType=CHAR}
+    and   ( effective_date &lt; now()  or effective_date is null)
+    and  (expiry_date &gt;=now() or   expiry_date is null)
+    order by IFNULL(weight,1000000)  limit 0,1 
+  </select>
+  
+   <select id="findByProductTierIdNew" resultMap="BaseResultMap" >
+    select * from t_fbaformat 
+    where producttierId = #{productTierId,jdbcType=CHAR}  
+     and country like #{country,jdbcType=CHAR}
+     and IFNULL(isclothing,#{isClothing,jdbcType=BIT})=#{isClothing,jdbcType=BIT} limit 0,1
+  </select>
+  
+  <select id="findByProductTierIdAndIsMedia" resultMap="BaseResultMap" >
+    select * 
+    from t_fbaformat
+    where producttierId = #{productTierId,jdbcType=CHAR} and IFNULL(ismedia,#{isMedia,jdbcType=BIT}) = #{isMedia,jdbcType=BIT} 
+     and country like #{country,jdbcType=CHAR}
+     and   ( effective_date &lt; now()  or effective_date is null)
+     and  (expiry_date &gt;=now() or   expiry_date is null) 
+  </select>
+  
+  <select id="findByProductTierAndType" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select *  from t_fbaformat 
+    where producttierId = #{productTierId,jdbcType=CHAR} and dispatch_type = #{shipmentType,jdbcType=CHAR}
+     and country like #{country,jdbcType=CHAR}
+     and   ( effective_date &lt; now()  or effective_date is null)
+     and  (expiry_date &gt;=now() or   expiry_date is null)
+  </select>
+</mapper>

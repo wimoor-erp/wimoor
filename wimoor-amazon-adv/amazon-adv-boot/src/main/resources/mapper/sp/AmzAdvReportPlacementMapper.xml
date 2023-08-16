@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvReportPlacementMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sp.pojo.AmzAdvReportPlacement" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name
+  </sql>
+ 
+  <insert id="myinsert" parameterType="com.wimoor.amazon.adv.sp.pojo.AmzAdvReportPlacement" >
+    insert into t_amz_adv_rpt_placement (name)
+    values (#{name,jdbcType=CHAR})
+  </insert>
+  
+   <select id="selectByPlacement" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_rpt_placement
+    where name = #{name,jdbcType=CHAR}
+  </select>
+</mapper>

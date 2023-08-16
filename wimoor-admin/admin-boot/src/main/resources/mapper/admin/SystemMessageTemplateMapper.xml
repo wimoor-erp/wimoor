@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SystemMessageTemplateMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SystemMessageTemplate" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, ftype, content, operator, opttime
+  </sql>
+   
+</mapper>

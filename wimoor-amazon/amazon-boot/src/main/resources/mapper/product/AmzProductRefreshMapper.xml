@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductRefreshMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh">
+        <id column="pid" property="pid" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="detail_refresh_time" property="detailRefreshTime" />
+        <result column="price_refresh_time" property="priceRefreshTime" />
+        <result column="sku" property="sku" />
+        <result column="asin" property="asin" />
+        <result column="marketplaceid" property="marketplaceid" />
+    </resultMap>
+    
+    <select id="findForDetailRefresh"  resultType="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh" parameterType="java.lang.String">
+           SELECT rr.* FROM   t_amz_product_refresh rr
+           where rr.amazonauthid=#{amazonauthid,jdbcType=CHAR}  and rr.notfound=0
+           and rr.detail_refresh_time &lt; date_sub(now(), interval 1 day)
+           order by rr.detail_refresh_time asc,rr.isparent asc,rr.sku asc
+           LIMIT 1 ;
+    </select>
+    
+      <select id="findForCatalogRefresh"  resultType="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh" parameterType="java.lang.String">
+       SELECT * FROM ( SELECT  max(r.pid) pid,r.amazonauthid,
+		 null detail_refresh_time,
+		 null price_refresh_time,
+		 MIN(catalog_refresh_time) catalog_refresh_time,
+		 max(r.sku) sku,
+	     max(r.asin) asin,
+		 GROUP_CONCAT(r.marketplaceid) marketplaceid
+		  from 
+		   (SELECT rr.pid,rr.marketplaceid,rr.sku,rr.asin,rr.catalog_refresh_time,rr.amazonauthid FROM 
+		       t_amz_product_refresh rr
+           where rr.amazonauthid=#{amazonauthid,jdbcType=CHAR} and (rr.notfound=0 or rr.catalog_refresh_time &lt;date_sub(now(), interval 3 day))
+            and rr.catalog_refresh_time &lt;date_sub(now(), interval 1 day)
+            order by rr.catalog_refresh_time asc,rr.asin desc
+           LIMIT 20) r
+	      GROUP BY r.asin )v  ORDER BY catalog_refresh_time
+	     ;
+	     
+      
+    </select>
+    
+        <select id="findForPriceRefresh"  resultType="com.wimoor.amazon.product.pojo.entity.AmzProductRefresh" parameterType="java.lang.String">
+         SELECT * FROM ( SELECT  max(r.pid) pid,r.amazonauthid,
+		  null detail_refresh_time,
+		  MIN(r.price_refresh_time) price_refresh_time,
+		  null catalog_refresh_time,
+		  GROUP_CONCAT(r.sku ) sku,
+	      null,
+		  r.marketplaceid marketplaceid
+		  from 
+		   (SELECT rr.pid,rr.marketplaceid,rr.sku,rr.asin,rr.price_refresh_time,rr.amazonauthid FROM 
+		       t_amz_product_refresh rr
+           where rr.amazonauthid=#{amazonauthid,jdbcType=CHAR}  
+           and rr.price_refresh_time &lt; date_sub(now(), interval 1 day)
+           and rr.isparent=0 and  rr.notfound=0
+           order by rr.price_refresh_time,rr.marketplaceid asc
+           LIMIT 20) r
+	      GROUP BY r.marketplaceid   )v  ORDER BY price_refresh_time
+    </select>
+    
+    
+   <insert id="insertDefault">
+        insert into t_amz_product_refresh 
+		SELECT i.id,i.amazonauthid,
+		str_to_date('1949-10-01 00:00:00', '%Y-%m-%d %H:%i:%s'),
+		str_to_date('1949-10-01 00:00:00', '%Y-%m-%d %H:%i:%s'),
+		str_to_date('1949-10-01 00:00:00', '%Y-%m-%d %H:%i:%s'),
+		i.sku,i.asin,i.marketplaceid,i.isparent,i.invalid
+		FROM t_product_info i
+		LEFT JOIN t_amz_product_refresh r ON r.pid=i.id
+		LEFT JOIN t_amazon_auth a ON a.id=i.amazonauthid
+		WHERE a.`disable`=0 
+		AND i.invalid=0  
+		AND r.pid IS NULL 
+   </insert>
+</mapper>

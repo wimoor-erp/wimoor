@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.wimoor.common.mvc.FileUpload,\
+  com.wimoor.common.service.impl.OSSApiService,\
+  com.wimoor.common.mvc.GlobalExceptionHandler
+

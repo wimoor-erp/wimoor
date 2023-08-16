@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvWarningIndicatorMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvWarningIndicator" >
+    <id column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="REAL" />
+    <result column="clicks" property="clicks" jdbcType="REAL" />
+    <result column="cr" property="cr" jdbcType="REAL" />
+    <result column="acos" property="acos" jdbcType="REAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    shopid, impressions, clicks, cr, acos
+  </sql>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_warning_indicator
+    where shopid = #{shopid,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_amz_adv_warning_indicator
+    where shopid = #{shopid,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvWarningIndicator" >
+    insert into t_amz_adv_warning_indicator (shopid, impressions, clicks, 
+      cr, acos)
+    values (#{shopid,jdbcType=CHAR}, #{impressions,jdbcType=REAL}, #{clicks,jdbcType=REAL}, 
+      #{cr,jdbcType=REAL}, #{acos,jdbcType=REAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvWarningIndicator" >
+    insert into t_amz_adv_warning_indicator
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="impressions != null" >
+        impressions,
+      </if>
+      <if test="clicks != null" >
+        clicks,
+      </if>
+      <if test="cr != null" >
+        cr,
+      </if>
+      <if test="acos != null" >
+        acos,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="impressions != null" >
+        #{impressions,jdbcType=REAL},
+      </if>
+      <if test="clicks != null" >
+        #{clicks,jdbcType=REAL},
+      </if>
+      <if test="cr != null" >
+        #{cr,jdbcType=REAL},
+      </if>
+      <if test="acos != null" >
+        #{acos,jdbcType=REAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvWarningIndicator" >
+    update t_amz_adv_warning_indicator
+    <set >
+      <if test="impressions != null" >
+        impressions = #{impressions,jdbcType=REAL},
+      </if>
+      <if test="clicks != null" >
+        clicks = #{clicks,jdbcType=REAL},
+      </if>
+      <if test="cr != null" >
+        cr = #{cr,jdbcType=REAL},
+      </if>
+      <if test="acos != null" >
+        acos = #{acos,jdbcType=REAL},
+      </if>
+    </set>
+    where shopid = #{shopid,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvWarningIndicator" >
+    update t_amz_adv_warning_indicator
+    set impressions = #{impressions,jdbcType=REAL},
+      clicks = #{clicks,jdbcType=REAL},
+      cr = #{cr,jdbcType=REAL},
+      acos = #{acos,jdbcType=REAL}
+    where shopid = #{shopid,jdbcType=CHAR}
+  </update> -->
+</mapper>

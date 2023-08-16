@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sd.dao.AmzAdvReportProductTargeSDMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sd.pojo.AmzAdvReportProductTargetsSD" >
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <id column="targetId" property="targetid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="targetingType" property="targetingtype" jdbcType="CHAR" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="adGroupName" property="adgroupname" jdbcType="CHAR" />
+    <result column="targetingExpression" property="targetingexpression" jdbcType="CHAR" />
+    <result column="campaignName" property="campaignname" jdbcType="CHAR" />
+    <result column="targetingText" property="targetingtext" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+ 
+  </resultMap>
+  <sql id="Base_Column_List" >
+    bydate, targetId, campaignId, adGroupId, profileid, targetingType, currency, adGroupName, 
+    targetingExpression, campaignName, targetingText, impressions, clicks, cost, attributedConversions1d, 
+    attributedConversions7d, attributedConversions14d, attributedConversions30d, attributedConversions1dSameSKU, 
+    attributedConversions7dSameSKU, attributedConversions14dSameSKU, attributedConversions30dSameSKU, 
+    attributedUnitsOrdered1d, attributedUnitsOrdered7d, attributedUnitsOrdered14d, attributedUnitsOrdered30d, 
+    attributedSales1d, attributedSales7d, attributedSales14d, attributedSales30d, attributedSales1dSameSKU, 
+    attributedSales7dSameSKU, attributedSales14dSameSKU, attributedSales30dSameSKU
+  </sql>
+    <insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_sd_product_targets (
+		targetId, campaignId, adGroupId, bydate, profileid,  impressions, clicks, cost,opttime)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+	  #{adv.targetid,jdbcType=BIGINT}, #{adv.campaignid,jdbcType=BIGINT}, #{adv.adgroupid,jdbcType=BIGINT},
+	  #{adv.bydate,jdbcType=DATE}, #{adv.profileid,jdbcType=BIGINT}, 
+	   #{adv.impressions,jdbcType=INTEGER}, #{adv.clicks,jdbcType=INTEGER}, 
+      #{adv.cost,jdbcType=DECIMAL}, #{adv.opttime,jdbcType=DATE} )
+		</foreach>
+	</insert>
+	
+	 <insert id="insertBatchAttributed" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_sd_product_targets_attributed (
+		targetId, bydate, 
+		attributedConversions1d, 
+		attributedConversions7d, 
+	    attributedConversions14d, 
+	    attributedConversions30d, 
+	   
+	    attributedUnitsOrdered1d, 
+	    attributedUnitsOrdered7d, 
+	    attributedUnitsOrdered14d, 
+	    attributedUnitsOrdered30d,
+	     
+	    attributedSales1d, 
+	    attributedSales7d, 
+	    attributedSales14d, 
+	    attributedSales30d)
+		values
+    <foreach collection="list" item="adv" index="index" separator=",">
+			(
+		  #{adv.targetid,jdbcType=BIGINT}, #{adv.bydate,jdbcType=DATE}, 
+	      #{adv.attributedconversions1d,jdbcType=INTEGER}, 
+	      #{adv.attributedconversions7d,jdbcType=INTEGER}, 
+	      #{adv.attributedconversions14d,jdbcType=INTEGER}, 
+	      #{adv.attributedconversions30d,jdbcType=INTEGER}, 
+	      
+	      #{adv.attributedunitsordered1d,jdbcType=INTEGER}, 
+	      #{adv.attributedunitsordered7d,jdbcType=INTEGER}, 
+	      #{adv.attributedunitsordered14d,jdbcType=INTEGER}, 
+	      #{adv.attributedunitsordered30d,jdbcType=INTEGER}, 
+	      
+	      #{adv.attributedsales1d,jdbcType=DECIMAL}, 
+	      #{adv.attributedsales7d,jdbcType=DECIMAL}, 
+	      #{adv.attributedsales14d,jdbcType=DECIMAL}, 
+	      #{adv.attributedsales30d,jdbcType=DECIMAL}
+	      
+	     
+			)
+		</foreach>
+	</insert>
+  
+  	 <insert id="insertBatchAttributedSame" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_sd_product_targets_attributed_same (
+		targetId, bydate, 
+		attributedConversions1dSameSKU, 
+	    attributedConversions7dSameSKU, 
+	    attributedConversions14dSameSKU, 
+	    attributedConversions30dSameSKU, 
+	    
+	    attributedSales1dSameSKU, 
+	    attributedSales7dSameSKU, 
+	    attributedSales14dSameSKU, 
+	    attributedSales30dSameSKU)
+		values
+    <foreach collection="list" item="adv" index="index" separator=",">
+			(
+			  #{adv.targetid,jdbcType=BIGINT}, #{adv.bydate,jdbcType=DATE}, 
+		      #{adv.attributedconversions1dsamesku,jdbcType=INTEGER}, 
+		      #{adv.attributedconversions7dsamesku,jdbcType=INTEGER}, 
+		      #{adv.attributedconversions14dsamesku,jdbcType=INTEGER}, 
+		      #{adv.attributedconversions30dsamesku,jdbcType=INTEGER}, 
+		      
+		      #{adv.attributedsales1dsamesku,jdbcType=DECIMAL}, 
+		      #{adv.attributedsales7dsamesku,jdbcType=DECIMAL}, 
+		      #{adv.attributedsales14dsamesku,jdbcType=DECIMAL}, 
+		      #{adv.attributedsales30dsamesku,jdbcType=DECIMAL}
+			)
+		</foreach>
+	</insert>
+		 <insert id="insertBatchAttributedNew" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_sd_product_targets_attributed_new (
+		targetId, bydate, 
+	    attributedOrdersNewToBrand14d,attributedSalesNewToBrand14d,attributedUnitsOrderedNewToBrand14d)
+		values
+    <foreach collection="list" item="adv" index="index" separator=",">
+			(
+		  #{adv.targetid,jdbcType=BIGINT}, #{adv.bydate,jdbcType=DATE}, 
+	      #{adv.attributedOrdersNewToBrand14d,jdbcType=INTEGER}, #{adv.attributedSalesNewToBrand14d,jdbcType=DECIMAL},#{adv.attributedUnitsOrderedNewToBrand14d,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+ 
+	
+        <insert id="insertBatchAttributedView"   parameterType="java.util.List">
+     replace into t_amz_adv_rpt2_sd_product_targets_attributed_view ( 
+       targetId,bydate,
+       viewImpressions, viewAttributedConversions14d, 
+       viewAttributedUnitsOrdered14d, viewAttributedSales14d
+       )
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+       #{adv.targetid,jdbcType=BIGINT}, #{adv.bydate,jdbcType=DATE},
+       #{adv.viewImpressions,jdbcType=INTEGER}, #{adv.viewAttributedConversions14d,jdbcType=INTEGER}, 
+       #{adv.viewAttributedUnitsOrdered14d,jdbcType=INTEGER},  #{adv.viewAttributedSales14d,jdbcType=DECIMAL} 
+    )
+    </foreach>
+  </insert>
+</mapper>

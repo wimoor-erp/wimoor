@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseFormEntryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="supplier" property="supplier" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+    <result column="itemprice" property="itemprice" jdbcType="DECIMAL" />
+    <result column="audittime" property="audittime" jdbcType="TIMESTAMP" />
+    <result column="auditor" property="auditor" jdbcType="CHAR" />
+    <result column="orderprice" property="orderprice" jdbcType="DECIMAL" />
+    <result column="auditstatus" property="auditstatus" jdbcType="INTEGER" />
+    <result column="planitemid" property="planitemid" jdbcType="CHAR" />
+    <result column="totalpay" property="totalpay" jdbcType="DECIMAL" />
+    <result column="totalre" property="totalre" jdbcType="INTEGER" />
+    <result column="totalin" property="totalin" jdbcType="INTEGER" />
+    <result column="totalch" property="totalch" jdbcType="INTEGER" />
+    <result column="deliverydate" property="deliverydate" jdbcType="TIMESTAMP" />
+    <result column="closepaydate" property="closepaydate" jdbcType="TIMESTAMP" />
+    <result column="closerecdate" property="closerecdate" jdbcType="TIMESTAMP" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+  </resultMap>
+    <sql id="Base_Column_List" >
+      id, formid, materialid, 
+      supplier, operator, 
+      opttime, amount, itemprice, 
+      audittime, auditor, orderprice, 
+      auditstatus,  planitemid,totalpay,totalre,totalin,totalch,deliverydate,remark
+    </sql>
+        
+  <select id="findByFormId"  resultMap="BaseResultMap"  parameterType="java.lang.String" >
+  	select * from  t_erp_purchase_form_entry 
+	 where formid=#{formid,jdbcType=CHAR}
+  </select>
+  
+  
+  <select id="summaryBySupplier"  resultType="java.util.Map"  parameterType="java.lang.String" >
+  		SELECT COUNT(0) ordernum,SUM(totalin) totalin,SUM(totalpay) totalpay 
+  		FROM t_erp_purchase_form_entry e
+		LEFT JOIN t_erp_purchase_form f ON f.id=e.formid
+		WHERE e.supplier=#{supplier,jdbcType=CHAR} AND f.shopid=#{shopid,jdbcType=CHAR}
+		AND e.auditstatus=3 
+  </select>
+  
+  <select id="findRecentPurchase"  resultType="java.util.Map"  parameterType="java.lang.String" >
+  	SELECT e.*,f.*,c.name supplierName,c.number supplierNum from t_erp_purchase_form_entry e 
+	 left join t_erp_purchase_form f on e.formid = f.id 
+	 left join t_erp_customer c on e.supplier = c.id 
+	 where e.materialid = #{materialid,jdbcType=CHAR} 
+	 order by f.createdate desc limit 3;
+  </select>
+   <select id="findSumaryNeedApply"   resultType="java.lang.Integer" parameterType="java.lang.String" >
+        select ifnull(count(1),0) from t_erp_purchase_form_entry e
+		left join  t_erp_purchase_form f on e.formid=f.id 
+		where e.auditstatus=1 and   f.shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  
+  <select id="findSumaryNeedin"    resultType="java.lang.Integer"  parameterType="java.lang.String" >
+	  select ifnull(count(1),0) from t_erp_purchase_form_entry e
+	  left join  t_erp_purchase_form f on e.formid=f.id 
+	  where e.auditstatus=2 and  f.shopid=#{shopid,jdbcType=CHAR} and e.inwhstatus=0
+	</select>
+	
+	<select id="findSumaryNeedpay"    resultType="java.lang.Integer"  parameterType="java.lang.String" >
+	  select ifnull(count(1),0) from t_erp_purchase_form_entry e
+	  left join  t_erp_purchase_form f on e.formid=f.id 
+	  where e.auditstatus=2 and  f.shopid=#{shopid,jdbcType=CHAR} and e.paystatus=0
+	</select>
+	
+  <select id="purchaseFormReport" resultType="java.util.Map" >
+	 select
+		  <if test="param.type=='sku'">
+		  m.sku
+		 </if>
+		 <if test="param.type=='supplier'">
+		  c.name supplier
+		 </if>
+		  ,sum(v3.entryin) totalin,sum(entry.totalin) actual_totalin ,sum( v2.entrycostfee) totalcostfee,
+		   sum( case when auditstatus=3 then v2.entrycostfee else 0 end)/
+		      sum(case when auditstatus=3 then entry.totalin else 0 end)     pprice,
+		  sum(entry.amount) orderamount,
+		  sum(entry.amount*ifnull(ds.weight,0)) weight,
+		   avg(entry.itemprice) itemprice,
+		  sum(entry.orderprice) totalorderprice,sum(v3.entryre) totalre,
+		  sum(v2.entryshipfee) totalshipfee ,
+		  sum(v2.entryotherfee) totalotherfee ,
+		  sum(case when auditstatus=3 then v2.entrycostfee-entry.orderprice else 0  end )  lesspay,
+		  sum(case when  auditstatus=3 then v3.entryin-v3.entryre-entry.amount else 0 end)    lessrec,
+		  sum(case when   auditstatus=2  then  entry.amount-ifnull(entry.totalin,0) else 0 end ) needin,
+		  sum(case when   auditstatus=2   and (entry.orderprice-ifnull(v2.entrycostfee,0))>0 
+		               then entry.orderprice-ifnull(v2.entrycostfee,0)-ifnull(entryappcostfee,0) else 0  end )  waitPay ,
+		  sum(case when   auditstatus=2   and (entry.orderprice-ifnull(v2.entrycostfee,0))>0 
+		               then  ifnull(entryappcostfee,0) else 0  end )  appwaitPay 
+		from t_erp_purchase_form_entry entry
+		left join t_erp_purchase_form form on form.id=entry.formid
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_warehouse w on form.warehouseid=w.id
+	
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_dimensions ds on ds.id=m.pkgDimensions
+		left join (
+		 select pay.formentryid,
+		    sum(case when auditstatus=1 and projectid='26138972997300238' then payprice else 0 end ) entryshipfee,
+			sum(case when  auditstatus=1 and projectid='26138972997300240' then payprice else 0 end ) entrycostfee,
+		    sum(case when  auditstatus=2 and projectid='26138972997300240' then payprice else 0 end ) entryappcostfee,
+		    sum(case when  auditstatus=1 and projectid!='26138972997300240' and projectid!='26138972997300238' then payprice else 0 end ) entryotherfee
+		 from t_erp_purchase_form_payment pay
+		 group by pay.formentryid 
+		 ) v2 on v2.formentryid=entry.id
+		 left join (
+		 select rec.formentryid,sum(case when ftype='in' then amount else 0 end ) entryin,
+			sum(case when ftype='out' then amount else 0 end ) entryre
+		 from t_erp_purchase_form_receive rec
+		 group by rec.formentryid) v3 on v3.formentryid=entry.id
+		 where  entry.auditstatus>1 and  form.shopid=#{param.shopid,jdbcType=CHAR}
+		        and form.createdate &gt;=#{param.fromDate,jdbcType=DATE} 
+		 	    and form.createdate &lt;=#{param.endDate,jdbcType=DATE} 
+		 <if test="param.type=='sku'">
+		 and  m.sku is not null 
+		 </if>
+		 <if test="param.type=='supplier'">
+		  and  c.name is not null 
+		 </if>
+	     <if test="param.warehouseid!=null">
+		 and w.id=#{param.warehouseid,jdbcType=CHAR}
+		 </if>
+		 <if test="param.search!=null">
+		  and
+			  <if test="param.type=='sku'">
+			  m.sku like #{param.search,jdbcType=CHAR} 
+			   </if>
+			  <if test="param.type=='supplier'">
+			  c.name like #{param.search,jdbcType=CHAR} 
+			 </if>
+	    
+	     </if>
+		 <if test="param.type=='sku'">
+		  group by entry.materialid
+		 </if>
+		 <if test="param.type=='supplier'">
+		   group by entry.supplier
+		 </if>
+  </select>
+  
+   <select id="purchaseFormReportTotal" resultType="java.util.Map" >
+	  select	sum(S.actual_totalin) actual_totalin,
+	            sum(S.totalin) totalin,sum(S.totalcostfee) totalcostfee,
+				sum(S.orderamount) orderamount,
+			    sum(S.weight) weight,
+				sum(S.totalorderprice) totalorderprice,
+				sum(S.totalre) totalre,sum(S.totalshipfee) totalshipfee, sum(S.totalotherfee) totalotherfee,
+		    	sum(S.lesspay) lesspay,sum(S.lessrec) lessrec,
+		    	sum(S.needin) needin,sum(S.waitPay) waitPay 
+ 		from( select
+		 sum(entry.totalin) actual_totalin, sum(v3.entryin) totalin ,sum( v2.entrycostfee) totalcostfee,
+		 sum(entry.amount) orderamount, 
+		 sum(entry.orderprice) totalorderprice,
+		 sum(entry.amount*ifnull(ds.weight,0)) weight,
+		 sum(v3.entryre) totalre,
+		 sum(v2.entryshipfee) totalshipfee ,
+		 sum(v2.entryotherfee) totalotherfee ,
+		 sum(case when auditstatus=3 then v2.entrycostfee-entry.orderprice else 0  end )  lesspay,
+		 sum(case when  auditstatus=3 then v3.entryin-v3.entryre-entry.amount else 0 end)    lessrec,
+		 sum(case when   (auditstatus=2 or auditstatus=1) then  entry.amount-ifnull(entry.totalin,0) else 0 end ) needin,
+		 sum(case when   (auditstatus=2 or auditstatus=1)and (entry.orderprice-ifnull(v2.entrycostfee,0))>0 
+		               then entry.orderprice-ifnull(v2.entrycostfee,0) else 0  end ) waitPay  
+		from t_erp_purchase_form_entry entry
+		left join t_erp_purchase_form form on form.id=entry.formid
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_warehouse w on form.warehouseid=w.id
+		left join t_erp_material m on m.id=entry.materialid
+	    left join t_dimensions ds on ds.id=m.pkgDimensions
+		left join (
+		 select pay.formentryid,
+		    sum(case when auditstatus=1 and projectid='26138972997300238' then payprice else 0 end ) entryshipfee,
+			sum(case when  auditstatus=1 and projectid='26138972997300240' then payprice else 0 end ) entrycostfee,
+		    sum(case when  auditstatus=2 and projectid='26138972997300240' then payprice else 0 end ) entryappcostfee,
+		    sum(case when  auditstatus=1 and projectid!='26138972997300240' and projectid!='26138972997300238' then payprice else 0 end ) entryotherfee
+		 from t_erp_purchase_form_payment pay
+		 group by pay.formentryid ) v2 on v2.formentryid=entry.id
+		 left join (
+		 select rec.formentryid,sum(case when ftype='in' then amount else 0 end ) entryin,
+			sum(case when  ftype='out' then amount else 0 end ) entryre
+		 from t_erp_purchase_form_receive rec
+		 group by rec.formentryid) v3 on v3.formentryid=entry.id
+		 where form.shopid=#{shopid,jdbcType=CHAR} 
+		    and  entry.auditstatus>1
+		 	and form.createdate &gt;=#{fromDate,jdbcType=DATE} 
+		 	and form.createdate &lt;=#{endDate,jdbcType=DATE} 
+		  <if test="type=='sku'">
+		    and  m.sku is not null 
+		 </if>
+		 <if test="type=='supplier'">
+		   and  c.name is not null 
+		 </if>
+	     <if test="warehouseid!=null">
+		 and w.parentid=#{warehouseid,jdbcType=CHAR}
+		 </if>
+		 <if test="search!=null">
+		  and
+			  <if test="type=='sku'">
+			  m.sku like #{search,jdbcType=CHAR} 
+			   </if>
+			  <if test="type=='supplier'">
+			  c.name like #{search,jdbcType=CHAR} 
+			 </if>
+	     </if>
+	     <if test="type=='sku'">
+		  group by entry.materialid
+		 </if>
+		 <if test="type=='supplier'">
+		   group by entry.supplier
+		 </if>
+		 ) S 
+  </select>
+  
+   <select id="getFormDetail"  resultType="java.util.Map"  parameterType="java.lang.String" >
+  	  select 
+        entry.id,IFNULL(pic.location,pic.url) image,m.sku,m.color,m.name mname,
+				entry.auditstatus,entry.supplier,c.name suppliername,
+        entry.itemprice,entry.amount,entry.orderprice,
+	      mark.mark notice,m.MOQ, IFNULL(sc.stockingCycle,w.stocking_cycle)  stockingCycle 
+    from t_erp_purchase_form_entry entry
+    left join t_erp_material m on entry.materialid=m.id
+    left join t_picture pic on m.image=pic.id
+    left join t_erp_purchase_form form on entry.formid=form.id
+    left join t_erp_customer c on c.id=entry.supplier
+    left join t_erp_warehouse w on w.id=form.warehouseid
+    left join t_erp_stockcycle sc on w.id=sc.warehouseid and m.id=sc.materialid 
+    left join t_erp_material_mark mark on mark.materialid=m.id and mark.ftype='notice'
+    where form.shopid=#{shopid,jdbcType=CHAR}  
+   
+    and entry.formid=#{formid,jdbcType=CHAR} 
+  	  
+  </select>
+  <select id="selectNeedSendMsgShop" resultType="java.util.Map" >
+    SELECT  t.shopid FROM t_erp_purchase_form t
+	LEFT JOIN t_erp_purchase_form_entry e ON t.id=e.formid
+	WHERE e.inwhstatus=0 AND e.deliverydate &lt; CURDATE() AND e.auditstatus=2
+	AND e.deliverydate>DATE_ADD(CURDATE(),INTERVAL -60 DAY )
+	GROUP BY t.shopid
+  </select>
+  
+  <select id="selectPurchaseNotify"  resultType="java.util.Map" parameterType="java.lang.String">
+  	SELECT  m.sku,t.number,COUNT(t.shopid) num,e.deliverydate FROM t_erp_purchase_form t
+	LEFT JOIN t_erp_purchase_form_entry e ON t.id=e.formid
+	LEFT JOIN t_erp_material m ON m.id=e.materialid 
+	WHERE e.inwhstatus=0 AND e.deliverydate &lt; CURDATE() AND e.totalpay>0
+	AND e.deliverydate>DATE_ADD(CURDATE(),INTERVAL -60 DAY )
+	and t.shopid=#{shopid,jdbcType=CHAR} 
+  </select>
+  
+  <select id="getByNumberSku" resultType="com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry" parameterType="java.lang.String">
+    SELECT  e.* FROM t_erp_purchase_form t
+	LEFT JOIN t_erp_purchase_form_entry e ON t.id=e.formid
+	left join t_erp_material m on m.id=e.materialid
+	WHERE  t.number=#{number,jdbcType=CHAR}  and t.shopid=#{shopid,jdbcType=CHAR} and m.sku=#{sku,jdbcType=CHAR}
+  </select>
+</mapper>

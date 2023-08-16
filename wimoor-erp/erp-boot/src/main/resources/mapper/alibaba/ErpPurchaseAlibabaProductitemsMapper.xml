@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.ErpPurchaseAlibabaProductitemsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.ErpPurchaseAlibabaProductitems">
+        <id column="skuID" property="skuID" />
+        <result column="skuInfos" property="skuInfos" />
+        <result column="productID" property="productID" />
+        <result column="productCargoNumber" property="productCargoNumber" />
+        <result column="price" property="price" />
+        <result column="name" property="name" />
+        <result column="logisticsStatus" property="logisticsStatus" />
+        <result column="productSnapshotUrl" property="productSnapshotUrl" />
+        <result column="productImgUrl" property="productImgUrl" />
+        <result column="unit" property="unit" />
+    </resultMap>
+
+</mapper>

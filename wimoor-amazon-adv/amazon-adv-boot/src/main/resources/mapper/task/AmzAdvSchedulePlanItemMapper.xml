@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.task.dao.AmzAdvSchedulePlanItemMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.task.pojo.AmzAdvSchedulePlanItem" >
+    <id column="taskId" property="taskid" jdbcType="CHAR" />
+    <id column="planId" property="planid" jdbcType="CHAR" />
+    <result column="type" property="type" jdbcType="CHAR" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="bid" property="bid" jdbcType="DECIMAL" />
+    <result column="startTime" property="starttime" jdbcType="TIME" />
+    <result column="weekdays" property="weekdays" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+   taskId, status, planId, type, startTime, bid, weekdays
+  </sql>
+  
+  <select id="findPlanIdForProfile" resultType="java.util.Map" parameterType="java.math.BigInteger">
+  	select t.profileid,t.planid 
+	from t_amz_adv_schedule_plandata t
+	where t.profileid = #{profileid,jdbcType=BIGINT}
+	group by t.planid,t.profileid
+  </select>
+  
+  
+</mapper>
