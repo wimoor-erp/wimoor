@@ -13,6 +13,7 @@
   	<module>wimoor-shopee</module>
   	<module>wimoor-erp</module>
   	<module>wimoor-amazon</module>
+  	<module>wimoor-amazon-adv</module>
   </modules>
   
    <parent>
