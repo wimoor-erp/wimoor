@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.ErpPurchaseFormEntryAlibabainfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.ErpPurchaseFormEntryAlibabainfo">
+        <id column="entryid" property="entryid" />
+        <result column="alibaba_auth" property="alibabaAuth" />
+        <result column="alibaba_orderid" property="alibabaOrderid" />
+        <result column="logistics_info" property="logisticsInfo" />
+        <result column="logistics_trace_info" property="logisticsTraceInfo" />
+        <result column="order_info" property="orderInfo" />
+        <result column="logistics_status" property="logisticsStatus" />
+        <result column="logistics_trace_status" property="logisticsTraceStatus" />
+        <result column="order_status" property="orderStatus" />
+        <result column="order_refresh_time" property="orderRefreshTime" />
+        <result column="logistics_refresh_time" property="logisticsRefreshTime" />
+        <result column="logistics_trace_refresh_time" property="logisticsTraceRefreshTime" />
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.ErpPurchaseAlibabaOrderBaseinfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.ErpPurchaseAlibabaOrderBaseinfo">
+        <id column="id" property="id" />
+        <result column="idOfStr" property="idOfStr" />
+        <result column="alipayTradeId" property="alipayTradeId" />
+        <result column="allDeliveredTime" property="allDeliveredTime" />
+        <result column="createTime" property="createTime" />
+        <result column="modifyTime" property="modifyTime" />
+        <result column="payTime" property="payTime" />
+        <result column="businessType" property="businessType" />
+        <result column="status" property="status" />
+        <result column="buyerFeedback" property="buyerFeedback" />
+        <result column="remark" property="remark" />
+        <result column="closeOperateType" property="closeOperateType" />
+        <result column="tradeType" property="tradeType" />
+        <result column="discount" property="discount" />
+        <result column="refund" property="refund" />
+        <result column="overSeaOrder" property="overSeaOrder" />
+        <result column="refundPayment" property="refundPayment" />
+        <result column="shippingFee" property="shippingFee" />
+        <result column="totalAmount" property="totalAmount" />
+        <result column="sumProductPayment" property="sumProductPayment" />
+        <result column="flowTemplateCode" property="flowTemplateCode" />
+        <result column="buyerID" property="buyerID" />
+        <result column="sellerID" property="sellerID" />
+    </resultMap>
+
+</mapper>

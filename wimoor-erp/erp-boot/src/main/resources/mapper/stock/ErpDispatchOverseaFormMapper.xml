@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.stock.mapper.ErpDispatchOverseaFormMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.ErpDispatchOverseaForm">
+        <id column="id" property="id" />
+        <result column="number" property="number" />
+        <result column="shopid" property="shopid" />
+        <result column="from_warehouseid" property="fromWarehouseid" />
+        <result column="to_warehouseid" property="toWarehouseid" />
+        <result column="groupid" property="groupid" />
+        <result column="creator" property="creator" />
+        <result column="auditor" property="auditor" />
+        <result column="audittime" property="audittime" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+        <result column="remark" property="remark" />
+        <result column="auditstatus" property="auditstatus" />
+        <result column="createdate" property="createdate" />
+        <result column="arrivalTime" property="arrivalTime" />
+    </resultMap>
+    <select id="findById" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.name fromwarehouse,w2.name towarehouse,u.name creator, a.*
+		from t_erp_dispatch_oversea_form a
+		LEFT JOIN t_erp_warehouse w on a.from_warehouseid = w.id
+		LEFT JOIN t_erp_warehouse w2 on a.to_warehouseid = w2.id
+		LEFT JOIN t_userinfo u on a.creator=u.id
+		where a.id = #{id,jdbcType=CHAR};
+	</select>
+    <select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select a.id,
+		    max(a.number) number,
+		    max(u.name) creator,
+		    max(a.auditstatus) auditstatus,
+		    max(a.remark) remark,
+			max(a.opttime) opttime, 
+			max(wfrom.name) wfname,
+			max(a.groupid) groupid,
+			max(wto.country) country,
+			max(wto.name) wtname ,
+			count(b.id) skunum,
+			max(c.name) company,
+			max(tc.name) transtypename,
+			max(a.createdate) createdate
+		from t_erp_dispatch_oversea_form a 
+		LEFT JOIN t_userinfo u on a.operator = u.id
+		left join t_erp_warehouse wfrom on a.from_warehouseid=wfrom.id
+		left join t_erp_warehouse wto on a.to_warehouseid =wto.id
+		LEFT JOIN t_erp_dispatch_oversea_form_entry b on  b.formid=a.id 
+		left join t_erp_dispatch_oversea_trans t on t.formid=a.id
+		left join t_erp_ship_transcompany c on c.id=t.company
+		left join t_erp_ship_transchannel tc on tc.id=t.channel
+		LEFT join t_erp_material m on b.materialid = m.id
+		where a.shopid = #{params.shopid,jdbcType=CHAR}
+		<if test="params.search != null">
+			and (m.sku like #{params.search,jdbcType=CHAR}
+			or m.name like #{params.search,jdbcType=CHAR}
+			or a.number like #{params.search,jdbcType=CHAR})
+		</if>
+		 <if test="params.fromwid != null">
+			and  a.from_warehouseid= #{params.fromwid,jdbcType=CHAR}
+		</if>
+	    <if test="params.towid != null">
+			and  a.to_warehouseid= #{params.towid,jdbcType=CHAR}
+		</if>
+		<if test="params.statusList != null">
+			and
+			<foreach collection="params.statusList" item="status" index="i" open="(" separator="or" close=" )">
+				a.auditstatus = #{status,jdbcType=INTEGER}
+			</foreach>
+		</if>
+		<if test="params.fromDate != null and params.endDate != null">
+			and DATE_FORMAT(a.opttime,'%Y-%m-%d') &gt;=#{params.fromDate,jdbcType=DATE}
+			and DATE_FORMAT(a.opttime,'%Y-%m-%d') &lt;=#{params.endDate,jdbcType=DATE}
+		</if>
+		group by a.id
+	</select>
+	
+		<select id="getShipArrivalTimeRecord" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT a.arrivalTime,a.number shipmentid,a.createdate, a.audittime shiped_date ,b.sellersku sku,
+			   b.amount Quantity,ifnull(detail.channame,'暂无') channame,  b.amount shipQuantity
+		from t_erp_dispatch_oversea_form a
+		LEFT JOIN t_erp_dispatch_oversea_form_entry b on b.formid=a.id
+		LEFT JOIN t_erp_dispatch_oversea_trans ts on ts.formid=a.id
+		LEFT JOIN t_erp_warehouse w on w.id=a.to_warehouseid
+		left join t_erp_ship_transdetail detail on detail.id = ts.channel
+		where b.sellersku=#{sku,jdbcType=CHAR} 
+			and a.auditstatus  &gt;= 2 and a.auditstatus &lt;= 3
+			<if test="country!=null">
+			  <if test="country=='EU'">
+			    and w.country in ('DE','FR','IT','ES','PL','NL')
+			  </if>
+			  <if test="country!='EU'">
+			    and w.country =#{country,jdbcType=CHAR}
+			  </if>
+			</if>
+			<if test="groupid!=null">
+			   and (w.groupid is null or w.groupid=#{groupid,jdbcType=CHAR})
+			</if>
+			and a.shopid=#{shopid,jdbcType=CHAR}
+		ORDER BY a.arrivalTime asc
+	</select>
+	 
+</mapper>

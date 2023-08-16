@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipTransCompayAPIMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipTransCompayAPI" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="api" property="api" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="openkey" property="openkey" jdbcType="VARCHAR" />
+    <result column="openaccount" property="openaccount" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, api, name, openkey, openaccount
+  </sql>
+  
+</mapper>

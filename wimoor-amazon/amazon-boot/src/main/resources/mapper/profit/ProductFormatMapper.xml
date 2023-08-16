@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.ProductFormatMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.ProductFormat" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="producttierId" property="producttierid" jdbcType="CHAR" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="format" property="format" jdbcType="VARCHAR" />
+    <result column="length_unit" property="lengthUnit" jdbcType="CHAR" />
+    <result column="weight_unit" property="weightUnit" jdbcType="CHAR" />
+    <result column="sort" property="sort" jdbcType="INTEGER" />
+  </resultMap>
+  
+  <select id="findByCountry" resultType="java.util.Map" parameterType="java.lang.String" >
+    select pf.*, pt.* 
+    from t_productformat pf left join t_producttier pt
+     on pf.producttierId = pt.id 
+    where pt.country like #{country,jdbcType=CHAR} order by pf.sort
+  </select>
+  
+  <select id="findSmlProductTier" resultType="java.util.Map" parameterType="java.lang.String" >
+    select pf.*, pt.* 
+    from t_productformat pf left join t_producttier pt
+     on pf.producttierId = pt.id 
+    where pt.country like #{country,jdbcType=CHAR} and sort &gt;=100 order by pf.sort
+  </select>
+</mapper>

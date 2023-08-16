@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.ChangeWhFormMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.ChangeWhForm">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="number" property="number" jdbcType="CHAR" />
+		<result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="auditstatus" property="auditstatus" jdbcType="INTEGER" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, number, warehouseid, remark, shopid, creator, createdate, operator, opttime, auditstatus
+	</sql>
+
+	<select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select a.id,a.number,u.name creator,a.remark remark, a.opttime opttime,a.createdate,
+			w.name warehouse ,b.amount,m.sku sku_to ,m2.sku sku_from
+		from t_erp_changewh_form a
+		LEFT JOIN t_userinfo u on a.creator = u.id
+		left join t_erp_warehouse w on a.warehouseid=w.id
+		LEFT JOIN t_erp_changewh_form_entry b on a.id = b.formid
+		LEFT join t_erp_material m on b.material_to= m.id
+		LEFT join t_erp_material m2 on b.material_from= m2.id
+		where a.shopid = #{params.shopid,jdbcType=CHAR}
+		<if test="params.search != null">
+			and (a.number like #{params.search,jdbcType=CHAR} 
+				or m.sku like #{params.search,jdbcType=CHAR}
+				or m2.sku like #{params.search,jdbcType=CHAR})
+		</if>
+		<if test="params.fromDate != null and params.endDate != null">
+			and DATE_FORMAT(a.opttime,'%Y-%m-%d') &gt;=#{params.fromDate,jdbcType=DATE}
+			and DATE_FORMAT(a.opttime,'%Y-%m-%d') &lt;=#{params.endDate,jdbcType=DATE}
+		</if>
+	</select>
+
+	<select id="findById" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT a.id,a.number,u.name creator,a.remark remark, a.opttime opttime,
+			a.createdate, w.id warehouseid, w.name warehouse 
+		from t_erp_changewh_form a
+		LEFT JOIN t_userinfo u on a.creator = u.id
+		left join t_erp_warehouse w on a.warehouseid=w.id
+		where a.id = #{id,jdbcType=CHAR}
+	</select>
+	
+	<select id="getChangeWhFormByWarehouseid" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select *
+		from t_erp_changewh_form a
+		where a.warehouseid = #{warehouseid,jdbcType=CHAR} 
+			and a.auditstatus != 2
+	</select>
+
+</mapper>

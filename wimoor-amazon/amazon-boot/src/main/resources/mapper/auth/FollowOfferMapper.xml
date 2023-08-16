@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.auth.mapper.FollowOfferMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.FollowOffer" >
+    <id column="sellerid" property="sellerid" jdbcType="CHAR" />
+    <id column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="positive_feedback_rating" property="positiveFeedbackRating" jdbcType="INTEGER" />
+    <result column="feedback_count" property="feedbackCount" jdbcType="INTEGER" />
+    <result column="refreshtime" property="refreshtime" jdbcType="TIMESTAMP" />
+     <result column="refreshnum" property="refreshnum" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    sellerid, marketplaceid, name, positive_feedback_rating, feedback_count, refreshtime, refreshnum
+  </sql>
+  
+  <!-- <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_follow_offer ( 
+         sellerid, name, marketplaceid, positive_feedback_rating, feedback_count, refreshtime)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.sellerid,jdbcType=CHAR},#{adv.marketplaceid,jdbcType=CHAR},
+      #{adv.name,jdbcType=CHAR},#{adv.positiveFeedbackRating,jdbcType=INTEGER}, 
+      #{adv.feedbackCount,jdbcType=INTEGER},#{adv.refreshtime,jdbcType=TIMESTAMP}
+    )
+    </foreach>
+  </insert>
+   -->
+  <select id="getNeedUpdate" resultType="java.util.Map" parameterType="java.lang.String">
+   	SELECT* FROM (	SELECT offer.sellerid,
+		max(m.point_name) point_name,
+		max(offer.refreshtime) refreshtime, 
+		max(offer.refreshnum) refreshnum 
+		from db_wimoor.t_amz_follow_offer offer
+		left join db_wimoor.t_marketplace m on m.marketplaceId = offer.marketplaceid
+	    where offer.`name` is null  
+	    group by offer.sellerid
+     ) v
+     ORDER BY v.refreshtime asc
+	 limit 3
+</select>
+  
+  <update id="updateSellerName"  parameterType="java.lang.String" >
+    UPDATE t_amz_follow_offer  set  refreshtime=NOW(),refreshnum=#{refreshnum,jdbcType=INTEGER}
+    <if test="sellerName!=null">
+    ,name=#{sellerName,jdbcType=CHAR}
+    </if>
+     where sellerid=#{sellerid,jdbcType=CHAR}
+  </update>
+  
+</mapper>

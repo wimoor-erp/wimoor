@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.inventory.mapper.InventoryRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.inventory.pojo.entity.InventoryRecord" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="inbound" property="inbound" jdbcType="INTEGER" />
+    <result column="outbound" property="outbound" jdbcType="INTEGER" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="formtype" property="formtype" jdbcType="CHAR" />
+    <result column="operate" property="operate" jdbcType="CHAR" />
+    <result column="number" property="number" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="formoptid" property="formoptid" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, warehouseid, materialid, inbound, outbound, amount, formid, formtype,  
+    operate,number, operator, opttime,formoptid
+  </sql>
+  
+  <select id="findByCondition" parameterType="java.util.Map" resultType="java.util.Map">
+  		SELECT t.number,
+  		  case when ifnull(sum(t.inbound),0)!=0 then sum(case when ifnull(t.inbound,0)!=0 then t.startinbound else  0 end )
+  		                                        else max(t.startinbound) end startinbound,
+  		  sum(t.inbound) inbound,
+  		  
+  		  case when ifnull(sum(t.inbound),0)!=0 then sum(case when ifnull(t.inbound,0)!=0 then t.endinbound else  0 end )
+  		                                        else max(t.endinbound) end endinbound,
+   
+   
+   
+  		  case when   ifnull(sum(t.fulfillable),0)!=0 then sum(case when ifnull(t.fulfillable,0)!=0 then t.startfulfillable else  0 end )
+  		                                              else max(t.startfulfillable) end startfulfillable,
+  		  
+  		  sum(t.fulfillable) fulfillable,
+  		  
+  		  case when  ifnull(sum(t.fulfillable),0)!=0 then sum(case when ifnull(t.fulfillable,0)!=0 then t.endfulfillable else  0 end )
+  		                                             else max(t.endfulfillable) end endfulfillable,
+  		  
+  		  
+  		  
+  		  case when ifnull(sum(t.outbound),0)!=0 then sum(case when ifnull(t.outbound,0)!=0 then t.startoutbound else  0 end )
+  		                                         else max(t.startoutbound) end startoutbound,
+  		  sum(t.outbound) outbound,
+  		 
+  		  case when ifnull(sum(t.outbound),0)!=0 then sum(case when ifnull(t.outbound,0) then t.endoutbound else  0 end )
+  		                                         else max(t.endoutbound) end endoutbound,
+  		 max(ty.name) typename,
+		 max(m.sku) sku,
+		 max(m.name) name,
+		 max(IFNULL(p.location,p.url)) image,
+		 max(u.name) operator,
+		 max(t.opttime) opttime,
+		 max(w.name) warehousename,
+		 max(t.operate) operate
+		FROM t_erp_inventory_record t
+		LEFT JOIN t_erp_material m ON m.id=t.materialid
+		LEFT JOIN t_erp_formtype ty ON ty.id=t.formtype
+		LEFT JOIN t_picture p ON p.id=m.image
+		LEFT JOIN t_userinfo u ON u.id=t.operator
+		LEFT JOIN t_erp_warehouse w ON w.id=t.warehouseid 
+		where t.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test="param.toDate!=null">
+			and t.opttime &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and t.opttime &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="param.search!=null and param.search!=''">
+			 <if test="param.searchtype=='sku'">
+			 	and m.sku like #{param.search,jdbcType=CHAR}
+			 </if>
+			 <if test="param.searchtype=='number'">
+			 	and t.number like #{param.search,jdbcType=CHAR}
+			 </if>
+		</if>
+		<if test="param.warehouseid!=null">
+			and t.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="param.operator!=null">
+			and t.operator=#{param.operator,jdbcType=CHAR}
+		</if>
+		<if test="param.formtypeList!=null">
+			and t.formtype in (
+				<foreach collection="param.formtypeList" item="types" index="index" separator=",">
+					#{types,jdbcType=CHAR} 
+			    </foreach>			
+			)
+		</if>
+		group by t.shopid,t.warehouseid,t.materialid,t.number,t.opttime
+  </select>
+  
+  <select id="findSkuInvHistory"  parameterType="java.util.Map" resultType="java.util.Map">
+  	SELECT t.materialid,SUM(t.fulfillable) fulfillable FROM t_erp_inventory_record t 
+	WHERE t.shopid=#{param.shopid,jdbcType=CHAR}  AND t.materialid=#{param.materialid,jdbcType=CHAR}
+	AND t.opttime>=#{param.fromDate,jdbcType=CHAR} AND t.opttime&lt;=#{param.toDate,jdbcType=CHAR}
+	<if test="param.ftype=='instock'">
+		AND t.fulfillable>0
+	</if>
+	<if test="param.ftype=='outstock'">
+		AND t.fulfillable&lt;0
+	</if>
+	<if test="param.warehouseid!='' and param.warehouseid!=null">
+		AND t.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+	</if>
+	GROUP BY t.materialid 
+  </select>
+  
+  <select id="findSkuNowInventory"  parameterType="java.lang.String" resultType="java.util.Map">
+    select sum(case when (iv.`status`='fulfillable')  then iv.quantity else 0 end) fulfillable
+	from t_erp_inventory iv
+	where iv.quantity >0 
+	and iv.materialid=#{materialid,jdbcType=CHAR}
+	and iv.shopid=#{shopid,jdbcType=CHAR}
+	<if test="warehouseid!=null and warehouseid!=''">
+		AND iv.warehouseid=#{warehouseid,jdbcType=CHAR}
+	</if>
+  </select>
+ 
+ <select id="findOutstockformOut"  parameterType="java.util.Map" resultType="java.util.Map">
+			 SELECT DATE_FORMAT(r.opttime,'%Y-%m-%d') byday,
+			MAX(w.name) warheousename,
+			MAX(m.sku) sku,
+			MAX(m.name) name,
+			group_concat(r.number) number,
+			SUM(r.quantity) handle
+			from t_erp_inventory_record r
+			LEFT JOIN t_erp_warehouse w ON w.id=r.warehouseid
+			LEFT JOIN t_erp_material m  ON m.id=r.materialid
+			WHERE r.shopid=#{shopid,jdbcType=CHAR} 
+			AND `status`='outbound'
+			AND formtype='outstockform'
+			AND r.opttime>=#{fromdate,jdbcType=CHAR}
+			AND r.opttime&lt;=#{enddate,jdbcType=CHAR}
+			GROUP BY r.materialid,DATE_FORMAT(r.opttime,'%Y-%m-%d')
+ </select>
+   
+</mapper>

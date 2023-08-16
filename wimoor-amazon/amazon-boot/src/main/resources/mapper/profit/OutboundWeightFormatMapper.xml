@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.OutboundWeightFormatMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.OutboundWeightFormat" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="producttierId" property="producttierid" jdbcType="CHAR" />
+    <result column="isMedia" property="ismedia" jdbcType="BIT" />
+    <result column="format" property="format" jdbcType="CHAR" />
+  </resultMap>
+  
+  <select id="findByProductTierId" resultMap="BaseResultMap" >
+    select *
+    from t_outbound_weightformat
+    where producttierId = #{productTierId,jdbcType=CHAR} and IFNULL(isMedia,#{isMedia,jdbcType=BIT})=#{isMedia,jdbcType=BIT}
+  </select>
+</mapper>

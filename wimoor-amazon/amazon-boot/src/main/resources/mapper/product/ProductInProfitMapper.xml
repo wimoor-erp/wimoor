@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInProfitMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInProfit" >
+    <id column="pid" property="pid" jdbcType="CHAR" />
+    <result column="profit_week" property="profitWeek" jdbcType="DECIMAL" />
+    <result column="margin_week" property="marginWeek" jdbcType="DECIMAL" />
+    <result column="margin" property="margin" jdbcType="DECIMAL" />
+    <result column="planName" property="planName" jdbcType="CHAR" />
+    <result column="dimensions" property="dimensions" jdbcType="CHAR" />
+    <result column="weight" property="weight" jdbcType="CHAR" />
+    <result column="lastupdate" property="lastupdate" jdbcType="TIMESTAMP" />
+    <result column="shipmentfee" property="shipmentfee" jdbcType="DECIMAL" />
+    <result column="othersfee" property="othersfee" jdbcType="DECIMAL" />
+    <result column="costDetail" property="costdetail" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    pid, profit_week, margin_week,margin,dimensions, planName, weight, lastupdate, shipmentfee, othersfee, costDetail,margin
+  </sql>
+   
+  <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_product_in_profit( 
+        pid, profit_week, margin_week, dimensions, planName, weight, lastupdate ,shipmentfee, othersfee, costDetail,margin)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.pid,jdbcType=BIGINT}, #{adv.profitWeek,jdbcType=DECIMAL}, #{adv.marginWeek,jdbcType=DECIMAL},
+      #{adv.dimensions,jdbcType=CHAR}, #{adv.planName,jdbcType=CHAR}, #{adv.weight,jdbcType=CHAR},
+      #{adv.lastupdate,jdbcType=TIMESTAMP},#{adv.shipmentfee,jdbcType=DECIMAL},#{adv.othersfee,jdbcType=DECIMAL}, 
+      #{adv.costdetail,jdbcType=VARCHAR},#{adv.margin,jdbcType=DECIMAL}
+    )
+    </foreach>
+  </insert>
+  
+  <delete id="deleteProductInOrderAndProfitByDate">
+  	update t_product_in_order set avgsales=0,sales_week=0,sales_month=0,order_week=0,order_month=0,sales_seven=0,sales_fifteen=0,lastupdate=now()  where lastupdate &lt; DATE_FORMAT(now(),'%Y-%m-%d');
+	update t_product_in_profit set profit_week=null , lastupdate=now() where lastupdate &lt; DATE_FORMAT(now(),'%Y-%m-%d');
+  </delete>
+   
+</mapper>

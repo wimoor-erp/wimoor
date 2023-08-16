@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.finance.mapper.FinanceProjectMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.finance.pojo.entity.FinanceProject" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="issys" property="issys" jdbcType="BIT" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="creator" property="creator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, issys, shopid, createdate, opttime, operator, creator
+  </sql>
+  <select id="findProject" resultType="com.wimoor.erp.finance.pojo.entity.FinanceProject"  parameterType="java.lang.String" >
+  		select * from t_erp_fin_project t where t.issys=1 or t.shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  <select id="findProList" resultType="com.wimoor.erp.finance.pojo.entity.FinanceProject" parameterType="java.lang.String" >
+  		select * from t_erp_fin_project t where   t.shopid=#{shopid,jdbcType=CHAR}  and t.issys=0
+  		<if test="search !=null">
+			  	and t.name like #{search,jdbcType=CHAR}
+  		</if>
+  </select>
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_fin_type
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_fin_type
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.FinanceType" >
+    insert into t_erp_fin_type (id, name, issys, shopid, 
+      createdate, opttime, operator, 
+      creator)
+    values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{issys,jdbcType=BIT}, #{shopid,jdbcType=CHAR}, 
+      #{createdate,jdbcType=TIMESTAMP}, #{opttime,jdbcType=TIMESTAMP}, #{operator,jdbcType=CHAR}, 
+      #{creator,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.FinanceType" >
+    insert into t_erp_fin_type
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="issys != null" >
+        issys,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+      <if test="creator != null" >
+        creator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=CHAR},
+      </if>
+      <if test="issys != null" >
+        #{issys,jdbcType=BIT},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+      <if test="creator != null" >
+        #{creator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.FinanceType" >
+    update t_erp_fin_type
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=CHAR},
+      </if>
+      <if test="issys != null" >
+        issys = #{issys,jdbcType=BIT},
+      </if>
+      <if test="shopid != null" >
+        shopid = #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+      <if test="creator != null" >
+        creator = #{creator,jdbcType=CHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.FinanceType" >
+    update t_erp_fin_type
+    set name = #{name,jdbcType=CHAR},
+      issys = #{issys,jdbcType=BIT},
+      shopid = #{shopid,jdbcType=CHAR},
+      createdate = #{createdate,jdbcType=TIMESTAMP},
+      opttime = #{opttime,jdbcType=TIMESTAMP},
+      operator = #{operator,jdbcType=CHAR},
+      creator = #{creator,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialCustomsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialCustoms" >
+    <id column="materialid" property="materialid" jdbcType="INTEGER" />
+    <result column="name_eng" property="nameEng" jdbcType="VARCHAR" />
+    <result column="name_chn" property="nameChn" jdbcType="VARCHAR" />
+    <result column="material" property="material" jdbcType="CHAR" />
+    <result column="model" property="model" jdbcType="CHAR" />
+    <result column="customs_code" property="customsCode" jdbcType="CHAR" />
+    <result column="material_use" property="materialUse" jdbcType="CHAR" />
+    <result column="iselectricity" property="iselectricity" jdbcType="BIT" />
+    <result column="isdanger" property="isdanger" jdbcType="BIT" />
+    <result column="brand" property="brand" jdbcType="CHAR" />
+    <result column="unitprice" property="unitprice" jdbcType="DECIMAL" />
+    
+  </resultMap>
+  <sql id="Base_Column_List" >
+    materialid, name_en, name_cn, material, model, customs_code, material_use, iselectricity, 
+    brand,isdanger,unitprice
+  </sql>
+   
+</mapper>

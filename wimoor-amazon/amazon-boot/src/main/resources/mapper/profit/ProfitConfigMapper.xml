@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.ProfitConfigMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.ProfitConfig">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="shop_id" property="shopId" jdbcType="CHAR" />
+		<result column="isSystem" property="issystem" jdbcType="BIT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+		<result column="sellerPlan" property="sellerplan" jdbcType="CHAR" />
+		<result column="shipmentStyle" property="shipmentstyle" jdbcType="CHAR" />
+		<result column="isDefault" property="isDefault" jdbcType="BIT" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, shop_id, isSystem, name, sales_channel, sellerPlan, shipmentStyle,
+		isDefault, opttime
+	</sql>
+
+	<select id="findPlanNames" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_profitcfg 
+		where (shop_id=#{shopId,jdbcType=CHAR} and isdelete=0 ) or isSystem=true 
+		order by name desc
+	</select>
+	
+	<select id="findConfigByPrimaryKey" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.* ,b.* FROM t_profitcfg a
+		left join t_profitcfgcountry b on a.id=b.profitid
+		where a.id = #{id,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectProfitPlanCountByShopId" resultType="java.lang.Long" parameterType="java.lang.String">
+		select count(1) 
+		FROM t_profitcfg
+		where shop_id = #{shopId,jdbcType=CHAR} and isdelete=0 
+	</select>
+	
+	<update id="setDefaultPlanById" parameterType="java.lang.String">
+		update t_profitcfg set isDefault=true , opttime = NOW()
+		where id = #{id,jdbcType=CHAR}
+	</update>
+	
+	<update id="updateAllByShopId" parameterType="java.lang.String">
+		update t_profitcfg set isDefault=false where shop_id = #{shopId,jdbcType=CHAR}
+	</update>
+	
+	<select id="findDefaultPlan" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT * 
+		from t_profitcfg 
+		where (shop_id = #{shopId,jdbcType=CHAR} and isDefault=true and isdelete=0 )
+			or isSystem=true 
+			order by opttime desc limit 1
+	</select>
+	
+	<select id="findSystemProfitCfg" resultMap="BaseResultMap">
+		SELECT * from t_profitcfg where isSystem=true
+	</select>
+
+	<select id="findDefaultPlanIdByGroup" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT pg.id, pg.shop_id, pg.isSystem, pg.name, pg.sales_channel, 
+		pg.sellerPlan, pg.shipmentStyle,pg.isDefault, pg.opttime
+		from t_profitcfg pg 
+		left join t_amazon_group am on pg.id=am.profitcfgid
+		where am.id = #{groupid,jdbcType=CHAR} or pg.isSystem=true 
+		order by pg.opttime desc limit 1
+	</select>
+</mapper>
