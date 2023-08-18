@@ -1,18 +1,5 @@
--- --------------------------------------------------------
--- 主机:                           rm-wz903sa454i2h35ik6o.mysql.rds.aliyuncs.com
--- 服务器版本:                        5.7.28-log - Source distribution
--- 服务器操作系统:                      Linux
--- HeidiSQL 版本:                  11.3.0.6295
--- --------------------------------------------------------
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
--- 导出  表 db_plum.oauth_client_details 结构
+-- 导出  表 db_wimoor.oauth_client_details 结构
 CREATE TABLE IF NOT EXISTS `oauth_client_details` (
   `client_id` varchar(100) NOT NULL,
   `resource_ids` varchar(256) DEFAULT NULL,
@@ -30,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `oauth_client_details` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_advert_warning_keywords_data 结构
+-- 导出  表 db_wimoor.t_advert_warning_keywords_data 结构
 CREATE TABLE IF NOT EXISTS `t_advert_warning_keywords_data` (
   `keywordid` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -62,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `t_advert_warning_keywords_data` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_advert_warning_product_data 结构
+-- 导出  表 db_wimoor.t_advert_warning_product_data 结构
 CREATE TABLE IF NOT EXISTS `t_advert_warning_product_data` (
   `adid` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -95,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `t_advert_warning_product_data` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_adv_browsenode 结构
+-- 导出  表 db_wimoor.t_adv_browsenode 结构
 CREATE TABLE IF NOT EXISTS `t_adv_browsenode` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `node_id` varchar(255) DEFAULT NULL,
@@ -108,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_browsenode` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_adv_dimensions 结构
+-- 导出  表 db_wimoor.t_adv_dimensions 结构
 CREATE TABLE IF NOT EXISTS `t_adv_dimensions` (
   `id` char(36) NOT NULL,
   `length` decimal(15,2) DEFAULT NULL,
@@ -124,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_dimensions` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_adv_productgroup 结构
+-- 导出  表 db_wimoor.t_adv_productgroup 结构
 CREATE TABLE IF NOT EXISTS `t_adv_productgroup` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -134,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_productgroup` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_adv_rank 结构
+-- 导出  表 db_wimoor.t_adv_rank 结构
 CREATE TABLE IF NOT EXISTS `t_adv_rank` (
   `id` char(36) NOT NULL,
   `asin` char(10) NOT NULL,
@@ -163,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_rank` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_adv_rank_his 结构
+-- 导出  表 db_wimoor.t_adv_rank_his 结构
 CREATE TABLE IF NOT EXISTS `t_adv_rank_his` (
   `id` char(36) NOT NULL,
   `asin` char(10) NOT NULL,
@@ -191,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `t_adv_rank_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amazonseller_market 结构
+-- 导出  表 db_wimoor.t_amazonseller_market 结构
 CREATE TABLE IF NOT EXISTS `t_amazonseller_market` (
   `sellerid` char(30)  NOT NULL COMMENT '卖家Sellerid',
   `marketplace_id` char(15)  NOT NULL COMMENT '站点ID',
@@ -208,7 +195,7 @@ CREATE TABLE IF NOT EXISTS `t_amazonseller_market` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amazon_auth 结构
+-- 导出  表 db_wimoor.t_amazon_auth 结构
 CREATE TABLE IF NOT EXISTS `t_amazon_auth` (
   `id` bigint(20) unsigned NOT NULL,
   `shop_id` bigint(20) unsigned DEFAULT NULL COMMENT '用户ID',
@@ -244,7 +231,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amazon_auth_market_performance 结构
+-- 导出  表 db_wimoor.t_amazon_auth_market_performance 结构
 CREATE TABLE IF NOT EXISTS `t_amazon_auth_market_performance` (
   `amazonauthid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(20) NOT NULL,
@@ -257,7 +244,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth_market_performance` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amazon_group 结构
+-- 导出  表 db_wimoor.t_amazon_group 结构
 CREATE TABLE IF NOT EXISTS `t_amazon_group` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(200) DEFAULT NULL,
@@ -276,7 +263,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_advert_report 结构
+-- 导出  表 db_wimoor.t_amz_advert_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_advert_report` (
   `id` char(36) NOT NULL,
   `sellerid` char(15) NOT NULL,
@@ -305,7 +292,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_advert_report_summary 结构
+-- 导出  表 db_wimoor.t_amz_advert_report_summary 结构
 CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary` (
   `sellerid` char(15) NOT NULL,
   `id` bigint(20) unsigned NOT NULL,
@@ -332,7 +319,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_advert_report_summary_month 结构
+-- 导出  表 db_wimoor.t_amz_advert_report_summary_month 结构
 CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary_month` (
   `sellerid` char(15) NOT NULL,
   `id` bigint(20) unsigned NOT NULL,
@@ -359,7 +346,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_advert_report_summary_week 结构
+-- 导出  表 db_wimoor.t_amz_advert_report_summary_week 结构
 CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary_week` (
   `sellerid` char(15) NOT NULL,
   `id` bigint(20) unsigned NOT NULL,
@@ -386,7 +373,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary_week` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_adgroups 结构
+-- 导出  表 db_wimoor.t_amz_adv_adgroups 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -403,7 +390,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_adgroups_hsa 结构
+-- 导出  表 db_wimoor.t_amz_adv_adgroups_hsa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups_hsa` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -417,7 +404,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups_hsa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_adgroups_sd 结构
+-- 导出  表 db_wimoor.t_amz_adv_adgroups_sd 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups_sd` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -434,7 +421,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_adgroups_sd` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_assets 结构
+-- 导出  表 db_wimoor.t_amz_adv_assets 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_assets` (
   `assetId` varchar(100) NOT NULL,
   `brandEntityId` varchar(30) NOT NULL,
@@ -448,7 +435,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_assets` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_auth 结构
+-- 导出  表 db_wimoor.t_amz_adv_auth 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_auth` (
   `id` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned DEFAULT NULL,
@@ -471,7 +458,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_auth` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_brand 结构
+-- 导出  表 db_wimoor.t_amz_adv_brand 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_brand` (
   `profileid` bigint(20) unsigned NOT NULL,
   `brandId` varchar(50) NOT NULL,
@@ -484,7 +471,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_brand` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_browsenode 结构
+-- 导出  表 db_wimoor.t_amz_adv_browsenode 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_browsenode` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(200) DEFAULT NULL,
@@ -500,7 +487,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_browsenode` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_campaigns 结构
+-- 导出  表 db_wimoor.t_amz_adv_campaigns 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `profileid` bigint(20) unsigned NOT NULL,
@@ -523,7 +510,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_campaigns_hsa 结构
+-- 导出  表 db_wimoor.t_amz_adv_campaigns_hsa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns_hsa` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `profileid` bigint(20) unsigned NOT NULL,
@@ -551,7 +538,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns_hsa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_campaigns_sd 结构
+-- 导出  表 db_wimoor.t_amz_adv_campaigns_sd 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns_sd` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `profileid` bigint(20) unsigned NOT NULL,
@@ -569,7 +556,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campaigns_sd` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_campkeywords_negativa 结构
+-- 导出  表 db_wimoor.t_amz_adv_campkeywords_negativa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_campkeywords_negativa` (
   `profileid` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -585,7 +572,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_campkeywords_negativa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_group 结构
+-- 导出  表 db_wimoor.t_amz_adv_group 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_group` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(500) DEFAULT NULL,
@@ -597,7 +584,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_keywords 结构
+-- 导出  表 db_wimoor.t_amz_adv_keywords 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -619,7 +606,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_keywords_hsa 结构
+-- 导出  表 db_wimoor.t_amz_adv_keywords_hsa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords_hsa` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -641,7 +628,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords_hsa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_keywords_negativa 结构
+-- 导出  表 db_wimoor.t_amz_adv_keywords_negativa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords_negativa` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -660,7 +647,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_keywords_negativa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_media_hsa 结构
+-- 导出  表 db_wimoor.t_amz_adv_media_hsa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_media_hsa` (
   `mediaId` char(60) NOT NULL,
   `profileid` bigint(20) unsigned NOT NULL,
@@ -676,7 +663,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_media_hsa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_operate_log 结构
+-- 导出  表 db_wimoor.t_amz_adv_operate_log 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_operate_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `profileid` bigint(20) unsigned DEFAULT NULL,
@@ -696,7 +683,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_operate_log` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_portfolios 结构
+-- 导出  表 db_wimoor.t_amz_adv_portfolios 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_portfolios` (
   `id` bigint(20) unsigned NOT NULL,
   `profileid` bigint(20) unsigned NOT NULL,
@@ -714,7 +701,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_portfolios` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_productads 结构
+-- 导出  表 db_wimoor.t_amz_adv_productads 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_productads` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -734,7 +721,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_productads` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_productads_sd 结构
+-- 导出  表 db_wimoor.t_amz_adv_productads_sd 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_productads_sd` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -754,7 +741,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_productads_sd` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_product_targe 结构
+-- 导出  表 db_wimoor.t_amz_adv_product_targe 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe` (
   `targetId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -773,7 +760,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_product_targe_negativa 结构
+-- 导出  表 db_wimoor.t_amz_adv_product_targe_negativa 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_negativa` (
   `targetId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -791,7 +778,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_negativa` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_product_targe_negativa_sd 结构
+-- 导出  表 db_wimoor.t_amz_adv_product_targe_negativa_sd 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_negativa_sd` (
   `targetId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -807,7 +794,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_negativa_sd` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_product_targe_sd 结构
+-- 导出  表 db_wimoor.t_amz_adv_product_targe_sd 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_sd` (
   `targetId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -824,7 +811,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_product_targe_sd` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_profile 结构
+-- 导出  表 db_wimoor.t_amz_adv_profile 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_profile` (
   `id` bigint(20) unsigned NOT NULL,
   `countryCode` char(2) DEFAULT NULL,
@@ -846,7 +833,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_profile` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_remark 结构
+-- 导出  表 db_wimoor.t_amz_adv_remark 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_remark` (
   `profileid` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -862,7 +849,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_remark` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_remind 结构
+-- 导出  表 db_wimoor.t_amz_adv_remind 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_remind` (
   `profileid` bigint(20) unsigned NOT NULL,
   `campaignid` bigint(20) unsigned NOT NULL,
@@ -886,7 +873,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_remind` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_report_metrics 结构
+-- 导出  表 db_wimoor.t_amz_adv_report_metrics 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_report_metrics` (
   `id` int(11) NOT NULL DEFAULT '0',
   `campaigntype` char(3) NOT NULL DEFAULT '0',
@@ -904,7 +891,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_report_metrics` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_request 结构
+-- 导出  表 db_wimoor.t_amz_adv_request 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_request` (
   `reportId` char(100) NOT NULL,
   `profileId` bigint(20) unsigned NOT NULL,
@@ -931,7 +918,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_request` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -947,7 +934,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_attributed` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -960,7 +947,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_brand 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_brand 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_brand` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -980,7 +967,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_brand` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_place 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_place 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -997,7 +984,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_place_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_place_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_attributed` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1011,7 +998,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_place_brand 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_place_brand 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_brand` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1032,7 +1019,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_brand` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_place_video 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_place_video 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_video` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1053,7 +1040,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_place_video` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_campaigns_video 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_campaigns_video 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_video` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1074,7 +1061,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_campaigns_video` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_keywords 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_keywords 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -1092,7 +1079,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_keywords_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_keywords_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_attributed` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1105,7 +1092,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_keywords_brand 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_keywords_brand 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_brand` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1125,7 +1112,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_brand` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_keywords_query 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_keywords_query 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_query` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1146,7 +1133,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_query` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_keywords_video 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_keywords_video 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_video` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1166,7 +1153,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_keywords_video` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_product_targets 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_product_targets 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets` (
   `targetId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -1183,7 +1170,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_product_targets_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_product_targets_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_attributed` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1196,7 +1183,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_product_targets_brand 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_product_targets_brand 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_brand` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1216,7 +1203,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_brand` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_hsa_product_targets_video 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_hsa_product_targets_video 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_video` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1236,7 +1223,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_hsa_product_targets_video` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_adgroups 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_adgroups 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1252,7 +1239,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_adgroups_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_adgroups_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1273,7 +1260,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_adgroups_attributed_new 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_adgroups_attributed_new 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_new` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1285,7 +1272,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_new` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_adgroups_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_adgroups_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_same` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1302,7 +1289,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_adgroups_attributed_view 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_adgroups_attributed_view 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_view` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1315,7 +1302,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_adgroups_attributed_view` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_asins 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_asins 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_asins` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -1343,7 +1330,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_asins` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_campaigns 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_campaigns 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1358,7 +1345,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_campaigns_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_campaigns_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1379,7 +1366,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_campaigns_attributed_new 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_campaigns_attributed_new 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_new` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1391,7 +1378,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_new` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_campaigns_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_campaigns_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_same` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1408,7 +1395,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_campaigns_attributed_view 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_campaigns_attributed_view 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_view` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1421,7 +1408,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_attributed_view` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_campaigns_t00001 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_campaigns_t00001 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_t00001` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1438,7 +1425,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_campaigns_t00001` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_productads 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_productads 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1455,7 +1442,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_productads_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_productads_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1476,7 +1463,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_productads_attributed_new 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_productads_attributed_new 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_new` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1488,7 +1475,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_new` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_productads_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_productads_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_same` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1505,7 +1492,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_productads_attributed_view 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_productads_attributed_view 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_view` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1518,7 +1505,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_productads_attributed_view` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_product_targets 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_product_targets 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets` (
   `targetId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -1535,7 +1522,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_product_targets_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_product_targets_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1556,7 +1543,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_product_targets_attributed_new 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_product_targets_attributed_new 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_new` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1568,7 +1555,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_new` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_product_targets_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_product_targets_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_same` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1585,7 +1572,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sd_product_targets_attributed_view 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sd_product_targets_attributed_view 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_view` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1598,7 +1585,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sd_product_targets_attributed_view` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_adgroups 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_adgroups 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1614,7 +1601,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_adgroups_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_adgroups_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups_attributed` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1636,7 +1623,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_adgroups_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_adgroups_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups_attributed_same` (
   `adGroupId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1657,7 +1644,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_adgroups_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_asins 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_asins 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_asins` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `adGroupId` bigint(20) unsigned NOT NULL,
@@ -1687,7 +1674,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_asins` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_compaigns 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_compaigns 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1703,7 +1690,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_compaigns_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_compaigns_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_attributed` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1724,7 +1711,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_compaigns_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_compaigns_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_attributed_same` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1745,7 +1732,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_compaigns_place 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_compaigns_place 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1761,7 +1748,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_compaigns_place_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_compaigns_place_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place_attributed` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1783,7 +1770,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_compaigns_place_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_compaigns_place_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place_attributed_same` (
   `campaignId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1805,7 +1792,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_compaigns_place_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_keywords 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_keywords 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1822,7 +1809,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_keywords_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_keywords_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_attributed` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1843,7 +1830,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_keywords_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_keywords_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_attributed_same` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1864,7 +1851,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_keywords_query 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_keywords_query 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1882,7 +1869,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_keywords_query_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_keywords_query_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query_attributed` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1904,7 +1891,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_keywords_query_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_keywords_query_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query_attributed_same` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1926,7 +1913,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_keywords_query_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_productads 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_productads 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1943,7 +1930,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_productads_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_productads_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads_attributed` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1964,7 +1951,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_productads_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_productads_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads_attributed_same` (
   `adId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -1985,7 +1972,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_product_targets 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_product_targets 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets` (
   `targetId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -2002,7 +1989,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_product_targets_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_product_targets_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_attributed` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -2023,7 +2010,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_product_targets_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_product_targets_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_attributed_same` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -2044,7 +2031,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_attributed_same` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_product_targets_query 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_product_targets_query 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query` (
   `targetId` bigint(20) unsigned NOT NULL,
   `campaignId` bigint(20) unsigned NOT NULL,
@@ -2062,7 +2049,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_product_targets_query_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_product_targets_query_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query_attributed` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -2084,7 +2071,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query_attributed` 
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt2_sp_product_targets_query_attributed_same 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt2_sp_product_targets_query_attributed_same 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query_attributed_same` (
   `targetId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -2106,7 +2093,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_product_targets_query_attributed_s
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt_keywords_hsa_attributed 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt_keywords_hsa_attributed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_keywords_hsa_attributed` (
   `keywordId` bigint(20) unsigned NOT NULL,
   `bydate` date NOT NULL,
@@ -2120,7 +2107,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_keywords_hsa_attributed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt_placement 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt_placement 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_placement` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` char(50) DEFAULT NULL,
@@ -2130,7 +2117,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_placement` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_rpt_query 结构
+-- 导出  表 db_wimoor.t_amz_adv_rpt_query 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_query` (
   `id` bigint(20) unsigned NOT NULL,
   `query` varchar(500) DEFAULT NULL,
@@ -2140,7 +2127,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt_query` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_schedule_plan 结构
+-- 导出  表 db_wimoor.t_amz_adv_schedule_plan 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_plan` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `taskName` char(20) DEFAULT NULL COMMENT '计划名称',
@@ -2158,7 +2145,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_plan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_schedule_plandata 结构
+-- 导出  表 db_wimoor.t_amz_adv_schedule_plandata 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_plandata` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `planid` bigint(20) unsigned NOT NULL,
@@ -2177,7 +2164,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_plandata` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_schedule_planitem 结构
+-- 导出  表 db_wimoor.t_amz_adv_schedule_planitem 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_planitem` (
   `taskId` char(36) NOT NULL,
   `planId` bigint(20) unsigned NOT NULL,
@@ -2191,7 +2178,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_schedule_planitem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_serch_history 结构
+-- 导出  表 db_wimoor.t_amz_adv_serch_history 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_serch_history` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userId` bigint(20) unsigned DEFAULT NULL,
@@ -2204,7 +2191,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_serch_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_snapshot 结构
+-- 导出  表 db_wimoor.t_amz_adv_snapshot 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_snapshot` (
   `snapshotId` char(75) NOT NULL,
   `profileid` bigint(20) unsigned NOT NULL,
@@ -2226,7 +2213,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_snapshot` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_stores 结构
+-- 导出  表 db_wimoor.t_amz_adv_stores 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_stores` (
   `profileid` bigint(20) unsigned NOT NULL,
   `entityId` varchar(30) NOT NULL,
@@ -2241,7 +2228,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_stores` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_sumalltype 结构
+-- 导出  表 db_wimoor.t_amz_adv_sumalltype 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_sumalltype` (
   `profileid` bigint(20) unsigned NOT NULL,
   `byday` date NOT NULL,
@@ -2256,7 +2243,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_sumalltype` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_sumpdtads 结构
+-- 导出  表 db_wimoor.t_amz_adv_sumpdtads 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_sumpdtads` (
   `profileid` bigint(20) unsigned NOT NULL,
   `byday` date NOT NULL,
@@ -2273,7 +2260,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_sumpdtads` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_adv_warningdate 结构
+-- 导出  表 db_wimoor.t_amz_adv_warningdate 结构
 CREATE TABLE IF NOT EXISTS `t_amz_adv_warningdate` (
   `shopid` bigint(20) NOT NULL,
   `recordType` char(15) NOT NULL,
@@ -2291,7 +2278,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_warningdate` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_api_timelimit 结构
+-- 导出  表 db_wimoor.t_amz_api_timelimit 结构
 CREATE TABLE IF NOT EXISTS `t_amz_api_timelimit` (
   `id` bigint(20) unsigned NOT NULL,
   `apiname` char(50) DEFAULT NULL,
@@ -2307,7 +2294,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_api_timelimit` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_api_timelimit_seller_request 结构
+-- 导出  表 db_wimoor.t_amz_api_timelimit_seller_request 结构
 CREATE TABLE IF NOT EXISTS `t_amz_api_timelimit_seller_request` (
   `id` bigint(20) unsigned NOT NULL,
   `sellerid` char(15) DEFAULT NULL,
@@ -2328,7 +2315,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_api_timelimit_seller_request` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_auth_api_timelimit 结构
+-- 导出  表 db_wimoor.t_amz_auth_api_timelimit 结构
 CREATE TABLE IF NOT EXISTS `t_amz_auth_api_timelimit` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID用于单独表示一行',
   `amazonauthid` bigint(20) unsigned NOT NULL COMMENT '授权ID，等同于SellerId',
@@ -2346,7 +2333,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_auth_api_timelimit` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_fin_account 结构
+-- 导出  表 db_wimoor.t_amz_fin_account 结构
 CREATE TABLE IF NOT EXISTS `t_amz_fin_account` (
   `amazonAuthid` bigint(20) unsigned NOT NULL,
   `groupid` char(50) NOT NULL,
@@ -2368,7 +2355,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_account` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_fin_settlement_formula 结构
+-- 导出  表 db_wimoor.t_amz_fin_settlement_formula 结构
 CREATE TABLE IF NOT EXISTS `t_amz_fin_settlement_formula` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -2385,7 +2372,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_settlement_formula` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_fin_user_item 结构
+-- 导出  表 db_wimoor.t_amz_fin_user_item 结构
 CREATE TABLE IF NOT EXISTS `t_amz_fin_user_item` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -2399,7 +2386,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_user_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_fin_user_item_data 结构
+-- 导出  表 db_wimoor.t_amz_fin_user_item_data 结构
 CREATE TABLE IF NOT EXISTS `t_amz_fin_user_item_data` (
   `id` bigint(20) unsigned NOT NULL,
   `itemid` bigint(20) unsigned DEFAULT NULL,
@@ -2419,7 +2406,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_fin_user_item_data` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_follow_offer 结构
+-- 导出  表 db_wimoor.t_amz_follow_offer 结构
 CREATE TABLE IF NOT EXISTS `t_amz_follow_offer` (
   `sellerid` char(30) NOT NULL,
   `marketplaceid` char(15) NOT NULL,
@@ -2433,7 +2420,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_follow_offer` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_follow_offerchange 结构
+-- 导出  表 db_wimoor.t_amz_follow_offerchange 结构
 CREATE TABLE IF NOT EXISTS `t_amz_follow_offerchange` (
   `id` bigint(20) unsigned NOT NULL,
   `asin` char(10) DEFAULT NULL,
@@ -2464,7 +2451,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_follow_offerchange` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_inbound_fba_cycle 结构
+-- 导出  表 db_wimoor.t_amz_inbound_fba_cycle 结构
 CREATE TABLE IF NOT EXISTS `t_amz_inbound_fba_cycle` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID',
   `shopid` bigint(20) unsigned NOT NULL COMMENT '店铺',
@@ -2486,7 +2473,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_inbound_fba_cycle` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_inventory_health 结构
+-- 导出  表 db_wimoor.t_amz_inventory_health 结构
 CREATE TABLE IF NOT EXISTS `t_amz_inventory_health` (
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
   `marketplaceid` char(15) NOT NULL COMMENT '站点ID',
@@ -2545,7 +2532,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_inventory_health` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_inventory_planning 结构
+-- 导出  表 db_wimoor.t_amz_inventory_planning 结构
 CREATE TABLE IF NOT EXISTS `t_amz_inventory_planning` (
   `snapshot_date` date DEFAULT NULL COMMENT '快照时间',
   `sku` char(50) NOT NULL COMMENT '平台产品SKU',
@@ -2632,7 +2619,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_inventory_planning` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_merchant_shipping_group 结构
+-- 导出  表 db_wimoor.t_amz_merchant_shipping_group 结构
 CREATE TABLE IF NOT EXISTS `t_amz_merchant_shipping_group` (
   `id` char(50) NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -2645,7 +2632,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_merchant_shipping_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_notifications 结构
+-- 导出  表 db_wimoor.t_amz_notifications 结构
 CREATE TABLE IF NOT EXISTS `t_amz_notifications` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `notifications` char(50)  DEFAULT NULL,
@@ -2656,7 +2643,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_notifications` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_notifications_destination 结构
+-- 导出  表 db_wimoor.t_amz_notifications_destination 结构
 CREATE TABLE IF NOT EXISTS `t_amz_notifications_destination` (
   `destinationid` char(36) NOT NULL COMMENT '接受消息对象的ID',
   `name` varchar(256) DEFAULT NULL COMMENT '接受消息对象的名称',
@@ -2672,7 +2659,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_notifications_destination` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_notifications_subscriptions 结构
+-- 导出  表 db_wimoor.t_amz_notifications_subscriptions 结构
 CREATE TABLE IF NOT EXISTS `t_amz_notifications_subscriptions` (
   `subscriptionId` char(36) NOT NULL COMMENT '订阅ID',
   `amazonauthid` bigint(20) unsigned NOT NULL COMMENT '授权ID',
@@ -2688,7 +2675,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_notifications_subscriptions` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_orders_address 结构
+-- 导出  表 db_wimoor.t_amz_orders_address 结构
 CREATE TABLE IF NOT EXISTS `t_amz_orders_address` (
   `amazon_order_id` char(20) NOT NULL,
   `amazonAuthId` bigint(20) unsigned DEFAULT NULL,
@@ -2713,7 +2700,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_orders_address` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_orders_invoice_report 结构
+-- 导出  表 db_wimoor.t_amz_orders_invoice_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_orders_invoice_report` (
   `order_id` char(30) NOT NULL DEFAULT '',
   `order_item_id` char(30) NOT NULL DEFAULT '',
@@ -2756,7 +2743,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_orders_invoice_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_buyer_ship_address 结构
+-- 导出  表 db_wimoor.t_amz_order_buyer_ship_address 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_buyer_ship_address` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(30) DEFAULT NULL,
@@ -2781,7 +2768,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_buyer_ship_address` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_item 结构
+-- 导出  表 db_wimoor.t_amz_order_item 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_item` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(30) NOT NULL,
@@ -2821,7 +2808,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_item_archive 结构
+-- 导出  表 db_wimoor.t_amz_order_item_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_item_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(30) NOT NULL,
@@ -2861,7 +2848,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_item_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_item_bkp20220721 结构
+-- 导出  表 db_wimoor.t_amz_order_item_bkp20220721 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_item_bkp20220721` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(30) NOT NULL,
@@ -2901,7 +2888,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_item_bkp20220721` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_main 结构
+-- 导出  表 db_wimoor.t_amz_order_main 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_main` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(20) NOT NULL,
@@ -2943,7 +2930,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_main` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_main_archive 结构
+-- 导出  表 db_wimoor.t_amz_order_main_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_main_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(20) NOT NULL,
@@ -2985,7 +2972,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_main_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_order_remove_report 结构
+-- 导出  表 db_wimoor.t_amz_order_remove_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_order_remove_report` (
   `order_id` varchar(50) NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -3010,7 +2997,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_remove_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_pdt_price_opt 结构
+-- 导出  表 db_wimoor.t_amz_pdt_price_opt 结构
 CREATE TABLE IF NOT EXISTS `t_amz_pdt_price_opt` (
   `pid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `feed_submission_id` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -3032,7 +3019,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_pdt_price_opt` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_po_rpt_day 结构
+-- 导出  表 db_wimoor.t_amz_po_rpt_day 结构
 CREATE TABLE IF NOT EXISTS `t_amz_po_rpt_day` (
   `amazonAuthId` bigint(20) unsigned NOT NULL,
   `purchase_date` date NOT NULL,
@@ -3051,7 +3038,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_po_rpt_day` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_active 结构
+-- 导出  表 db_wimoor.t_amz_product_active 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_active` (
   `amazonAuthId` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) NOT NULL COMMENT '站点',
@@ -3064,7 +3051,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_active` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_active_daynum 结构
+-- 导出  表 db_wimoor.t_amz_product_active_daynum 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_active_daynum` (
   `amazonAuthId` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(14) NOT NULL,
@@ -3075,7 +3062,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_active_daynum` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_lock 结构
+-- 导出  表 db_wimoor.t_amz_product_lock 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_lock` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `isused` bit(1) DEFAULT NULL COMMENT '是否可用',
@@ -3085,7 +3072,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_lock` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_pageviews 结构
+-- 导出  表 db_wimoor.t_amz_product_pageviews 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews` (
   `amazonAuthid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) NOT NULL,
@@ -3112,7 +3099,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_pageviews_download 结构
+-- 导出  表 db_wimoor.t_amz_product_pageviews_download 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_download` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthid` bigint(20) unsigned NOT NULL,
@@ -3141,7 +3128,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_download` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_pageviews_month 结构
+-- 导出  表 db_wimoor.t_amz_product_pageviews_month 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_month` (
   `amazonAuthid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) NOT NULL,
@@ -3167,7 +3154,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_pageviews_week 结构
+-- 导出  表 db_wimoor.t_amz_product_pageviews_week 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_week` (
   `amazonAuthid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) NOT NULL,
@@ -3193,7 +3180,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_pageviews_week` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_price_record 结构
+-- 导出  表 db_wimoor.t_amz_product_price_record 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_price_record` (
   `pid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `opttime` datetime NOT NULL,
@@ -3214,7 +3201,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_price_record` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_refresh 结构
+-- 导出  表 db_wimoor.t_amz_product_refresh 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_refresh` (
   `pid` bigint(20) unsigned NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL,
@@ -3235,7 +3222,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_refresh` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_refreshtime 结构
+-- 导出  表 db_wimoor.t_amz_product_refreshtime 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_refreshtime` (
   `pid` bigint(20) unsigned NOT NULL,
   `item` int(10) unsigned NOT NULL COMMENT '0:GetCompetitivePricingForSKURequest;\\r\\n1:GetLowestPricedOffersForSKU;\\r\\n2:captureProductDetail;3:captureProductCategoriesBySku',
@@ -3246,7 +3233,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_refreshtime` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_sales_plan 结构
+-- 导出  表 db_wimoor.t_amz_product_sales_plan 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan` (
   `id` bigint(19) unsigned NOT NULL,
   `sku` char(50) DEFAULT NULL,
@@ -3274,7 +3261,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_sales_plan_ship_item 结构
+-- 导出  表 db_wimoor.t_amz_product_sales_plan_ship_item 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_item` (
   `id` bigint(19) unsigned NOT NULL,
   `sku` char(50) DEFAULT NULL,
@@ -3300,7 +3287,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_product_sales_plan_ship_item_history 结构
+-- 导出  表 db_wimoor.t_amz_product_sales_plan_ship_item_history 结构
 CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_item_history` (
   `id` bigint(19) unsigned NOT NULL,
   `sku` char(50) DEFAULT NULL,
@@ -3326,7 +3313,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan_ship_item_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_region 结构
+-- 导出  表 db_wimoor.t_amz_region 结构
 CREATE TABLE IF NOT EXISTS `t_amz_region` (
   `code` char(2) NOT NULL,
   `name` char(10) DEFAULT NULL,
@@ -3339,7 +3326,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_region` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_report_request_type 结构
+-- 导出  表 db_wimoor.t_amz_report_request_type 结构
 CREATE TABLE IF NOT EXISTS `t_amz_report_request_type` (
   `id` int(11) NOT NULL COMMENT 'ID',
   `cname` varchar(100) NOT NULL DEFAULT '' COMMENT '中文名称',
@@ -3356,7 +3343,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_report_request_type` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_returns_report 结构
+-- 导出  表 db_wimoor.t_amz_returns_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_returns_report` (
   `sku` char(50) NOT NULL,
   `return_date` datetime NOT NULL,
@@ -3381,7 +3368,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_returns_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_returns_report_bkp20230814 结构
+-- 导出  表 db_wimoor.t_amz_returns_report_bkp20230814 结构
 CREATE TABLE IF NOT EXISTS `t_amz_returns_report_bkp20230814` (
   `sku` char(50) NOT NULL,
   `return_date` datetime NOT NULL,
@@ -3406,7 +3393,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_returns_report_bkp20230814` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_returns_report_summary 结构
+-- 导出  表 db_wimoor.t_amz_returns_report_summary 结构
 CREATE TABLE IF NOT EXISTS `t_amz_returns_report_summary` (
   `sku` char(50) NOT NULL,
   `return_date` date NOT NULL,
@@ -3418,7 +3405,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_returns_report_summary` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_inventory_age 结构
+-- 导出  表 db_wimoor.t_amz_rpt_inventory_age 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_age` (
   `id` bigint(20) unsigned NOT NULL,
   `authid` bigint(20) unsigned DEFAULT NULL,
@@ -3462,7 +3449,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_age` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_inventory_country 结构
+-- 导出  表 db_wimoor.t_amz_rpt_inventory_country 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_country` (
   `id` bigint(20) unsigned NOT NULL COMMENT '唯一ID',
   `sku` char(50) DEFAULT NULL COMMENT 'SKU',
@@ -3480,7 +3467,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_country` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_inventory_detail 结构
+-- 导出  表 db_wimoor.t_amz_rpt_inventory_detail 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_detail` (
   `id` bigint(20) unsigned NOT NULL,
   `authid` bigint(20) unsigned DEFAULT NULL,
@@ -3506,7 +3493,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_detail` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_inventory_summary 结构
+-- 导出  表 db_wimoor.t_amz_rpt_inventory_summary 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_summary` (
   `id` bigint(20) unsigned NOT NULL,
   `authid` bigint(20) unsigned DEFAULT NULL,
@@ -3536,7 +3523,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_summary` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_inventory_summary_bkp20230724 结构
+-- 导出  表 db_wimoor.t_amz_rpt_inventory_summary_bkp20230724 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_summary_bkp20230724` (
   `id` bigint(20) unsigned NOT NULL,
   `authid` bigint(20) unsigned DEFAULT NULL,
@@ -3566,7 +3553,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_summary_bkp20230724` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_orders_fulfilled_shipments_fee 结构
+-- 导出  表 db_wimoor.t_amz_rpt_orders_fulfilled_shipments_fee 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_orders_fulfilled_shipments_fee` (
   `amazonauthid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) DEFAULT NULL,
@@ -3588,7 +3575,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_orders_fulfilled_shipments_fee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_orders_fulfilled_shipments_report 结构
+-- 导出  表 db_wimoor.t_amz_rpt_orders_fulfilled_shipments_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_orders_fulfilled_shipments_report` (
   `amazon_order_id` char(50) NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL,
@@ -3646,7 +3633,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_orders_fulfilled_shipments_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_rpt_orders_fulfilled_shipments_report_archive 结构
+-- 导出  表 db_wimoor.t_amz_rpt_orders_fulfilled_shipments_report_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_rpt_orders_fulfilled_shipments_report_archive` (
   `amazon_order_id` char(50) NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL,
@@ -3704,7 +3691,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_orders_fulfilled_shipments_report_archive`
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_scout_asins 结构
+-- 导出  表 db_wimoor.t_amz_scout_asins 结构
 CREATE TABLE IF NOT EXISTS `t_amz_scout_asins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sour_date` varchar(50) DEFAULT NULL COMMENT '抓取的日期',
@@ -3739,7 +3726,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_scout_asins` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_acc_report 结构
+-- 导出  表 db_wimoor.t_amz_settlement_acc_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_report` (
   `settlement_id` bigint(20) unsigned NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL,
@@ -3760,7 +3747,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_acc_report_archive 结构
+-- 导出  表 db_wimoor.t_amz_settlement_acc_report_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_report_archive` (
   `settlement_id` bigint(20) unsigned NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL,
@@ -3780,7 +3767,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_report_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_acc_statement 结构
+-- 导出  表 db_wimoor.t_amz_settlement_acc_statement 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_statement` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -3801,7 +3788,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_acc_statement` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_amount_description 结构
+-- 导出  表 db_wimoor.t_amz_settlement_amount_description 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_amount_description` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `cname` varchar(200) NOT NULL DEFAULT '',
@@ -3814,7 +3801,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_amount_description` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_amount_type_nonsku 结构
+-- 导出  表 db_wimoor.t_amz_settlement_amount_type_nonsku 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_amount_type_nonsku` (
   `transaction_type` char(40) NOT NULL,
   `amount_type` char(40) NOT NULL,
@@ -3824,7 +3811,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_amount_type_nonsku` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_report 结构
+-- 导出  表 db_wimoor.t_amz_settlement_report 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_report` (
   `id` bigint(20) unsigned NOT NULL,
   `settlement_id` bigint(20) unsigned NOT NULL,
@@ -3855,7 +3842,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_report_archive 结构
+-- 导出  表 db_wimoor.t_amz_settlement_report_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_report_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `settlement_id` bigint(20) unsigned NOT NULL,
@@ -3895,7 +3882,7 @@ SUBPARTITIONS 4
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_day 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_day 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -3919,7 +3906,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_day_archive 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_day_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -3943,7 +3930,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_month 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_month 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -3964,7 +3951,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_month_archive 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_month_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -3983,7 +3970,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_month_bkp20230803 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_month_bkp20230803 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month_bkp20230803` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -4002,7 +3989,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_month_bkp20230803` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_returns 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_returns 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_returns` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -4020,7 +4007,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_returns` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_returns_archive 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_returns_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_returns_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -4038,7 +4025,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_returns_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_sku 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_sku 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -4088,7 +4075,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_sku_archive 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_sku_archive 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -4112,7 +4099,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_sku_bkp20230803 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_sku_bkp20230803 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_bkp20230803` (
   `id` bigint(20) unsigned NOT NULL,
   `settlementid` bigint(20) unsigned NOT NULL,
@@ -4136,7 +4123,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_bkp20230803` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_sku_month 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_sku_month 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_month` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -4209,7 +4196,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_sku_month_cny 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_sku_month_cny 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_month_cny` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -4282,7 +4269,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_month_cny` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_settlement_summary_sku_month_usd 结构
+-- 导出  表 db_wimoor.t_amz_settlement_summary_sku_month_usd 结构
 CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_month_usd` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -4355,7 +4342,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_sku_month_usd` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_ship_fulfillment_center 结构
+-- 导出  表 db_wimoor.t_amz_ship_fulfillment_center 结构
 CREATE TABLE IF NOT EXISTS `t_amz_ship_fulfillment_center` (
   `code` char(13) NOT NULL,
   `country` char(2) NOT NULL,
@@ -4368,7 +4355,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_ship_fulfillment_center` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_ship_state_province_code 结构
+-- 导出  表 db_wimoor.t_amz_ship_state_province_code 结构
 CREATE TABLE IF NOT EXISTS `t_amz_ship_state_province_code` (
   `code` char(5) NOT NULL,
   `name` varchar(50) NOT NULL DEFAULT '',
@@ -4380,7 +4367,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_ship_state_province_code` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_submitfeed 结构
+-- 导出  表 db_wimoor.t_amz_submitfeed 结构
 CREATE TABLE IF NOT EXISTS `t_amz_submitfeed` (
   `feed_submissionid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) DEFAULT NULL,
@@ -4402,7 +4389,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_submitfeed` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_amz_submitfeed_queue 结构
+-- 导出  表 db_wimoor.t_amz_submitfeed_queue 结构
 CREATE TABLE IF NOT EXISTS `t_amz_submitfeed_queue` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -4426,7 +4413,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_submitfeed_queue` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_authority 结构
+-- 导出  表 db_wimoor.t_authority 结构
 CREATE TABLE IF NOT EXISTS `t_authority` (
   `id` char(36) NOT NULL,
   `menuid` char(50)  DEFAULT NULL,
@@ -4439,7 +4426,7 @@ CREATE TABLE IF NOT EXISTS `t_authority` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_data_runs_remove_time 结构
+-- 导出  表 db_wimoor.t_data_runs_remove_time 结构
 CREATE TABLE IF NOT EXISTS `t_data_runs_remove_time` (
   `id` int(11) NOT NULL,
   `ftype` char(10) DEFAULT NULL,
@@ -4451,7 +4438,7 @@ CREATE TABLE IF NOT EXISTS `t_data_runs_remove_time` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_daysales_formula 结构
+-- 导出  表 db_wimoor.t_daysales_formula 结构
 CREATE TABLE IF NOT EXISTS `t_daysales_formula` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -4470,7 +4457,7 @@ CREATE TABLE IF NOT EXISTS `t_daysales_formula` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_dimensions 结构
+-- 导出  表 db_wimoor.t_dimensions 结构
 CREATE TABLE IF NOT EXISTS `t_dimensions` (
   `id` bigint(20) unsigned NOT NULL,
   `length` decimal(15,2) DEFAULT NULL,
@@ -4486,7 +4473,7 @@ CREATE TABLE IF NOT EXISTS `t_dimensions` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_dimensions_copy 结构
+-- 导出  表 db_wimoor.t_dimensions_copy 结构
 CREATE TABLE IF NOT EXISTS `t_dimensions_copy` (
   `id` bigint(20) unsigned NOT NULL,
   `length` decimal(15,2) DEFAULT NULL,
@@ -4502,7 +4489,7 @@ CREATE TABLE IF NOT EXISTS `t_dimensions_copy` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_amazon_feedstatus 结构
+-- 导出  表 db_wimoor.t_erp_amazon_feedstatus 结构
 CREATE TABLE IF NOT EXISTS `t_erp_amazon_feedstatus` (
   `status` char(50) NOT NULL,
   `name` char(50) DEFAULT NULL,
@@ -4512,7 +4499,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_amazon_feedstatus` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_assembly 结构
+-- 导出  表 db_wimoor.t_erp_assembly 结构
 CREATE TABLE IF NOT EXISTS `t_erp_assembly` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID',
   `mainmid` bigint(20) unsigned DEFAULT NULL COMMENT '主产品',
@@ -4527,7 +4514,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_assembly_form 结构
+-- 导出  表 db_wimoor.t_erp_assembly_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_assembly_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -4557,7 +4544,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_assembly_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_assembly_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_assembly_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned NOT NULL,
@@ -4575,7 +4562,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_assembly_from_instock 结构
+-- 导出  表 db_wimoor.t_erp_assembly_from_instock 结构
 CREATE TABLE IF NOT EXISTS `t_erp_assembly_from_instock` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -4592,7 +4579,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_assembly_from_instock` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_changewh_form 结构
+-- 导出  表 db_wimoor.t_erp_changewh_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_changewh_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -4612,7 +4599,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_changewh_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_changewh_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_changewh_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_changewh_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -4625,7 +4612,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_changewh_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_customer 结构
+-- 导出  表 db_wimoor.t_erp_customer 结构
 CREATE TABLE IF NOT EXISTS `t_erp_customer` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID(h)',
   `name` char(50) DEFAULT NULL COMMENT '客户简称',
@@ -4647,7 +4634,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_customer` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_dispatch_form 结构
+-- 导出  表 db_wimoor.t_erp_dispatch_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_dispatch_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL COMMENT '调拨单号',
@@ -4670,7 +4657,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_dispatch_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_dispatch_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_dispatch_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -4682,7 +4669,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_dispatch_oversea_form 结构
+-- 导出  表 db_wimoor.t_erp_dispatch_oversea_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL COMMENT '调拨单号',
@@ -4706,7 +4693,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_dispatch_oversea_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_dispatch_oversea_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -4720,7 +4707,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_dispatch_oversea_trans 结构
+-- 导出  表 db_wimoor.t_erp_dispatch_oversea_trans 结构
 CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_trans` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -4745,7 +4732,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_trans` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_estimated_sales 结构
+-- 导出  表 db_wimoor.t_erp_estimated_sales 结构
 CREATE TABLE IF NOT EXISTS `t_erp_estimated_sales` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `sku` char(50) DEFAULT NULL,
@@ -4765,7 +4752,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_estimated_sales` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_fin_account 结构
+-- 导出  表 db_wimoor.t_erp_fin_account 结构
 CREATE TABLE IF NOT EXISTS `t_erp_fin_account` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -4782,7 +4769,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_account` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_fin_journalaccount 结构
+-- 导出  表 db_wimoor.t_erp_fin_journalaccount 结构
 CREATE TABLE IF NOT EXISTS `t_erp_fin_journalaccount` (
   `id` bigint(20) unsigned NOT NULL,
   `acct` bigint(20) unsigned NOT NULL,
@@ -4803,7 +4790,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_journalaccount` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_fin_journaldaily 结构
+-- 导出  表 db_wimoor.t_erp_fin_journaldaily 结构
 CREATE TABLE IF NOT EXISTS `t_erp_fin_journaldaily` (
   `id` bigint(20) unsigned NOT NULL,
   `acct` bigint(20) unsigned DEFAULT NULL COMMENT '账户id',
@@ -4818,7 +4805,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_journaldaily` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_fin_project 结构
+-- 导出  表 db_wimoor.t_erp_fin_project 结构
 CREATE TABLE IF NOT EXISTS `t_erp_fin_project` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(50) DEFAULT NULL,
@@ -4835,7 +4822,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_project` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_fin_type_journalmonthly 结构
+-- 导出  表 db_wimoor.t_erp_fin_type_journalmonthly 结构
 CREATE TABLE IF NOT EXISTS `t_erp_fin_type_journalmonthly` (
   `id` bigint(20) unsigned NOT NULL,
   `projectid` bigint(20) unsigned DEFAULT NULL COMMENT '项目id',
@@ -4851,7 +4838,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_fin_type_journalmonthly` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_formtype 结构
+-- 导出  表 db_wimoor.t_erp_formtype 结构
 CREATE TABLE IF NOT EXISTS `t_erp_formtype` (
   `id` char(20) NOT NULL,
   `name` char(50) DEFAULT NULL,
@@ -4861,7 +4848,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_formtype` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory 结构
+-- 导出  表 db_wimoor.t_erp_inventory 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory` (
   `id` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -4878,7 +4865,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_bkp20230527 结构
+-- 导出  表 db_wimoor.t_erp_inventory_bkp20230527 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_bkp20230527` (
   `id` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -4895,7 +4882,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_bkp20230527` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_copy_felix_opt 结构
+-- 导出  表 db_wimoor.t_erp_inventory_copy_felix_opt 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_copy_felix_opt` (
   `id` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -4912,7 +4899,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_copy_felix_opt` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_his 结构
+-- 导出  表 db_wimoor.t_erp_inventory_his 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_his` (
   `id` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -4932,7 +4919,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_his_day 结构
+-- 导出  表 db_wimoor.t_erp_inventory_his_day 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_his_day` (
   `shopid` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL,
@@ -4948,7 +4935,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_his_day` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_month_summary 结构
+-- 导出  表 db_wimoor.t_erp_inventory_month_summary 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_month_summary` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -4975,7 +4962,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_month_summary` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_record 结构
+-- 导出  表 db_wimoor.t_erp_inventory_record 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_record` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -5010,7 +4997,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_record` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_record_bkp20220721 结构
+-- 导出  表 db_wimoor.t_erp_inventory_record_bkp20220721 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_record_bkp20220721` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -5032,7 +5019,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_record_bkp20220721` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_record_form 结构
+-- 导出  表 db_wimoor.t_erp_inventory_record_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_record_form` (
   `shopid` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned NOT NULL,
@@ -5057,7 +5044,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_record_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inventory_status 结构
+-- 导出  表 db_wimoor.t_erp_inventory_status 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inventory_status` (
   `id` char(36) DEFAULT NULL,
   `code` char(36) DEFAULT NULL,
@@ -5066,7 +5053,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inventory_status` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inwh_form 结构
+-- 导出  表 db_wimoor.t_erp_inwh_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inwh_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -5087,7 +5074,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inwh_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_inwh_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_inwh_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_inwh_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -5099,7 +5086,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_inwh_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_market_priority 结构
+-- 导出  表 db_wimoor.t_erp_market_priority 结构
 CREATE TABLE IF NOT EXISTS `t_erp_market_priority` (
   `marketplaceid` varchar(36) NOT NULL,
   `groupid` bigint(20) unsigned NOT NULL,
@@ -5111,7 +5098,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_market_priority` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material 结构
+-- 导出  表 db_wimoor.t_erp_material 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID(h)',
   `sku` varchar(50) DEFAULT NULL COMMENT 'SKU',
@@ -5163,7 +5150,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_brand 结构
+-- 导出  表 db_wimoor.t_erp_material_brand 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_brand` (
   `id` char(36) NOT NULL,
   `name` char(100) DEFAULT NULL,
@@ -5177,7 +5164,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_brand` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_category 结构
+-- 导出  表 db_wimoor.t_erp_material_category 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_category` (
   `id` char(36) NOT NULL,
   `name` char(100) DEFAULT NULL,
@@ -5193,7 +5180,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_category` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_consumable 结构
+-- 导出  表 db_wimoor.t_erp_material_consumable 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_consumable` (
   `id` bigint(20) unsigned NOT NULL,
   `materialid` bigint(20) unsigned NOT NULL,
@@ -5208,7 +5195,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_consumable` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_consumable_inventory 结构
+-- 导出  表 db_wimoor.t_erp_material_consumable_inventory 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_consumable_inventory` (
   `id` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -5220,7 +5207,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_consumable_inventory` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_consumable_safety_stock 结构
+-- 导出  表 db_wimoor.t_erp_material_consumable_safety_stock 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_consumable_safety_stock` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -5233,7 +5220,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_consumable_safety_stock` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_customs 结构
+-- 导出  表 db_wimoor.t_erp_material_customs 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_customs` (
   `materialid` bigint(20) unsigned DEFAULT NULL,
   `name_en` varchar(500) DEFAULT NULL COMMENT '产品英文名',
@@ -5255,7 +5242,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_customs` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_customs_file 结构
+-- 导出  表 db_wimoor.t_erp_material_customs_file 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_customs_file` (
   `id` bigint(20) unsigned NOT NULL,
   `materialid` bigint(20) unsigned DEFAULT NULL,
@@ -5270,7 +5257,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_customs_file` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_customs_item 结构
+-- 导出  表 db_wimoor.t_erp_material_customs_item 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_customs_item` (
   `materialid` bigint(20) unsigned NOT NULL,
   `country` char(10) NOT NULL COMMENT 'DE UK FR',
@@ -5283,7 +5270,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_customs_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_group 结构
+-- 导出  表 db_wimoor.t_erp_material_group 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_group` (
   `materialid` bigint(20) unsigned NOT NULL,
   `groupid` char(36) NOT NULL,
@@ -5295,7 +5282,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_his 结构
+-- 导出  表 db_wimoor.t_erp_material_his 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_his` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID(h)',
   `sku` varchar(50) DEFAULT NULL COMMENT 'SKU',
@@ -5335,7 +5322,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_mark 结构
+-- 导出  表 db_wimoor.t_erp_material_mark 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_mark` (
   `materialid` bigint(20) unsigned NOT NULL,
   `ftype` char(10) NOT NULL COMMENT 'notice：产品出现问题时发布的公告',
@@ -5347,7 +5334,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_mark` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_mark_his 结构
+-- 导出  表 db_wimoor.t_erp_material_mark_his 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_mark_his` (
   `materialid` bigint(20) unsigned NOT NULL,
   `ftype` char(10) NOT NULL COMMENT 'notice：产品出现问题时发布的公告',
@@ -5359,7 +5346,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_mark_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_supplier 结构
+-- 导出  表 db_wimoor.t_erp_material_supplier 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_supplier` (
   `id` bigint(20) unsigned NOT NULL,
   `materialid` bigint(20) unsigned NOT NULL,
@@ -5382,7 +5369,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_supplier` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_supplier_stepwise 结构
+-- 导出  表 db_wimoor.t_erp_material_supplier_stepwise 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_supplier_stepwise` (
   `id` bigint(20) unsigned NOT NULL,
   `materialid` bigint(20) unsigned NOT NULL,
@@ -5398,7 +5385,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_supplier_stepwise` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_material_tags 结构
+-- 导出  表 db_wimoor.t_erp_material_tags 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_tags` (
   `mid` bigint(20) unsigned NOT NULL,
   `tagid` bigint(20) unsigned NOT NULL,
@@ -5410,7 +5397,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_tags` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_m_group 结构
+-- 导出  表 db_wimoor.t_erp_m_group 结构
 CREATE TABLE IF NOT EXISTS `t_erp_m_group` (
   `id` char(36) NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -5426,7 +5413,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_m_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_outwh_form 结构
+-- 导出  表 db_wimoor.t_erp_outwh_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_outwh_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -5453,7 +5440,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_outwh_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_outwh_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_outwh_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_outwh_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -5465,7 +5452,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_outwh_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_auth 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_auth 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_auth` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -5490,7 +5477,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_auth` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_contact 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_contact 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_contact` (
   `id` char(30) NOT NULL,
   `companyName` varchar(100) DEFAULT NULL,
@@ -5505,7 +5492,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_contact` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_message 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_message 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_message` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `content` longtext NOT NULL,
@@ -5516,7 +5503,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_message` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_order_baseinfo 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_order_baseinfo 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_baseinfo` (
   `id` bigint(20) unsigned NOT NULL,
   `idOfStr` char(30) NOT NULL DEFAULT '',
@@ -5546,7 +5533,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_baseinfo` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_order_productitems 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_order_productitems 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_productitems` (
   `skuID` bigint(20) unsigned NOT NULL,
   `orderid` bigint(20) unsigned NOT NULL,
@@ -5572,7 +5559,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_productitems` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_order_receiverinfo 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_order_receiverinfo 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_receiverinfo` (
   `orderid` bigint(20) unsigned DEFAULT NULL,
   `toArea` varchar(200) DEFAULT NULL,
@@ -5584,7 +5571,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_receiverinfo` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_order_tradeterms 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_order_tradeterms 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_tradeterms` (
   `orderid` bigint(20) unsigned NOT NULL,
   `payStatus` char(20) NOT NULL,
@@ -5598,7 +5585,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_order_tradeterms` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_alibaba_productitems 结构
+-- 导出  表 db_wimoor.t_erp_purchase_alibaba_productitems 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_productitems` (
   `specId` char(36) NOT NULL DEFAULT '',
   `productID` char(20) NOT NULL DEFAULT '',
@@ -5613,7 +5600,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_productitems` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_fin_form 结构
+-- 导出  表 db_wimoor.t_erp_purchase_fin_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_fin_form` (
   `id` bigint(20) unsigned NOT NULL,
   `entryid` bigint(20) unsigned DEFAULT NULL,
@@ -5633,7 +5620,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_fin_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_fin_form_payment 结构
+-- 导出  表 db_wimoor.t_erp_purchase_fin_form_payment 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_fin_form_payment` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned NOT NULL,
@@ -5651,7 +5638,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_fin_form_payment` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -5672,7 +5659,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -5710,7 +5697,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_entry_alibabainfo 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_entry_alibabainfo 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_alibabainfo` (
   `entryid` bigint(20) unsigned NOT NULL,
   `alibaba_auth` bigint(20) unsigned DEFAULT NULL,
@@ -5729,7 +5716,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_alibabainfo` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_entry_copy 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_entry_copy 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_copy` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -5766,7 +5753,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_copy` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_entry_history 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_entry_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_history` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned DEFAULT NULL,
@@ -5804,7 +5791,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_entry_logistics 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_entry_logistics 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_logistics` (
   `entryid` bigint(20) unsigned NOT NULL,
   `logisticsId` char(25) NOT NULL,
@@ -5815,7 +5802,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry_logistics` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_payment 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_payment 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_payment` (
   `id` bigint(20) unsigned NOT NULL,
   `formentryid` bigint(20) unsigned DEFAULT NULL,
@@ -5835,7 +5822,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_payment` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_payment_method 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_payment_method 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_payment_method` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` char(100) DEFAULT NULL,
@@ -5848,7 +5835,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_payment_method` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_form_receive 结构
+-- 导出  表 db_wimoor.t_erp_purchase_form_receive 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_receive` (
   `id` bigint(20) unsigned NOT NULL,
   `formentryid` bigint(20) unsigned DEFAULT NULL,
@@ -5865,7 +5852,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_receive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_plan 结构
+-- 导出  表 db_wimoor.t_erp_purchase_plan 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_plan` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `number` char(36) DEFAULT NULL,
@@ -5884,7 +5871,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_plan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_planitem 结构
+-- 导出  表 db_wimoor.t_erp_purchase_planitem 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_planitem` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `subplanid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -5909,7 +5896,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planitem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_planitemsub 结构
+-- 导出  表 db_wimoor.t_erp_purchase_planitemsub 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_planitemsub` (
   `id` bigint(20) unsigned DEFAULT NULL,
   `planitemid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -5921,7 +5908,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planitemsub` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_planmodel 结构
+-- 导出  表 db_wimoor.t_erp_purchase_planmodel 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodel` (
   `planid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `modelid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -5933,7 +5920,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodel` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_planmodelitem 结构
+-- 导出  表 db_wimoor.t_erp_purchase_planmodelitem 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodelitem` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `modelid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -5951,7 +5938,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodelitem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_planmodelitemsub 结构
+-- 导出  表 db_wimoor.t_erp_purchase_planmodelitemsub 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodelitemsub` (
   `itemid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `sku` char(50) NOT NULL,
@@ -5965,7 +5952,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_planmodelitemsub` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_plansub 结构
+-- 导出  表 db_wimoor.t_erp_purchase_plansub 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_plansub` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `planid` bigint(20) unsigned DEFAULT NULL,
@@ -5979,7 +5966,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_plansub` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_plan_warahouse 结构
+-- 导出  表 db_wimoor.t_erp_purchase_plan_warahouse 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_plan_warahouse` (
   `warehouseid` bigint(20) unsigned NOT NULL,
   `planid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -5991,7 +5978,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_plan_warahouse` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_warahouse_material 结构
+-- 导出  表 db_wimoor.t_erp_purchase_warahouse_material 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_warahouse_material` (
   `planid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `materialid` bigint(20) unsigned NOT NULL,
@@ -6001,7 +5988,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_warahouse_material` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_purchase_warahouse_status 结构
+-- 导出  表 db_wimoor.t_erp_purchase_warahouse_status 结构
 CREATE TABLE IF NOT EXISTS `t_erp_purchase_warahouse_status` (
   `warehouseid` bigint(20) unsigned NOT NULL,
   `purchase_status` int(5) DEFAULT '0' COMMENT '0表示改仓库无采购任务；1表示采购任务待处理；2表示采购任务已完成',
@@ -6013,7 +6000,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_warahouse_status` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_serial_num 结构
+-- 导出  表 db_wimoor.t_erp_serial_num 结构
 CREATE TABLE IF NOT EXISTS `t_erp_serial_num` (
   `id` char(36) NOT NULL,
   `ftype` char(36) DEFAULT NULL,
@@ -6027,7 +6014,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_serial_num` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_shipcycle 结构
+-- 导出  表 db_wimoor.t_erp_shipcycle 结构
 CREATE TABLE IF NOT EXISTS `t_erp_shipcycle` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `sku` char(36) DEFAULT NULL,
@@ -6045,7 +6032,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_shipcycle` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_address 结构
+-- 导出  表 db_wimoor.t_erp_ship_address 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_address` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(50) DEFAULT NULL COMMENT '名称或公司名称。',
@@ -6071,7 +6058,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_address` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_addressto 结构
+-- 导出  表 db_wimoor.t_erp_ship_addressto 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_addressto` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(50) DEFAULT NULL COMMENT '名称或公司名称。',
@@ -6093,7 +6080,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_addressto` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_config_carrier 结构
+-- 导出  表 db_wimoor.t_erp_ship_config_carrier 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_config_carrier` (
   `country` char(10) NOT NULL,
   `name` char(30) NOT NULL,
@@ -6103,7 +6090,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_config_carrier` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundbox 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundbox 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundbox` (
   `id` bigint(20) unsigned NOT NULL,
   `shipmentid` char(36) DEFAULT NULL,
@@ -6124,7 +6111,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundbox` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundcase 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundcase 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundcase` (
   `id` bigint(20) unsigned NOT NULL,
   `shipmentid` char(36) NOT NULL,
@@ -6138,7 +6125,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundcase` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inbounditem 结构
+-- 导出  表 db_wimoor.t_erp_ship_inbounditem 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inbounditem` (
   `id` bigint(20) unsigned NOT NULL,
   `ShipmentId` char(36) DEFAULT NULL,
@@ -6175,7 +6162,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inbounditem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundplan 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundplan 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundplan` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(200) DEFAULT NULL,
@@ -6205,7 +6192,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundplan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundruntime 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundruntime 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundruntime` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -6219,7 +6206,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundruntime` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundshipment 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundshipment 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment` (
   `ShipmentId` char(15) NOT NULL COMMENT '货件编号',
   `DestinationFulfillmentCenterId` char(50) DEFAULT NULL COMMENT '	亚马逊创建的亚马逊配送中心标识。',
@@ -6270,7 +6257,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundshipment_record 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundshipment_record 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment_record` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `shipmentid` char(15) NOT NULL COMMENT '货件编号',
@@ -6283,7 +6270,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment_record` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundshipment_traceupload 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundshipment_traceupload 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment_traceupload` (
   `shipmentid` char(20) NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -6297,7 +6284,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment_traceupload` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundtrans 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundtrans 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundtrans` (
   `id` bigint(20) unsigned NOT NULL,
   `shipmentid` char(36) DEFAULT NULL,
@@ -6323,7 +6310,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundtrans` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_inboundtrans_his 结构
+-- 导出  表 db_wimoor.t_erp_ship_inboundtrans_his 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundtrans_his` (
   `opttime` datetime NOT NULL,
   `id` bigint(20) unsigned NOT NULL,
@@ -6349,7 +6336,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundtrans_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_plan 结构
+-- 导出  表 db_wimoor.t_erp_ship_plan 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_plan` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -6369,7 +6356,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_plan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_planitem 结构
+-- 导出  表 db_wimoor.t_erp_ship_planitem 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_planitem` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `plansubid` bigint(20) unsigned DEFAULT NULL,
@@ -6389,7 +6376,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planitem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_planmodel 结构
+-- 导出  表 db_wimoor.t_erp_ship_planmodel 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodel` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `planid` bigint(20) unsigned DEFAULT NULL,
@@ -6404,7 +6391,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodel` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_planmodelitem 结构
+-- 导出  表 db_wimoor.t_erp_ship_planmodelitem 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodelitem` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `modelid` bigint(20) unsigned DEFAULT NULL,
@@ -6416,7 +6403,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodelitem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_planmodelitemsub 结构
+-- 导出  表 db_wimoor.t_erp_ship_planmodelitemsub 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodelitemsub` (
   `itemid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `sku` char(50) NOT NULL,
@@ -6431,7 +6418,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_planmodelitemsub` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_plansub 结构
+-- 导出  表 db_wimoor.t_erp_ship_plansub 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_plansub` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `marketplaceid` char(15) DEFAULT NULL,
@@ -6444,7 +6431,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_plansub` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_plansub_euitem 结构
+-- 导出  表 db_wimoor.t_erp_ship_plansub_euitem 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_plansub_euitem` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `planid` bigint(20) unsigned DEFAULT NULL,
@@ -6459,7 +6446,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_plansub_euitem` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_shipment_template_file 结构
+-- 导出  表 db_wimoor.t_erp_ship_shipment_template_file 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_shipment_template_file` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -6474,7 +6461,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_shipment_template_file` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_status 结构
+-- 导出  表 db_wimoor.t_erp_ship_status 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_status` (
   `status` char(20) NOT NULL,
   `content` char(200) NOT NULL DEFAULT '0',
@@ -6484,7 +6471,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_status` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_transchannel 结构
+-- 导出  表 db_wimoor.t_erp_ship_transchannel 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_transchannel` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(50) DEFAULT NULL,
@@ -6497,7 +6484,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transchannel` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_transcompany 结构
+-- 导出  表 db_wimoor.t_erp_ship_transcompany 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(100) DEFAULT NULL COMMENT '物流公司名称',
@@ -6517,7 +6504,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_transcompany_api 结构
+-- 导出  表 db_wimoor.t_erp_ship_transcompany_api 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany_api` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `api` varchar(200) NOT NULL DEFAULT '0',
@@ -6531,7 +6518,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany_api` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_transcompany_services_zhihui 结构
+-- 导出  表 db_wimoor.t_erp_ship_transcompany_services_zhihui 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany_services_zhihui` (
   `code` char(50) NOT NULL,
   `apiid` int(11) NOT NULL,
@@ -6542,7 +6529,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transcompany_services_zhihui` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_transdetail 结构
+-- 导出  表 db_wimoor.t_erp_ship_transdetail 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_transdetail` (
   `id` bigint(20) unsigned NOT NULL,
   `company` bigint(20) unsigned DEFAULT NULL,
@@ -6567,7 +6554,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transdetail` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_ship_transdetail_his 结构
+-- 导出  表 db_wimoor.t_erp_ship_transdetail_his 结构
 CREATE TABLE IF NOT EXISTS `t_erp_ship_transdetail_his` (
   `id` bigint(20) unsigned NOT NULL,
   `opttime` datetime NOT NULL,
@@ -6592,7 +6579,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_transdetail_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stepwise_quotn 结构
+-- 导出  表 db_wimoor.t_erp_stepwise_quotn 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stepwise_quotn` (
   `id` bigint(20) unsigned NOT NULL,
   `material` bigint(20) unsigned DEFAULT NULL,
@@ -6607,7 +6594,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stepwise_quotn` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stockcycle 结构
+-- 导出  表 db_wimoor.t_erp_stockcycle 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stockcycle` (
   `id` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned DEFAULT NULL,
@@ -6622,7 +6609,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stockcycle` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stocktaking 结构
+-- 导出  表 db_wimoor.t_erp_stocktaking 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stocktaking` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -6647,7 +6634,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stocktaking_item 结构
+-- 导出  表 db_wimoor.t_erp_stocktaking_item 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_item` (
   `id` bigint(20) unsigned NOT NULL,
   `stocktakingid` bigint(20) unsigned DEFAULT NULL,
@@ -6662,7 +6649,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stocktaking_item_shelf 结构
+-- 导出  表 db_wimoor.t_erp_stocktaking_item_shelf 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_item_shelf` (
   `id` bigint(20) unsigned NOT NULL,
   `stocktakingid` bigint(20) unsigned DEFAULT NULL,
@@ -6678,7 +6665,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_item_shelf` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stocktaking_shelf 结构
+-- 导出  表 db_wimoor.t_erp_stocktaking_shelf 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_shelf` (
   `stocktakingid` bigint(20) unsigned NOT NULL,
   `shelfid` bigint(20) unsigned NOT NULL,
@@ -6687,7 +6674,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_shelf` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_stocktaking_warehouse 结构
+-- 导出  表 db_wimoor.t_erp_stocktaking_warehouse 结构
 CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_warehouse` (
   `stocktakingid` bigint(20) unsigned NOT NULL,
   `warehouseid` bigint(20) unsigned NOT NULL,
@@ -6696,7 +6683,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stocktaking_warehouse` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_summary_data 结构
+-- 导出  表 db_wimoor.t_erp_summary_data 结构
 CREATE TABLE IF NOT EXISTS `t_erp_summary_data` (
   `id` bigint(20) unsigned NOT NULL,
   `ftype` char(20) NOT NULL,
@@ -6710,7 +6697,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_summary_data` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_transtype 结构
+-- 导出  表 db_wimoor.t_erp_transtype 结构
 CREATE TABLE IF NOT EXISTS `t_erp_transtype` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -6723,7 +6710,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_transtype` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_turnover_rate 结构
+-- 导出  表 db_wimoor.t_erp_turnover_rate 结构
 CREATE TABLE IF NOT EXISTS `t_erp_turnover_rate` (
   `id` int(11) DEFAULT NULL,
   `year` int(11) DEFAULT NULL,
@@ -6741,7 +6728,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_turnover_rate` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_unsalable 结构
+-- 导出  表 db_wimoor.t_erp_unsalable 结构
 CREATE TABLE IF NOT EXISTS `t_erp_unsalable` (
   `sku` char(30) DEFAULT NULL,
   `warehouseid` bigint(20) unsigned DEFAULT NULL,
@@ -6756,7 +6743,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_unsalable` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_usersales_rank 结构
+-- 导出  表 db_wimoor.t_erp_usersales_rank 结构
 CREATE TABLE IF NOT EXISTS `t_erp_usersales_rank` (
   `userid` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -6771,7 +6758,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_usersales_rank` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_calculate_record 结构
+-- 导出  表 db_wimoor.t_erp_v2_calculate_record 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_calculate_record` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -6785,7 +6772,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_calculate_record` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_calculate_record_history 结构
+-- 导出  表 db_wimoor.t_erp_v2_calculate_record_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_calculate_record_history` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -6799,7 +6786,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_calculate_record_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_man_month 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_man_month 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_man_month` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -6819,7 +6806,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_man_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_man_month_history 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_man_month_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_man_month_history` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -6839,7 +6826,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_man_month_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_pickpay_form 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_pickpay_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_pickpay_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(50) NOT NULL DEFAULT '' COMMENT '订单编码',
@@ -6855,7 +6842,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_pickpay_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_pickpay_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_pickpay_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_pickpay_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned NOT NULL COMMENT '订单ID',
@@ -6878,7 +6865,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_pickpay_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_presale_month 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_presale_month 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -6894,7 +6881,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_presale_month_form 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_presale_month_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL COMMENT '公司ID',
@@ -6910,7 +6897,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_presale_month_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_presale_month_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned NOT NULL COMMENT '本地产品ID ',
@@ -6930,7 +6917,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_presale_month_form_entry_item 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_presale_month_form_entry_item 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form_entry_item` (
   `id` bigint(20) unsigned NOT NULL,
   `entryid` bigint(20) unsigned NOT NULL COMMENT '订单中产品所对应记录的ID',
@@ -6945,7 +6932,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_month_form_entry_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_presale_week 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_presale_week 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_week` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -6961,7 +6948,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_presale_week` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_form 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_form 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_form` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(50) NOT NULL DEFAULT '' COMMENT '采购订单编码',
@@ -6981,7 +6968,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_form` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_form_entry 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_form_entry 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_form_entry` (
   `id` bigint(20) unsigned NOT NULL,
   `formid` bigint(20) unsigned NOT NULL COMMENT '订单ID',
@@ -7006,7 +6993,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_form_entry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_material 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_material 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_material` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -7026,7 +7013,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_material` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_material_history 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_material_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_material_history` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -7045,7 +7032,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_material_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_selected 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_selected 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_selected` (
   `materialid` bigint(20) unsigned NOT NULL COMMENT '本地产品ID',
   `userid` bigint(20) unsigned NOT NULL COMMENT '用户ID',
@@ -7055,7 +7042,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_selected` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_week 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_week 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_week` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -7075,7 +7062,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_week` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_purchase_week_history 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_purchase_week_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_week_history` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -7095,7 +7082,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_purchase_week_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_ship_setting 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_ship_setting 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_setting` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -7109,7 +7096,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_setting` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_ship_week 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_ship_week 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_week` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL COMMENT '公司ID',
@@ -7125,7 +7112,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_week` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_plan_ship_week_history 结构
+-- 导出  表 db_wimoor.t_erp_v2_plan_ship_week_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_week_history` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -7141,7 +7128,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_plan_ship_week_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_productl_workhours 结构
+-- 导出  表 db_wimoor.t_erp_v2_productl_workhours 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_productl_workhours` (
   `mid` bigint(20) unsigned NOT NULL COMMENT 'pid',
   `amount` int(10) unsigned DEFAULT NULL COMMENT '一个小时内的生产量',
@@ -7155,7 +7142,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_productl_workhours` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_ship_product_delivery_cycle 结构
+-- 导出  表 db_wimoor.t_erp_v2_ship_product_delivery_cycle 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_ship_product_delivery_cycle` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '商品ID',
   `deliverycycle` int(10) unsigned DEFAULT NULL COMMENT '头程天数',
@@ -7167,7 +7154,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_ship_product_delivery_cycle` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v2_shop_units_worktime 结构
+-- 导出  表 db_wimoor.t_erp_v2_shop_units_worktime 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v2_shop_units_worktime` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL COMMENT '公司ID',
@@ -7182,7 +7169,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v2_shop_units_worktime` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v3_purchase_plan 结构
+-- 导出  表 db_wimoor.t_erp_v3_purchase_plan 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(36) DEFAULT NULL,
@@ -7200,7 +7187,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v3_purchase_plan_consumable_item 结构
+-- 导出  表 db_wimoor.t_erp_v3_purchase_plan_consumable_item 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_consumable_item` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `materialid` bigint(20) unsigned NOT NULL,
@@ -7217,7 +7204,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_consumable_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v3_purchase_plan_item 结构
+-- 导出  表 db_wimoor.t_erp_v3_purchase_plan_item 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_item` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `materialid` bigint(20) unsigned NOT NULL,
@@ -7237,7 +7224,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v3_purchase_plan_item_history 结构
+-- 导出  表 db_wimoor.t_erp_v3_purchase_plan_item_history 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_item_history` (
   `id` char(36) NOT NULL,
   `materialid` bigint(20) unsigned NOT NULL,
@@ -7257,7 +7244,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_item_history` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v3_purchase_plan_warehouse 结构
+-- 导出  表 db_wimoor.t_erp_v3_purchase_plan_warehouse 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_warehouse` (
   `warehouseid` bigint(20) unsigned NOT NULL,
   `planid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -7269,7 +7256,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_warehouse` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_v3_purchase_plan_warehouse_material 结构
+-- 导出  表 db_wimoor.t_erp_v3_purchase_plan_warehouse_material 结构
 CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_warehouse_material` (
   `planid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `materialid` bigint(20) unsigned NOT NULL,
@@ -7279,7 +7266,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_v3_purchase_plan_warehouse_material` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse 结构
+-- 导出  表 db_wimoor.t_erp_warehouse 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT 'ID',
   `name` char(36) DEFAULT NULL COMMENT '名称',
@@ -7315,7 +7302,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse_address 结构
+-- 导出  表 db_wimoor.t_erp_warehouse_address 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse_address` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `shopid` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -7339,7 +7326,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_address` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse_fba 结构
+-- 导出  表 db_wimoor.t_erp_warehouse_fba 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse_fba` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID',
   `shopid` bigint(20) unsigned NOT NULL COMMENT '店铺',
@@ -7359,7 +7346,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_fba` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse_shelf 结构
+-- 导出  表 db_wimoor.t_erp_warehouse_shelf 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '货柜ID',
   `addressid` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '仓库ID',
@@ -7387,7 +7374,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse_shelf_inventory 结构
+-- 导出  表 db_wimoor.t_erp_warehouse_shelf_inventory 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID',
   `shelfid` bigint(20) unsigned DEFAULT NULL COMMENT '货柜ID',
@@ -7404,7 +7391,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse_shelf_inventory_opt_record 结构
+-- 导出  表 db_wimoor.t_erp_warehouse_shelf_inventory_opt_record 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory_opt_record` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID',
   `shelfid` bigint(20) unsigned DEFAULT NULL COMMENT '货柜ID',
@@ -7426,7 +7413,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_shelf_inventory_opt_record` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_warehouse_type 结构
+-- 导出  表 db_wimoor.t_erp_warehouse_type 结构
 CREATE TABLE IF NOT EXISTS `t_erp_warehouse_type` (
   `id` char(36) NOT NULL COMMENT 'ID',
   `shopid` bigint(20) unsigned DEFAULT NULL COMMENT '店铺',
@@ -7440,7 +7427,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_type` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_erp_whse_unsalable_rpt 结构
+-- 导出  表 db_wimoor.t_erp_whse_unsalable_rpt 结构
 CREATE TABLE IF NOT EXISTS `t_erp_whse_unsalable_rpt` (
   `shopid` bigint(20) unsigned NOT NULL,
   `wid` bigint(20) unsigned NOT NULL,
@@ -7466,7 +7453,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_whse_unsalable_rpt` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_exchangeinfo 结构
+-- 导出  表 db_wimoor.t_exchangeinfo 结构
 CREATE TABLE IF NOT EXISTS `t_exchangeinfo` (
   `currency` varchar(50) NOT NULL COMMENT '币别',
   `name` varchar(50) DEFAULT NULL,
@@ -7477,7 +7464,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangeinfo` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_exchangerate 结构
+-- 导出  表 db_wimoor.t_exchangerate 结构
 CREATE TABLE IF NOT EXISTS `t_exchangerate` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL COMMENT '币别',
@@ -7492,7 +7479,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_exchangerate_customer 结构
+-- 导出  表 db_wimoor.t_exchangerate_customer 结构
 CREATE TABLE IF NOT EXISTS `t_exchangerate_customer` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -7508,7 +7495,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate_customer` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_exchangerate_his 结构
+-- 导出  表 db_wimoor.t_exchangerate_his 结构
 CREATE TABLE IF NOT EXISTS `t_exchangerate_his` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL COMMENT '币别',
@@ -7523,7 +7510,7 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fbaformat 结构
+-- 导出  表 db_wimoor.t_fbaformat 结构
 CREATE TABLE IF NOT EXISTS `t_fbaformat` (
   `id` char(36) NOT NULL,
   `country` char(20) DEFAULT NULL,
@@ -7543,7 +7530,7 @@ CREATE TABLE IF NOT EXISTS `t_fbaformat` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fbaformat_archive 结构
+-- 导出  表 db_wimoor.t_fbaformat_archive 结构
 CREATE TABLE IF NOT EXISTS `t_fbaformat_archive` (
   `id` char(36) NOT NULL,
   `country` char(20) DEFAULT NULL,
@@ -7563,7 +7550,7 @@ CREATE TABLE IF NOT EXISTS `t_fbaformat_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_estimated_fees 结构
+-- 导出  表 db_wimoor.t_fba_estimated_fees 结构
 CREATE TABLE IF NOT EXISTS `t_fba_estimated_fees` (
   `sku` char(50) NOT NULL,
   `fnsku` char(50) DEFAULT NULL,
@@ -7613,7 +7600,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_estimated_fees` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_labeling_service_fee 结构
+-- 导出  表 db_wimoor.t_fba_labeling_service_fee 结构
 CREATE TABLE IF NOT EXISTS `t_fba_labeling_service_fee` (
   `id` char(36) NOT NULL,
   `isStandard` bit(1) DEFAULT NULL,
@@ -7626,7 +7613,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_labeling_service_fee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_longterm_storage_fee_report 结构
+-- 导出  表 db_wimoor.t_fba_longterm_storage_fee_report 结构
 CREATE TABLE IF NOT EXISTS `t_fba_longterm_storage_fee_report` (
   `id` bigint(20) unsigned NOT NULL,
   `snapshot_date` date NOT NULL,
@@ -7657,7 +7644,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_longterm_storage_fee_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_reimbursements_fee_report 结构
+-- 导出  表 db_wimoor.t_fba_reimbursements_fee_report 结构
 CREATE TABLE IF NOT EXISTS `t_fba_reimbursements_fee_report` (
   `id` bigint(20) unsigned NOT NULL,
   `approval_date` datetime NOT NULL,
@@ -7687,7 +7674,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_reimbursements_fee_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_storage_fee_report 结构
+-- 导出  表 db_wimoor.t_fba_storage_fee_report 结构
 CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report` (
   `id` bigint(20) unsigned NOT NULL,
   `asin` char(20) NOT NULL,
@@ -7727,7 +7714,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_storage_fee_report_archive 结构
+-- 导出  表 db_wimoor.t_fba_storage_fee_report_archive 结构
 CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report_archive` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `asin` char(20) NOT NULL,
@@ -7762,7 +7749,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fba_storage_fee_report_bkp20230721 结构
+-- 导出  表 db_wimoor.t_fba_storage_fee_report_bkp20230721 结构
 CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report_bkp20230721` (
   `id` bigint(20) unsigned NOT NULL,
   `asin` char(20) NOT NULL,
@@ -7796,7 +7783,7 @@ CREATE TABLE IF NOT EXISTS `t_fba_storage_fee_report_bkp20230721` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_fixed_closingfee 结构
+-- 导出  表 db_wimoor.t_fixed_closingfee 结构
 CREATE TABLE IF NOT EXISTS `t_fixed_closingfee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `format` char(100) DEFAULT NULL COMMENT '价格范围',
@@ -7810,7 +7797,7 @@ CREATE TABLE IF NOT EXISTS `t_fixed_closingfee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_individualfee 结构
+-- 导出  表 db_wimoor.t_individualfee 结构
 CREATE TABLE IF NOT EXISTS `t_individualfee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `country` char(10) DEFAULT NULL,
@@ -7821,7 +7808,7 @@ CREATE TABLE IF NOT EXISTS `t_individualfee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inplacefee 结构
+-- 导出  表 db_wimoor.t_inplacefee 结构
 CREATE TABLE IF NOT EXISTS `t_inplacefee` (
   `id` char(15) NOT NULL,
   `name` varchar(50) DEFAULT NULL,
@@ -7834,7 +7821,7 @@ CREATE TABLE IF NOT EXISTS `t_inplacefee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inplacefeeformat 结构
+-- 导出  表 db_wimoor.t_inplacefeeformat 结构
 CREATE TABLE IF NOT EXISTS `t_inplacefeeformat` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `inplacefeeid` char(36) NOT NULL,
@@ -7852,7 +7839,7 @@ CREATE TABLE IF NOT EXISTS `t_inplacefeeformat` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventorystoragefee 结构
+-- 导出  表 db_wimoor.t_inventorystoragefee 结构
 CREATE TABLE IF NOT EXISTS `t_inventorystoragefee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `month` varchar(255) DEFAULT NULL,
@@ -7864,7 +7851,7 @@ CREATE TABLE IF NOT EXISTS `t_inventorystoragefee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_report 结构
+-- 导出  表 db_wimoor.t_inventory_report 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_report` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50) DEFAULT NULL,
@@ -7898,7 +7885,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_report_his 结构
+-- 导出  表 db_wimoor.t_inventory_report_his 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_report_his` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50) NOT NULL,
@@ -7932,7 +7919,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_report_his_archive 结构
+-- 导出  表 db_wimoor.t_inventory_report_his_archive 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_report_his_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50) NOT NULL,
@@ -7967,7 +7954,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report_his_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_report_his_bkp20220815 结构
+-- 导出  表 db_wimoor.t_inventory_report_his_bkp20220815 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_report_his_bkp20220815` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50) NOT NULL,
@@ -8000,7 +7987,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_report_his_bkp20220815` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_reserved_report 结构
+-- 导出  表 db_wimoor.t_inventory_reserved_report 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_reserved_report` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50)  DEFAULT NULL,
@@ -8020,7 +8007,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_reserved_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_status 结构
+-- 导出  表 db_wimoor.t_inventory_status 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_status` (
   `id` bigint(20) unsigned NOT NULL,
   `stockStatus` char(20)  DEFAULT NULL,
@@ -8035,7 +8022,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_status` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_inventory_temp 结构
+-- 导出  表 db_wimoor.t_inventory_temp 结构
 CREATE TABLE IF NOT EXISTS `t_inventory_temp` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sku` char(50) DEFAULT NULL,
@@ -8047,7 +8034,7 @@ CREATE TABLE IF NOT EXISTS `t_inventory_temp` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_manager_limit 结构
+-- 导出  表 db_wimoor.t_manager_limit 结构
 CREATE TABLE IF NOT EXISTS `t_manager_limit` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID(h)',
   `shopId` bigint(20) unsigned DEFAULT NULL,
@@ -8081,7 +8068,7 @@ CREATE TABLE IF NOT EXISTS `t_manager_limit` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_manager_limit_append 结构
+-- 导出  表 db_wimoor.t_manager_limit_append 结构
 CREATE TABLE IF NOT EXISTS `t_manager_limit_append` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned NOT NULL,
@@ -8098,7 +8085,7 @@ CREATE TABLE IF NOT EXISTS `t_manager_limit_append` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_manual_processing_fee 结构
+-- 导出  表 db_wimoor.t_manual_processing_fee 结构
 CREATE TABLE IF NOT EXISTS `t_manual_processing_fee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `month` varchar(255) DEFAULT NULL,
@@ -8109,7 +8096,7 @@ CREATE TABLE IF NOT EXISTS `t_manual_processing_fee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_marketplace 结构
+-- 导出  表 db_wimoor.t_marketplace 结构
 CREATE TABLE IF NOT EXISTS `t_marketplace` (
   `marketplaceId` varchar(15)  NOT NULL COMMENT '站点编码ID',
   `market` char(5) DEFAULT NULL COMMENT '站点简码',
@@ -8144,7 +8131,7 @@ CREATE TABLE IF NOT EXISTS `t_marketplace` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_menu 结构
+-- 导出  表 db_wimoor.t_menu 结构
 CREATE TABLE IF NOT EXISTS `t_menu` (
   `id` char(36)  NOT NULL COMMENT '主键(h)',
   `name` varchar(100)  NOT NULL COMMENT '名称',
@@ -8162,7 +8149,7 @@ CREATE TABLE IF NOT EXISTS `t_menu` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_menu_group 结构
+-- 导出  表 db_wimoor.t_menu_group 结构
 CREATE TABLE IF NOT EXISTS `t_menu_group` (
   `id` char(36) NOT NULL,
   `name` varchar(60) DEFAULT NULL,
@@ -8173,7 +8160,7 @@ CREATE TABLE IF NOT EXISTS `t_menu_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_financial 结构
+-- 导出  表 db_wimoor.t_orders_financial 结构
 CREATE TABLE IF NOT EXISTS `t_orders_financial` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增长ID',
   `amazon_order_id` varchar(30) NOT NULL COMMENT '订单ID',
@@ -8191,7 +8178,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_financial` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_fulfilled_shipments_fee 结构
+-- 导出  表 db_wimoor.t_orders_fulfilled_shipments_fee 结构
 CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_fee` (
   `amazonauthid` bigint(20) unsigned DEFAULT NULL,
   `sku` char(50) DEFAULT NULL,
@@ -8214,7 +8201,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_fee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_fulfilled_shipments_report 结构
+-- 导出  表 db_wimoor.t_orders_fulfilled_shipments_report 结构
 CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_report` (
   `amazon_order_id` char(50) NOT NULL,
   `merchant_order_id` char(50) DEFAULT NULL,
@@ -8274,7 +8261,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_fulfilled_shipments_report_archive 结构
+-- 导出  表 db_wimoor.t_orders_fulfilled_shipments_report_archive 结构
 CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_report_archive` (
   `amazon_order_id` char(50) NOT NULL,
   `merchant_order_id` char(50) DEFAULT NULL,
@@ -8333,7 +8320,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_fulfilled_shipments_report_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_remark 结构
+-- 导出  表 db_wimoor.t_orders_remark 结构
 CREATE TABLE IF NOT EXISTS `t_orders_remark` (
   `amazon_order_id` varchar(50) NOT NULL,
   `feed_queueid` bigint(20) unsigned DEFAULT NULL,
@@ -8348,7 +8335,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_remark` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_report 结构
+-- 导出  表 db_wimoor.t_orders_report 结构
 CREATE TABLE IF NOT EXISTS `t_orders_report` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(50) NOT NULL,
@@ -8392,7 +8379,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_report` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_report_archive 结构
+-- 导出  表 db_wimoor.t_orders_report_archive 结构
 CREATE TABLE IF NOT EXISTS `t_orders_report_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(50) NOT NULL,
@@ -8435,7 +8422,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_report_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_report_download 结构
+-- 导出  表 db_wimoor.t_orders_report_download 结构
 CREATE TABLE IF NOT EXISTS `t_orders_report_download` (
   `id` bigint(20) unsigned NOT NULL,
   `amazon_order_id` varchar(50) NOT NULL,
@@ -8478,7 +8465,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_report_download` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_reviews_customer 结构
+-- 导出  表 db_wimoor.t_orders_reviews_customer 结构
 CREATE TABLE IF NOT EXISTS `t_orders_reviews_customer` (
   `amazon_order_id` char(50) NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -8490,7 +8477,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_reviews_customer` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_sumconfig 结构
+-- 导出  表 db_wimoor.t_orders_sumconfig 结构
 CREATE TABLE IF NOT EXISTS `t_orders_sumconfig` (
   `id` char(36)  NOT NULL,
   `order_status` char(40)  DEFAULT NULL,
@@ -8505,7 +8492,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_sumconfig` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_summary 结构
+-- 导出  表 db_wimoor.t_orders_summary 结构
 CREATE TABLE IF NOT EXISTS `t_orders_summary` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -8527,7 +8514,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_summary_month 结构
+-- 导出  表 db_wimoor.t_orders_summary_month 结构
 CREATE TABLE IF NOT EXISTS `t_orders_summary_month` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -8548,7 +8535,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary_month` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_orders_summary_week 结构
+-- 导出  表 db_wimoor.t_orders_summary_week 结构
 CREATE TABLE IF NOT EXISTS `t_orders_summary_week` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned NOT NULL,
@@ -8569,7 +8556,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary_week` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_order_invoice 结构
+-- 导出  表 db_wimoor.t_order_invoice 结构
 CREATE TABLE IF NOT EXISTS `t_order_invoice` (
   `id` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned NOT NULL,
@@ -8590,7 +8577,7 @@ CREATE TABLE IF NOT EXISTS `t_order_invoice` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_order_invoice_vat 结构
+-- 导出  表 db_wimoor.t_order_invoice_vat 结构
 CREATE TABLE IF NOT EXISTS `t_order_invoice_vat` (
   `id` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned DEFAULT NULL,
@@ -8603,7 +8590,7 @@ CREATE TABLE IF NOT EXISTS `t_order_invoice_vat` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_outbound_weightformat 结构
+-- 导出  表 db_wimoor.t_outbound_weightformat 结构
 CREATE TABLE IF NOT EXISTS `t_outbound_weightformat` (
   `id` char(36) NOT NULL,
   `producttierId` char(36) DEFAULT NULL,
@@ -8615,7 +8602,7 @@ CREATE TABLE IF NOT EXISTS `t_outbound_weightformat` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_parameterconfig 结构
+-- 导出  表 db_wimoor.t_parameterconfig 结构
 CREATE TABLE IF NOT EXISTS `t_parameterconfig` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ptype` char(36) DEFAULT NULL,
@@ -8629,7 +8616,7 @@ CREATE TABLE IF NOT EXISTS `t_parameterconfig` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_picture 结构
+-- 导出  表 db_wimoor.t_picture 结构
 CREATE TABLE IF NOT EXISTS `t_picture` (
   `id` bigint(20) unsigned NOT NULL COMMENT '图片ID',
   `url` varchar(500) DEFAULT NULL COMMENT '图片网络位置',
@@ -8645,7 +8632,7 @@ CREATE TABLE IF NOT EXISTS `t_picture` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_prepservicefee 结构
+-- 导出  表 db_wimoor.t_prepservicefee 结构
 CREATE TABLE IF NOT EXISTS `t_prepservicefee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `category` varchar(255) DEFAULT NULL,
@@ -8658,7 +8645,7 @@ CREATE TABLE IF NOT EXISTS `t_prepservicefee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_productformat 结构
+-- 导出  表 db_wimoor.t_productformat 结构
 CREATE TABLE IF NOT EXISTS `t_productformat` (
   `id` char(36) NOT NULL,
   `producttierId` char(36) DEFAULT NULL,
@@ -8673,7 +8660,7 @@ CREATE TABLE IF NOT EXISTS `t_productformat` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_producttier 结构
+-- 导出  表 db_wimoor.t_producttier 结构
 CREATE TABLE IF NOT EXISTS `t_producttier` (
   `id` char(36) NOT NULL,
   `name` char(50) DEFAULT NULL,
@@ -8686,7 +8673,7 @@ CREATE TABLE IF NOT EXISTS `t_producttier` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_category 结构
+-- 导出  表 db_wimoor.t_product_category 结构
 CREATE TABLE IF NOT EXISTS `t_product_category` (
   `CategoryId` char(50)  NOT NULL,
   `pid` bigint(20) unsigned NOT NULL,
@@ -8697,7 +8684,7 @@ CREATE TABLE IF NOT EXISTS `t_product_category` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_follow 结构
+-- 导出  表 db_wimoor.t_product_follow 结构
 CREATE TABLE IF NOT EXISTS `t_product_follow` (
   `id` bigint(20) unsigned NOT NULL,
   `asin` char(18) DEFAULT NULL,
@@ -8714,7 +8701,7 @@ CREATE TABLE IF NOT EXISTS `t_product_follow` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_info 结构
+-- 导出  表 db_wimoor.t_product_info 结构
 CREATE TABLE IF NOT EXISTS `t_product_info` (
   `id` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `asin` char(36) DEFAULT NULL COMMENT '唯一码asin',
@@ -8757,7 +8744,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_info_bkp20220712 结构
+-- 导出  表 db_wimoor.t_product_info_bkp20220712 结构
 CREATE TABLE IF NOT EXISTS `t_product_info_bkp20220712` (
   `id` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `asin` char(36) DEFAULT NULL COMMENT '唯一码asin',
@@ -8796,7 +8783,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info_bkp20220712` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_info_follow 结构
+-- 导出  表 db_wimoor.t_product_info_follow 结构
 CREATE TABLE IF NOT EXISTS `t_product_info_follow` (
   `pid` bigint(20) unsigned NOT NULL,
   `status_upload` char(20) DEFAULT NULL,
@@ -8818,7 +8805,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info_follow` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_info_status_define 结构
+-- 导出  表 db_wimoor.t_product_info_status_define 结构
 CREATE TABLE IF NOT EXISTS `t_product_info_status_define` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -8836,7 +8823,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info_status_define` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_adv 结构
+-- 导出  表 db_wimoor.t_product_in_adv 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_adv` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `adv_impr7` decimal(14,4) DEFAULT NULL,
@@ -8853,7 +8840,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_adv` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_aftersale 结构
+-- 导出  表 db_wimoor.t_product_in_aftersale 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_aftersale` (
   `id` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned DEFAULT NULL,
@@ -8870,7 +8857,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_aftersale` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_autoprice 结构
+-- 导出  表 db_wimoor.t_product_in_autoprice 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_autoprice` (
   `pid` bigint(20) unsigned NOT NULL,
   `ftype` tinyint(3) unsigned DEFAULT NULL COMMENT '1代表最低价，2代表购物车',
@@ -8890,7 +8877,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_autoprice` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_opt 结构
+-- 导出  表 db_wimoor.t_product_in_opt 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_opt` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `remark` varchar(1000) DEFAULT NULL COMMENT '备注',
@@ -8921,7 +8908,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_opt` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_order 结构
+-- 导出  表 db_wimoor.t_product_in_order 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_order` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `avgsales` int(11) DEFAULT NULL,
@@ -8944,7 +8931,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_order` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_presale 结构
+-- 导出  表 db_wimoor.t_product_in_presale 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_presale` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50) NOT NULL,
@@ -8967,7 +8954,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_presale` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_presale_archive 结构
+-- 导出  表 db_wimoor.t_product_in_presale_archive 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_presale_archive` (
   `id` bigint(20) unsigned NOT NULL,
   `sku` char(50) DEFAULT NULL,
@@ -8989,7 +8976,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_presale_archive` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_profit 结构
+-- 导出  表 db_wimoor.t_product_in_profit 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_profit` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `profit_week` decimal(14,6) DEFAULT NULL,
@@ -9008,7 +8995,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_profit` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_review 结构
+-- 导出  表 db_wimoor.t_product_in_review 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_review` (
   `id` bigint(20) unsigned NOT NULL DEFAULT '0',
   `asin` char(15) NOT NULL,
@@ -9031,7 +9018,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_review_detail 结构
+-- 导出  表 db_wimoor.t_product_in_review_detail 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_review_detail` (
   `id` bigint(20) unsigned NOT NULL,
   `reviewid` char(20) DEFAULT NULL,
@@ -9059,7 +9046,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review_detail` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_review_order 结构
+-- 导出  表 db_wimoor.t_product_in_review_order 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_review_order` (
   `amazonauthid` bigint(20) unsigned NOT NULL,
   `purchase_date` datetime NOT NULL,
@@ -9080,7 +9067,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review_order` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_review_runs 结构
+-- 导出  表 db_wimoor.t_product_in_review_runs 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_review_runs` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -9099,7 +9086,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_review_runs` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_ses 结构
+-- 导出  表 db_wimoor.t_product_in_ses 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_ses` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `session_day7` int(11) DEFAULT NULL,
@@ -9111,7 +9098,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_ses` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_sys 结构
+-- 导出  表 db_wimoor.t_product_in_sys 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_sys` (
   `pid` bigint(20) unsigned NOT NULL COMMENT '产品ID',
   `saleDate` datetime DEFAULT NULL,
@@ -9141,7 +9128,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_sys` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_in_tags 结构
+-- 导出  表 db_wimoor.t_product_in_tags 结构
 CREATE TABLE IF NOT EXISTS `t_product_in_tags` (
   `pid` bigint(20) unsigned NOT NULL,
   `tagid` bigint(20) unsigned NOT NULL,
@@ -9153,7 +9140,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_tags` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_price 结构
+-- 导出  表 db_wimoor.t_product_price 结构
 CREATE TABLE IF NOT EXISTS `t_product_price` (
   `id` bigint(20) unsigned NOT NULL,
   `MarketplaceId` char(15) DEFAULT NULL,
@@ -9178,7 +9165,7 @@ CREATE TABLE IF NOT EXISTS `t_product_price` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_price_his 结构
+-- 导出  表 db_wimoor.t_product_price_his 结构
 CREATE TABLE IF NOT EXISTS `t_product_price_his` (
   `id` bigint(20) unsigned NOT NULL,
   `MarketplaceId` char(15) DEFAULT NULL,
@@ -9203,7 +9190,7 @@ CREATE TABLE IF NOT EXISTS `t_product_price_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_price_locked 结构
+-- 导出  表 db_wimoor.t_product_price_locked 结构
 CREATE TABLE IF NOT EXISTS `t_product_price_locked` (
   `pid` bigint(20) unsigned NOT NULL,
   `price` decimal(10,2) DEFAULT NULL,
@@ -9217,7 +9204,7 @@ CREATE TABLE IF NOT EXISTS `t_product_price_locked` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_rank 结构
+-- 导出  表 db_wimoor.t_product_rank 结构
 CREATE TABLE IF NOT EXISTS `t_product_rank` (
   `id` bigint(20) unsigned NOT NULL,
   `byday` datetime DEFAULT NULL,
@@ -9235,7 +9222,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_rank_his 结构
+-- 导出  表 db_wimoor.t_product_rank_his 结构
 CREATE TABLE IF NOT EXISTS `t_product_rank_his` (
   `id` bigint(20) unsigned NOT NULL,
   `byday` date DEFAULT NULL,
@@ -9252,7 +9239,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_rank_sales_his 结构
+-- 导出  表 db_wimoor.t_product_rank_sales_his 结构
 CREATE TABLE IF NOT EXISTS `t_product_rank_sales_his` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `market` char(5) NOT NULL DEFAULT '0',
@@ -9265,7 +9252,7 @@ CREATE TABLE IF NOT EXISTS `t_product_rank_sales_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_recommended 结构
+-- 导出  表 db_wimoor.t_product_recommended 结构
 CREATE TABLE IF NOT EXISTS `t_product_recommended` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonAuthId` bigint(20) unsigned DEFAULT NULL,
@@ -9304,7 +9291,7 @@ CREATE TABLE IF NOT EXISTS `t_product_recommended` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_recommended_ext 结构
+-- 导出  表 db_wimoor.t_product_recommended_ext 结构
 CREATE TABLE IF NOT EXISTS `t_product_recommended_ext` (
   `rid` bigint(20) unsigned NOT NULL,
   `marketplaceid` char(15) DEFAULT NULL,
@@ -9324,7 +9311,7 @@ CREATE TABLE IF NOT EXISTS `t_product_recommended_ext` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_remark_his 结构
+-- 导出  表 db_wimoor.t_product_remark_his 结构
 CREATE TABLE IF NOT EXISTS `t_product_remark_his` (
   `pid` bigint(20) unsigned NOT NULL,
   `ftype` char(10) NOT NULL,
@@ -9336,7 +9323,7 @@ CREATE TABLE IF NOT EXISTS `t_product_remark_his` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_type 结构
+-- 导出  表 db_wimoor.t_product_type 结构
 CREATE TABLE IF NOT EXISTS `t_product_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL COMMENT '类型',
@@ -9346,7 +9333,7 @@ CREATE TABLE IF NOT EXISTS `t_product_type` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_product_usercategory 结构
+-- 导出  表 db_wimoor.t_product_usercategory 结构
 CREATE TABLE IF NOT EXISTS `t_product_usercategory` (
   `id` char(36)  DEFAULT NULL,
   `name` char(36)  DEFAULT NULL
@@ -9354,7 +9341,7 @@ CREATE TABLE IF NOT EXISTS `t_product_usercategory` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_profitcfg 结构
+-- 导出  表 db_wimoor.t_profitcfg 结构
 CREATE TABLE IF NOT EXISTS `t_profitcfg` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID 用于区分每一个方案',
   `shop_id` bigint(20) unsigned DEFAULT NULL COMMENT '添加方案的人，只能当事人或其部下使用',
@@ -9376,7 +9363,7 @@ CREATE TABLE IF NOT EXISTS `t_profitcfg` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_profitcfgcountry 结构
+-- 导出  表 db_wimoor.t_profitcfgcountry 结构
 CREATE TABLE IF NOT EXISTS `t_profitcfgcountry` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID 用于区分每一个方案对应不同国家的方案配置项',
   `profitid` bigint(20) unsigned NOT NULL COMMENT '总方案',
@@ -9417,7 +9404,7 @@ CREATE TABLE IF NOT EXISTS `t_profitcfgcountry` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_pro_rcd_dimensions 结构
+-- 导出  表 db_wimoor.t_pro_rcd_dimensions 结构
 CREATE TABLE IF NOT EXISTS `t_pro_rcd_dimensions` (
   `id` bigint(20) unsigned NOT NULL,
   `length` decimal(15,2) DEFAULT NULL,
@@ -9433,7 +9420,7 @@ CREATE TABLE IF NOT EXISTS `t_pro_rcd_dimensions` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_referralfee 结构
+-- 导出  表 db_wimoor.t_referralfee 结构
 CREATE TABLE IF NOT EXISTS `t_referralfee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` varchar(255) DEFAULT NULL COMMENT '类型',
@@ -9454,7 +9441,7 @@ CREATE TABLE IF NOT EXISTS `t_referralfee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_report_requestrecord 结构
+-- 导出  表 db_wimoor.t_report_requestrecord 结构
 CREATE TABLE IF NOT EXISTS `t_report_requestrecord` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `sellerid` char(15) DEFAULT NULL,
@@ -9482,7 +9469,7 @@ CREATE TABLE IF NOT EXISTS `t_report_requestrecord` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role 结构
+-- 导出  表 db_wimoor.t_role 结构
 CREATE TABLE IF NOT EXISTS `t_role` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(100) DEFAULT NULL COMMENT '角色名称',
@@ -9496,7 +9483,7 @@ CREATE TABLE IF NOT EXISTS `t_role` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role_adv_group 结构
+-- 导出  表 db_wimoor.t_role_adv_group 结构
 CREATE TABLE IF NOT EXISTS `t_role_adv_group` (
   `roleid` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned NOT NULL,
@@ -9506,7 +9493,7 @@ CREATE TABLE IF NOT EXISTS `t_role_adv_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role_authority 结构
+-- 导出  表 db_wimoor.t_role_authority 结构
 CREATE TABLE IF NOT EXISTS `t_role_authority` (
   `id` bigint(20) unsigned NOT NULL,
   `role_id` bigint(20) unsigned DEFAULT NULL,
@@ -9519,7 +9506,7 @@ CREATE TABLE IF NOT EXISTS `t_role_authority` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role_group 结构
+-- 导出  表 db_wimoor.t_role_group 结构
 CREATE TABLE IF NOT EXISTS `t_role_group` (
   `roleid` bigint(20) unsigned NOT NULL,
   `groupid` bigint(20) unsigned NOT NULL,
@@ -9529,7 +9516,7 @@ CREATE TABLE IF NOT EXISTS `t_role_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role_marketplace 结构
+-- 导出  表 db_wimoor.t_role_marketplace 结构
 CREATE TABLE IF NOT EXISTS `t_role_marketplace` (
   `id` bigint(20) unsigned NOT NULL,
   `roleid` bigint(20) unsigned DEFAULT NULL,
@@ -9540,7 +9527,7 @@ CREATE TABLE IF NOT EXISTS `t_role_marketplace` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role_menu 结构
+-- 导出  表 db_wimoor.t_role_menu 结构
 CREATE TABLE IF NOT EXISTS `t_role_menu` (
   `id` bigint(20) unsigned NOT NULL,
   `role_id` bigint(20) unsigned DEFAULT NULL COMMENT '角色ID',
@@ -9552,7 +9539,7 @@ CREATE TABLE IF NOT EXISTS `t_role_menu` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_role_menu_bkp20211115 结构
+-- 导出  表 db_wimoor.t_role_menu_bkp20211115 结构
 CREATE TABLE IF NOT EXISTS `t_role_menu_bkp20211115` (
   `id` bigint(20) unsigned NOT NULL,
   `role_id` bigint(20) unsigned DEFAULT NULL COMMENT '角色ID',
@@ -9564,7 +9551,7 @@ CREATE TABLE IF NOT EXISTS `t_role_menu_bkp20211115` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_shop 结构
+-- 导出  表 db_wimoor.t_shop 结构
 CREATE TABLE IF NOT EXISTS `t_shop` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(50)  DEFAULT NULL COMMENT '公司名称',
@@ -9579,7 +9566,7 @@ CREATE TABLE IF NOT EXISTS `t_shop` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_summaryall 结构
+-- 导出  表 db_wimoor.t_summaryall 结构
 CREATE TABLE IF NOT EXISTS `t_summaryall` (
   `id` bigint(20) unsigned NOT NULL,
   `amazonauthid` bigint(20) unsigned NOT NULL,
@@ -9599,7 +9586,7 @@ CREATE TABLE IF NOT EXISTS `t_summaryall` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_app_store_company 结构
+-- 导出  表 db_wimoor.t_sys_app_store_company 结构
 CREATE TABLE IF NOT EXISTS `t_sys_app_store_company` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(50) DEFAULT NULL,
@@ -9617,7 +9604,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_company` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_app_store_detail 结构
+-- 导出  表 db_wimoor.t_sys_app_store_detail 结构
 CREATE TABLE IF NOT EXISTS `t_sys_app_store_detail` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `appgroupid` bigint(20) unsigned DEFAULT NULL,
@@ -9638,7 +9625,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_detail` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_app_store_group 结构
+-- 导出  表 db_wimoor.t_sys_app_store_group 结构
 CREATE TABLE IF NOT EXISTS `t_sys_app_store_group` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(50) DEFAULT NULL,
@@ -9653,7 +9640,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_app_store_service_detail 结构
+-- 导出  表 db_wimoor.t_sys_app_store_service_detail 结构
 CREATE TABLE IF NOT EXISTS `t_sys_app_store_service_detail` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `detailid` int(11) DEFAULT NULL,
@@ -9665,7 +9652,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_app_store_service_detail` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_channel_salesperson_key 结构
+-- 导出  表 db_wimoor.t_sys_channel_salesperson_key 结构
 CREATE TABLE IF NOT EXISTS `t_sys_channel_salesperson_key` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `salesperson` char(50) NOT NULL DEFAULT '0',
@@ -9675,7 +9662,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_channel_salesperson_key` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_contact 结构
+-- 导出  表 db_wimoor.t_sys_contact 结构
 CREATE TABLE IF NOT EXISTS `t_sys_contact` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(50) DEFAULT NULL,
@@ -9688,7 +9675,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_contact` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_customer_discount 结构
+-- 导出  表 db_wimoor.t_sys_customer_discount 结构
 CREATE TABLE IF NOT EXISTS `t_sys_customer_discount` (
   `id` bigint(20) unsigned NOT NULL,
   `number` char(7) DEFAULT NULL COMMENT '折扣编码',
@@ -9709,7 +9696,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_discount` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_customer_invoice 结构
+-- 导出  表 db_wimoor.t_sys_customer_invoice 结构
 CREATE TABLE IF NOT EXISTS `t_sys_customer_invoice` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL,
@@ -9732,7 +9719,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_invoice` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_customer_order 结构
+-- 导出  表 db_wimoor.t_sys_customer_order 结构
 CREATE TABLE IF NOT EXISTS `t_sys_customer_order` (
   `id` bigint(20) unsigned NOT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL COMMENT '公司ID',
@@ -9756,7 +9743,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_order` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_customer_order_refund 结构
+-- 导出  表 db_wimoor.t_sys_customer_order_refund 结构
 CREATE TABLE IF NOT EXISTS `t_sys_customer_order_refund` (
   `id` bigint(20) unsigned DEFAULT NULL,
   `shopid` bigint(20) unsigned DEFAULT NULL COMMENT '公司ID',
@@ -9771,7 +9758,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_customer_order_refund` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_dept 结构
+-- 导出  表 db_wimoor.t_sys_dept 结构
 CREATE TABLE IF NOT EXISTS `t_sys_dept` (
   `id` bigint(20) unsigned NOT NULL,
   `name` char(100) DEFAULT NULL,
@@ -9787,7 +9774,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_dept` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_dict 结构
+-- 导出  表 db_wimoor.t_sys_dict 结构
 CREATE TABLE IF NOT EXISTS `t_sys_dict` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键 ',
   `name` varchar(50) DEFAULT '' COMMENT '类型名称',
@@ -9802,7 +9789,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_dict` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_dict_item 结构
+-- 导出  表 db_wimoor.t_sys_dict_item 结构
 CREATE TABLE IF NOT EXISTS `t_sys_dict_item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
   `name` varchar(50) DEFAULT '' COMMENT '字典项名称',
@@ -9820,7 +9807,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_dict_item` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_help_page 结构
+-- 导出  表 db_wimoor.t_sys_help_page 结构
 CREATE TABLE IF NOT EXISTS `t_sys_help_page` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键(h)',
   `menuid` char(36)  NOT NULL,
@@ -9833,7 +9820,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_help_page` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_holiday 结构
+-- 导出  表 db_wimoor.t_sys_holiday 结构
 CREATE TABLE IF NOT EXISTS `t_sys_holiday` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `country` char(3) DEFAULT NULL,
@@ -9847,7 +9834,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_holiday` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_importrecord 结构
+-- 导出  表 db_wimoor.t_sys_importrecord 结构
 CREATE TABLE IF NOT EXISTS `t_sys_importrecord` (
   `id` bigint(20) unsigned NOT NULL,
   `opttime` datetime DEFAULT NULL,
@@ -9863,7 +9850,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_importrecord` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_mailsender 结构
+-- 导出  表 db_wimoor.t_sys_mailsender 结构
 CREATE TABLE IF NOT EXISTS `t_sys_mailsender` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mailServerHost` varchar(50) DEFAULT NULL,
@@ -9880,7 +9867,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_mailsender` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_mail_template 结构
+-- 导出  表 db_wimoor.t_sys_mail_template 结构
 CREATE TABLE IF NOT EXISTS `t_sys_mail_template` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mail_subject` varchar(50) DEFAULT NULL,
@@ -9892,7 +9879,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_mail_template` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_menu 结构
+-- 导出  表 db_wimoor.t_sys_menu 结构
 CREATE TABLE IF NOT EXISTS `t_sys_menu` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) DEFAULT '' COMMENT '菜单名称',
@@ -9916,7 +9903,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_menu` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_menu_favorite 结构
+-- 导出  表 db_wimoor.t_sys_menu_favorite 结构
 CREATE TABLE IF NOT EXISTS `t_sys_menu_favorite` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `shopid` bigint(20) NOT NULL DEFAULT '0' COMMENT '公司ID',
@@ -9929,7 +9916,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_menu_favorite` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_message_template 结构
+-- 导出  表 db_wimoor.t_sys_message_template 结构
 CREATE TABLE IF NOT EXISTS `t_sys_message_template` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `ftype` char(10) NOT NULL COMMENT '消息类型',
@@ -9941,7 +9928,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_message_template` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_notify 结构
+-- 导出  表 db_wimoor.t_sys_notify 结构
 CREATE TABLE IF NOT EXISTS `t_sys_notify` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(100) NOT NULL DEFAULT '0',
@@ -9962,7 +9949,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_notify` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_operationlog 结构
+-- 导出  表 db_wimoor.t_sys_operationlog 结构
 CREATE TABLE IF NOT EXISTS `t_sys_operationlog` (
   `id` bigint(20) unsigned NOT NULL,
   `time` datetime DEFAULT NULL,
@@ -9981,7 +9968,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_operationlog` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_permission 结构
+-- 导出  表 db_wimoor.t_sys_permission 结构
 CREATE TABLE IF NOT EXISTS `t_sys_permission` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
   `name` varchar(64) DEFAULT NULL COMMENT '权限名称',
@@ -9997,7 +9984,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_permission` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_potential_customer 结构
+-- 导出  表 db_wimoor.t_sys_potential_customer 结构
 CREATE TABLE IF NOT EXISTS `t_sys_potential_customer` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `company` varchar(2000) DEFAULT NULL,
@@ -10013,7 +10000,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_potential_customer` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_quartz_task 结构
+-- 导出  表 db_wimoor.t_sys_quartz_task 结构
 CREATE TABLE IF NOT EXISTS `t_sys_quartz_task` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -10033,7 +10020,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_quartz_task` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_query_field 结构
+-- 导出  表 db_wimoor.t_sys_query_field 结构
 CREATE TABLE IF NOT EXISTS `t_sys_query_field` (
   `fquery` char(20) NOT NULL,
   `ffield` char(30) NOT NULL,
@@ -10052,7 +10039,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_field` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_query_user_version 结构
+-- 导出  表 db_wimoor.t_sys_query_user_version 结构
 CREATE TABLE IF NOT EXISTS `t_sys_query_user_version` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint(20) unsigned DEFAULT NULL,
@@ -10067,7 +10054,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_user_version` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_query_version_feild 结构
+-- 导出  表 db_wimoor.t_sys_query_version_feild 结构
 CREATE TABLE IF NOT EXISTS `t_sys_query_version_feild` (
   `fversionid` bigint(20) unsigned NOT NULL,
   `ffield` char(30) NOT NULL,
@@ -10077,7 +10064,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_version_feild` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_role_menu 结构
+-- 导出  表 db_wimoor.t_sys_role_menu 结构
 CREATE TABLE IF NOT EXISTS `t_sys_role_menu` (
   `role_id` bigint(20) unsigned NOT NULL COMMENT '角色ID',
   `menu_id` bigint(20) unsigned NOT NULL COMMENT '菜单ID',
@@ -10087,7 +10074,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_menu` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_role_permission 结构
+-- 导出  表 db_wimoor.t_sys_role_permission 结构
 CREATE TABLE IF NOT EXISTS `t_sys_role_permission` (
   `role_id` bigint(20) unsigned NOT NULL COMMENT '角色id',
   `permission_id` bigint(20) unsigned NOT NULL COMMENT '资源id',
@@ -10097,7 +10084,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_permission` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_role_tag 结构
+-- 导出  表 db_wimoor.t_sys_role_tag 结构
 CREATE TABLE IF NOT EXISTS `t_sys_role_tag` (
   `id` bigint(20) unsigned NOT NULL,
   `tag_id` char(36) DEFAULT NULL,
@@ -10108,7 +10095,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_tag` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_role_taggroup 结构
+-- 导出  表 db_wimoor.t_sys_role_taggroup 结构
 CREATE TABLE IF NOT EXISTS `t_sys_role_taggroup` (
   `id` bigint(20) unsigned NOT NULL,
   `roleid` bigint(20) unsigned DEFAULT NULL,
@@ -10119,7 +10106,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_role_taggroup` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_subscription 结构
+-- 导出  表 db_wimoor.t_sys_subscription 结构
 CREATE TABLE IF NOT EXISTS `t_sys_subscription` (
   `target` char(2) NOT NULL,
   `userid` bigint(20) unsigned NOT NULL,
@@ -10132,7 +10119,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_subscription` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_tags 结构
+-- 导出  表 db_wimoor.t_sys_tags 结构
 CREATE TABLE IF NOT EXISTS `t_sys_tags` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID',
   `name` char(200) DEFAULT NULL COMMENT '标签名称',
@@ -10156,7 +10143,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tags` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_tags_groups 结构
+-- 导出  表 db_wimoor.t_sys_tags_groups 结构
 CREATE TABLE IF NOT EXISTS `t_sys_tags_groups` (
   `id` bigint(20) unsigned NOT NULL,
   `sort` int(10) DEFAULT NULL,
@@ -10176,7 +10163,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tags_groups` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_target 结构
+-- 导出  表 db_wimoor.t_sys_target 结构
 CREATE TABLE IF NOT EXISTS `t_sys_target` (
   `id` char(2) NOT NULL,
   `name` char(50) NOT NULL,
@@ -10186,7 +10173,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_target` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_tariff_packages 结构
+-- 导出  表 db_wimoor.t_sys_tariff_packages 结构
 CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages` (
   `id` int(11) NOT NULL COMMENT '套餐id 0-基础版，1-标准版，2-专业版，3-独享版,4-自定义',
   `name` char(36) NOT NULL COMMENT '套餐名字',
@@ -10211,7 +10198,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_tariff_packages_append 结构
+-- 导出  表 db_wimoor.t_sys_tariff_packages_append 结构
 CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages_append` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ftype` char(20)  DEFAULT NULL,
@@ -10224,7 +10211,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages_append` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_tariff_packages_append_discount 结构
+-- 导出  表 db_wimoor.t_sys_tariff_packages_append_discount 结构
 CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages_append_discount` (
   `appendid` int(10) DEFAULT NULL,
   `packages` int(10) DEFAULT NULL,
@@ -10235,7 +10222,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tariff_packages_append_discount` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_timetask 结构
+-- 导出  表 db_wimoor.t_sys_timetask 结构
 CREATE TABLE IF NOT EXISTS `t_sys_timetask` (
   `id` char(36) NOT NULL COMMENT 'id',
   `name` varchar(50) DEFAULT NULL COMMENT '任务名',
@@ -10259,7 +10246,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_timetask` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_timetask_log 结构
+-- 导出  表 db_wimoor.t_sys_timetask_log 结构
 CREATE TABLE IF NOT EXISTS `t_sys_timetask_log` (
   `id` char(36) NOT NULL,
   `createdate` datetime DEFAULT NULL,
@@ -10271,7 +10258,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_timetask_log` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_usernotify 结构
+-- 导出  表 db_wimoor.t_sys_usernotify 结构
 CREATE TABLE IF NOT EXISTS `t_sys_usernotify` (
   `userid` bigint(20) unsigned NOT NULL COMMENT '用户消息所属者',
   `notify` int(11) NOT NULL,
@@ -10284,7 +10271,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_usernotify` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_user_bind 结构
+-- 导出  表 db_wimoor.t_sys_user_bind 结构
 CREATE TABLE IF NOT EXISTS `t_sys_user_bind` (
   `userid` bigint(20) unsigned NOT NULL,
   `bindid` bigint(20) unsigned NOT NULL,
@@ -10294,7 +10281,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_user_bind` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_user_datalimit 结构
+-- 导出  表 db_wimoor.t_sys_user_datalimit 结构
 CREATE TABLE IF NOT EXISTS `t_sys_user_datalimit` (
   `userid` bigint(20) unsigned NOT NULL,
   `datatype` char(15) NOT NULL COMMENT 'owner只能查看自己负责的产品（在产品管理页面配置）;operations只能查看自己运营的产品（在商品分析页面配置）',
@@ -10304,7 +10291,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_user_datalimit` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_user_group 结构
+-- 导出  表 db_wimoor.t_sys_user_group 结构
 CREATE TABLE IF NOT EXISTS `t_sys_user_group` (
   `userid` bigint(20) unsigned DEFAULT NULL COMMENT '用户ID',
   `groupid` bigint(20) unsigned DEFAULT NULL COMMENT '店铺ID'
@@ -10312,7 +10299,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_user_group` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_user_ip_city 结构
+-- 导出  表 db_wimoor.t_sys_user_ip_city 结构
 CREATE TABLE IF NOT EXISTS `t_sys_user_ip_city` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userip` char(50) NOT NULL DEFAULT '0',
@@ -10323,7 +10310,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_user_ip_city` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_video 结构
+-- 导出  表 db_wimoor.t_sys_video 结构
 CREATE TABLE IF NOT EXISTS `t_sys_video` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `menuid` char(36) DEFAULT NULL,
@@ -10334,7 +10321,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_video` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_sys_weather 结构
+-- 导出  表 db_wimoor.t_sys_weather 结构
 CREATE TABLE IF NOT EXISTS `t_sys_weather` (
   `id` bigint(20) unsigned NOT NULL,
   `city` varchar(20) NOT NULL COMMENT '城市',
@@ -10350,7 +10337,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_weather` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_tasklock 结构
+-- 导出  表 db_wimoor.t_tasklock 结构
 CREATE TABLE IF NOT EXISTS `t_tasklock` (
   `task` char(15) NOT NULL,
   `mylock` bit(1) DEFAULT NULL,
@@ -10359,7 +10346,7 @@ CREATE TABLE IF NOT EXISTS `t_tasklock` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_user 结构
+-- 导出  表 db_wimoor.t_user 结构
 CREATE TABLE IF NOT EXISTS `t_user` (
   `id` bigint(20) unsigned NOT NULL COMMENT '整型自增主键',
   `account` varchar(200) NOT NULL,
@@ -10388,7 +10375,7 @@ CREATE TABLE IF NOT EXISTS `t_user` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_userinfo 结构
+-- 导出  表 db_wimoor.t_userinfo 结构
 CREATE TABLE IF NOT EXISTS `t_userinfo` (
   `id` bigint(20) unsigned NOT NULL,
   `name` varchar(100) DEFAULT NULL,
@@ -10404,7 +10391,7 @@ CREATE TABLE IF NOT EXISTS `t_userinfo` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_user_role 结构
+-- 导出  表 db_wimoor.t_user_role 结构
 CREATE TABLE IF NOT EXISTS `t_user_role` (
   `id` bigint(20) unsigned NOT NULL,
   `user_id` bigint(20) unsigned DEFAULT NULL COMMENT '用户ID',
@@ -10417,7 +10404,7 @@ CREATE TABLE IF NOT EXISTS `t_user_role` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_user_shop 结构
+-- 导出  表 db_wimoor.t_user_shop 结构
 CREATE TABLE IF NOT EXISTS `t_user_shop` (
   `id` bigint(20) unsigned NOT NULL,
   `user_id` bigint(20) unsigned DEFAULT NULL COMMENT '用户ID',
@@ -10429,7 +10416,7 @@ CREATE TABLE IF NOT EXISTS `t_user_shop` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_user_wechat_login 结构
+-- 导出  表 db_wimoor.t_user_wechat_login 结构
 CREATE TABLE IF NOT EXISTS `t_user_wechat_login` (
   `openid` char(36) NOT NULL,
   `userid` bigint(20) unsigned NOT NULL,
@@ -10443,7 +10430,7 @@ CREATE TABLE IF NOT EXISTS `t_user_wechat_login` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_user_wechat_mp 结构
+-- 导出  表 db_wimoor.t_user_wechat_mp 结构
 CREATE TABLE IF NOT EXISTS `t_user_wechat_mp` (
   `openid` char(36) NOT NULL,
   `userid` bigint(20) unsigned NOT NULL,
@@ -10456,7 +10443,7 @@ CREATE TABLE IF NOT EXISTS `t_user_wechat_mp` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.t_variable_closing_fee 结构
+-- 导出  表 db_wimoor.t_variable_closing_fee 结构
 CREATE TABLE IF NOT EXISTS `t_variable_closing_fee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `country` char(3)  DEFAULT NULL,
@@ -10473,7 +10460,7 @@ CREATE TABLE IF NOT EXISTS `t_variable_closing_fee` (
 
 -- 数据导出被取消选择。
 
--- 导出  表 db_plum.undo_log 结构
+-- 导出  表 db_wimoor.undo_log 结构
 CREATE TABLE IF NOT EXISTS `undo_log` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `branch_id` bigint(20) NOT NULL,
