@@ -42,6 +42,9 @@ public class WarehouseShelfInventory extends BaseEntity{
     @ApiModelProperty(value = "公司ID")
     private BigInteger shopid;
 
+    @ApiModelProperty(value = "仓库ID")
+    private BigInteger warehouseid;
+    
     @ApiModelProperty(value = "当前数量")
     private Integer quantity;
 

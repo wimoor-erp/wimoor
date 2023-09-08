@@ -63,11 +63,11 @@ public class CAProfitServiceImpl extends ProfitServiceImpl{
 		String format = outboundWeightFormat.getFormat();
 		Object result = AviatorEvaluator.exec(format, dimensions);
 		outboundWeight = new BigDecimal(result.toString());
-		if(productTier.getId().equals("envelope_ca")){
-			outboundWeight = outboundWeight.divide(new BigDecimal("0.1")).setScale(0, BigDecimal.ROUND_CEILING).multiply(new BigDecimal("0.1"));//进位取整数，模拟不足100g按100g算；
-		} else {
-			outboundWeight = outboundWeight.divide(new BigDecimal("0.5")).setScale(0, BigDecimal.ROUND_CEILING).multiply(new BigDecimal("0.5"));//进位取整数，模拟不足500g按500g算；
-		}
+//		if(productTier.getId().equals("envelope_ca")){
+//			outboundWeight = outboundWeight.divide(new BigDecimal("0.1")).setScale(0, BigDecimal.ROUND_CEILING).multiply(new BigDecimal("0.1"));//进位取整数，模拟不足100g按100g算；
+//		} else {
+//			outboundWeight = outboundWeight.divide(new BigDecimal("0.5")).setScale(0, BigDecimal.ROUND_CEILING).multiply(new BigDecimal("0.5"));//进位取整数，模拟不足500g按500g算；
+//		}
 		return outboundWeight;
 	}
 	
@@ -81,8 +81,7 @@ public class CAProfitServiceImpl extends ProfitServiceImpl{
 //		} else {
 //			media = false;
 //		}
-		BigDecimal weight = inputDimension.getWeight(getWeightUnit(country)).getValue();
-		FBAFormat fbaFormat = fbaFormatService.findByProductTierIdAndWeight( productTierId,  weight, country);
+		FBAFormat fbaFormat = fbaFormatService.findByProductTierIdAndWeight( productTierId,  outboundWeight, country);
 		String format = fbaFormat.getFbaFormat();
 		if(format.contains("numberOfValue")) {
 			if(!AviatorEvaluator.containsFunction("numberOfValue")) {

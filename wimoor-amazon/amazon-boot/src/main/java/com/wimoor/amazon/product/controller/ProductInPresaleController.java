@@ -48,6 +48,7 @@ import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.common.user.UserLimitDataType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -70,6 +71,9 @@ public class ProductInPresaleController {
     public Result<IPage<Map<String, Object>>> listProductAction(@RequestBody ProductPresaleListDTO dto){
     	UserInfo user = UserInfoContext.get();
     	dto.setShopid(user.getCompanyid());
+    	if(user.isLimit(UserLimitDataType.operations)||user.isLimit(UserLimitDataType.owner)) {
+    		dto.setOwner(user.getId());
+    	}
     	return Result.success(iProductInPresaleService.listProduct(dto));
     }
     @GetMapping("/convert")
@@ -78,7 +82,26 @@ public class ProductInPresaleController {
     	return Result.success() ;
     }
  
+	@PostMapping(value = "getProductPreSalesByMonth")
+	public Result<?> getProductPreSalesByMonthAction(@RequestBody ProductPresaleListDTO dto) {
+		String sku = dto.getSku();
+		String groupid =dto.getGroupid();
+		String marketplaceid = dto.getMarketplaceid();
+		List<Map<String,Object>> result = iProductInPresaleService.getProductPreSalesByMonth(sku, marketplaceid, groupid);
+		return Result.success(result) ;
+	}
     
+ 
+	@PostMapping(value = "getProductPreSales")
+	public Result<?> getProductPreSalesAction(@RequestBody ProductPresaleListDTO dto)  {
+		String sku = dto.getSku();
+		String groupid =dto.getGroupid();
+		String marketplaceid = dto.getMarketplaceid();
+		String month =dto.getMonth();
+		List<Map<String, Object>> result = iProductInPresaleService.getProductPreSales(sku, marketplaceid, groupid,month);
+		return Result.success(result) ;
+	}
+	
     @PostMapping("/save")
 	@Transactional
     Result<?> save(@RequestBody List<ProductInPresale> preList) {

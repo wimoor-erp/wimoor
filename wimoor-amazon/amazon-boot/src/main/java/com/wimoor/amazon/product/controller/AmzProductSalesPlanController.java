@@ -3,6 +3,7 @@ package com.wimoor.amazon.product.controller;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wimoor.amazon.finances.service.IAmzFinEmailService;
 import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.amazon.product.pojo.dto.PlanDetailDTO;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanService;
@@ -47,9 +49,12 @@ import lombok.RequiredArgsConstructor;
 public class AmzProductSalesPlanController {
 	final IAmzProductSalesPlanService iAmzProductSalesPlanService;
     final IProductInfoService iProductInfoService;
+    final IAmzFinEmailService iAmzFinEmailService;
     @ApiOperation(value = "计划刷新")
     @GetMapping("/refreshPlanData")
     public Result<?> refreshData() {
+    	//this.iAmzFinEmailService.sendMonthEmailDetailTask();
+    	//this.iAmzFinEmailService.sendWeekEmailDetailTask();
     	Set<String> param=new HashSet<String>();
     	iAmzProductSalesPlanService.refreshData(param);
     	return Result.success();
@@ -135,23 +140,31 @@ public class AmzProductSalesPlanController {
     public Result<IPage<Map<String, Object>>> getPlanModel(@RequestBody PlanDTO dto) {
     	UserInfo user = UserInfoContext.get();
     	dto.setShopid(user.getCompanyid());
+    	boolean hassearch=false;
     	if(user.isLimit(UserLimitDataType.owner)) {
     		dto.setOwner(user.getId());
+    		 hassearch=true;
     	}
     	 if(StrUtil.isAllBlank(dto.getSearch())) {
 			 dto.setSearch(null);
 		 }else {
 			 dto.setSearch("%"+dto.getSearch().trim()+"%");
+			 hassearch=true;
 		 }
     	 if(StrUtil.isAllBlank(dto.getName())) {
 			 dto.setName(null);
 		 }else {
 			 dto.setName("%"+dto.getName().trim()+"%");
+			 hassearch=true;
 		 }
+    	 if(dto.getSelected()==null) {
+    		 dto.setSelected(false);
+    	 }
     	 if(StrUtil.isAllBlank(dto.getRemark())) {
 			 dto.setRemark(null);
 		 }else {
 			 dto.setRemark("%"+dto.getRemark().trim()+"%");
+			 hassearch=true;
 		 }
     	 if(StrUtil.isAllBlank(dto.getGroupid())) {
 			 dto.setGroupid(null);
@@ -187,6 +200,24 @@ public class AmzProductSalesPlanController {
 		 if(StrUtil.isAllBlank(dto.getStatus())) {
 			 dto.setStatus(null);
 		 }
+		 if(StrUtil.isBlank(dto.getCategoryid())) {
+			 dto.setCategoryid(null);
+		 }else {
+			 hassearch=true;
+		 }
+		 if(dto.getIssfg()!=null) {
+			 hassearch=true;
+		 }
+		 if(StrUtil.isBlank(dto.getHasAddFee())) {
+			 dto.setHasAddFee(null);
+		 }else {
+			 hassearch=true;
+		 }
+		 if(StrUtil.isBlank(dto.getStatus2())) {
+			 dto.setStatus2(null);
+		 }else {
+			 hassearch=true;
+		 }
 		 if(StrUtil.isAllBlank(dto.getCurrentRank())) {
 			 dto.setCurrentRank(null);
 		 }
@@ -195,9 +226,11 @@ public class AmzProductSalesPlanController {
 		 }
 		 if(dto.getIscheck()!=null&&dto.getIscheck().equals("true")) {
 			 dto.setSelected(true);
+			 hassearch=true;
 		 }else if(dto.getIscheck()!=null&&dto.getIscheck().equals("all")){
 			 dto.setSelected(true);
 			 dto.setIscheck("all");
+			 hassearch=true;
 		 }else {
 			 dto.setIscheck(null);
 		 }
@@ -210,14 +243,67 @@ public class AmzProductSalesPlanController {
 			 dto.setGroupid(null);
 		 }
 		 IPage<Map<String, Object>> page=null;
-		 List<Map<String, Object>> list  =iAmzProductSalesPlanService.getPlanModel(dto);
 			 if(dto.getPlantype().equals("purchase")) {
-				 page =iAmzProductSalesPlanService.handlePurchase(dto,list,true);
+				 List<Map<String, Object>> list  =iAmzProductSalesPlanService.getPlanModel(dto);
+				 if(dto.getSort()!=null&&dto.getSort().equals("marketneedpurchase")&&hassearch==false) {
+					 page = dto.getListPage(list);
+					 List<Map<String, Object>> result = iAmzProductSalesPlanService.handlePurchase(dto,page.getRecords());
+					 if(result!=null&&result.size()>0) {
+						 iAmzProductSalesPlanService.setPurchaseRecord(result);
+					 }
+					 dto.sort(result);
+	    			 page.setRecords(result);
+	    		}else {
+					 List<Map<String, Object>> result = iAmzProductSalesPlanService.handlePurchase(dto,list);
+					 page = dto.getListPage(result);
+					 if(page!=null&&page.getSize()>0) {
+						 iAmzProductSalesPlanService.setPurchaseRecord(page.getRecords());
+					 }
+	    		}
+				
+				 
 			 }else {
-				 page =iAmzProductSalesPlanService.handleShip(dto,list,true);
+				 List<Map<String, Object>> list  =iAmzProductSalesPlanService.getPlanModel(dto);
+				 if(dto.getSort()!=null&&dto.getSort().equals("marketneedship")&&hassearch==false) {
+					 page = dto.getListPage(list);
+					 List<Map<String, Object>> result = iAmzProductSalesPlanService.handleShip(dto,page.getRecords());
+					 dto.sort(result);
+					 page.setRecords(result);
+				 }else {
+					 List<Map<String, Object>> result = iAmzProductSalesPlanService.handleShip(dto,list);
+				     page = dto.getListPage(result);
+				 }
+				 
 			 }
 		if(page!=null&&page.getRecords()!=null) {
 			iAmzProductSalesPlanService.handleTags(dto,page); 
+		    if(dto.getExpendall()!=null&&dto.getExpendall()&&!dto.getPlantype().equals("purchase")) {
+		    	List<String> skus=new LinkedList<String>();
+		    	for(Map<String, Object> item:page.getRecords()) {
+		    		skus.add(item.get("msku").toString());
+		    	}
+	    		if(skus.size()>0) {
+	    			PlanDetailDTO countrydto=new PlanDetailDTO();
+		    		countrydto.setGroupid(dto.getGroupid());
+		    		countrydto.setGroupids(dto.getGroupids());
+		    		countrydto.setMarketplaceids(dto.getMarketplaceids());
+		    		countrydto.setIseu(false);
+		    		countrydto.setPlantype(dto.getPlantype());
+		    		countrydto.setWarehouseid(dto.getWarehouseid());
+		    		countrydto.setPlansimple(dto.getPlansimple());
+		    		countrydto.setMskus(skus);
+		    		countrydto.setShopid(user.getCompanyid());
+		    		countrydto.setMsku(null);
+		    		 Map<String, List<Map<String, Object>>> expendDatas = iAmzProductSalesPlanService.ExpandCountrysDataByGroup(countrydto);
+						for(Map<String, Object> item:page.getRecords()) {
+				    		String msku=item.get("msku").toString();
+				    		List<Map<String, Object>> expendData=expendDatas.get(msku);
+				    		if(expendData!=null) {
+				    			item.put("expendData", expendData);
+				    		}
+				    	}
+	    		   }
+		    }
 		}
     	return Result.success(page) ;
     }

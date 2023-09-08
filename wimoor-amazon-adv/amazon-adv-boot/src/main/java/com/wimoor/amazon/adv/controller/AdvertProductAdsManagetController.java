@@ -13,7 +13,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -95,7 +97,7 @@ public class AdvertProductAdsManagetController {
 	
     @ApiOperation("查询广告产品")
 	@PostMapping("/getProductAdList")
-	public Result<PageList<Map<String,Object>>> getProductAdListAction(@ApiParam("查询广告") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getProductAdListAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		String state = query.getState();
@@ -281,7 +283,7 @@ public class AdvertProductAdsManagetController {
 	
 	@ApiOperation("查询广告产品图表")
 	@PostMapping("/getProductAdChart")
-	public Result<Map<String,Object>> getProductAdChartAction(@ApiParam("查询广告") QueryForList query){
+	public Result<Map<String,Object>> getProductAdChartAction(@ApiParam("查询广告")@RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		String state = query.getState();
@@ -344,15 +346,9 @@ public class AdvertProductAdsManagetController {
 		return Result.success(mapList);
 	}
 	
-	@ResponseBody
-	@RequestMapping("/getProductAdotherAsin")
-	public List<Map<String,Object>> getProductAdotherAsinAction(HttpServletRequest request, Model model){
-		String campaignid = request.getParameter("campaignId");
-		String adGroupid = request.getParameter("adGroupId");
-		String profileid = request.getParameter("profileid");
-		String asin = request.getParameter("asin");
-		String fromDate = request.getParameter("fromDate");
-		String endDate = request.getParameter("endDate");
+	@GetMapping("/getProductAdotherAsin")
+	public Result<List<Map<String,Object>>> getProductAdotherAsinAction(String campaignid,String adGroupid,String profileid,
+			String asin,String fromDate,String endDate){
 		Map<String,Object> map = new HashMap<String,Object>();
 		map.put("campaignid", campaignid);
 		map.put("adGroupid", adGroupid);
@@ -360,7 +356,7 @@ public class AdvertProductAdsManagetController {
 		map.put("asin", asin);
 		map.put("fromDate", fromDate);
 		map.put("endDate", endDate);
-		return amzAdvProductAdsService.getProductAdotherAsin(map);
+		return Result.success(amzAdvProductAdsService.getProductAdotherAsin(map));
 	}
 	
  
@@ -406,7 +402,7 @@ public class AdvertProductAdsManagetController {
 	
 	@ApiOperation("查询广告产品汇总")
 	@PostMapping("/getSumProductAd")
-	public Result<Object> getSumProductAdAction(@ApiParam("查询广告") QueryForList query){
+	public Result<Object> getSumProductAdAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		String state = query.getState();

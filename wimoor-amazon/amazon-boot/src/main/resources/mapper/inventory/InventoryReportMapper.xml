@@ -585,7 +585,8 @@
 			left join t_amz_inbound_fba_cycle w on 
 			(tm.marketplaceid = w.marketplaceid or w.marketplaceid = tm.region) and a.shop_id=w.shopid and w.isdefault=1
 			left join t_erp_shipcycle s on s.sku = tp.sku and (s.marketplaceid = tm.marketplaceid OR s.marketplaceid=tm.region) and s.groupid = a.groupid
-			left join t_inventory_report i on i.sku=tp.sku and i.amazonAuthId=a.id and i.isnewest=true and i.marketplaceid=tm.marketplaceid
+			left join t_inventory_report i on i.sku=tp.sku and i.amazonAuthId=a.id and i.isnewest=true 
+			AND (i.marketplaceid=tm.marketplaceid OR i.marketplaceid=tm.region)
 			where a.shop_id=#{shopid,jdbcType=CHAR}
 				and ifnull(opt.msku,tp.sku)=#{msku,jdbcType=CHAR}
 			GROUP BY 

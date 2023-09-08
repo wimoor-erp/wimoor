@@ -587,45 +587,31 @@ public class AmzAdvProductTargeServiceImpl extends BaseService<AmzAdvProductTarg
 	
 	
 	public void getSerchStr(Map<String,Object> map) {
-		String serch = (String) map.get("serchlist");
+		String serch = (String) map.get("searchlist");
 		String[] serchArray = serch.split(",");
 		String serchlist = "";
 		for (int i = 0; i < serchArray.length; i++) {
-			if (i > 0) {
 				if ("ACOS".equals(serchArray[i])) {
-					String HSAcsrt = serchlist + "ifnull(sum(cost) / sum(attributedSales14d),0) ACOS ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(cost) / sum(attributedSales7d),0) ACOS ";
-					map.put("serchlist", serchlist);
+					serchlist = serchlist + "ifnull(sum(cost) / sum(attributedSales7d),0) ACOS ,";
 				} else if ("ROAS".equals(serchArray[i])) {
-					String HSAcsrt = serchlist + "ifnull(sum(attributedSales14d) / sum(cost),0) ROAS ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(attributedSales7d) / sum(cost),0) ROAS ";
-					map.put("serchlist", serchlist);
+					serchlist = serchlist + "ifnull(sum(attributedSales7d) / sum(cost),0) ROAS ,";
 				} else if ("CSRT".equals(serchArray[i])) {
-					String HSAcsrt = serchlist + "ifnull(sum(attributedConversions14d) / sum(clicks),0) CSRT ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(attributedConversions7d) / sum(clicks),0) CSRT ";
-					map.put("serchlist", serchlist);
+					serchlist = serchlist + "ifnull(sum(attributedConversions7d) / sum(clicks),0) CSRT ,";
 				} else if ("avgcost".equals(serchArray[i])) {
-					serchlist = serchlist + "ifnull((sum(cost) / sum(clicks)),0) avgcost ";
-					map.put("HSAserchlist", serchlist.replace("7", "14"));
-					map.put("serchlist", serchlist);
+					serchlist = serchlist + "ifnull((sum(cost) / sum(clicks)),0) avgcost ,";
 				} else if ("CTR".equals(serchArray[i])) {
-					serchlist = serchlist + "ifnull(sum(clicks) / sum(impressions),0) CTR ";
-					map.put("HSAserchlist", serchlist.replace("7", "14"));
-					map.put("serchlist", serchlist);
-				}
-			} else {
-				if ("sumUnits".equals(serchArray[i])) {
-					serchlist = "sum(attributedUnitsOrdered7d) sumUnits,";
+					serchlist = serchlist + "ifnull(sum(clicks) / sum(impressions),0) CTR ,";
+				}else if ("sumUnits".equals(serchArray[i])) {
+					 serchlist = serchlist +"sum(attributedUnitsOrdered7d) sumUnits,";
 				} else {
-					serchlist = "sum(" + serchArray[i] + ") " + serchArray[i] + ",";
+					serchlist = serchlist +"sum(" + serchArray[i] + ") " + serchArray[i] + ",";
 				}
-			}
 		}
+		if(serchlist.contains(",")) {
+			serchlist=serchlist.substring(0, serchlist.length()-1);
+		}
+		map.put("serchlist", serchlist);
 		map.put("value1", serchArray[0]);
-		map.put("value2", serchArray[1]);
 	}
 
 	public List<Map<String, Object>> getTargetCategories(Map<String, Object> map) {

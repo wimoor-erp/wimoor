@@ -7,6 +7,7 @@ import com.wimoor.amazon.product.pojo.vo.ProductPriceVo;
 import com.wimoor.common.user.UserInfo;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -39,4 +40,5 @@ public interface IProductInOptService extends IService<ProductInOpt> {
 	void setExcelMskuBook(SXSSFWorkbook workbook, Map<String, Object> param);
 	public void uploadMskuFile(UserInfo user, InputStream inputStream, Row info) ;
 	void updateProductOwner(UserInfo user, String msku, String owner, String oldowner);
+	ProductInOpt getCacheableById(Serializable id);
 }

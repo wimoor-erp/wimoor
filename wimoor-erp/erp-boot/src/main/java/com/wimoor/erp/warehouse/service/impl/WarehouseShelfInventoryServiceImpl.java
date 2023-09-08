@@ -92,7 +92,7 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 		    	return itemsum;
 		    }
 			Warehouse warehouse = iWarehouseService.getById(itemsum.getWarehouseid());
-			List<WarehouseShelfInventoryVo> shelfinvVoList = findByMaterial(itemsum.getShopid(),warehouse.getAddressid(),item.getMaterialid());
+			List<WarehouseShelfInventoryVo> shelfinvVoList = findByMaterial(itemsum.getShopid(),warehouse,item.getMaterialid());
 			for(WarehouseShelfInventoryVo inv:shelfinvVoList) {
 				inv.setShelfname(iWarehouseShelfService.getAllParentName(inv.getShelfid()));
 			}
@@ -113,7 +113,7 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 						assvo.setFulfillable(map.get("fulfillable")!=null?Integer.parseInt(map.get("fulfillable").toString()):0);
 						assvo.setOutbound(map.get("outbound")!=null?Integer.parseInt(map.get("outbound").toString()):0);
 					}
-					List<WarehouseShelfInventoryVo> mshelfinvVoList = findByMaterial(itemsum.getShopid(),warehouse.getAddressid(),assvo.getSubmid());
+					List<WarehouseShelfInventoryVo> mshelfinvVoList = findByMaterial(itemsum.getShopid(),warehouse,assvo.getSubmid());
 					for(WarehouseShelfInventoryVo inv:mshelfinvVoList) {
 						inv.setShelfname(iWarehouseShelfService.getAllParentName(inv.getShelfid()));
 					}
@@ -131,9 +131,9 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 	}
  
 	@Override
-	public List<WarehouseShelfInventoryVo> findByMaterial(String shopid,String addressid,String materialid) {
+	public List<WarehouseShelfInventoryVo> findByMaterial(String shopid,Warehouse warehouse,String materialid) {
 		// TODO Auto-generated method stub
-		return this.baseMapper.findByMaterial(shopid,addressid,materialid);
+		return this.baseMapper.findByMaterial(shopid,warehouse.getAddressid(),warehouse.getId(),materialid);
 	}
 	
 	/**
@@ -162,6 +162,11 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 		wrapper.eq(WarehouseShelfInventory::getShopid, inv.getShopid());
 		wrapper.eq(WarehouseShelfInventory::getShelfid, inv.getShelfid());
 		wrapper.eq(WarehouseShelfInventory::getMaterialid, inv.getMaterialid());
+		if(inv.getWarehouseid()!=null) {
+			wrapper.eq(WarehouseShelfInventory::getWarehouseid, inv.getWarehouseid());
+		}else {
+			wrapper.isNull(WarehouseShelfInventory::getWarehouseid);
+		}
 	    WarehouseShelfInventory oldone = this.baseMapper.selectOne(wrapper);
 	    return oldone;
 	}
@@ -185,8 +190,6 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 	    	record.setBalanceSize(oldone.getSize());
 	    	record.setSize(inv.getQuantity()*size);
 	    	iWarehouseShelfInventoryOptRecordService.save(record);
-	    	 
-	    	 
 	    }else {
 	    	inv.setSize(inv.getQuantity()*size);
 	    	this.baseMapper.insert(inv);

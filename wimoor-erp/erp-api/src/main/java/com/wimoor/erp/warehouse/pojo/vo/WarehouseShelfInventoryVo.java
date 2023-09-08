@@ -63,6 +63,9 @@ public class WarehouseShelfInventoryVo {
 	@ApiModelProperty(value = "仓库名称")
 	String warehousename;
 	
+	@ApiModelProperty(value = "仓库地址名称")
+	String addressname;
+	
 	@ApiModelProperty(value = "仓库ID")
 	String warehouseid;
 	

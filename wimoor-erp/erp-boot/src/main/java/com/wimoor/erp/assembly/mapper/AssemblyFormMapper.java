@@ -29,6 +29,10 @@ public interface AssemblyFormMapper extends BaseMapper<AssemblyForm>{
 	List<AssemblyForm> getAssemblyFormByWarehouseid(@Param("warehouseid")String warehouseid);
 	
 	List<Map<String, Object>> getCountNum(Map<String, Object> param);
- 
+	
+	void refreshInbound(@Param("shopid")String shopid, @Param("warehouseid")String warehouseid, @Param("materialid")String materialid);
+	
 	List<AssemblyForm> getCanAssemblyFormByMaterial(@Param("shopid")String shopid, @Param("warehouseid")String warehouseid, @Param("materialid")String materialid);
+
+	List<AssemblyForm> findLastByMaterials(@Param("list")List<String> ids);
 }

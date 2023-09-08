@@ -332,7 +332,7 @@
 				</if>
 			</if>
 			<if test="param.searchtype =='parentasin'">
-				 t.parentasin like #{param.search,jdbcType=CHAR}
+				and t.parentasin like #{param.search,jdbcType=CHAR}
 			</if>
 			<if test="param.searchtype =='childasin'">
 				<if test="param.isparent == null">

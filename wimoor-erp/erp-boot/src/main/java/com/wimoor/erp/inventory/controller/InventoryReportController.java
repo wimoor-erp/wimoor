@@ -63,7 +63,7 @@ public class InventoryReportController {
 	IInventoryService inventoryService;
 	 
     @GetMapping("/monthsummary")
-	public Result<Object> refreshAlibabaOrderAction() throws BizException {
+	public Result<Object> monthSummaryAction() throws BizException {
 //		try {
 //			whseReportService.generateReprot();
 //		}catch(Exception e) {

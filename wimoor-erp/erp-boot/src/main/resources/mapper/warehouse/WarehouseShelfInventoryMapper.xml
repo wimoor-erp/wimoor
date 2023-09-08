@@ -40,14 +40,18 @@
 
     <select id="findByMaterial"   resultType="com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventoryVo"  parameterType="java.lang.String">
 			   SELECT   i.id,i.shelfid,i.materialid,s.`name` shelfname,i.quantity,i.size,
-			            m.sku,m.name,p.location image,
+			            m.sku,m.name,p.location image,w.name warehousename,i.warehouseid,
 				        s.treepath
 			     FROM t_erp_warehouse_shelf_inventory i 
+			     left join t_erp_warehouse w on w.id=i.warehouseid
 			     left join t_erp_material m on m.id=i.materialid
 			     left join t_picture p on p.id=m.image
 				 left join t_erp_warehouse_shelf s on s.id=i.shelfid and s.shopid=i.shopid
 				 where s.shopid=#{shopid,jdbcType=CHAR}  
 				   and s.addressid=#{addressid,jdbcType=CHAR}
+				   <if test="warehouseid!=null">
+				    and (i.warehouseid=#{warehouseid,jdbcType=CHAR} or i.warehouseid is null)
+				   </if>
 				   and i.materialid=#{materialid,jdbcType=CHAR}
 				   and s.isdelete=0
 				   and i.quantity>0
@@ -67,6 +71,9 @@
 		  m.id materialid ,
 		  v1.opttime,
 		  v2.shelfid,
+		  v1.warehouseid,
+		  w.name warehousename,
+		  adr.name addressname,
  		  <if test="param.shelfid!=null">
 		  case when v2.shelfid=#{param.shelfid,jdbcType=CHAR} then now() else v1.opttime end orderitem
 		  </if> 
@@ -74,21 +81,29 @@
 		  v1.opttime orderitem
 		</if>
 		from t_erp_material m  
-		left join (select i.materialid,sum(i.quantity) quantity,max(i.opttime)  opttime
+		left join (select i.materialid,i.warehouseid,sum(i.quantity) quantity,max(i.opttime)  opttime
 					  from t_erp_inventory i  
 					  left join t_erp_warehouse w on w.id=i.warehouseid
 				      where i.shopid=#{param.shopid,jdbcType=CHAR} and w.addressid=#{param.addressid,jdbcType=CHAR} and status ='fulfillable'
-					  group by i.materialid
+				      <if test="param.warehouseid">
+				      and i.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+				      </if>
+					  group by i.materialid,i.warehouseid
 		 ) v1  on m.id=v1.materialid 
 		left join (
-						select i.materialid,ifnull(sum(i.quantity),0) quantity,max(s.id) shelfid
+						select i.materialid,i.warehouseid,ifnull(sum(i.quantity),0) quantity,max(s.id) shelfid
 						from t_erp_warehouse_shelf_inventory  i
 						left join t_erp_warehouse_shelf s on s.id=i.shelfid
 						where i.shopid=#{param.shopid,jdbcType=CHAR} and s.addressid=#{param.addressid,jdbcType=CHAR}
-						group by i.materialid
-		) v2 on v2.materialid=v1.materialid
+						 <if test="param.warehouseid">
+				           and i.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+				         </if>
+						group by i.materialid,i.warehouseid
+		) v2 on v2.materialid=v1.materialid and v2.warehouseid=v1.warehouseid
+		left join t_erp_warehouse w on w.id=v1.warehouseid
+		left join t_erp_warehouse_address adr on adr.id=w.addressid
 		left join t_picture p on p.id=m.image
-		where m.shopid=#{param.shopid,jdbcType=CHAR}   and m.isdelete=0
+		where m.shopid=#{param.shopid,jdbcType=CHAR}   and m.isdelete=0 and v1.quantity!=0
 		 <if test="param.search!=null">
 		   and m.sku like #{param.search,jdbcType=CHAR}
 		</if> 
@@ -103,9 +118,9 @@
 	</select>
 		
 	 <select id="getShelfInventoryStockList"   resultType="com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventoryVo" >
-		SELECT m.name,m.sku,p.location image,w.name warehousename,
+		SELECT m.name,m.sku,p.location image,w.name addressname,wh.name warehousename,
 		ss.amount,ss.overamount  ,ss.lossamount ,m.id materialid,
-		s.treepath,s.addressid,t.quantity,ss.id ,t.shelfid,m.price  
+		s.treepath,s.addressid,t.quantity,ss.id ,t.shelfid,m.price  ,t.warehouseid
 		FROM t_erp_material m
 		left join t_erp_warehouse_address w on w.id=#{param.addressid,jdbcType=CHAR}
 		left join t_erp_warehouse_shelf s on  s.addressid=w.id and s.isdelete=0  
@@ -113,7 +128,10 @@
 		 and s.id=#{param.shelfid,jdbcType=CHAR} 
 		</if>
 		left join t_erp_warehouse_shelf_inventory t  ON m.id=t.materialid and t.shelfid=s.id and t.shopid=m.shopid 
-		left join t_erp_stocktaking_item_shelf ss on ss.shelfid=s.id and stocktakingid=#{param.stocktakingid,jdbcType=CHAR} and ss.materialid=m.id
+		left join t_erp_warehouse wh on wh.id=t.warehouseid
+		left join t_erp_stocktaking_item_shelf ss on ss.shelfid=s.id and ss.warehouseid=t.warehouseid
+		and stocktakingid=#{param.stocktakingid,jdbcType=CHAR} 
+		and ss.materialid=m.id  
 		LEFT JOIN t_picture p ON p.id=m.image
 		WHERE m.shopid=#{param.shopid,jdbcType=CHAR} and m.isdelete=0
 		<if test="param.hasinv!=null">
@@ -138,9 +156,10 @@
 	</select>  
 	
 	<select id="getShelfInventoryList"   resultType="com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventoryVo" >
-		SELECT m.name,m.sku,p.location image,t.quantity amount,w.name warehousename,s.treepath,s.addressid,t.*
+		SELECT m.name,m.sku,p.location image,t.quantity amount, w.name addressname , wh.name  warehousename,s.treepath,s.addressid,t.*
 		FROM t_erp_warehouse_shelf_inventory t
 		left join t_erp_warehouse_shelf s on s.id=t.shelfid
+		left join t_erp_warehouse wh on wh.id=t.warehouseid
 		left join t_erp_warehouse_address w on w.id=s.addressid
 		LEFT JOIN t_erp_material m ON m.id=t.materialid
 		LEFT JOIN t_picture p ON p.id=m.image

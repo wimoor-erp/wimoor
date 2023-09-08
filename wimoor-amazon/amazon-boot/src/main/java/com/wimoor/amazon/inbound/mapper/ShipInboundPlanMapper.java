@@ -36,7 +36,7 @@ public interface ShipInboundPlanMapper extends BaseMapper<ShipInboundPlan> {
 
 	List<Map<String, Object>> getShipmentReport(@Param("param")Map<String, Object> param);
 
-	List<Map<String, Object>> getShipRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
+	List<Map<String, Object>> getShipRecord(@Param("groupid") String groupid,@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
 	
 	List<Map<String, Object>> getShipBadRecord(@Param("marketplaceid") String marketplaceid, @Param("sku") String sku, @Param("shopid") String shopid);
 	List<Map<String, Object>> getShipArrivalTimeRecord(@Param("shopid") String shopid, @Param("marketplaceid") String marketplaceid, @Param("sku") String sku);

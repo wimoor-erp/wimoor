@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.wimoor.common.result.Result;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.common.user.UserType;
 import com.wimoor.sys.sms.util.AliyunSmsUtils;
 
 import io.swagger.annotations.Api;
@@ -22,7 +25,10 @@ public class SmsCodeGenerateController {
 		public Result<?> getAliyunSmsAction(String phone,String template,String messagejson) {
 				SendSmsResponse response=null;
 				try {
-					response = aliyunSmsUtils.sendSms(phone,template, messagejson);
+					UserInfo userinfo = UserInfoContext.get();
+					if(userinfo.getUsertype().equals(UserType.admin.getCode())) {
+						response = aliyunSmsUtils.sendSms(phone,template, messagejson);
+					}
 				} catch (ClientException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

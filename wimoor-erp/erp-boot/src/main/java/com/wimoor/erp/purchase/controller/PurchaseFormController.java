@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.common.GeneralUtil;
@@ -922,11 +923,18 @@ public class PurchaseFormController {
 			if (entry == null) {
 				 throw new BizException("表单异常，无法找到对应采购记录");
 			}
-			if(StrUtil.isBlankOrUndefined(payacc)) {
-				FinAccount account =faccountService.getAccByMeth(shopid,paymethod);
-				payacc=account.getId();
+			if(StrUtil.isBlankOrUndefined(payacc)&&!"1".equals(status)&&!"2".equals(status)) {
+				QueryWrapper<FinAccount> queryWrapper=new QueryWrapper<FinAccount>();
+				queryWrapper.eq("shopid", shopid);
+				queryWrapper.eq("isdelete", false);
+				long accnum = faccountService.count(queryWrapper);
+				if(accnum>0) {
+					 throw new BizException("请选择支付账户");
+				}else {
+					FinAccount account =faccountService.getAccByMeth(shopid,paymethod);
+					payacc=account.getId();
+				}
 			} 
-
 			PurchaseFormPayment paymentcost = null;
 			PurchaseFormPayment paymentship = null;
 			try {
@@ -1447,12 +1455,14 @@ public class PurchaseFormController {
 				param.put("search", null);
 			}
 			String searchtype = dto.getFtype();
-			param.put("searchftype", searchtype);
+			param.put("searchtype", searchtype);
 			param.put("hasStatus", null);
 			param.put("datetype", "createdate");
 			param.put("auditstatus", "15");
 			param.put("fromDate", dto.getFromDate());
 			param.put("toDate", dto.getToDate());
+			param.put("entryList", null);
+	 
 			IPage<Map<String, Object>> pagelist = purchaseFormService.getPayRecSumReport(dto.getPage(),param);
 			return Result.success(pagelist);
 		}

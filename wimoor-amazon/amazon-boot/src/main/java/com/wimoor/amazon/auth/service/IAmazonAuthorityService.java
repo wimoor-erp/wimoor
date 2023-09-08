@@ -1,5 +1,6 @@
 package com.wimoor.amazon.auth.service;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -48,4 +49,7 @@ public interface IAmazonAuthorityService  extends IService<AmazonAuthority> {
 	AmazonAuthority saveAuth(AmazonAuthority auth);
 
 	List<Map<String, Object>> selectAuthMaketplace(String shopid);
+
+	List<String> getAllBossEmalShop();
+
 }

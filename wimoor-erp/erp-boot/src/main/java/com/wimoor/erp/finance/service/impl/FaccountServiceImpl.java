@@ -300,6 +300,7 @@ public class FaccountServiceImpl extends ServiceImpl<FinAccountMapper,FinAccount
 		queryWrapper.eq("shopid", shopid);
 		queryWrapper.eq("paymeth", paymethod);
 		queryWrapper.eq("isdefault", true);
+		
 		FinAccount acc = finAccountMapper.selectOne(queryWrapper);
 		if(acc==null) {
 			QueryWrapper<FinAccount> queryWrapperName=new QueryWrapper<FinAccount>();

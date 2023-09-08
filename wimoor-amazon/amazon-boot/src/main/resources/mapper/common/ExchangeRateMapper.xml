@@ -35,10 +35,12 @@
 	</delete>
 
 	<select id="getExchangeRateLimit" resultMap="BaseResultMap" parameterType="java.lang.String">
-		SELECT DISTINCT e.* from t_marketplace m
-		left join t_exchangerate e on e.`name`=m.currency
-		where e.id is not null and e.`name`!='CNY'  
-		order by m.findex
+		SELECT * FROM (SELECT DISTINCT e.*,case when e.name='EUR' then 4 else m.findex END findex from t_marketplace m 
+			left join t_exchangerate e on e.`name`=m.currency 
+			where e.id is not NULL 
+			and e.`name`!='CNY' 
+			) v
+		order by v.findex
 	</select>
   
    

@@ -32,6 +32,9 @@ public class ProductListingItemDTO extends BasePageQuery{
 	String maxOrderQuantity;
 	String merchantShippingGroup;
 	String leaddays;
+	
+	String image;
+	
 	@ApiModelProperty(value = "站点")
 	List<String> marketplaceids;
  

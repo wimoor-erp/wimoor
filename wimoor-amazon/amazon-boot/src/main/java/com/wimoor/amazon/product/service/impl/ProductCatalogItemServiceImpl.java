@@ -17,6 +17,8 @@ import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.catalogitems.Item;
 import com.amazon.spapi.model.catalogitems.ItemClassificationSalesRank;
 import com.amazon.spapi.model.catalogitems.ItemDisplayGroupSalesRank;
+import com.amazon.spapi.model.catalogitems.ItemImage;
+import com.amazon.spapi.model.catalogitems.ItemImagesByMarketplace;
 import com.amazon.spapi.model.catalogitems.ItemRelationship;
 import com.amazon.spapi.model.catalogitems.ItemRelationships;
 import com.amazon.spapi.model.catalogitems.ItemRelationshipsByMarketplace;
@@ -25,6 +27,7 @@ import com.amazon.spapi.model.catalogitems.ItemSalesRanksByMarketplace;
 import com.amazon.spapi.model.catalogitems.ItemSearchResults;
 import com.amazon.spapi.model.catalogitems.ItemSummaries;
 import com.amazon.spapi.model.catalogitems.ItemSummaryByMarketplace;
+import com.amazon.spapi.model.catalogitems.ItemImage.VariantEnum;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
@@ -42,7 +45,9 @@ import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.amazon.product.service.IProductRankService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.service.IPictureService;
+import com.wimoor.common.service.impl.PictureServiceImpl;
 
 import cn.hutool.core.util.StrUtil;
 
@@ -164,6 +169,9 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
 				includedData.add("relationships");
 				includedData.add("salesRanks");
 				includedData.add("summaries");
+				if(skuRefresh.getCatalogRefreshTime()==null) {
+					includedData.add("images");
+				}	
 				if(skuRefresh!=null&&skuRefresh.getAsin()!=null&&StrUtil.isNotBlank(skuRefresh.getAsin())) {
 					CatalogApi api = apiBuildService.getCatalogApi(auth);
 					api.getCatalogItemAsync(skuRefresh.getAsin(),market, includedData,null,callback);
@@ -189,7 +197,7 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
 			auth.setApiRateLimit( null, e);
 		}
 	}
-
+ 
 	@Override
 	public void handlerResult(AmazonAuthority auth, AmzProductRefresh skuRefresh,Item result) {
 		// TODO Auto-generated method stub
@@ -302,7 +310,8 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
            }
        }
        ItemSummaries summary = result.getSummaries();
-       if(summary!=null&&summary.size()>0) {
+       String imageurl = null;
+	if(summary!=null&&summary.size()>0) {
     	   for(ItemSummaryByMarketplace item:summary) {
     		   String brand=null;
     		   String manufacturer=null;
@@ -312,15 +321,42 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
     		   if(item.getManufacturer()!=null) {
     			   manufacturer=item.getManufacturer();
     		   }
-    		   if(brand!=null) {
-    			   ProductInfo info = iProductInfoService.productOnlyone(auth.getId(),skuRefresh.getSku(),  item.getMarketplaceId());
-    		       info.setBrand(brand);
-    		       info.setManufacturer(manufacturer);
-    		       iProductInfoService.updateById(info);
-    		   }
+			   ProductInfo info = iProductInfoService.productOnlyone(auth.getId(),skuRefresh.getSku(),  item.getMarketplaceId());
+			   if(info.getName()==null) {
+				   info.setName(item.getItemName());
+			   }
+		       info.setBrand(brand);
+		       info.setTypename(result.getProductTypes().get(0).getProductType());
+		       info.setManufacturer(manufacturer);
+		       if(result.getImages()!=null&&result.getImages().size()>0) {
+					ItemImagesByMarketplace image = result.getImages().get(0);
+					List<ItemImage> images = image.getImages();
+					if(images!=null&&images.size()>0) {
+						for(ItemImage itemimage:images) {
+							if(itemimage.getVariant().compareTo(VariantEnum.MAIN)==0&&itemimage.getWidth()==75) {
+								imageurl=itemimage.getLink();
+								break;
+							}
+						}
+					}
+					Picture picture=null;
+			    	if(imageurl!=null) {
+			    		String path=PictureServiceImpl.productImgPath+auth.getShopId()+"/"+auth.getId()+"/"+info.getMarketplaceid()+"/";
+			    		try {
+							picture=pictureService.downloadPicture(imageurl, path,null);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			    		 if(picture!=null) {
+			    		       	info.setImage(new BigInteger(picture.getId()));
+			    		  }
+				   } 
+				}
+		       iProductInfoService.updateById(info);
     	   }
        }
-
+      
 	}
 
 

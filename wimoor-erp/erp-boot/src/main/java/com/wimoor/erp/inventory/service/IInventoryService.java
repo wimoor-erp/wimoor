@@ -9,13 +9,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.common.mvc.BizException;
-import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.Operate;
 import com.wimoor.erp.common.pojo.entity.Status;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
-import com.wimoor.erp.stock.pojo.entity.StockTaking;
+import com.wimoor.erp.material.pojo.entity.Material;
 
 public interface IInventoryService extends IService<Inventory> {
 
@@ -104,7 +103,9 @@ public interface IInventoryService extends IService<Inventory> {
 	public List<MaterialInventoryVo> findLocalWarehouseInventory(String shopid,String materialid) ;
 	public int UndoSubStockByStatus(InventoryParameter para, Status status, Operate operate) throws BizException ;
 
-	Integer findOverseaById(String id, String shopid, String groupid, String country);
+	Material findOverseaById(String id, String shopid, String groupid, String country);
 
 	public Map<String, Object> getInventory( String materialid, String warehouseid,String shopid) ;
+
+	List<Map<String,Object>> findInventoryNowCostByShopId(String shopid);
 }

@@ -21,6 +21,7 @@ public class ProductPresaleListDTO extends BasePageQuery{
 	String asin;
 	String owner;
 	Boolean needplan;
+	String month;
 	Date fromDate;
 	Date toDate;
 }

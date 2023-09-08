@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.wimoor.admin.pojo.dto.SysEmailDTO;
 import com.wimoor.admin.pojo.dto.SysUserRoleDTO;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
@@ -52,4 +53,6 @@ public interface AdminClientOneFeign {
 	@GetMapping("/admin/api/v1/users/sysrole/userid/{userid}")
 	public Result<UserInfo> getUserAllByUserId(@PathVariable String userid);
 	
+    @PostMapping("/admin/api/v1/email/sendBoss")
+    public Result<?> sendBoss(@RequestBody SysEmailDTO dto);
 }

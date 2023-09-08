@@ -3,6 +3,8 @@ package com.wimoor.amazon.auth.controller;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,6 +102,7 @@ public class AmazonGroupController {
 	    @ApiOperation("店铺更新")
 		@SystemControllerLog("店铺利润计算方案更新")
 	    @PostMapping("/updateBatch")
+		@Caching(evict={@CacheEvict(value = "defaultProfitCfgCache", allEntries = true),@CacheEvict(value = "profitCfgCache", allEntries = true)})
 	    public Result<List<AmazonGroup>> updateAmazonGroupConfigAction(@RequestBody List<AmazonGroup> groups) {
 	    	UserInfo userinfo = UserInfoContext.get();
 	        boolean flag=false;

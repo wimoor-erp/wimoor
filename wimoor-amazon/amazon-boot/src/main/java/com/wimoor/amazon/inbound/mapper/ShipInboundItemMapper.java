@@ -18,6 +18,7 @@ import com.wimoor.amazon.inbound.pojo.vo.ShipInboundShipmenSummarytVo;
 @Mapper
 public interface ShipInboundItemMapper extends BaseMapper<ShipInboundItem> {
 	List<Map<String, Object>> selectByShipmentid(String id);
+	List<Map<String, Object>> selectByInboundplanid(String inboundplanid);
 	IPage<Map<String, Object>> shipmentReportByType(Page<?> page,@Param("param") Map<String, Object> param);
 	List<Map<String, Object>> shipmentReportByType(@Param("param") Map<String, Object> param);
 	List<Map<String, Object>> shipmentReportByWarhouseCHType(@Param("param") Map<String, Object> param);
@@ -38,4 +39,5 @@ public interface ShipInboundItemMapper extends BaseMapper<ShipInboundItem> {
 	void updateByOrderFee(Map<String, Object> param);
 	IPage<Map<String, Object>> getShipinboundItemBatchCondition(Page<?> page, @Param("param")Map<String, Object> param);
 	List<Map<String, Object>> getShipinboundItemBatchCondition(@Param("param")Map<String, Object> param);
+
 }

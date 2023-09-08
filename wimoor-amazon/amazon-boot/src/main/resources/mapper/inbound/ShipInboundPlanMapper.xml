@@ -158,10 +158,15 @@
 		LEFT JOIN t_erp_ship_transcompany company on company.id=ts.company
 		LEFT JOIN t_erp_ship_status d on c.ShipmentStatus=d.`status`
 		left join t_marketplace m on m.marketplaceid=a.marketplaceid
-		where b.SellerSKU=#{sku,jdbcType=CHAR} 
+		where a.shopid=#{shopid,jdbcType=CHAR} 
 			and ((a.auditstatus=1 and c.status=1)   or (c.status in (2,3,4,5)))
 			and (m.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR})
-			and a.shopid=#{shopid,jdbcType=CHAR}
+			<if test="groupid!=null">
+			   and a.amazongroupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="sku!=null">
+			and b.SellerSKU=#{sku,jdbcType=CHAR}
+			</if>
 	    and  a.createdate &gt; DATE_SUB(NOW(), INTERVAL 1 YEAR)
 		ORDER BY a.createdate desc
 	</select>

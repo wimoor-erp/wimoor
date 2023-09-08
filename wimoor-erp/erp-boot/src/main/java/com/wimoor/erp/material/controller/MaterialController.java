@@ -1,19 +1,21 @@
 package com.wimoor.erp.material.controller;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -51,6 +53,7 @@ import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
 import com.wimoor.erp.assembly.pojo.entity.Assembly;
 import com.wimoor.erp.assembly.service.IAssemblyService;
+import com.wimoor.erp.common.pojo.entity.ERPBizException;
 import com.wimoor.erp.common.pojo.entity.Status;
 import com.wimoor.erp.common.service.IExcelDownLoadService;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
@@ -79,6 +82,7 @@ import com.wimoor.erp.stock.pojo.entity.OutWarehouseForm;
 import com.wimoor.erp.stock.pojo.entity.OutWarehouseFormEntry;
 import com.wimoor.erp.stock.service.IOutWarehouseFormEntryService;
 import com.wimoor.erp.stock.service.IOutWarehouseFormService;
+import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
@@ -975,13 +979,22 @@ public class MaterialController {
 	    		@RequestParam String shopid,
 	    		@RequestParam String groupid,
 	    		@RequestParam String msku,
-	    		@RequestParam String country){
-	 	    Material material = iMaterialService.selectBySKU(shopid, msku);
-	 	    if(material!=null) {
-	 	    	Integer count = inventoryService.findOverseaById(material.getId(), shopid, groupid,country); 
-		    	material.setOverseaqty(count);
-	 	    } 
-	    	return Result.success(material);
+	    		@RequestParam String country,
+	    		@RequestParam String needDeliveryCycle){
+	    	if(needDeliveryCycle!=null&&needDeliveryCycle.equals("true")) {
+	    		Material  material = inventoryService.findOverseaById(msku, shopid, groupid,country); 
+	    		return Result.success(material);
+	    	}else {
+	    		List<Warehouse> oversea = warehouseService.getOverseaWarehouse(shopid,"oversea_usable",groupid,country);
+		    	if(oversea!=null&&oversea.size()>0) {
+		    		Material  material = inventoryService.findOverseaById(msku, shopid, groupid,country); 
+			    	return Result.success(material);
+		    	}else {
+		    		return Result.success();
+		    	}
+	    	}
+	    	 
+	    	
 	    }
 	 
 	    @PostMapping("/getMskuInventory")
@@ -1087,32 +1100,86 @@ public class MaterialController {
 		}
 	    
 	    @PostMapping(value = "/uploadConsumableFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-		public Result<String> uploadConsumableFileAction(@RequestParam("file")MultipartFile file)  {
+		public Result<String> uploadConsumableFileAction(@RequestParam("file")MultipartFile file, HttpServletResponse response)  {
 		       UserInfo user=UserInfoContext.get();
 				if (file != null) {
-					try {
-						InputStream inputStream = file.getInputStream();
-						Workbook workbook = WorkbookFactory.create(inputStream);
-						Sheet sheet = workbook.getSheetAt(0);
+					InputStream inputStream = null;
+					Workbook workbook =null;
+					Sheet sheet =null;
+				    try {
+						inputStream = file.getInputStream();
+						workbook = WorkbookFactory.create(inputStream);
+						sheet = workbook.getSheetAt(0);
+						Map<String,List<MaterialConsumableVO>> consumbable=new HashMap<String,List<MaterialConsumableVO>>();
+						boolean haserror=false;
 						for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 							Row info=sheet.getRow(i);
 							if(info==null || info.getCell(0)==null) {
 								continue;
 							}
-							excelDownLoadService.uploadMaterialConsumableFile(user, info);
+							MaterialConsumableVO entity = excelDownLoadService.uploadMaterialConsumableFile(user, info);
+							if(entity==null) {
+			 					 Cell cell = info.createCell(3);
+			 					 cell.setCellValue("无法对应SKU");
+			 					 haserror=true;
+			 				}
+							else if(entity.getAmount()==null||entity.getAmount().floatValue()<0.000001) {
+			 					 Cell cell = info.createCell(3);
+			 					 cell.setCellValue("辅料数量必须大于0！");
+			 					 haserror=true;
+			 				}
+						    if(entity!=null) {
+							  List<MaterialConsumableVO> list = consumbable.get(entity.getMaterialid());
+								if(list==null) {
+									list=new LinkedList<MaterialConsumableVO>();
+								}
+								list.add(entity);
+								consumbable.put(entity.getMaterialid(),list);
+						  }
+						  
+						}
+						
+						if(haserror==false) {
+							for(Entry<String, List<MaterialConsumableVO>> entry:consumbable.entrySet()) {
+								this.iMaterialService.saveMaterialConsumable(entry.getValue(), user, entry.getKey());
+							}
+						}else {
+							ServletOutputStream fOut = null;
+							try {
+								response.setContentType("application/force-download");// 设置强制下载不打开
+								response.addHeader("Content-Disposition", "attachment;fileName=error.xlsx");// 设置文件名
+								fOut = response.getOutputStream();
+								workbook.write(fOut);
+							} catch (Exception e2) {
+								e2.printStackTrace();
+							}finally {
+								try {
+									if(fOut != null) {
+										fOut.flush();
+										fOut.close();
+									}
+									if(workbook != null) {
+										workbook.close();
+									}
+								} catch (IOException e3) {
+									e3.printStackTrace();
+								}
+							}
 						}
 						workbook.close();
 						return Result.success();
-					} catch (IOException e) {
-						e.printStackTrace();
-						return Result.failed();
-					} catch (EncryptedDocumentException e) {
-						e.printStackTrace();
-					} catch (InvalidFormatException e) {
-						e.printStackTrace();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						    throw new BizException("读取文件异常");
+						} catch (EncryptedDocumentException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InvalidFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							 throw new BizException("文件格式异常");
+						}
 				}
 			return Result.success("ok");
 		}

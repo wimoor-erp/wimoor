@@ -80,7 +80,8 @@ public interface ErpClientOneFeign {
     public Result<Map<String, Object>> getMSkuDeliveryAndInv(   @RequestParam String shopid,
 													    		@RequestParam String groupid,
 													    		@RequestParam String msku,
-													    		@RequestParam String country);
+													    		@RequestParam String country,
+													    		@RequestParam String needDeliveryCycle);
     
     @GetMapping("/erp/api/v1/material/getMaterialInventoryInfoApi")
 	public Result<?> getMaterialInventoryInfoAction(@RequestParam String shopid,
@@ -98,4 +99,10 @@ public interface ErpClientOneFeign {
     
     @RequestMapping("/erp/api/v1/inventory/dispatch/oversea/getShipArrivalTimeRecord")
 	public Result<List<Map<String,Object>>> getShipArrivalTimeRecord(@RequestParam String shopid,@RequestParam String country,@RequestParam String groupid,@RequestParam String sku);
+
+    @RequestMapping("/erp/api/v1/inventory/findInventoryNowCostByShopId")
+	public Result<List<Map<String, Object>>> findInventoryNowCostByShopId(@RequestParam String shopid);
+
+    @GetMapping("/erp/api/v1/purchase/plan/getLasts")
+	public Result<?> getLastRecordsAction(List<String> list);
 }

@@ -32,6 +32,7 @@ public class ProductRank extends BaseEntity implements Serializable {
     @TableField("categoryId")
     private String categoryid;
 
+    @TableField("`rank`")
     private Integer rank;
 
     private String productId;

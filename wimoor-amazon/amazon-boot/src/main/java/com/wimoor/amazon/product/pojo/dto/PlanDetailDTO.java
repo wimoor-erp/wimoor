@@ -16,6 +16,7 @@ public class PlanDetailDTO {
 	String plantype;
 	List<String> groupids ;
 	List<String> marketplaceids ;
+	List<String> mskus ;
 	Boolean plansimple;
 	Boolean iseu;
 	Integer amount;

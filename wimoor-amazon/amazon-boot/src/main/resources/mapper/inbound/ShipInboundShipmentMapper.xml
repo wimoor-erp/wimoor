@@ -54,6 +54,7 @@
 				max(status4date) status4date,
 				max(status5date) status5date,
 				max(status6date) status6date,
+				max(shiped_date) shiped_date,
 				max(start_receive_date) receivedate,
 				max(inbound.sync_inv) syncinv,
 				max(form.number) number,

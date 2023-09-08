@@ -32,6 +32,36 @@
 	 </if>
 	order by t.opttime desc
   </select>
-  
+  <select id="selectSettlementOpen" resultType="java.util.Map" parameterType="java.util.Map">
+	  SELECT f.financial_event_group_start,
+	  i.name pname,
+	  i.`asin`,
+	  m.name mname,
+	  de.cname ftypename,
+	  IFNULL(p.location,p.url) image,
+	 t.posted_date,t.amazon_order_id,t.marketplace_name,t.event_type,t.sku,ftype,t.currency,t.amount,t.quantity 
+	 FROM t_amz_settlement_open t 
+	LEFT join t_amz_fin_account  f ON f.amazonAuthid=t.amazonauthid AND f.groupid=t.group_id
+	LEFT JOIN t_marketplace m ON m.point_name=t.marketplace_name
+	LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+	LEFT JOIN t_product_info i ON i.marketplaceid=m.marketplaceId AND i.amazonAuthId=t.amazonauthid AND i.sku=t.sku
+	LEFT JOIN t_picture p ON p.id=i.image
+	LEFT JOIN t_amz_settlement_amount_description de ON de.ename=t.ftype
+	 WHERE a.shop_id=#{param.shopid,jdbcType=CHAR}
+	  and f.processing_status='Open'
+	   <if test="param.groupid!=null and param.groupid!=''">
+	   		and a.groupid=#{param.groupid,jdbcType=CHAR}
+	   </if>
+	   <if test="param.marketplaceid!=null and param.marketplaceid!=''">
+	   		and m.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+	   </if>
+	    <if test="param.authid!=null and param.authid!=''">
+	   		and a.id=#{param.authid,jdbcType=CHAR}
+	   </if>
+	    <if test="param.endDate!=null and param.endDate!=''">
+	   		and t.posted_date&gt;=#{param.startDate,jdbcType=CHAR}
+	   		and t.posted_date&lt;=#{param.endDate,jdbcType=CHAR}
+	   </if>
+  </select>
    
 </mapper>

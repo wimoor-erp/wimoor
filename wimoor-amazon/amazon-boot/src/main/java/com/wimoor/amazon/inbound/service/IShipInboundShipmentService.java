@@ -45,6 +45,7 @@ public interface IShipInboundShipmentService extends IService<ShipInboundShipmen
 	public void validateShipment(String shipmentid);
 	public ShipInboundTrans getSelfTransData(String shipmentid);
 	public List<Map<String, Object>> findInboundItemByShipmentId(String shipmentid);
+	public List<Map<String, Object>> findInboundItemByInboundplanId(String inboundplanid);
 	Map<String, String> getPkgPaper(String type);
 	List<ShipInboundBox> findShipInboundBoxByShipment(String shipmentid);
 	List<ShipInboundCase> findShipInboundCaseByShipment(String shipmentid);

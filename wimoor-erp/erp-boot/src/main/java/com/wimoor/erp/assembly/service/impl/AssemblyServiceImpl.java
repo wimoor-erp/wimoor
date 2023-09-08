@@ -2,7 +2,6 @@ package com.wimoor.erp.assembly.service.impl;
 
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -100,6 +100,13 @@ public class AssemblyServiceImpl extends  ServiceImpl<AssemblyMapper,Assembly> i
 		return assemblyMainlist;
 	}
 
+	public List<Assembly> selectBySubid(String materialid) {
+		LambdaQueryWrapper<Assembly> query=new LambdaQueryWrapper<Assembly>();
+		query.eq(Assembly::getSubmid, materialid);
+		return assemblyMapper.selectList(query);
+	}
+
+	
 	public List<Map<String, Object>> selectByMainDetailmid(String materialid,String warehouseid) {
 		// TODO Auto-generated method stub
 		return assemblyMapper.selectByMainDetailmid(materialid, warehouseid);

@@ -31,7 +31,9 @@ public class ErpPurchaseAlibabaContact implements Serializable {
     private String companyName;
 
     private String email;
-
+    
+    private String customer;
+    
     @TableField("imInPlatform")
     private String imInPlatform;
 

@@ -18,5 +18,5 @@ public interface ISummaryDataService  extends IService<SummaryData>{
     public Map<String, Object> getReturnOrderSummary(SummaryMutilParameterQueryDTO parameter);
     public Map<String, Object> getReturnOrder(SummaryMutilParameterQueryDTO parameter);
 	List<ProductSalesRankVo> top5(SummaryMutilParameterQueryDTO parameter);
-	public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, String sku, String marketplaceid,Integer daysize , UserInfo user);
+	public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, String sku, String marketplaceid,Integer daysize ,String linetype, UserInfo user);
 }

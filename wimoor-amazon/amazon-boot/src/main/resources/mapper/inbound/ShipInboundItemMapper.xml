@@ -122,6 +122,114 @@
 		order by item.SellerSKU
 	</select>
 	
+	<select id="selectByInboundplanid" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT  
+v.SellerSKU,
+v.fulfillmentnetworksku,
+v.sku,
+v.msku,
+v.Quantity,
+v.QuantityShipped,
+v.pname,
+	ifnull(pt.location,ifnull(pt2.location,pt2.url)) image,
+v.drate,
+ifnull(v.materialid,m.id) materialid,
+v.QuantityReceived,
+v.QuantityInCase,
+v.warehouseid,
+v.shopid,
+v.groupid,
+v.marketplaceid,
+v.pid,
+v.asin,
+v.name pname,
+m.name name,
+	        (select  GROUP_CONCAT(c.name) from t_product_category c where c.pid=v.pid )  typename,
+		    m.color mcolor,
+		    m.issfg, 
+		    m.boxnum,
+		    ifnull(v.materialid,m.id) mid,
+		 	 ifnull(v.materialid,m.id) materialid,
+		    d.length boxlength,
+            d.width boxwidth,
+            d.height boxheight,
+            d.weight boxweight,
+           ifnull((select sum(iv2.quantity) 
+					from t_erp_inventory iv2 
+					where iv2.materialid=m.id
+						and iv2.warehouseid=v.warehouseid
+						and iv2.status like 'outbound_%'),0) invquantity_outbound,
+            case when ifnull(d.width,0) > 0 and ifnull(d.height,0) > 0 and ifnull(d.length,0) > 0
+							then  (d.width*d.height*d.length)/1000000 else 0 end boxvolume,
+							ifnull(dim.weight,0) weight,
+            ifnull(ifnull(v.QuantityShipped,v.Quantity),0)*ifnull(m.price,0) price,
+            ROUND(ifnull(dim.length,0)*ifnull(dim.width,0)*ifnull(dim.height,0)/ifnull(v.drate,5000.0),2) dimweight,
+						    case when ifnull(dim.width,0) > 0 and ifnull(dim.height,0) > 0 and ifnull(dim.length,0) > 0
+							then  ROUND(ifnull(ifnull(v.QuantityShipped,v.Quantity),0)*(dim.width*dim.height*dim.length)/1000000.0,2) 
+							else 0 end volume,
+		   
+		    ifnull(
+				            (select sum(iv.quantity) from t_erp_inventory iv 
+                              where 
+                               iv.materialid=ifnull(v.materialid,m.id) 
+                               and iv.warehouseid=v.warehouseid 
+                               and iv.`status`='fulfillable'
+				             )
+			  ,0) invquantity
+			  from (
+	select   
+		    max(item.SellerSKU) SellerSKU,
+		    max(item.FulfillmentNetworkSKU) fulfillmentnetworksku,
+		    max(ifnull(p.msku,item.SellerSKU)) sku,
+		    ifnull(max(p.msku),max(item.SellerSKU)) msku,
+		   sum(ifnull(item.Quantity,0)) Quantity,
+			sum(ifnull(ifnull(item.QuantityShipped,item.Quantity),0)) QuantityShipped,
+			max(p.name) pname,
+			max(p.image) image,
+		   max(drate) drate,
+	      MAX(item.materialid) materialid,
+			sum(item.QuantityReceived) QuantityReceived,
+			sum(item.QuantityInCase) QuantityInCase,
+			MAX(plan.warehouseid) warehouseid,
+			MAX(plan.shopid) shopid,
+			MAX(plan.amazongroupid) groupid,
+			MAX(plan.marketplaceid) marketplaceid,
+		   MAX(p.id) pid,
+			max(p.asin) asin,
+			max(p.name) name 
+		from t_erp_ship_inbounditem item
+		left join t_erp_ship_inboundPlan plan on plan.id=item.inboundplanid
+		left join t_erp_ship_inboundtrans tr on tr.shipmentid=item.shipmentid
+		left join t_erp_ship_transdetail de on de.company=tr.company and de.id=tr.channel
+		left join(select 
+		            v.sku,v.marketplaceid,auth.groupid,
+		            max(v.id) id,
+		            max(v.asin) asin,
+		            max(v.name) name,
+		            ifnull(max(opt.msku),max(v.sku)) msku,
+		            max(v.image) image
+					from t_product_info v
+					left join t_product_in_opt opt on opt.pid = v.id
+					left join t_amazon_auth auth on auth.id=v.amazonAuthId
+					left join t_erp_ship_inboundPlan p on p.amazongroupid=auth.groupid and p.marketplaceid=v.marketplaceid
+					left join t_erp_ship_inbounditem i on i.inboundplanid=p.id
+					where p.id =#{inboundplanid,jdbcType=CHAR} and i.SellerSKU=v.sku 
+					group by v.sku,v.marketplaceid,auth.groupid
+		  ) p on p.sku=item.SellerSKU and p.marketplaceid=plan.marketplaceid and p.groupid=plan.amazongroupid
+		  where item.inboundplanid = #{inboundplanid,jdbcType=CHAR}
+		group by  item.SellerSKU
+		) v
+		left join t_erp_material m on m.sku = v.msku and v.shopid=m.shopid and m.isDelete = 0
+		left join t_dimensions d on d.id=m.boxDimensions
+		left join t_dimensions dim on dim.id=m.pkgDimensions
+		left join t_picture pt on m.image=pt.id
+		left join t_picture pt2 on pt2.id=v.image
+	 
+		  
+		 
+		
+	</select>
+	
 		<select id="getOneByShipmentid" resultType="com.wimoor.amazon.inbound.pojo.entity.ShipInboundItem" parameterType="java.lang.String">
 		select distinct item.ShipmentId, item.SellerSKU, item.FulfillmentNetworkSKU, item.Quantity, item.QuantityShipped,
 		item.QuantityReceived, item.QuantityInCase,item.inboundplanid,ifnull(item.msku,p.msku) msku,item.materialid,

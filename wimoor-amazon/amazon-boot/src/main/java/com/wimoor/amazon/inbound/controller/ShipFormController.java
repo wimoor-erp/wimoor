@@ -1109,6 +1109,24 @@ public class ShipFormController {
 			 return Result.success(null);
 		 }
 	 }
+	 @ApiOperation(value = "根据shipmentid获取itemlist")
+	 @GetMapping("/getItemlistByInboundPlanId")
+	 public Result<Map<String, Object>> getItemlistByInboundPlanIdAction(String inboundplanid) {
+		 ShipInboundPlan plan = shipInboundPlanService.getById(inboundplanid);
+		 if(plan!=null) {
+			 Map<String, Object> map=new HashMap<String, Object>();
+			 List<Map<String, Object>> list = shipInboundShipmentService.findInboundItemByInboundplanId(inboundplanid);
+			 String addressid = plan.getShipfromaddressid();
+			 map.put("itemlist", list);
+			 map.put("addressid", addressid);
+			 map.put("groupid", plan.getAmazongroupid());
+			 map.put("warehouseid", plan.getWarehouseid());
+			 map.put("marketplaceid", plan.getMarketplaceid());
+			 return Result.success(map);
+		 }else {
+			 return Result.success(null);
+		 }
+	 }
 	 
 	 @ApiOperation(value = "保存货件上的物流信息")
 	 @GetMapping("/saveTrans")

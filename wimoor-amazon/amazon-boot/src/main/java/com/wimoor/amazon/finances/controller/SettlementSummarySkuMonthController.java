@@ -182,6 +182,7 @@ public class SettlementSummarySkuMonthController {
 	
 		
 	@PostMapping("/getRefreshData")
+	@CacheEvict(value = { "findSettlementSKUCache" }, allEntries = true)
 	public Result<?> getGroupMarketAction(@RequestBody FinDataMonthDTO dto) {
 	 	UserInfo user = UserInfoContext.get();
 	 	String key=dto.getProgresskey();

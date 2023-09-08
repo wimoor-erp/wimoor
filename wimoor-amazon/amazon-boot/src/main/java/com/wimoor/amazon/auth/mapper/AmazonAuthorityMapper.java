@@ -54,5 +54,7 @@ public interface AmazonAuthorityMapper extends BaseMapper<AmazonAuthority> {
 	List<Map<String, Object>> selectAdvMarketByAdvAuthId(String id);
 	
 	List<Map<String, Object>> selectAuthMaketplace(@Param("shopid")String shopid);
+
+	List<String> getAllBossEmalShop();
 	 
 }

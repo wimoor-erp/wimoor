@@ -56,7 +56,6 @@ import com.wimoor.amazon.product.service.IAmzProductSalesPlanShipItemService;
 import com.wimoor.amazon.product.service.IProductInAftersaleService;
 import com.wimoor.amazon.product.service.IProductInPresaleService;
 import com.wimoor.amazon.util.AmzDateUtils;
-import com.wimoor.amazon.util.UUIDUtil;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
@@ -427,7 +426,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 			Integer deliveryCycle=0;
 			Integer overseaqty=0;
 			try {
-				Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(auth.getShopId(), auth.getGroupid(), msku, market.getMarket());
+				Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(auth.getShopId(), auth.getGroupid(), msku, market.getMarket(),"true");
 			    if(Result.isSuccess(materialResult)&&materialResult.getData()!=null) {
 			    	if(materialResult.getData().get("deliveryCycle")!=null) {
 			    		deliveryCycle=Integer.valueOf(materialResult.getData().get("deliveryCycle").toString());
@@ -608,8 +607,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 	}
     
 
-public IPage<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, Object>> list,boolean needpage) {
-	    IPage<Map<String, Object>> page =null;
+public List<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, Object>> list) {
     	if(list!=null&&list.size()>0) {
     		List<String> mskulist=new LinkedList<String>();
     		Map<String,Map<String,Object>> mskuMap=new HashMap<String,Map<String,Object>>();
@@ -652,26 +650,29 @@ public IPage<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, O
 						   }
 					 }
 				 }
-				 if(needpage==false) {
-					 page=new Page<Map<String,Object>>();
-					 page.setRecords(result);
-				 }else {
-					 page = dto.getListPage(result);
-				 }
+				 return result;
              }
     	}
-        if(page!=null&&page.getRecords()!=null&&page.getRecords().size()>0) {
-        	for(Map<String, Object> item:page.getRecords()) {
-     		   Result<?> resultLast = erpClientOneFeign.getLastRecordAction(item.get("id").toString());
- 			   if(Result.isSuccess(resultLast)&&resultLast.getData()!=null) {
- 							item.put("last", resultLast.getData());
- 			   } 
-     	   }
-        }
-    	return page;
+    	return list;
      }
 
-    public IPage<Map<String, Object>> handleShip(PlanDTO dto, List<Map<String, Object>> list,boolean needpage) {
+    public void setPurchaseRecord(List<Map<String,Object>> record) {
+    	  if(record!=null&&record.size()>0) {
+    		  List<String> list=new LinkedList<String>();
+          	for(Map<String, Object> item:record) {
+          		list.add(item.get("id").toString());
+       	     }
+          	 Result<?> resultLast = erpClientOneFeign.getLastRecordsAction(list);
+ 			   if(Result.isSuccess(resultLast)&&resultLast.getData()!=null) {
+ 				   Map<String,Object> data=(Map<String, Object>) resultLast.getData();
+ 					for(Map<String, Object> item:record) {
+ 		          		String id=item.get("id").toString();
+ 		          		item.put("last",data.get(id));
+ 		       	     }
+ 			   } 
+          }
+    }
+    public List<Map<String, Object>> handleShip(PlanDTO dto, List<Map<String, Object>> list) {
    	     String warehouseid=dto.getWarehouseid();
 		 List<String> mskulist=new LinkedList<String>();
 		 Map<String,Map<String,Object>> mskusale=new HashMap<String,Map<String,Object>>();
@@ -755,14 +756,7 @@ public IPage<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, O
 					 }
 				 }
 			 }
-			 IPage<Map<String, Object>> page =null;
-			 if(needpage==false) {
-				 page=new Page<Map<String,Object>>();
-				 page.setRecords(result);
-			 }else {
-				 page = dto.getListPage(result);
-			 }
-			  return page;
+			 return result;
 		 }catch(Exception e) {
 			 e.printStackTrace();
 			 throw new BizException("获取本地产品失败");
@@ -781,8 +775,8 @@ public IPage<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, O
 		return this.baseMapper.getPlanModel(page,dto);
 	}
 	
-public void setShipRecord(Map<String,Object> item,String shopid,String marketplaceid,String sku,int puOnDay) {
-		List<Map<String, Object>> shipRecord = shipInboundPlanService.getShipRecord(shopid, marketplaceid, sku);
+public void setShipRecord(Map<String,Object> item,String shopid,String groupid,String marketplaceid,String sku,int puOnDay) {
+		List<Map<String, Object>> shipRecord = shipInboundPlanService.getShipRecord(shopid,groupid, marketplaceid, sku);
 		if (shipRecord != null && shipRecord.size() > 0) {
 			Map<String, Object> ship=shipRecord.get(0);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -809,6 +803,134 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 		}
    }
    
+    public void handItem(Map<String, Object> item,Map<String,Map<String,Object>> planmap,PlanDetailDTO dto) {
+	    String psku=item.get("sku").toString();
+	    String marketplaceid=item.get("marketplaceid").toString();
+	    String amazonauthid =item.get("amazonauthid").toString();
+	    String groupid=item.get("groupid").toString();
+	    String msku=item.get("msku").toString();
+	    String key=groupid+amazonauthid+marketplaceid+psku+msku;
+	    Map<String, Object> plansku = planmap.get(key);
+	    if(plansku!=null) {
+	    	item.put("subnum",plansku.get("subnum"));
+	    	item.put("aftersalesday",plansku.get("aftersalesday"));
+	    	item.put("amount",plansku.get("amount"));
+	    	item.put("reallyamount",plansku.get("amount"));
+	    } else {
+	    	item.put("subnum",0);
+	    	item.put("aftersalesday",0);
+	    	item.put("amount",item.get("amount"));
+	    }
+		List<AmzInboundFbaCycle> cycleList = iAmzInboundFbaCycleService.getInboundFbaCycle(dto.getShopid(),marketplaceid);
+		AmzInboundFbaCycle myfbacycle =iAmzInboundFbaCycleService.getDefaultInboundFbaCycle(cycleList);
+		item.put("defaultTranstype", myfbacycle.getTranstype());
+		FBAShipCycle cycle = iFBAShipCycleService.getFbaShipCycle(dto.getGroupid(),marketplaceid,psku);
+	    if(cycle!=null&&cycle.getTranstype()!=null) {
+        	myfbacycle=iAmzInboundFbaCycleService.getTransInboundFbaCycle(cycleList,cycle.getTranstype());
+        }
+	    if(dto.getPlantype().equals("ship")&&dto.getIseu()) {
+	     Integer inbound = iShipInboundItemService.summaryShipmentSku(groupid, marketplaceid, psku);
+	    	if(inbound!=null) {
+	    		if(item.get("quantity")==null) {
+	    			item.put("oldquantity",  0);
+	    			item.put("localinbound",  inbound);
+	    			item.put("fbainbound",  0);
+	    			item.put("quantity", inbound);
+	    			item.put("inbounddiff", inbound);
+	    		}else {
+	    			Integer quantity= Integer.parseInt(item.get("quantity").toString());
+	    			Integer myqty=item.get("localquantity")!=null?Integer.parseInt(item.get("localquantity").toString()):0;
+	    			item.put("oldquantity",  quantity);
+	    			item.put("localinbound",  inbound);
+	    			if(dto.getIseu()==true) {
+	    				item.put("fbainbound",  0);
+	    				item.put("quantity", quantity+inbound);
+	    				item.put("inbounddiff",inbound);
+	    				item.put("localquantity",quantity);
+	    			}else {
+	    				item.put("fbainbound",  quantity-myqty);
+	    				item.put("quantity", inbound+myqty);
+	    				item.put("inbounddiff", quantity-myqty-inbound);
+	    			}
+	    		}
+	    	}
+	    }
+		Integer shipcycle=getShipCycle(cycle,myfbacycle);
+		Integer mincycle=getMinShipCycle(cycle,myfbacycle);
+		item.put("shipday", shipcycle);
+		item.put("warehouseid", dto.getWarehouseid());
+		item.put("mincycle", mincycle);
+		myfbacycle.setMinCycle(mincycle);
+		if(cycle!=null) {
+			if(cycle.getStockingcycle()!=null) {
+				myfbacycle.setStockingCycle(cycle.getStockingcycle());
+			}
+			if(cycle.getTranstype()!=null) {
+				myfbacycle.setTranstype(cycle.getTranstype());
+			}
+		}
+		Integer sysavgsales=item.get("sysavgsales") == null ? 0 : Integer.parseInt(item.get("sysavgsales").toString());
+		Integer fbaquantity=item.get("quantity") == null ? 0 : Integer.parseInt(item.get("quantity").toString());
+		Integer reallyamount=item.get("reallyamount") == null ? 0 : Integer.parseInt(item.get("reallyamount").toString());
+		if(marketplaceid.equals("EU")) {
+			int sumseven = item.get("sumseven") == null ? 0 : Integer.parseInt(item.get("sumseven").toString());// 七日销量
+			int summonth = item.get("summonth") == null ? 0 : Integer.parseInt(item.get("summonth").toString());
+			int sum15 = item.get("sum15") == null ? 0 : Integer.parseInt(item.get("sum15").toString());
+			Date openDate = item.get("openDate") == null ? null : AmzDateUtils.getDate(item.get("openDate"));
+			DaysalesFormula formula = daysalesFormulaService.selectByShopid(dto.getShopid());
+			sysavgsales = DaysalesFormulaServiceImpl.getAvgSales(formula , summonth, sumseven, sum15, openDate);
+		}
+		 String country="EU";
+		 if(!marketplaceid.equals("EU")) {
+			 Marketplace market = marketplaceService.findMapByMarketplaceId().get(marketplaceid);
+			 if(market!=null) {
+				 country=market.getMarket();
+			 }
+			if(market!=null&&item.get("asin")!=null) {
+				item.put("url", "https://www."+market.getPointName()+"/dp/"+item.get("asin").toString()+"?th=1&psc=1");
+			}
+		 }
+		Integer overseaqty=0;
+		try {
+			Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(dto.getShopid(), groupid, msku, country,"false");
+		    if(Result.isSuccess(materialResult)&&materialResult.getData()!=null) {
+		    	if(materialResult.getData().get("overseaqty")!=null) {
+		    		overseaqty=Integer.valueOf(materialResult.getData().get("overseaqty").toString());
+		    	}
+		    }
+		}catch(FeignException e) {
+			 e.printStackTrace();
+		}
+		if(dto.getPlantype().equals("purchase")) {
+			Integer needpurchase=item.get("needpurchase")==null?0:Integer.parseInt(item.get("needpurchase").toString());
+			if(needpurchase>dto.getAmount()) {
+				reallyamount=dto.getAmount();
+				dto.setAmount(0);
+			}else {
+				reallyamount=needpurchase;
+				dto.setAmount(dto.getAmount()-needpurchase);
+			}
+		}
+		item.putAll(this.getAfterSales(psku, marketplaceid,groupid, sysavgsales, fbaquantity, overseaqty, reallyamount)); 
+		item.put("overseaqty", overseaqty);
+		item.put("sysavgsales", sysavgsales);
+		item.put("cycle", myfbacycle);
+		item.put("transtype", myfbacycle.getTranstype());
+		if(cycle!=null&&cycle.getTranstype()!=null) {
+			item.put("settranstype", cycle.getTranstype());
+		}else {
+			item.put("settranstype", "");
+		}
+		if(cycle!=null&&cycle.getStockingcycle()!=null) {
+			item.put("setstockingcycles", cycle.getStockingcycle());
+		}else {
+			item.put("setstockingcycles", "");
+		}
+		item.put("statuscolor",GeneralUtil.getColorType(item.get("statuscolor")));
+		if(dto.getPlantype().equals("ship")) {
+			setShipRecord(item,dto.getShopid(),groupid,marketplaceid,psku,myfbacycle.getPutOnDays());
+		}
+    }
 	@Override
 	public List<Map<String,Object>> ExpandCountryDataByGroup(PlanDetailDTO dto) {
 		// TODO Auto-generated method stub
@@ -818,14 +940,14 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 			result=this.baseMapper.ExpandCountryDataByGroup(dto);
 			List<Map<String, Object>> planitem = this.iAmzProductSalesPlanShipItemService.hasplanItem(dto);
 			for(Map<String, Object> item:planitem) {
-				String key=item.get("groupid").toString()+item.get("amazonauthid").toString()+item.get("marketplaceid").toString()+item.get("sku").toString();
+				String key=item.get("groupid").toString()+item.get("amazonauthid").toString()+item.get("marketplaceid").toString()+item.get("sku").toString()+item.get("msku").toString();
 				planmap.put(key, item);
 			}
 		}else {
 			result=this.baseMapper.ExpandEUCountryDataByGroup(dto);
 			List<Map<String, Object>> planitem = this.iAmzProductSalesPlanShipItemService.hasplanItemEu(dto);
 			for(Map<String, Object> item:planitem) {
-				String key=item.get("groupid").toString()+item.get("amazonauthid").toString()+item.get("marketplaceid").toString()+item.get("sku").toString();
+				String key=item.get("groupid").toString()+item.get("amazonauthid").toString()+item.get("marketplaceid").toString()+item.get("sku").toString()+item.get("msku").toString();
 				planmap.put(key, item);
 			}
 		}
@@ -833,135 +955,40 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 			dto.setAmount(0);
 		}
 		for(Map<String, Object> item:result) {
-			    String psku=item.get("sku").toString();
-			    String marketplaceid=item.get("marketplaceid").toString();
-			    String amazonauthid =item.get("amazonauthid").toString();
-			    String groupid=item.get("groupid").toString();
-			    String key=groupid+amazonauthid+marketplaceid+psku;
-			    Map<String, Object> plansku = planmap.get(key);
-			    if(plansku!=null) {
-			    	item.put("subnum",plansku.get("subnum"));
-			    	item.put("aftersalesday",plansku.get("aftersalesday"));
-			    	item.put("amount",plansku.get("amount"));
-			    	item.put("reallyamount",plansku.get("amount"));
-			    } else {
-			    	item.put("subnum",0);
-			    	item.put("aftersalesday",0);
-			    	item.put("amount",item.get("amount"));
-			    }
-				List<AmzInboundFbaCycle> cycleList = iAmzInboundFbaCycleService.getInboundFbaCycle(dto.getShopid(),marketplaceid);
-				AmzInboundFbaCycle myfbacycle =iAmzInboundFbaCycleService.getDefaultInboundFbaCycle(cycleList);
-				item.put("defaultTranstype", myfbacycle.getTranstype());
-				FBAShipCycle cycle = iFBAShipCycleService.getFbaShipCycle(dto.getGroupid(),marketplaceid,psku);
-			    if(cycle!=null&&cycle.getTranstype()!=null) {
-		        	myfbacycle=iAmzInboundFbaCycleService.getTransInboundFbaCycle(cycleList,cycle.getTranstype());
-		        }
-			    if(dto.getPlantype().equals("ship")) {
-			     Integer inbound = iShipInboundItemService.summaryShipmentSku(groupid, marketplaceid, psku);
-			    	if(inbound!=null) {
-			    		if(item.get("quantity")==null) {
-			    			item.put("oldquantity",  0);
-			    			item.put("localinbound",  inbound);
-			    			item.put("fbainbound",  0);
-			    			item.put("quantity", inbound);
-			    			item.put("inbounddiff", inbound);
-			    		}else {
-			    			Integer quantity= Integer.parseInt(item.get("quantity").toString());
-			    			Integer myqty=item.get("localquantity")!=null?Integer.parseInt(item.get("localquantity").toString()):0;
-			    			item.put("oldquantity",  quantity);
-			    			item.put("localinbound",  inbound);
-			    			if(dto.getIseu()==true) {
-			    				item.put("fbainbound",  0);
-			    				item.put("quantity", quantity+inbound);
-			    				item.put("inbounddiff",inbound);
-			    				item.put("localquantity",quantity);
-			    			}else {
-			    				item.put("fbainbound",  quantity-myqty);
-			    				item.put("quantity", inbound+myqty);
-			    				item.put("inbounddiff", quantity-myqty-inbound);
-			    			}
-			    		}
-			    	}
-			    }
-				Integer shipcycle=getShipCycle(cycle,myfbacycle);
-				Integer mincycle=getMinShipCycle(cycle,myfbacycle);
-				item.put("shipday", shipcycle);
-				item.put("warehouseid", dto.getWarehouseid());
-				item.put("mincycle", mincycle);
-				myfbacycle.setMinCycle(mincycle);
-				if(cycle!=null) {
-					if(cycle.getStockingcycle()!=null) {
-						myfbacycle.setStockingCycle(cycle.getStockingcycle());
-					}
-					if(cycle.getTranstype()!=null) {
-						myfbacycle.setTranstype(cycle.getTranstype());
-					}
-				}
-				Integer sysavgsales=item.get("sysavgsales") == null ? 0 : Integer.parseInt(item.get("sysavgsales").toString());
-				Integer fbaquantity=item.get("quantity") == null ? 0 : Integer.parseInt(item.get("quantity").toString());
-				Integer reallyamount=item.get("reallyamount") == null ? 0 : Integer.parseInt(item.get("reallyamount").toString());
-				if(marketplaceid.equals("EU")) {
-					int sumseven = item.get("sumseven") == null ? 0 : Integer.parseInt(item.get("sumseven").toString());// 七日销量
-					int summonth = item.get("summonth") == null ? 0 : Integer.parseInt(item.get("summonth").toString());
-					int sum15 = item.get("sum15") == null ? 0 : Integer.parseInt(item.get("sum15").toString());
-					Date openDate = item.get("openDate") == null ? null : AmzDateUtils.getDate(item.get("openDate"));
-					DaysalesFormula formula = daysalesFormulaService.selectByShopid(dto.getShopid());
-					sysavgsales = DaysalesFormulaServiceImpl.getAvgSales(formula , summonth, sumseven, sum15, openDate);
-				}
-				 String country="EU";
-				 if(!marketplaceid.equals("EU")) {
-					 Marketplace market = marketplaceService.findMapByMarketplaceId().get(marketplaceid);
-					 if(market!=null) {
-						 country=market.getMarket();
-					 }
-					if(market!=null&&item.get("asin")!=null) {
-						item.put("url", "https://www."+market.getPointName()+"/dp/"+item.get("asin").toString()+"?th=1&psc=1");
-					}
-				 }
-				Integer overseaqty=0;
-				try {
-					Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(dto.getShopid(), groupid, dto.getMsku(), country);
-				    if(Result.isSuccess(materialResult)&&materialResult.getData()!=null) {
-				    	if(materialResult.getData().get("overseaqty")!=null) {
-				    		overseaqty=Integer.valueOf(materialResult.getData().get("overseaqty").toString());
-				    	}
-				    }
-				}catch(FeignException e) {
-					 e.printStackTrace();
-				}
-				if(dto.getPlantype().equals("purchase")) {
-					Integer needpurchase=item.get("needpurchase")==null?0:Integer.parseInt(item.get("needpurchase").toString());
-					if(needpurchase>dto.getAmount()) {
-						reallyamount=dto.getAmount();
-						dto.setAmount(0);
-					}else {
-						reallyamount=needpurchase;
-						dto.setAmount(dto.getAmount()-needpurchase);
-					}
-				}
-				item.putAll(this.getAfterSales(psku, marketplaceid,groupid, sysavgsales, fbaquantity, overseaqty, reallyamount)); 
-				item.put("overseaqty", overseaqty);
-				item.put("sysavgsales", sysavgsales);
-				item.put("cycle", myfbacycle);
-				item.put("transtype", myfbacycle.getTranstype());
-				if(cycle!=null&&cycle.getTranstype()!=null) {
-					item.put("settranstype", cycle.getTranstype());
-				}else {
-					item.put("settranstype", "");
-				}
-				if(cycle!=null&&cycle.getStockingcycle()!=null) {
-					item.put("setstockingcycles", cycle.getStockingcycle());
-				}else {
-					item.put("setstockingcycles", "");
-				}
-				item.put("statuscolor",GeneralUtil.getColorType(item.get("statuscolor")));
-				if(dto.getPlantype().equals("ship")) {
-					setShipRecord(item,dto.getShopid(),marketplaceid,psku,myfbacycle.getPutOnDays());
-				}
+			handItem(item,planmap,dto);
 		}
 		return result;
 	}
   
+	
+	public Map<String,List<Map<String,Object>>> ExpandCountrysDataByGroup(PlanDetailDTO dto) {
+		// TODO Auto-generated method stub
+		Map<String,List<Map<String,Object>>> result= new HashMap<String,List<Map<String,Object>>>();
+		Map<String,Map<String,Object>> planmap=new HashMap<String,Map<String,Object>>();
+		List<Map<String, Object>> countryresult =null;
+		if(dto.getIseu()==null || dto.getIseu()==false) {
+			countryresult= this.baseMapper.ExpandCountryDataByGroup(dto);
+			List<Map<String, Object>> planitem = this.iAmzProductSalesPlanShipItemService.hasplanItem(dto);
+			for(Map<String, Object> item:planitem) {
+				String key=item.get("groupid").toString()+item.get("amazonauthid").toString()+item.get("marketplaceid").toString()+item.get("sku").toString()+item.get("msku").toString();
+				planmap.put(key, item);
+			}
+		}
+		if(dto.getAmount()==null) {
+			dto.setAmount(0);
+		}
+		for(Map<String, Object> item:countryresult) {
+			String msku=item.get("msku").toString();
+			handItem(item,planmap,dto);
+			List<Map<String, Object>> itemlist = result.get(msku);
+			if(itemlist==null) {
+				itemlist=new LinkedList<Map<String,Object>>();
+			}
+			itemlist.add(item);
+			result.put(msku,itemlist);
+		}
+		 return result;
+	}
 	@Override
 	public Integer getAfterSales(AmzProductSalesPlanShipItem item) {
 		// TODO Auto-generated method stub
@@ -1022,7 +1049,7 @@ public void setShipRecord(Map<String,Object> item,String shopid,String marketpla
 					country=market.getMarket();
 				}
 			}
-			Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(auth.getShopId(), auth.getGroupid(), item.getMsku(), country);
+			Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(auth.getShopId(), auth.getGroupid(), item.getMsku(), country,"false");
 		    if(Result.isSuccess(materialResult)&&materialResult.getData()!=null) {
 		    	if(materialResult.getData().get("overseaqty")!=null) {
 		    		overseaqty=Integer.valueOf(materialResult.getData().get("overseaqty").toString());

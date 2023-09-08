@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.threeten.bp.OffsetDateTime;
 
@@ -33,6 +34,7 @@ import com.wimoor.amazon.auth.service.impl.ApiBuildService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.finances.mapper.AmzFinAccountMapper;
 import com.wimoor.amazon.finances.pojo.entity.AmzFinAccount;
+import com.wimoor.amazon.finances.service.IAmazonSettlementOpenService;
 import com.wimoor.amazon.finances.service.IAmzFinAccountService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.amazon.util.AmzUtil;
@@ -59,7 +61,9 @@ public class AmzFinAccountServiceImpl extends ServiceImpl<AmzFinAccountMapper, A
     IExchangeRateHandlerService exchangeRateHandlerService;
 	@Autowired
 	IAmazonAuthorityService amazonAuthorityService;
-	
+	@Autowired
+	@Lazy
+	IAmazonSettlementOpenService iAmazonSettlementOpenService;
 	@Override
 	public void runApi(AmazonAuthority amazonAuthority) {
 		// TODO Auto-generated method stub
@@ -153,6 +157,15 @@ public class AmzFinAccountServiceImpl extends ServiceImpl<AmzFinAccountMapper, A
 				this.baseMapper.update(fin, query);
 			}else {
 				this.baseMapper.insert(fin);
+			}
+			try {
+				iAmazonSettlementOpenService.getGroupIdData(amazonAuthority, fin);
+			} catch (ApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		if(response.getPayload().getNextToken()!=null) {

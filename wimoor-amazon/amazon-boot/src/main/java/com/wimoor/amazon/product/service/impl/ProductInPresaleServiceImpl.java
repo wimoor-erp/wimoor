@@ -93,7 +93,8 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
     	if(StrUtil.isBlankOrUndefined(dto.getGroupid())) {
     		dto.setGroupid(null);
     	}
-    	List<Map<String, Object>> list = this.baseMapper.listProduct(dto);
+    	IPage<Map<String, Object>> result = this.baseMapper.listProduct(dto.getPage(),dto);
+    	List<Map<String, Object>> list = result.getRecords();
     	List<String> mskulist=new ArrayList<String>();
         for(Map<String, Object> item:list) {
         	String sku=item.get("psku").toString();
@@ -171,11 +172,11 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
         	plandto.setOwner(dto.getOwner());
         	List<Map<String,Object>> listMap=new LinkedList<Map<String,Object>>();
         	if(plandto.getMskulist()==null||plandto.getMskulist().size()==0) {
-        		return dto.getListPage(listMap);
+        		return result;
         	}
-        	Result<Map<String, Object>> result = erpClientOneFeign.getMaterialInfoBySkuList(plandto);
-        	if(Result.isSuccess(result)&&result.getData()!=null) {
-        		Map<String, Object> mskuInfoMap=result.getData();
+        	Result<Map<String, Object>> resultMaterial = erpClientOneFeign.getMaterialInfoBySkuList(plandto);
+        	if(Result.isSuccess(resultMaterial)&&resultMaterial.getData()!=null) {
+        		Map<String, Object> mskuInfoMap=resultMaterial.getData();
         	     for(Map<String, Object> item:list) {
         	    	 String msku=item.get("msku").toString();
         	    	 String psku=item.get("psku").toString();
@@ -188,7 +189,7 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
         	    		 listMap.add(item);
         	    	 }
         	     }
-        	     return dto.getListPage(listMap);
+        	     return result;
         	}
         }catch(FeignException e) {
         	e.printStackTrace();
@@ -921,5 +922,115 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
 		this.baseMapper.replaceBatch(preList);
 	}
 	
+	//加缓存PreSalesByMonth
+		public List<Map<String,Object>> getProductPreSalesByMonth(String sku, String marketplaceid, String groupid) {
+			List<ProductInPresale> presalelist = this.baseMapper.selectMonthDateEvent(sku, marketplaceid, groupid);
+			Map<String,ProductInPresale> item=new HashMap<String,ProductInPresale>();
+			List<Map<String,Object>> result=new LinkedList<Map<String,Object>>();
+		    for(ProductInPresale pre:presalelist) {
+		    	item.put(GeneralUtil.formatDate(pre.getDate()), pre);
+		    }
+		    Calendar c=Calendar.getInstance();
+		    c.set(Calendar.DATE, 1);
+			Calendar cold=Calendar.getInstance();
+			cold.setTime(c.getTime());
+			cold.add(Calendar.YEAR, -1);
+			cold.set(Calendar.DATE, 1);
+			Date begin = cold.getTime();
+			cold.add(Calendar.MONTH,12);
+			Date end=cold.getTime();
+			Map<String, Object> qtymap =new HashMap<String,Object>();
+			Map<String,Object> holiday=new HashMap<String,Object>();
+			List<Map<String, Object>> monthsale = this.baseMapper.selectMonthDateSales(sku, marketplaceid, groupid,GeneralUtil.formatDate(begin),GeneralUtil.formatDate(end));
+			for(Map<String, Object> mitem:monthsale) {
+				qtymap.put(mitem.get("month").toString(), mitem.get("quantity"));
+			}
+			List<Map<String, Object>> holidaylist = this.baseMapper.selectHoliday(marketplaceid);
+			for(Map<String, Object> mitem:holidaylist) {
+				holiday.put(mitem.get("month").toString(), mitem.get("holiday"));
+			}
+		    SimpleDateFormat FMT_YMD = new SimpleDateFormat("yy-MM");
+		    for(int i=1;i<=12;i++) {
+				HashMap<String, Object> point = new HashMap<String,Object>();
+		    	ProductInPresale pre = item.get(GeneralUtil.formatDate(c.getTime()));
+	    		point.put("date",FMT_YMD.format(c.getTime()));
+		    	if(pre!=null) {
+		    		point.put("value", pre.getQuantity());
+		    	} 
+		    	cold.setTime(c.getTime());
+		    	cold.add(Calendar.MONTH,-12);
+	    		if(qtymap!=null&&qtymap.get((cold.get(Calendar.MONTH)+1)+"")!=null) {
+	    			point.put("oldvalue", qtymap.get((cold.get(Calendar.MONTH)+1)+""));
+	    		}else {
+	    			point.put("oldvalue",0);
+	    		}
+	    
+	    		if(holiday!=null) {
+	    			if(holiday.get(c.get(Calendar.MONTH)+"")!=null) {
+	    				point.put("holiday",holiday.get((c.get(Calendar.MONTH)+1)+""));
+	    			}
+	    		}
+	    		result.add(point);
+		    	c.add(Calendar.MONTH, 1);
+		    }
+			return result;
+		}
+
+		@Override
+		public List<Map<String, Object>> getProductPreSales(String sku, String marketplaceid, String groupid,
+				String month) {
+			// TODO Auto-generated method stub
+			List<Map<String,Object>> result=new LinkedList<Map<String,Object>>();
+		    Calendar c=Calendar.getInstance();
+		    String[] amonth = month.split("-");
+		    int year = c.get(Calendar.YEAR);
+		    year=year/100;
+		    c.set(Calendar.YEAR, Integer.parseInt(year+amonth[0]));
+		    c.set(Calendar.MONTH,Integer.parseInt(amonth[1])-1);
+		    c.set(Calendar.DATE, 1);
+		    int monthday = c.getMaximum(Calendar.DAY_OF_MONTH);
+		    SimpleDateFormat FMT_YMD = new SimpleDateFormat("MM.dd");
+		    
+			Calendar cold=Calendar.getInstance();
+			cold.setTime(c.getTime());
+			cold.add(Calendar.YEAR, -1);
+			Date beginDate=cold.getTime();
+			cold.add(Calendar.MONTH, 1);
+			Date endDate=cold.getTime();
+			Map<String,Object> qtymap=new HashMap<String,Object>();
+			List<Map<String, Object>> list  = this.baseMapper.selectDateSales(sku, marketplaceid, groupid,GeneralUtil.formatDate(beginDate),GeneralUtil.formatDate(endDate));
+			
+		 
+			cold.setTime(c.getTime());
+			cold.add(Calendar.MONTH, 1);
+			
+			List<ProductInPresale> prelist = this.baseMapper.selectAllDayPresale(sku, marketplaceid, groupid,GeneralUtil.formatDate(c.getTime()),GeneralUtil.formatDate(cold.getTime()));
+			
+			for(Map<String, Object> mitem:list) {
+				qtymap.put(mitem.get("day").toString(), mitem.get("quantity"));
+			}
+			Map<String,ProductInPresale> premap=new HashMap<String,ProductInPresale>();
+			for(ProductInPresale mitem:prelist) {
+				premap.put(GeneralUtil.formatDate(mitem.getDate()),mitem);
+			}
+			
+		    for(int i=1;i<monthday;i++) {
+				HashMap<String, Object> point = new HashMap<String,Object>();
+			    ProductInPresale pre = premap.get(GeneralUtil.formatDate(c.getTime()));
+	    		point.put("date",FMT_YMD.format(c.getTime()));
+		    	if(pre!=null) {
+		    		point.put("value", pre.getQuantity());
+		    	} 
+	    		if(qtymap!=null&&qtymap.get((c.get(Calendar.DAY_OF_MONTH)+1)+"")!=null) {
+	    			point.put("oldvalue", qtymap.get((c.get(Calendar.DAY_OF_MONTH)+1)+""));
+	    		}else {
+	    			point.put("oldvalue",0);
+	    		}
+	    		result.add(point);
+		    	c.add(Calendar.DATE, 1);
+		    }
+		    return result;
+		}
+
 	
 }

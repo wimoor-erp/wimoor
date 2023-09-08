@@ -730,18 +730,23 @@
 		    and materialid=#{materialid,jdbcType=CHAR}
 		    and warehouseid=#{warehouseid,jdbcType=CHAR}
 	</select>
-	<select id="findOverseaById" parameterType="java.lang.String" resultType="java.lang.Integer">
-	   select sum(case when (iv.`status`='fulfillable' or POSITION('inbound' IN iv.`status`)) then iv.quantity else 0 end) fulfillable
-	   from t_erp_inventory iv
-	   left join t_erp_warehouse w on w.id=iv.warehouseid
-	   where iv.materialid=#{materialid,jdbcType=CHAR}
-	   and iv.shopid=#{shopid,jdbcType=CHAR}
+	<select id="findOverseaById" parameterType="java.lang.String" resultType="com.wimoor.erp.material.pojo.entity.Material">
+	   select 
+	       max(m.id) id,
+	       max(m.name) name,
+	       max(m.sku) sku,
+	       max(m.delivery_cycle) delivery_cycle,
+	       max(m.price) price,
+	       sum(case when (iv.`status`='fulfillable' or POSITION('inbound' IN iv.`status`)) then iv.quantity else 0 end) overseaqty
+	   from t_erp_material m 
+	   left join t_erp_warehouse w on w.shopid=#{shopid,jdbcType=CHAR} and   (w.groupid is null or w.groupid=#{groupid,jdbcType=CHAR})
 	   <if test="country=='EU'">
 	      and w.country in ('DE','FR','IT','ES','SA','NL','PL','SE')
 	   </if>
 	    <if test="country!='EU'">
 	     and w.country=#{country,jdbcType=CHAR}
 	   </if>
-	   and (w.groupid is null or w.groupid=#{groupid,jdbcType=CHAR})
+	   left join t_erp_inventory iv on iv.materialid =m.id and iv.warehouseid=w.id
+	   where m.sku=#{sku,jdbcType=CHAR} and m.isdelete=0   and m.shopid=#{shopid,jdbcType=CHAR}
 	</select>
 </mapper>

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONArray;
@@ -67,7 +68,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	
 
 
-
+	@Cacheable(value = "warehosueCache" )
 	public List<Warehouse> findByType(String ftype, String shopid) {
 		return this.baseMapper.findByType(ftype, shopid);
 	}
@@ -114,7 +115,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		 queryWrapper.orderByAsc("number");
 		 return this.list(queryWrapper);
 	}
-	
+ 
 	public List<Warehouse> getWarehouseTreeList(UserInfo user){
 		 QueryWrapper<Warehouse> queryWrapper=new QueryWrapper<Warehouse>();
 		 queryWrapper.eq("shopid", user.getCompanyid());
@@ -646,7 +647,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 		return this.baseMapper.getUUID();
 	}
 
-
+	@Cacheable(value = "warehosueCache" )
 	public IPage<Warehouse> findByCondition(Page<?> page,String search, String shopid, String ftype,String parentid ) {
 		if(GeneralUtil.isEmpty(search)) {
 			search = null;
@@ -660,6 +661,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 	}
 
 	@Override
+	@Cacheable(value = "warehosueCache" )
 	public List<Warehouse> getOverseaWarehouse(String shopid, String ftype, String groupid, String country) {
 		// TODO Auto-generated method stub
 		return this.baseMapper.getOverseaWarehouse(shopid,ftype, groupid, country);

@@ -45,6 +45,7 @@ public class PurchaseAlibabaAuthServiceImpl extends ServiceImpl<PurchaseAlibabaA
     String appSecret;
     @Setter
     String open1688;
+    
 	public static SimpleDateFormat alibabatimefmt = new SimpleDateFormat("yyyyMMddhhmmssSSS");
 
 	public PurchaseAlibabaAuth saveAction(PurchaseAlibabaAuth purchaseAlibabaAuth) {

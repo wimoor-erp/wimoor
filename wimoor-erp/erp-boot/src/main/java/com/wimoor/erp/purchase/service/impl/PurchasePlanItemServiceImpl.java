@@ -1,23 +1,22 @@
 package com.wimoor.erp.purchase.service.impl;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
+ 
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.wimoor.erp.api.AmazonClientOneFeignApi;
 import com.wimoor.erp.api.AmazonClientOneFeignManager;
 import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
 import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.erp.assembly.service.IAssemblyFormService;
 import com.wimoor.erp.assembly.service.IAssemblyService;
@@ -28,6 +27,7 @@ import com.wimoor.erp.purchase.mapper.PurchasePlanItemMapper;
 import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
 import com.wimoor.erp.purchase.service.IPurchasePlanItemService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
+import com.wimoor.util.DownloadExcelUtil;
 
 import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
@@ -50,16 +50,29 @@ public class PurchasePlanItemServiceImpl extends  ServiceImpl<PurchasePlanItemMa
 		// TODO Auto-generated method stub
 		return this.baseMapper.getSummary(shopid, planid);
 	}
-
+	
+	@Override
+	public List<Map<String, Object>> listItem(String shopid, String planid) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.listItem(shopid, planid);
+	}
+	
+ 
 	@Override
 	public List<Map<String, Object>> getHisList(String shopid, String warehouseid) {
 		return this.baseMapper.planhis(shopid, warehouseid);
 	}
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Map<String, Object>> getList(String shopid, String planid) {
+	public List<Map<String, Object>> getList(String shopid, String planid, List<String> materialidList) {
 		// TODO Auto-generated method stub
-		List<Map<String,Object>> list = this.baseMapper.listConfirmInfo(shopid,planid);
+		Map<String,Object> param=new HashMap<String,Object>();
+		if(materialidList!=null&&materialidList.size()>0) {
+			param.put("materialidList",materialidList);
+		}
+		param.put("shopid",shopid);
+		param.put("planid",planid);
+		List<Map<String,Object>> list = this.baseMapper.listConfirmInfo(param);
 		Map<String,Map<String,Object>> warehouiseMap =new HashMap<String,Map<String,Object>>();
 		for(Map<String,Object> item:list) {
 			String key=item.get("warehouseid").toString();

@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
-import com.wimoor.amazon.finances.mapper.FBAEstimatedFeeMapper;
 import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
+import com.wimoor.amazon.finances.service.IFBAEstimatedFeeService;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.common.GeneralUtil;
 
@@ -29,7 +29,7 @@ public class ReportAmzFBAFeeServiceImpl extends ReportServiceImpl{
 	@Resource
 	private IMarketplaceService marketplaceService;
 	@Resource
-	private FBAEstimatedFeeMapper fBAEstimatedFeeMapper;
+	private IFBAEstimatedFeeService iFBAEstimatedFeeService;
 	
  
 	//按区域申请的报表
@@ -156,10 +156,10 @@ public class ReportAmzFBAFeeServiceImpl extends ReportServiceImpl{
 							query.eq("amazonAuthId", fBAEstimatedFee.getAmazonauthid());
 							query.eq("marketplaceid", fBAEstimatedFee.getMarketplaceid());
 							query.eq("asin", fBAEstimatedFee.getAsin());
-							if(fBAEstimatedFeeMapper.selectCount(query)>0) {
-								fBAEstimatedFeeMapper.update(fBAEstimatedFee,query);
+							if(iFBAEstimatedFeeService.selectCount(query)>0) {
+								iFBAEstimatedFeeService.update(fBAEstimatedFee,query);
 							}else {
-								fBAEstimatedFeeMapper.insert(fBAEstimatedFee);
+								iFBAEstimatedFeeService.save(fBAEstimatedFee);
 							}
 						} catch (Exception e) {
 							if(mlog.length()==0){

@@ -23,7 +23,7 @@ public interface IAssemblyService extends IService<Assembly> {
 	
 	
 	List<Assembly> selectAssemblySub(String mainmid);
-	
+	public List<Assembly> selectBySubid(String materialid);
 	List<Map<String, Object>> selectBySubid(String materialid,String shopid);
 	List<Map<String, Object>> selectByMainDetailmid(String materialid,String warehouseid);
 	Integer findCanAssembly(String materialid, String warehouseid, String shopid);

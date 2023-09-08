@@ -82,4 +82,8 @@ public interface IProductInPresaleService extends IService<ProductInPresale>{
 	public IPage<Map<String, Object>> listProduct(ProductPresaleListDTO dto);
 
 	void replaceBatch(List<ProductInPresale> preList);
+
+	List<Map<String, Object>> getProductPreSalesByMonth(String sku, String marketplaceid, String groupid);
+
+	List<Map<String, Object>> getProductPreSales(String sku, String marketplaceid, String groupid, String month);
 }

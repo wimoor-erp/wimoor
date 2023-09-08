@@ -26,7 +26,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 @Mapper
 public interface WarehouseShelfInventoryMapper extends BaseMapper<WarehouseShelfInventory> {
 	WarehouseShelfInventorySummaryVo sumByShelf(WarehouseShelf item);
-	List<WarehouseShelfInventoryVo> findByMaterial(@Param("shopid")String shopid,@Param("addressid")String warehouseid,@Param("materialid")String materialid);
+	List<WarehouseShelfInventoryVo> findByMaterial(@Param("shopid")String shopid,@Param("addressid")String addressid,@Param("warehouseid")String warehouseid,@Param("materialid")String materialid);
 	public IPage<WarehouseShelfInventoryVo> getUnShelfInventoryList(Page<?> page,@Param("param") Map<String, Object> param);
 	public IPage<WarehouseShelfInventoryVo> getShelfInventoryList(Page<?> page,@Param("param") Map<String, Object> param);
 	public IPage<WarehouseShelfInventoryVo> getShelfInventoryStockList(Page<?> page,@Param("param") Map<String, Object> param);

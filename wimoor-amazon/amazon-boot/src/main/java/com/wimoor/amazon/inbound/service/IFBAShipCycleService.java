@@ -19,4 +19,5 @@ public interface IFBAShipCycleService extends IService<FBAShipCycle>{
 	
 	public Map<String,FBAShipCycle> getFbaShipCycle(String groupid,String marketplaceid);
 	public int updateStockCycleTransType(FBAShipCycle cycle, UserInfo user) ;
+
 }

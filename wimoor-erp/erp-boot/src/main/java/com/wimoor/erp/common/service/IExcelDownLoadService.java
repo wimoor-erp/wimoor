@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import com.wimoor.common.user.UserInfo;
+import com.wimoor.erp.material.pojo.entity.MaterialConsumable;
+import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 
 public interface IExcelDownLoadService {
 	
@@ -42,7 +44,7 @@ public interface IExcelDownLoadService {
 
 	void uploadMaterialSupplierFile(UserInfo user, Row info);
 
-	void uploadMaterialConsumableFile(UserInfo user, Row info);
+	MaterialConsumableVO uploadMaterialConsumableFile(UserInfo user, Row info);
 
 	void uploadMaterialCustomsFile(UserInfo user, Row info);
 

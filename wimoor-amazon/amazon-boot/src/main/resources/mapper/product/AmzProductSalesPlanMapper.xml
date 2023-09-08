@@ -20,12 +20,14 @@
     <select id="getPlanModel"  resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDTO">
           select    
 	              0  amount,
+	            
 		          m.*
-		         <if test="dto.marketplaceids!=null or dto.status!=null or dto.pidlist!=null or dto.currentRank=='avgsales' or dto.currentRank=='sales_seven' or dto.currentRank=='sales_month'">
-		         ,v2.*
+		         <if test="dto.marketplaceids!=null   or dto.different=='avgsales'  or dto.status!=null or dto.pidlist!=null or dto.currentRank=='avgsales' or dto.currentRank=='sales_seven' or dto.currentRank=='sales_month'">
+		          ,v2.avgsales-m.marketsalesday differentsales,v2.*
 		         </if>
 		  from (
 		  	 select  msku,max(p.shopid) shopid,max(p.groupid) groupid,
+		  	         
 				  	 <if test="dto.plantype=='ship'">
 		               SUM(needship) needship,
 		  	           SUM(needshipfba) needshipfba,
@@ -43,6 +45,8 @@
 						   )
 		                 then needship else 0 end ) marketneedship
 		              </if>
+		              
+		             
 		  	          <if test="dto.plantype=='purchase'">
 		               ,SUM(case when p.marketplaceid in (
 		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
@@ -59,8 +63,12 @@
 		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
 								 #{market,jdbcType=CHAR} 
 						   </foreach>		)
-		  	           
 		  	           then salesday else 0 end ) marketsalesday
+		  	           ,SUM(case when p.marketplaceid in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		)
+		  	           then avgsales else 0 end ) marketavgsales
 		  	           ,MIN(case when p.marketplaceid in (
 		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
 								 #{market,jdbcType=CHAR} 
@@ -77,6 +85,7 @@
 		              </if>
 		  	            ,SUM(salesday) marketsalesday
 		  	            ,MIN(short_time)  short_time
+		  	            ,SUM(avgsales) marketavgsales
 		  	         </if>
 		  	 from t_amz_product_sales_plan p
 		  	    <if test="dto.marketplaceids!=null">
@@ -110,6 +119,7 @@
 				    or dto.pidlist!=null 
 				    or dto.small!=null 
 				    or dto.currentRank=='avgsales' 
+				    or dto.different=='avgsales' 
 				    or dto.currentRank=='sales_seven' 
 				    or dto.currentRank=='sales_month'
 				    or dto.pidlist!=null
@@ -189,6 +199,9 @@
             <if test="dto.marketplaceids!=null or dto.status!=null or dto.pidlist!=null or dto.small!=null or dto.pidlist!=null or dto.search!=null">
 			     and v2.vfield>0
 		    </if>
+		    <if test="dto.different=='avgsales'">
+		         and v2.avgsales>m.marketavgsales
+		    </if>
 		    <if test="dto.shortdays=='15'">
 		         and m.short_time &lt;=date_add(now(), interval 15 day)
 		    </if>
@@ -225,7 +238,14 @@
 				 ifnull(p.needship,0) amount
 				 ,0 reallyamount 
 			 FROM (
-		select p.sku sku,
+		select  
+		       p.sku sku,
+		        <if test="mskus!=null">
+		         p.msku msku,
+		        </if>
+		       <if test="msku!=null">
+		         max(p.msku) msku,
+		        </if>
 		       max(info.asin) asin,
                max(auth.id) amazonauthid,
                max(auth.shop_id) shopid,
@@ -234,7 +254,7 @@
 	           p.marketplaceid  marketplaceid,
 		       max(case when mk.region='EU' then '欧洲' ELSE mk.name END ) marketname,
 		       max(case when mk.region='EU' then 'EU' ELSE mk.market END ) country,
-		       ifnull(max(o.msku),max(info.sku)) msku,
+		       
 		       sum(t.sales_week) sumweek,
 		       sum(t.sales_seven) sumseven,
 		       sum(t.sales_month) summonth,
@@ -258,7 +278,16 @@
 			    <if test="groupid!=null">
 			      and auth.groupid=#{groupid,jdbcType=CHAR}
 			    </if>
+			    <if test="msku!=null">
 				AND p.msku=#{msku,jdbcType=CHAR}
+				</if>
+				 <if test="mskus!=null">
+				AND p.msku in (
+				     <foreach collection="mskus" item="mskuitem" index="index" separator=",">
+						  #{mskuitem,jdbcType=CHAR}
+					 </foreach>			
+				)
+				</if>
 				<if test="groupids!=null and plansimple==true">
 				  and auth.groupid in (
 				                   <foreach collection="groupids" item="group" index="index" separator=",">
@@ -273,7 +302,11 @@
 								    </foreach>			
 				           )
 				</if>
-	            group by p.sku,p.marketplaceId
+	            group by 
+	             <if test="mskus!=null">
+				  p.msku, 
+				</if>
+	            p.sku,p.marketplaceId
 		) v
 	    LEFT JOIN t_amz_product_sales_plan p  ON p.sku=v.sku AND p.marketplaceid=v.marketplaceid AND p.amazonauthid=v.amazonauthid    and p.shopid=v.shopid and p.groupid=v.groupid and p.msku=v.msku
         LEFT JOIN t_inventory_report r   ON r.sku=v.sku AND r.marketplaceid=v.marketplaceid AND r.amazonAuthId=v.amazonauthid

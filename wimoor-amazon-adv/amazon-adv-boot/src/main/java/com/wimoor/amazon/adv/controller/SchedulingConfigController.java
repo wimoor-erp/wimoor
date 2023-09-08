@@ -15,6 +15,7 @@ import com.wimoor.amazon.adv.common.service.IAmzAdvPortfoliosService;
 import com.wimoor.amazon.adv.common.service.IAmzAdvRemindService;
 import com.wimoor.amazon.adv.common.service.IAmzAdvReportHandlerService;
 import com.wimoor.amazon.adv.common.service.IAmzAdvReportService;
+import com.wimoor.amazon.adv.common.service.IAmzAdvSnapshotHandlerService;
 import com.wimoor.amazon.adv.common.service.impl.AmzAdvReportHandlerServiceImpl.AdvRecordType;
 import com.wimoor.amazon.adv.sp.service.impl.AmzAdvCampaignServiceImpl.CampaignType;
 import com.wimoor.common.GeneralUtil;
@@ -35,7 +36,8 @@ public class SchedulingConfigController {
 	IAmzAdvRemindService amzAdvRemindService;
     @Resource
     IAmazonReportAdvSummaryService amazonReportAdvSummaryService;
-    
+    @Resource
+    IAmzAdvSnapshotHandlerService iAmzAdvSnapshotHandlerService;
 	@GetMapping("/refreshListPortfolios")
 	public Result<?>  refreshListPortfolios() {
 	     // TODO Auto-generated method stub
@@ -52,7 +54,7 @@ public class SchedulingConfigController {
 	@GetMapping("/requestReport")
 	public Result<?> requestReport(){
 		 Calendar c=Calendar.getInstance();
-		 int[] days= {1,7,30};
+		 int[] days= {4,10,33};
 		 int day=days[c.get(Calendar.HOUR_OF_DAY)%3];
 		 c.add(Calendar.DATE, day*-1);
 		 amzAdvReportHandlerService.requestReport(c.getTime(),null,false);
@@ -110,26 +112,26 @@ public class SchedulingConfigController {
 
 	@GetMapping("/requestSnapshot")
 	public Result<?> requestSnapshot(){
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.campaigns, CampaignType.sp);
-			 amzAdvReportHandlerService.readSnapshot();
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.campaigns, CampaignType.hsa);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.adGroups, CampaignType.sp);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.keywords, CampaignType.sp);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.keywords, CampaignType.hsa);
-			 amzAdvReportHandlerService.readSnapshot();
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.productAds, CampaignType.sp);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.negativeKeywords, CampaignType.sp);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.campaignNegativeKeywords, CampaignType.sp);
-			 amzAdvReportHandlerService.readSnapshot();
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.targets, CampaignType.sp);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.negativeTargets, CampaignType.sp);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.campaigns, CampaignType.sd);
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.adGroups, CampaignType.sd);
-			 amzAdvReportHandlerService.readSnapshot();
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.productAds, CampaignType.sd);
-			 amzAdvReportHandlerService.readSnapshot();
-			 amzAdvReportHandlerService.requestSnapshot(AdvRecordType.targets,CampaignType.sd);
-			 amzAdvReportHandlerService.requestHsaVideoSnapshot();
+		     iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.campaigns, CampaignType.sp);
+		     iAmzAdvSnapshotHandlerService.readSnapshot();
+		     iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.campaigns, CampaignType.hsa);
+		     iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.adGroups, CampaignType.sp);
+		     iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.keywords, CampaignType.sp);
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.keywords, CampaignType.hsa);
+			 iAmzAdvSnapshotHandlerService.readSnapshot();
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.productAds, CampaignType.sp);
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.negativeKeywords, CampaignType.sp);
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.campaignNegativeKeywords, CampaignType.sp);
+			 iAmzAdvSnapshotHandlerService.readSnapshot();
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.targets, CampaignType.sp);
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.negativeTargets, CampaignType.sp);
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.campaigns, CampaignType.sd);
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.adGroups, CampaignType.sd);
+			 iAmzAdvSnapshotHandlerService.readSnapshot();
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.productAds, CampaignType.sd);
+			 iAmzAdvSnapshotHandlerService.readSnapshot();
+			 iAmzAdvSnapshotHandlerService.requestSnapshot(AdvRecordType.targets,CampaignType.sd);
+			 iAmzAdvSnapshotHandlerService.requestHsaVideoSnapshot();
 		 return Result.success();
 	}
 	
@@ -163,7 +165,7 @@ public class SchedulingConfigController {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				amzAdvReportHandlerService.readSnapshot();
+				iAmzAdvSnapshotHandlerService.readSnapshot();
 			}
 		}).start();
 		 return Result.success();
@@ -171,12 +173,12 @@ public class SchedulingConfigController {
 	
 	@GetMapping("/readSnapshotById")
 	public Result<?> readSnapshotById(String id){
-	     amzAdvReportHandlerService.readSnapshot(id);
+		iAmzAdvSnapshotHandlerService.readSnapshot(id);
 		 return Result.success();
 	}
 	@GetMapping("/requestHsaVideoSnapshot")
 	public Result<?> requestHsaVideoSnapshot(String id){
-		 amzAdvReportHandlerService.requestHsaVideoSnapshot();
+		iAmzAdvSnapshotHandlerService.requestHsaVideoSnapshot();
 		 return Result.success();
 	}
 }

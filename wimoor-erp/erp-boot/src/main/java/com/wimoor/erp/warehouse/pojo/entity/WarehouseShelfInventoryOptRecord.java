@@ -44,6 +44,9 @@ public class WarehouseShelfInventoryOptRecord extends BaseEntity{
     @ApiModelProperty(value = "公司ID")
     private BigInteger shopid;
 
+    @ApiModelProperty(value = "仓库ID")
+    private BigInteger warehouseid;
+    
     @ApiModelProperty(value = "操作数量")
     private Integer quantity;
 

@@ -12,6 +12,7 @@ public interface  IPurchasePlanService extends IService<PurchasePlan> {
 
 	public Map<String,Object> getLast3Form(Map<String, Object> map);
 	public String getLastForm(Map<String, Object> map);
+	public Map<String,Object> getLastForms(List<String> ids);
 	public void changePurchasePlanModelItem(Map<String, Object> param2);
 
 	public List<PurchasePlan> getPlanByShopid(String shopid) throws ERPBizException;

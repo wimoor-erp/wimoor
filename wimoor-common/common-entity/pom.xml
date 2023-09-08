@@ -41,7 +41,17 @@
             <artifactId>spring-boot-starter-aop</artifactId>
             <optional>true</optional>
         </dependency>
- 
+ 		 <dependency>
+		    <groupId>org.apache.poi</groupId>
+		    <artifactId>poi</artifactId>
+		    <version>3.16</version>
+		</dependency>
+		 <dependency>
+			    <groupId>org.apache.poi</groupId>
+			    <artifactId>poi-ooxml</artifactId>
+			    <version>3.16</version>
+         </dependency>
+         
 		 <dependency>
 		    <groupId>com.wimoor</groupId>
 		    <artifactId>common-mvc</artifactId>

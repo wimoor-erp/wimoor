@@ -67,7 +67,6 @@ import com.wimoor.manager.pojo.entity.SysTariffPackages;
 import com.wimoor.manager.service.IManagerLimitService;
 import com.wimoor.manager.service.ISysTariffPackagesService;
 import com.wimoor.sys.email.service.ISysMailManagerService;
-import com.wimoor.sys.email.service.impl.MailService;
 import com.wimoor.util.SpringUtil;
 import com.wimoor.util.UUIDUtil;
 

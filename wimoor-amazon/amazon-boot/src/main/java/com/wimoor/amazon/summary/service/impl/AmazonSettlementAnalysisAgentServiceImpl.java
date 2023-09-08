@@ -150,8 +150,8 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 	    	 QueryWrapper<AmzSettlementAccReport> query = new QueryWrapper<AmzSettlementAccReport>();
 	    	 query.eq("amazonauthid",amazonAuthority.getId());
 	    	 //query.in("settlement_id", "18335746651");
-	    	query.ge("deposit_date","2023-06-01");
-	     	query.lt("deposit_date","2023-07-01");
+	    	query.ge("deposit_date","2023-07-01");
+	     	query.lt("deposit_date","2023-08-01");
 	     	 List<AmzSettlementAccReport> list = amzSettlementAccReportMapper.selectList(query);
 				if(list!=null && list.size()>0) {
 					System.out.println("sellerid:"+amazonAuthority.getSellerid()+"     size:"+list.size()+"    time:"+new Date());

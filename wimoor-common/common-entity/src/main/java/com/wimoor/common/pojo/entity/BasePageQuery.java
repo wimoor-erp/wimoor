@@ -114,7 +114,7 @@ public class BasePageQuery {
  	    }
 	}
 	
-	public <T> IPage<T>  getListPage(List<T> mylist){
+	public <T> void sort(List<T> mylist){
 		Collections.sort(mylist, new Comparator<T>() {
 			@Override
 			public int compare(T o1, T o2) {
@@ -127,8 +127,13 @@ public class BasePageQuery {
 				 }
 			}
 		});
-		
-
+	}
+	
+	public <T> IPage<T>  getListPage(List<T> mylist){
+		 if(StrUtil.isNotBlank(sort)) {
+	        	if(StrUtil.isBlank(order)) {order="asc";} 
+	        	sort(mylist);
+		 }
 		IPage<T> result=new Page<T>(currentpage,pagesize,mylist.size());
 		if(mylist.size()>0) {
 			result.setRecords(mylist.subList((currentpage-1)*pagesize, mylist.size()>currentpage*pagesize?currentpage*pagesize:mylist.size()));

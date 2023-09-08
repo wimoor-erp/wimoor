@@ -99,6 +99,11 @@ public class WarehouseShelfInventoryOptRecordServiceImpl extends ServiceImpl<War
 				queryinv.eq(WarehouseShelfInventory::getShopid, shopid);
 				queryinv.eq(WarehouseShelfInventory::getMaterialid, item.getMaterialid());
 				queryinv.eq(WarehouseShelfInventory::getShelfid, item.getShelfid());
+				if(item.getWarehouseid()!=null) {
+					queryinv.eq(WarehouseShelfInventory::getWarehouseid, item.getWarehouseid());
+				}else {
+					queryinv.isNull(WarehouseShelfInventory::getWarehouseid);
+				}
 				WarehouseShelfInventory inv = iWarehouseShelfInventoryService.getOne(queryinv);
 				item.setShelfInventory(inv);
 			}

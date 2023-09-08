@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import com.amazon.spapi.model.catalogitems.Dimension;
 import com.amazon.spapi.model.catalogitems.Dimensions;
@@ -101,8 +102,8 @@ public class ProductInOptServiceImpl extends ServiceImpl<ProductInOptMapper, Pro
 	}
 	
 	@Override
-	//@Cacheable(value = "ProductInOpt#600")
-	public ProductInOpt getById(Serializable id) {
+	@Cacheable(value = "ProductInOpt#600")
+	public ProductInOpt getCacheableById(Serializable id) {
 		// TODO Auto-generated method stub
 		return super.getById(id);
 	}
