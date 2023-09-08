@@ -87,7 +87,11 @@
 	  </if>
 	   <if test="param.type=='parentasin'">
 	       m.parentasin,max(g.id) groupid,
-	       max(mk.marketplaceid) marketplaceid,sum(case when m.parentasin=m.asin then 0 else 1 end ) subnum,
+	       max(mk.marketplaceid) marketplaceid,
+	       sum(case when m.parentasin=m.asin then 0 else 1 end ) subnum,
+	  </if>
+	    <if test="param.type=='month'">
+	      m.posted_date,
 	  </if>
 	     max(m.currency) currency,
 		 max(g.name) groupname,
@@ -237,6 +241,9 @@
 	  </if>
 	   <if test="param.type=='parentasin'">
 	     group by m.amazonAuthId,m.marketplace_name,m.parentasin
+	  </if>
+	   <if test="param.type=='month'">
+	      group by  m.posted_date
 	  </if>
 	</select>
 	

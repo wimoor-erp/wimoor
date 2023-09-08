@@ -21,7 +21,7 @@ public interface IAmzAdvCampaignService extends IService<AmzAdvCampaigns>{
 	
 	public List<AmzAdvCampaigns> getManualSpCampaignsByprofile(BigInteger profileid);
    
-	public List<AmzAdvCampaigns> getSpCampaignsNotArchivedByprofile(BigInteger profileid) ;
+	public List<AmzAdvCampaigns> getSpCampaignsNotArchivedByprofile(BigInteger profileid, String name) ;
 	/**
 	 * A list of up to 100 campaigns to be created. 
 	 * Required fields for campaign creation are: 

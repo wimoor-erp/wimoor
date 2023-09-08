@@ -13,9 +13,10 @@ import java.util.Map.Entry;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -240,17 +241,17 @@ public class AdvertProductTargeManagerController {
 		return list;
 	}
 	
-	@ResponseBody
-	@RequestMapping("/getTargetBidRecommendations")
-	public Object getAdGroupBidRecommendations(HttpServletRequest request, Model model){
+	@PostMapping("/getTargetBidRecommendations")
+	public Result<?> getAdGroupBidRecommendations(@RequestBody Map<String,Object> params ){
+		//String profileid,String adGroupid,String campaignId,String expression,String adtype
+		String profileid=params.get("profileid").toString();
+		String adGroupid=params.get("adGroupid").toString();
+		String campaignId=params.get("campaignId").toString();
+		String expression=params.get("expression").toString();
+		String adtype=params.get("adtype").toString();
 		UserInfo user = UserInfoContext.get();
-		String profileid = request.getParameter("profileid");
-		String adGroupid = request.getParameter("adGroupid");
-		String campaignId = request.getParameter("campaignId");
-		String expression = request.getParameter("expression");
-		String adtype = request.getParameter("adtype");
 		if(StringUtil.isEmpty(profileid) || StringUtil.isEmpty(expression)) {
-			return null;
+			return Result.failed();
 		}
 		JSONObject jsonobject = GeneralUtil.getJsonObject(expression);
 		JSONArray expressionArray = jsonobject.getJSONArray("expressions");
@@ -261,15 +262,15 @@ public class AdvertProductTargeManagerController {
 			}else {
 				campaignIdInt = new BigInteger(campaignId);
 			}
-			return amzAdvBidReCommendService.amzRecommendationsBidsForTarget_HSA(user, new BigInteger(profileid), campaignIdInt, expressionArray);
+			return Result.success(amzAdvBidReCommendService.amzRecommendationsBidsForTarget_HSA(user, new BigInteger(profileid), campaignIdInt, expressionArray));
 		}else {
-			return amzAdvBidReCommendService.amzGetTargetBidRecommendations(user, new BigInteger(profileid), adGroupid, expressionArray);
+			return Result.success(amzAdvBidReCommendService.amzGetTargetBidRecommendations(user, new BigInteger(profileid), adGroupid, expressionArray));
 		}
 	}
 	
 	@ApiOperation("查询广告投放")
 	@PostMapping("/getProductTargeList")
-	public Result<PageList<Map<String,Object>>> getProductTargeListAction(@ApiParam("查询广告") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getProductTargeListAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query);
 		String state = query.getState();
@@ -447,7 +448,7 @@ public class AdvertProductTargeManagerController {
 	
 	@ApiOperation("查询广告投放图表")
 	@PostMapping("/getProductTargeChart")
-	public Result<Map<String,Object>> getProductTargeChartAction(@ApiParam("查询广告") QueryForList query){
+	public Result<Map<String,Object>> getProductTargeChartAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		String state = query.getState();
 		String bytime = query.getBytime();
@@ -465,7 +466,7 @@ public class AdvertProductTargeManagerController {
 	
 	@ApiOperation("查询广告否定投放")
 	@PostMapping("/getNegativaTargeList")
-	public Result<PageList<Map<String,Object>>> getNegativaTargeListAction(@ApiParam("查询广告") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getNegativaTargeListAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		String state = query.getState();
 		String search =query.getSearch();
@@ -590,7 +591,7 @@ public class AdvertProductTargeManagerController {
 	
 	@ApiOperation("查询广告投放Query")
 	@PostMapping("/getProductTargeQueryList")
-	public Result<PageList<Map<String,Object>>> getTargeQueryListAction(@ApiParam("查询广告") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getTargeQueryListAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		String state = query.getState();
 		String name = query.getName();
@@ -641,7 +642,7 @@ public class AdvertProductTargeManagerController {
 	
 	@ApiOperation("查询广告投Query图表")
 	@PostMapping("/getProductTargeQueryChart")
-	public Result<Map<String,Object>> getProductTargeQueryChartAction(@ApiParam("查询广告") QueryForList query){
+	public Result<Map<String,Object>> getProductTargeQueryChartAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		String state = query.getState();
 		String bytime = query.getBytime();
@@ -699,7 +700,7 @@ public class AdvertProductTargeManagerController {
 	
 	@ApiOperation("查询广告投放汇总")
 	@PostMapping("/getSumProductTarge")
-	public Result<Object> getSumProductTargeQueryAction(@ApiParam("查询广告") QueryForList query){
+	public Result<Object> getSumProductTargeQueryAction(@ApiParam("查询广告") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		map.put("shopid", user.getCompanyid());

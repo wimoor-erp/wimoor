@@ -48,5 +48,7 @@ public interface PurchaseFormMapper extends BaseMapper<PurchaseForm> {
 	List<Map<String,Object>> findSupplierByForm(@Param("formid")String formid);
 
 	Map<String, Object> selectPurchaseNumAllStatus(@Param("param")Map<String, Object> param);
+
+	List<Map<String, Object>> findeLastsByMaterialids(@Param("list")List<String> ids);
 	 
 }

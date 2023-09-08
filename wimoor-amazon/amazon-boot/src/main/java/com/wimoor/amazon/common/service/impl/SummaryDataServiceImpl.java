@@ -140,7 +140,7 @@ public List<ProductSalesRankVo> top5(SummaryMutilParameterQueryDTO parameter) {
 
 
 
-public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, String sku, String marketplaceid,Integer daysize , UserInfo user) {
+public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, String sku, String marketplaceid,Integer daysize ,String linetype, UserInfo user) {
 	SimpleDateFormat sdf1 = new SimpleDateFormat("MM.dd");
 	Map<String, Object> param = new HashMap<String, Object>();
 	Calendar c = Calendar.getInstance();
@@ -184,7 +184,12 @@ public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, Strin
 	Map<String, Object> tempmap = new HashMap<String, Object>();
 	if (list != null && list.size() > 0) {
 		for (int i = 0; i < list.size(); i++) {
-			tempmap.put(list.get(i).getSku() + sdf.format(list.get(i).getPurchaseDate()), list.get(i).getQuantity());
+			if(linetype!=null&&linetype.equals("order")) {
+				tempmap.put(list.get(i).getSku() + sdf.format(list.get(i).getPurchaseDate()), list.get(i).getOrdersum());
+			}else {
+				tempmap.put(list.get(i).getSku() + sdf.format(list.get(i).getPurchaseDate()), list.get(i).getQuantity());
+			}
+			
 		}
 	}
 	 Calendar today=Calendar.getInstance();

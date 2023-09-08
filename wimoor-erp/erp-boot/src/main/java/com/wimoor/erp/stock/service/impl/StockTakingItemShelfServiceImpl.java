@@ -39,7 +39,10 @@ public void stockTakingInvOperate(StockTaking stocktaking, UserInfo user) {
 			for (int j = 0; j < list.size(); j++) {
 				 StockTakingItemShelf map = list.get(j);
 				int amount = map.getAmount();// 盘点数量
-				WarehouseShelfInventory inv = iWarehouseShelfInventoryService.lambdaQuery().eq(WarehouseShelfInventory::getMaterialid,map.getMaterialid())
+				WarehouseShelfInventory inv = iWarehouseShelfInventoryService.lambdaQuery()
+				.eq(WarehouseShelfInventory::getMaterialid,map.getMaterialid())
+				.eq(WarehouseShelfInventory::getWarehouseid, map.getWarehouseid())
+				.eq(WarehouseShelfInventory::getShopid, stocktaking.getShopid())
 				.eq(WarehouseShelfInventory::getShelfid, map.getShelfid()).one();
 				 WarehouseShelfInventoryOptRecord invopt=new WarehouseShelfInventoryOptRecord();
 				 invopt.setMaterialid(map.getMaterialid());
@@ -47,6 +50,7 @@ public void stockTakingInvOperate(StockTaking stocktaking, UserInfo user) {
 				 invopt.setFormid(stocktaking.getId());
 				 invopt.setOperator(new BigInteger(user.getId()));
 				 invopt.setShelfid(map.getShelfid());
+				 invopt.setWarehouseid(map.getWarehouseid());
 				 invopt.setShopid(new BigInteger(user.getCompanyid()));
 				 if(inv!=null) {
 					 if(amount>inv.getQuantity()) {

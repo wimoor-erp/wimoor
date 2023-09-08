@@ -31,8 +31,11 @@ public class ErpPurchaseAlibabaProductitems implements Serializable {
     @TableField("specId")
     private String specId;
 
-    @TableField("productID")
+    @TableId("productID")
     private BigInteger productID;
+    
+    @TableField("offerid")
+    private String offerid ;
     
     @TableField("skuInfos")
     private String skuInfos;

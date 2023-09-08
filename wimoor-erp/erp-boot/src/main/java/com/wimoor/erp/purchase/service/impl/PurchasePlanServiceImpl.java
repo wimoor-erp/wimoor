@@ -102,6 +102,47 @@ public class PurchasePlanServiceImpl extends  ServiceImpl<PurchasePlanMapper,Pur
 		return list;
 	}
  
+	public Map<String,Object> getLastForms(List<String> ids) {
+	    Map<String,Object> result=new HashMap<String,Object>();
+		if(ids==null||ids.size()==0) {
+			return result;
+		}
+		String lastform = "";
+		SimpleDateFormat sdf4 = new SimpleDateFormat("MM-dd");
+		List<Map<String, Object>> datas = purchaseFormService.getLastFormsByMaterials(ids);
+		for(Map<String, Object> data:datas) {
+			if (data != null) {
+				String materialid=data.get("materialid").toString();
+				Object creatdate = data.get("createdate");
+				if (creatdate != null) {
+					Date time = GeneralUtil.getDate(creatdate);
+					lastform =GeneralUtil.formatDate(time)  ;
+				}
+				lastform = lastform + "  " + data.get("amount");
+				Object auditstatus = data.get("auditstatus");
+				if (auditstatus != null) {
+					String entryid = data.get("entryid").toString();
+					PurchaseFormEntry entry = purchaseFormEntryMapper.selectById(entryid);
+					lastform = lastform + " <br> " + PurchaseFormEntry.getAuditstatusName(entry);
+				}
+				result.put(materialid, lastform);
+			}
+		}
+		
+		List<AssemblyForm> forms = assemblyFormService.getLastFormsByMaterials(ids);
+		for(AssemblyForm form:forms) {
+			if (form != null) {
+				lastform = sdf4.format(form.getCreatedate());
+				lastform = lastform + " " + form.getAmount();
+				lastform = lastform + "  <br> " + form.getAuditstatusName();
+				result.put(form.getMainmid(), lastform);
+			}
+		}
+			
+		return result;
+	}
+
+	
 	public String getLastForm(Map<String, Object> map) {
 		Object id = map.get("id");
 		Object issfg = map.get("issfg");

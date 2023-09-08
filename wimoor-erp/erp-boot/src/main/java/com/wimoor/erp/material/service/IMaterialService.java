@@ -23,6 +23,7 @@ import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
 import com.wimoor.erp.material.pojo.entity.MaterialCustomsItem;
+import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialInfoVO;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
 
@@ -128,5 +129,7 @@ public interface IMaterialService extends IService<Material> {
 
 	String uploadMaterialImg(UserInfo userinfo, String materialid, InputStream inputStream, String filename,
 			String oldpictureid);
+	
+	public void saveMaterialConsumable(List<MaterialConsumableVO> list,UserInfo user,String id);
 
 }

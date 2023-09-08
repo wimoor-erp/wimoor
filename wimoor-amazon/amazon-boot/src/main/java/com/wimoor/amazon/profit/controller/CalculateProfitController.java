@@ -92,7 +92,7 @@ public class CalculateProfitController {
 			try {
 				CostDetail costDetail=cuntryDetail.get(countryList.get(i));
 			     if(costDetail!=null) {
-				    costDetail = this.profitService.getCostDetail(costDetail, typeId, referralrate, isSmlAndLight,profitcfg);
+				    costDetail = this.profitService.getCostDetail(query,costDetail, typeId, referralrate, isSmlAndLight,profitcfg);
 				    cuntryDetail.put(countryList.get(i), costDetail);
 				} else {
 					cuntryDetail.put(countryList.get(i), null);

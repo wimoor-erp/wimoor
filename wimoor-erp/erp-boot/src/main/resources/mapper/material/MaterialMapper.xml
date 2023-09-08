@@ -205,7 +205,10 @@
 	</select>
 
 	<select id="findConsumable" resultType="java.util.Map" parameterType="java.util.Map">
-	 select * from (
+	 select *,case when fulfillable>stockingCycle  then case when needsuggest&lt;=0 then 0 else  needsuggest end 
+	                                      else case when needsuggest>stockingCycle then needsuggest else
+	                                      case when needsuggest>=0 then stockingCycle-fulfillable+needsuggest else 0 end end 
+	                    end  suggest from (
 		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
 			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,m.brand brand,
 			m.price price, ifnull(i.fulfillable,0) fulfillable,ifnull(i.inbound,0) inbound,m.isDelete isDelete,
@@ -217,7 +220,8 @@
 			(select   count(submaterialid)  from t_erp_material_consumable where submaterialid=m.id) mainsubnum,
 			case when ifnull(sc.stockingCycle,0) then ifnull(sc.stockingCycle,0) 
 			else CAST(ROUND((ifnull(subi.needamount,0)+ifnull(subi.needinboundamount,0))*ifnull(s.amount,0)/100, 0) AS SIGNED)  end stockingCycle,
-			ci.amount planamount,case when ifnull(ci.amount,0)>0 then 1 else 0 end isplan,w.id warehouseid,w.name warehousename
+			ci.amount planamount,case when ifnull(ci.amount,0)>0 then 1 else 0 end isplan,w.id warehouseid,w.name warehousename,
+			ifnull(subi.needinboundamount,0)+ifnull(subi.needamount,0)-ifnull(i.inbound,0)-ifnull(i.fulfillable,0)  needsuggest
 		from t_erp_material m  
 		left join  (select  c.submaterialid materialid,
 					   sum( case when iv.status like 'inbound_%' then iv.quantity*c.amount else 0 end ) needinboundamount,
@@ -417,8 +421,8 @@
 			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,m.brand brand,
 			m.price price, ifnull(i.fulfillable,0) fulfillable,m.isDelete isDelete,
 			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
-			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
-			createdate,m.purchaseUrl, d.length,d.width,d.height ,d.weight,
+			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate createdate,
+			m.purchaseUrl, d.length,d.width,d.height ,d.weight,
 			<if test='param.taglist != null '>
 			vt.tagids,
 			 </if>
@@ -847,7 +851,7 @@
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_userinfo u on u.id=m.owner
 		left join t_erp_material_brand bran on bran.id=m.brand
-		left join ( select shopid,warehouseid,materialid ,
+		left join ( select shopid,materialid,max(warehouseid) warehouseid ,
 					sum( case when status like 'inbound_%' then quantity else 0 end ) inbound,
 					sum( case when status like 'outbound_%' then quantity else 0 end ) outbound,
 					sum( case when status='fulfillable' then quantity else 0 end ) fulfillable

@@ -21,6 +21,7 @@ public class PlanDTO extends BasePageQuery{
 	String shortdays;
 	String search ;
 	Boolean selected ;
+	Boolean expendall;
 	String status ;
 	String status2;
 	String owner ;
@@ -36,6 +37,7 @@ public class PlanDTO extends BasePageQuery{
 	String skuarray ;
 	String name;
 	String small;
+	String different;
 	String remark ;
 	String currentRank;
 	String hasAddFee;

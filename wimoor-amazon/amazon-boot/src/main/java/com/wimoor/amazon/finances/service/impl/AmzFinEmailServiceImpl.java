@@ -1,6 +1,8 @@
 package com.wimoor.amazon.finances.service.impl;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,15 +10,24 @@ import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 
+import org.springframework.stereotype.Service;
+
+import com.wimoor.admin.pojo.dto.SysEmailDTO;
+import com.wimoor.amazon.api.AdminClientOneFeignManager;
+import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
+import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.auth.service.IAmazonSellerMarketService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.finances.mapper.AmzFinAccountMapper;
+import com.wimoor.amazon.finances.service.IAmzFinEmailService;
 import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.FileUpload;
 
-public class AmzFinEmailServiceImpl {
+@Service
+public class AmzFinEmailServiceImpl implements IAmzFinEmailService{
 	@Resource
 	private InventoryReportMapper inventoryReportMapper;
 	@Resource
@@ -26,7 +37,15 @@ public class AmzFinEmailServiceImpl {
 	@Resource
 	IExchangeRateHandlerService exchangeRateHandlerService;
 	@Resource
+	IAmazonAuthorityService amazonAuthorityService;
+	@Resource
 	AmzFinAccountMapper amzFinAccountMapper;
+	@Resource
+	ErpClientOneFeignManager erpClientOneFeignManager;
+	@Resource
+	AdminClientOneFeignManager adminClientOneFeignManager;
+	@Resource
+	FileUpload fileUpload ;
 	public Map<String, Map<String,Object>> getTotalFinAcc(List<Map<String, Object>> FBAInvCostList,
 			List<Map<String, Object>> allFinAccountList, String shopid) {
 		Map<String,Map<String,Object>> result = new HashMap<String,Map<String,Object>>();
@@ -96,7 +115,7 @@ public class AmzFinEmailServiceImpl {
 	
 	
 	public void getFinEmailContent(StringBuffer buf,String shopid,String beginDate,String endDate){
-		List<Map<String, Object>> localInvCostList =null;// inventoryMapper.findInventoryNowCostByShopId(shopid);
+		List<Map<String, Object>> localInvCostList =erpClientOneFeignManager.findInventoryNowCostByShopId(shopid);
 		List<Map<String, Object>> FBAInvCostList = inventoryReportMapper.findFBAInvCostByShopId(shopid);
 		if ((localInvCostList == null || localInvCostList.size() == 0) && (FBAInvCostList == null || FBAInvCostList.size() == 0)) {
 			return;
@@ -241,4 +260,139 @@ public class AmzFinEmailServiceImpl {
 		buf.append("</div>");
 		buf.append("</div>");
 	}
+	
+
+	public void sendWeekEmailDetailTask() {
+		Calendar c=Calendar.getInstance();
+		int j = c.get(Calendar.DAY_OF_WEEK);
+		if(j!=Calendar.MONDAY) {
+			return;
+		}
+		sendWeekEmailDetail() ;
+	}
+
+	public void sendWeekEmailDetail() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				List<String> list = amazonAuthorityService.getAllBossEmalShop();
+				for(String shopid:list) {
+					try {
+						sendWeekEmailDetail(shopid);
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}}).start();
+	}
+	
+	public void sendMonthEmailDetailTask() {
+		Calendar c=Calendar.getInstance();
+		int j = c.get(Calendar.DAY_OF_MONTH);
+		if(j!=1) {
+			return;
+		}
+		sendMonthEmailDetail();
+	
+	}
+	public void sendMonthEmailDetail() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				List<String> list = amazonAuthorityService.getAllBossEmalShop();
+				for(String shopid:list) {
+					try {
+						sendMonthEmailDetail(shopid);
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}}).start();
+		
+		
+	}
+	public void sendWeekEmailDetail(String shopid) {
+		String photoPath = fileUpload.photoServer;
+	    SysEmailDTO dto=new SysEmailDTO();
+	    dto.setToCompany(shopid);
+	    dto.setSubject("Wimoor每周财务汇总");
+		StringBuffer buf = new StringBuffer();
+			buf.append("<includetail>");
+			buf.append("<div style='font:Verdana normal 14px;color:#000;'>");
+			buf.append("<div style='position:relative;'>");
+			buf.append("<div style='background: rgb(239, 239, 239); padding: 40px 0px;'>");
+			buf.append("<div width='800px'>");
+			buf.append("<div style='width:800px;max-device-width: 800px;margin:0px auto;background:#fff;border-top-radius:4px;'>");
+			buf.append("<div style='line-height: 0;'><img src='" + photoPath
+					+ "/temp/header.png' modifysize='71%' diffpixels='15px'></div>");
+			buf.append("<div style='padding: 50px;'>");
+			buf.append("<img src='" + photoPath + "/temp/logo.png'>");
+			buf.append("<div style='text-align: left;font-size:12px;color:#666;margin-top:8px;'>");
+			buf.append("&nbsp;万&nbsp; &nbsp;墨&nbsp; &nbsp;信&nbsp; &nbsp;息&nbsp; &nbsp;科&nbsp; &nbsp;技");
+			buf.append("<span style='color: rgb(0, 0, 0); font-size: 14px;'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>");
+			buf.append("</div>");
+			buf.append("<div style='text-align: left;font-size:14px;color:#666;margin-top:30px;'>");
+//			buf.append("<div style='margin-bottom:15px'>很抱歉，之前发送的财务汇总邮件出现了错误数据，不便之处敬请谅解。这是最新的财务汇总，请查收。</div>");
+			buf.append("<h2 style='margin:0px'>财务一览</h2>");
+			buf.append("<div style='color: #999;font-size:12px;'>时间："
+//					+ "2020年02月01日-2020年02月29日"
+					+ GeneralUtil.formatDate(GeneralUtil.getSevenDayBefore(new Date()), "yyyy年MM月dd日") + "-"
+					+ GeneralUtil.formatDate(GeneralUtil.getYesterday(new Date()), "yyyy年MM月dd日") + "</div>");
+			buf.append("<br>");
+			
+			String beginDate = GeneralUtil.formatDate(GeneralUtil.getSevenDayBefore(new Date()), "yyyy-MM-dd");
+			String endDate = GeneralUtil.formatDate(new Date(), "yyyy-MM-dd");
+			getFinEmailContent(buf, shopid, beginDate, endDate);
+			
+			buf.append("<div style='text-align: center;line-height: 0;'><img src='" + photoPath + "/temp/footer.png'><br><br></div> ");
+			buf.append("</div> </div> </div> </div>");
+			buf.append("<!--<![endif]-->");
+			buf.append("</includetail>");
+			dto.setContent(buf.toString());
+			this.adminClientOneFeignManager.sendBoss(dto);
+		
+	}
+
+
+	
+	public void sendMonthEmailDetail(String shopid) {
+		String photoPath = fileUpload.photoServer;
+	    SysEmailDTO dto=new SysEmailDTO();
+        dto.setToCompany(shopid);
+	    dto.setSubject("Wimoor每月财务汇总");
+		StringBuffer buf = new StringBuffer();
+		buf.append("<includetail>");
+		buf.append("<div style='font:Verdana normal 14px;color:#000;'>");
+		buf.append("<div style='position:relative;'>");
+		buf.append("<div style='background: rgb(239, 239, 239); padding: 40px 0px;'>");
+		buf.append("<div width='800px'>");
+		buf.append("<div style='width:800px;max-device-width: 800px;margin:0px auto;background:#fff;border-top-radius:4px;'>");
+		buf.append("<div style='line-height: 0;'><img src='" + photoPath + "/temp/header.png' modifysize='71%' diffpixels='15px'></div>");
+		buf.append("<div style='padding: 50px;'>");
+		buf.append("<img src='" + photoPath + "/temp/logo.png'>");
+		buf.append("<div style='text-align: left;font-size:12px;color:#666;margin-top:8px;'>");
+		buf.append("&nbsp;万&nbsp; &nbsp;墨&nbsp; &nbsp;信&nbsp; &nbsp;息&nbsp; &nbsp;科&nbsp; &nbsp;技");
+		buf.append("<span style='color: rgb(0, 0, 0); font-size: 14px;'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>");
+		buf.append("</div>");
+		buf.append("<div style='text-align: left;font-size:14px;color:#666;margin-top:30px;'>");
+		buf.append("<h2 style='margin:0px'>财务一览</h2>");
+		buf.append("<div style='color: #999;font-size:12px;'>时间："
+				+ GeneralUtil.formatDate(GeneralUtil.getFirstdayOfMonth(GeneralUtil.getLastMonthday(new Date())), "yyyy年MM月dd日")
+				+ "-" + GeneralUtil.formatDate(GeneralUtil.getLastdayOfMonth(GeneralUtil.getLastMonthday(new Date())), "yyyy年MM月dd日") + "</div>");
+		buf.append("<br>");
+		
+		String beginDate = GeneralUtil.formatDate(GeneralUtil.getFirstdayOfMonth(GeneralUtil.getLastMonthday(new Date())), "yyyy-MM-dd");
+		String endDate = GeneralUtil.formatDate(GeneralUtil.getFirstdayOfMonth(new Date()), "yyyy-MM-dd");
+		getFinEmailContent(buf, shopid, beginDate, endDate);
+		buf.append("<div style='text-align: center;line-height: 0;'><img src='" + photoPath + "/temp/footer.png'><br><br></div> ");
+		buf.append("</div> </div> </div> </div>");
+		buf.append("<!--<![endif]-->");
+		buf.append("</includetail>");
+		dto.setContent(buf.toString());
+		this.adminClientOneFeignManager.sendBoss(dto);
+		
+	}
+
 }

@@ -13,19 +13,24 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
+import com.wimoor.erp.material.pojo.entity.MaterialSupplier;
 import com.wimoor.erp.material.service.IMaterialSupplierService;
 import com.wimoor.erp.purchase.alibaba.mapper.PurchaseFormEntryAlibabaInfoMapper;
 import com.wimoor.erp.purchase.alibaba.mapper.PurchaseFormEntryLogisticsMapper;
+import com.wimoor.erp.purchase.alibaba.pojo.entity.ErpPurchaseAlibabaProductitems;
 import com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseAlibabaAuth;
 import com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseFormEntryAlibabaInfo;
 import com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseFormEntryLogistics;
+import com.wimoor.erp.purchase.alibaba.service.IErpPurchaseAlibabaProductitemsService;
 import com.wimoor.erp.purchase.alibaba.service.IPurchaseAlibabaAuthService;
 import com.wimoor.erp.purchase.alibaba.service.IPurchaseFormEntryAlibabaInfoService;
+import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
 import com.wimoor.erp.util.CommonUtil;
 
@@ -41,6 +46,7 @@ public class PurchaseFormEntryAlibabaInfoServiceImpl  extends ServiceImpl<Purcha
 	final PurchaseFormEntryLogisticsMapper purchaseFormEntryLogisticsMapper;
 	
 	final IMaterialSupplierService iMaterialSupplierService;
+	final IErpPurchaseAlibabaProductitemsService iErpPurchaseAlibabaProductitemsService;
     @Autowired
     @Lazy
     IPurchaseFormEntryService iPurchaseFormEntryService;
@@ -119,7 +125,60 @@ public class PurchaseFormEntryAlibabaInfoServiceImpl  extends ServiceImpl<Purcha
 				newone.setLogisticsTraceStatus(Boolean.FALSE);
 				this.baseMapper.insert(newone);
 			}
-		}
+            if(info!=null) {
+            	JSONArray  productItems=info.getJSONArray("productItems");
+				PurchaseFormEntry entry = iPurchaseFormEntryService.getById(purchaseEntryid);
+				MaterialSupplier supplier = iMaterialSupplierService.selectSupplier(entry.getMaterialid(),entry.getSupplier());
+				for(int i =0 ;i<productItems.size();i++) {
+						JSONObject product = productItems.getJSONObject(i);
+						String specId=product.getString("specId");
+						String productID=product.getString("productID");
+						if(supplier!=null&&specId.equals(supplier.getSpecid())&&productID.equals(supplier.getProductcode())) {
+							 product.put("isbind","true");
+						}else {
+							MaterialSupplier supplierother = iMaterialSupplierService.lambdaQuery()
+									                         .eq(MaterialSupplier::getProductcode, productID)
+									                         .eq(MaterialSupplier::getSupplierid, entry.getSupplier()).one(); 
+							if(supplierother==null||supplierother.getMaterialid().equals(entry.getMaterialid())) {
+								continue;
+							}
+							PurchaseFormEntry entryother = iPurchaseFormEntryService.lambdaQuery().eq(PurchaseFormEntry::getFormid, entry.getFormid())
+							                                       .eq(PurchaseFormEntry::getMaterialid, supplierother.getMaterialid())
+							                                       .eq(PurchaseFormEntry::getAuditstatus, 2).one();
+							if(entryother==null||entryother.getId().equals(entry.getId())) {
+								continue;
+							}
+							PurchaseFormEntryAlibabaInfo oldotherone = this.getById(entryother.getId());
+							if(oldotherone!=null&&oldotherone.getOrderStatus()!=null&&oldotherone.getOrderStatus().equals("success")) {
+									oldotherone.setAlibabaOrderid(new BigInteger(alibabaOrderid));
+									oldotherone.setAlibabaAuth(new BigInteger(alibabaAuthid));
+									oldotherone.setOrderInfo(json);
+									oldotherone.setOrderStatus(status);
+									oldotherone.setOrderRefreshTime(new Date());
+									oldotherone.setLogisticsInfo(null);
+									oldotherone.setLogisticsStatus(null);
+									oldotherone.setLogisticsTraceStatus(null);
+									oldotherone.setLogisticsRefreshTime(null);
+									oldotherone.setLogisticsTraceInfo(null);
+									oldotherone.setLogisticsTraceRefreshTime(null);
+									this.baseMapper.updateById(oldotherone);
+								} else {
+									PurchaseFormEntryAlibabaInfo newone = new PurchaseFormEntryAlibabaInfo();
+									newone.setAlibabaOrderid(new BigInteger(alibabaOrderid));
+									newone.setAlibabaAuth(new BigInteger(alibabaAuthid));
+									newone.setEntryid(purchaseEntryid);
+									newone.setOrderStatus(status);
+									newone.setOrderInfo(json);
+									newone.setOrderStatus(status);
+									newone.setOrderRefreshTime(new Date());
+									newone.setLogisticsStatus(Boolean.FALSE);
+									newone.setLogisticsTraceStatus(Boolean.FALSE);
+									this.baseMapper.insert(newone);
+								}
+							}
+						}
+				}
+		   }
 		return result;
 	}
  

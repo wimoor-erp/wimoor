@@ -1,6 +1,7 @@
 package com.wimoor.amazon.auth.service.impl;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -647,7 +648,14 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
 		// TODO Auto-generated method stub
 		return this.baseMapper.selectAuthMaketplace(shopid);
 	}
-	
+
+	@Override
+	public List<String> getAllBossEmalShop() {
+		// TODO Auto-generated method stub
+		return this.baseMapper.getAllBossEmalShop();
+	}
+
+ 
 	
 
 

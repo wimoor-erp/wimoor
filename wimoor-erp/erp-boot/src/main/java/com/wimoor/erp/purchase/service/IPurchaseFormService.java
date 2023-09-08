@@ -104,6 +104,7 @@ public interface IPurchaseFormService extends IService<PurchaseForm> {
 	PurchaseFormEntry recallEntry(UserInfo user,String id);
 	List<Map<String, Object>> getEntryData(String id);
 	Map<String, Object> deleteEntry(UserInfo user, String id);
+	List<Map<String, Object>> getLastFormsByMaterials(List<String> ids);
 
 
 	

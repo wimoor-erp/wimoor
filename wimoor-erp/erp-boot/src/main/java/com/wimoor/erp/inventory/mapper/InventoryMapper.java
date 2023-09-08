@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
+import com.wimoor.erp.material.pojo.entity.Material;
 @Mapper
 public interface InventoryMapper extends BaseMapper<Inventory> {
 	Inventory selectNowInv(@Param("warehouse")String warehouse,@Param("material")String material,@Param("shopid")String shopid,@Param("status")String status);
@@ -77,5 +78,5 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	List<Map<String, Object>> findFulByMaterial(String id);
 
 	List<MaterialInventoryVo> findLocalWarehouseInventory(@Param("shopid") String shopid,@Param("materialid") String materialid);
-	Integer findOverseaById(@Param("materialid")String materialid,@Param("shopid") String shopid, @Param("groupid")String groupid, @Param("country") String country);
+	Material findOverseaById(@Param("sku")String sku,@Param("shopid") String shopid, @Param("groupid")String groupid, @Param("country") String country);
 }

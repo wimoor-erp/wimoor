@@ -205,47 +205,44 @@ public class ShipTransCompanyController {
 	}
 
 	@SystemControllerLog( "保存渠道")
-	@RequestMapping("/saveChannel")
+	@PostMapping("/saveChannel")
 	public Result<String> saveChannelAction(@ApiParam("渠运输方式")@RequestBody List<ShipTransChannel> shipchannels) {
 		UserInfo user=UserInfoContext.get();
 		String shopid = user.getCompanyid();
 		String operator = user.getId();
-		Map<String,ShipTransChannel> oldMap=new HashMap<String,ShipTransChannel>();
+		Set<String> useable=new HashSet<String>();
 		QueryWrapper<ShipTransChannel> query=new QueryWrapper<ShipTransChannel>();
 		query.eq("shopid", shopid);
 		List<ShipTransChannel> oldlist = shipTransChannelService.list(query);
-		for(ShipTransChannel item:oldlist) {
-			oldMap.put(item.getName(), item);
-		}
 		for(ShipTransChannel tranChannel:shipchannels) {
 			Date opttime = new Date();
 			tranChannel.setOperator(operator);
 			tranChannel.setOpttime(opttime);
 			tranChannel.setShopid(shopid);
-			ShipTransChannel oldone = oldMap.get(tranChannel.getName());
-			if(oldone==null) {
+			if(tranChannel.idIsNULL()) {
 				  shipTransChannelService.save(tranChannel);
 			} else {	
-				tranChannel.setId(oldlist.get(0).getId());
 				shipTransChannelService.updateById(tranChannel);
-				oldMap.remove(tranChannel.getName());
+				useable.add(tranChannel.getId());
 			}
 		}
-		for(  Entry<String, ShipTransChannel> entry:oldMap.entrySet()) {
-			ShipTransChannel oldone=entry.getValue();
-			if(isUsedInTransDetail(oldone)) {
-				throw new BizException("["+oldone.getName()+"]已被使用无法删除");
+		for( ShipTransChannel oldone:oldlist) {
+			if(!useable.contains(oldone.getId())) {
+				if(isUsedInTransDetail(oldone)) {
+					throw new BizException("["+oldone.getName()+"]已被使用无法删除");
+				}
+				shipTransChannelService.removeById(oldone.getId());
 			}
-			shipTransChannelService.removeById(oldone.getId());
+			
 		}
 		return Result.success();
 	}
 	
 	private boolean isUsedInTransDetail(ShipTransChannel type) {
 		QueryWrapper<ShipTransDetail> query =new QueryWrapper<ShipTransDetail>();
-		query.eq("shopid", type.getShopid());
 		query.eq("channel", type.getId());
-		return shipTransDetailService.count(query )>0;
+		query.eq("disabled", false);
+		return shipTransDetailService.count(query)>0;
 	}
 	
 	@SystemControllerLog( "删除渠道")

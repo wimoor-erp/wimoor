@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.wimoor.admin.api.AdminClientOneFeign;
+import com.wimoor.admin.pojo.dto.SysEmailDTO;
 import com.wimoor.admin.pojo.dto.SysUserRoleDTO;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
@@ -35,5 +36,9 @@ public class AdminClientOneFeignManager {
   	public Result<Map<String, Object>> findTagsName( String shopid){
   		return api.findTagsName(shopid);
   	}
+
+    public void sendBoss(SysEmailDTO dto) {
+		 api.sendBoss(dto); 
+    }
     
 }

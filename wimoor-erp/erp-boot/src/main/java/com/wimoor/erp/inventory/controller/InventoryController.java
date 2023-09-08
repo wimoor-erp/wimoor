@@ -33,7 +33,6 @@ import com.wimoor.erp.assembly.service.IAssemblyService;
 import com.wimoor.erp.inventory.pojo.dto.InvDayDetailDTO;
 import com.wimoor.erp.inventory.pojo.dto.InventoryQueryDTO;
 import com.wimoor.erp.inventory.pojo.dto.InventoryValueReportDTO;
-import com.wimoor.erp.inventory.pojo.dto.WarehouseExportDTO;
 import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.mapper.MaterialConsumableMapper;
@@ -191,7 +190,7 @@ public class InventoryController   {
 		if (user.isLimit(UserLimitDataType.owner)) {
 			param.put("myself", user.getId());
 		}
-		if(dto.getHasinv()==true) {
+		if(dto.getHasinv()!=null&&dto.getHasinv()==true) {
 			param.put("hasinv", true);
 		}else {
 			param.put("hasinv", null);
@@ -221,7 +220,7 @@ public class InventoryController   {
 	}
 	
 	@PostMapping("getWarehouseExport")
-	public void getWareHouseExport(@ApiParam("查询DTO")@RequestBody WarehouseExportDTO dto, HttpServletResponse response)  {
+	public void getWareHouseExport(@ApiParam("查询DTO")@RequestBody InventoryQueryDTO dto, HttpServletResponse response)  {
 		UserInfo userinfo = UserInfoContext.get();
 		String shopid=userinfo.getCompanyid();
 		String fType = dto.getFType();
@@ -264,6 +263,11 @@ public class InventoryController   {
 		param.put("category", category);
 		param.put("ftypes", ftypes);
 		param.put("ftype", fType);
+		if(dto.getHasinv()!=null&&dto.getHasinv()==true) {
+			param.put("hasinv", true);
+		}else {
+			param.put("hasinv", null);
+		}
 		List<Map<String, Object>> inventoryList = inventoryService.findLocalInventory(param);
 		Map<String, Object> summap = inventoryService.findSum(param);
 		String fileName = "";
@@ -300,6 +304,12 @@ public class InventoryController   {
 			mid = null;
 		}
 		result = inventoryService.findInboundDetail(mid, warehouseid, user.getCompanyid());
+		if(result!=null&&result.size()>0) {
+			for(Map<String, Object> item:result) {
+				item.put("warehouseid", warehouseid);
+				item.put("materialid", mid);
+			}
+		}
 		return Result.success(result);
 	}
 	
@@ -470,5 +480,12 @@ public class InventoryController   {
 		}
 		return Result.success(vo);
 	} 
-	
+    
+    @ApiOperation("根据本地产品ID查询产品详情")
+    @GetMapping("/findInventoryNowCostByShopId")
+	public Result<List<Map<String, Object>>> findInventoryNowCostByShopIdAction(@RequestParam String shopid) {
+			List<Map<String, Object>> result = inventoryService.findInventoryNowCostByShopId(shopid);
+		    return Result.success(result);
+	} 
+    
 }

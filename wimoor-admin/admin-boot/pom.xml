@@ -119,6 +119,11 @@
 		    <artifactId>admin-api</artifactId>
 		    <version>${wimoor.version}</version>
 		</dependency>
+	   <dependency>
+		    <groupId>com.wimoor</groupId>
+		    <artifactId>common-feishu</artifactId>
+		    <version>${wimoor.version}</version>
+		</dependency>
 	</dependencies>
 
 	 <build>

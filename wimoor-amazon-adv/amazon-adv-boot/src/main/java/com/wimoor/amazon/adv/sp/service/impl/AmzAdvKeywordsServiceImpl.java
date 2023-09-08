@@ -604,11 +604,11 @@ public class AmzAdvKeywordsServiceImpl extends BaseService<AmzAdvKeywords>implem
 	}
 	
 	public Map<String, Object> getChartData(List<Map<String, Object>> list, List<Map<String, Object>> listHsa, Map<String, Object> map) {
-		if(list == null && listHsa == null) {
+		if (list == null && listHsa == null ) {
 			return null;
 		}
 		String serch1 = (String) map.get("value1");
-		String serch2 = (String) map.get("value2");
+	
 		Calendar c = Calendar.getInstance();
 		Calendar cTime = Calendar.getInstance();
 		String fromDate = (String) map.get("fromDate");
@@ -626,33 +626,33 @@ public class AmzAdvKeywordsServiceImpl extends BaseService<AmzAdvKeywords>implem
 			cTime.setTime(GeneralUtil.StringfromDate(endDate, "yyyy/MM/dd"));
 		}
 		Date endDateplus = null;
-		endDateplus = cTime.getTime(); 
+		endDateplus = cTime.getTime();
 		List<String> listLabel = new ArrayList<String>();
 		List<Object> listData1 = new ArrayList<Object>();
-		List<Object> listData2 = new ArrayList<Object>();
+	 
 		Map<String, Object> mapSp = new HashMap<String, Object>();
 		Map<String, Object> mapHsa = new HashMap<String, Object>();
-		if(list != null) {
+		Map<String, Object> mapSD = new HashMap<String, Object>();
+		if (list != null) {
 			for (int i = 0; i < list.size(); i++) {
-				String bydate = list.get(i).get("bydate") == null? null : list.get(i).get("bydate").toString();
-				String value = list.get(i).get(serch1) == null? null : list.get(i).get(serch1).toString();
-				String value2 = list.get(i).get(serch2) == null? null : list.get(i).get(serch2).toString();
-				if(value == null && value2 == null) {
+				String bydate = list.get(i).get("bydate") == null ? null : list.get(i).get("bydate").toString();
+				String value = list.get(i).get(serch1) == null ? null : list.get(i).get(serch1).toString();
+				 
+				if (value == null) {
 					mapSp.put(bydate, null);
-				}else {
-					mapSp.put(bydate, value + "#" + value2);
+				} else {
+					mapSp.put(bydate, value );
 				}
 			}
 		}
-		if(listHsa != null) {
+		if (listHsa != null) {
 			for (int i = 0; i < listHsa.size(); i++) {
-				String bydate = listHsa.get(i).get("bydate") == null? null :  listHsa.get(i).get("bydate").toString();
-				String value = listHsa.get(i).get(serch1) == null? null : listHsa.get(i).get(serch1).toString();
-				String value2 = listHsa.get(i).get(serch2) == null? null : listHsa.get(i).get(serch2).toString();
-				if(value == null && value2 == null) {
+				String bydate = listHsa.get(i).get("bydate") == null ? null : listHsa.get(i).get("bydate").toString();
+				String value = listHsa.get(i).get(serch1) == null ? null : listHsa.get(i).get(serch1).toString();
+				if (value == null) {
 					mapHsa.put(bydate, null);
-				}else {
-					mapHsa.put(bydate, value + "#" + value2);
+				} else {
+					mapHsa.put(bydate, value );
 				}
 			}
 		}
@@ -661,105 +661,78 @@ public class AmzAdvKeywordsServiceImpl extends BaseService<AmzAdvKeywords>implem
 			String tempkey = AdvUtils.getKeyByTimeType(map, c);
 			String value = (String) mapSp.get(tempkey);
 			String value2 = (String) mapHsa.get(tempkey);
+			String value3 = (String) mapSD.get(tempkey);
 			listLabel.add(tempkey);
-			if (value == null && value2 == null) {
-				listData1.add(new BigDecimal("0"));
-				listData2.add(new BigDecimal("0"));
+			BigDecimal sp=new BigDecimal("0");
+			BigDecimal sb=new BigDecimal("0");
+			BigDecimal sd=new BigDecimal("0");
+            if ( value != null) {
+					sp=new BigDecimal(value);
 			} 
-			else if (value == null && value2 != null) {
-				String[] valueArray = value2.split("#");
-				if(valueArray[0] == null) {
-					listData1.add(new BigDecimal("0"));
-				}else {
-					listData1.add(new BigDecimal(valueArray[0]));
-				}
-				if(valueArray[1] == null) {
-					listData2.add(new BigDecimal("0"));
-				}else {
-					listData2.add(new BigDecimal(valueArray[1]));
-				}
+			if ( value2 != null) {
+					sb=new BigDecimal(value2);
 			} 
-			else if (value2 == null && value != null) {
-				String[] valueArray = value.split("#");
-				if(valueArray[0] == null) {
-					listData1.add(new BigDecimal("0"));
-				}else {
-					listData1.add(new BigDecimal(valueArray[0]));
-				}
-				if(valueArray[1] == null) {
-					listData2.add(new BigDecimal("0"));
-				}else {
-					listData2.add(new BigDecimal(valueArray[1]));
-				}
+			if (value3 != null) {
+				sd=new BigDecimal(value3);
 			} 
-			else if (value2 != null && value != null) {
-				String[] valueArray = value.split("#");
-				String[] valueArray2 = value2.split("#");
-				listData1.add(new BigDecimal(valueArray[0]).add(new BigDecimal(valueArray2[0])));
-				listData2.add(new BigDecimal(valueArray[1]).add(new BigDecimal(valueArray2[1])));
-			}
+		    listData1.add(sp.add(sb).add(sd));
 		}
 		Map<String, Object> allmap = new HashMap<String, Object>();
 		allmap.put("labels", listLabel);
 		allmap.put("listdata1", listData1);
-		allmap.put("listdata2", listData2);
 		return allmap;
 	}
 	
 	public void getSerchStr(Map<String, Object> map) {
-		String serch = (String) map.get("serchlist");
 		String campaignType = (String) map.get("campaignType");
+		String serch = (String) map.get("searchlist");
 		String[] serchArray = serch.split(",");
 		String serchlist = "";
 		String HSAcsrt = "";
 		for (int i = 0; i < serchArray.length; i++) {
-			if (i > 0) {
 				if ("ACOS".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(cost) / sum(attributedSales14d),0) ACOS ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(cost) / sum(attributedSales7d),0) ACOS ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull(sum(cost) / sum(attributedSales14d),0) ACOS ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(cost) / sum(attributedSales7d),0) ACOS ,";
 				} else if ("ROAS".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(attributedSales14d) / sum(cost),0) ROAS ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(attributedSales7d) / sum(cost),0) ROAS ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull(sum(attributedSales14d) / sum(cost),0) ROAS ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(attributedSales7d) / sum(cost),0) ROAS ,";
 				} else if ("CSRT".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(attributedConversions14d) / sum(clicks),0) CSRT ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(attributedConversions14d) / sum(clicks),0) CSRT ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull(sum(attributedConversions14d) / sum(clicks),0) CSRT ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(attributedConversions7d) / sum(clicks),0) CSRT ,";
 				} else if ("avgcost".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull((sum(cost) / sum(clicks)),0) avgcost ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull((sum(cost) / sum(clicks)),0) avgcost ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull((sum(cost) / sum(clicks)),0) avgcost ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull((sum(cost) / sum(clicks)),0) avgcost ,";
 				} else if ("CTR".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(clicks) / sum(impressions),0) CTR ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(clicks) / sum(impressions),0) CTR ";
-					map.put("serchlist", serchlist);
-				}
-			} else {
-				if ("sumUnits".equals(serchArray[i])) {
-					if("all".equals(campaignType)) {
-						serchlist = "sum(attributedUnitsOrdered7d) sumUnits,";
-						HSAcsrt = "sum(attributedConversions14d) sumUnits,";
-					}
-					else if("HSA".equals(campaignType)) {
-						HSAcsrt = "sum(attributedConversions14d) sumUnits,";
-					}
-					else if("SP".equals(campaignType)) {
-						serchlist = "sum(attributedUnitsOrdered7d) sumUnits,";
+					HSAcsrt = HSAcsrt + "ifnull(sum(clicks) / sum(impressions),0) CTR ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(clicks) / sum(impressions),0) CTR ,";
+				}else if ("sumUnits".equals(serchArray[i])) {
+					if ("all".equals(campaignType)) {
+						serchlist = serchlist +"sum(attributedUnitsOrdered7d) sumUnits,";
+						HSAcsrt = HSAcsrt+"sum(attributedConversions14d) sumUnits,";
+					} else if ("HSA".equals(campaignType)) {
+						HSAcsrt = HSAcsrt+"sum(attributedConversions14d) sumUnits,";
+					} else if ("SP".equals(campaignType)) {
+						serchlist = serchlist +"sum(attributedUnitsOrdered7d) sumUnits,";
 					}
 				} else {
-					serchlist = "sum(" + serchArray[i] + ") " + serchArray[i] + ",";
-					HSAcsrt = "sum(" + serchArray[i] + ") " + serchArray[i] + ",";
+					serchlist = serchlist +"sum(" + serchArray[i] + ") " + serchArray[i] + ",";
+					HSAcsrt = HSAcsrt+"sum(" + serchArray[i] + ") " + serchArray[i] + ",";
 				}
-			}
 		}
+		if(serchlist.contains(",")) {
+			serchlist=serchlist.substring(0, serchlist.length()-1);
+		}
+		if(HSAcsrt.contains(",")) {
+			HSAcsrt=HSAcsrt.substring(0, HSAcsrt.length()-1);
+		}
+		map.put("HSAserchlist", HSAcsrt);
+		map.put("serchlist", serchlist);
 		map.put("value1", serchArray[0]);
-		map.put("value2", serchArray[1]);
 	}
 
 

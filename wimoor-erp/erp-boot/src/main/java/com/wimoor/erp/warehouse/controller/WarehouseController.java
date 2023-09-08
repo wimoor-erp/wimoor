@@ -2,8 +2,10 @@ package com.wimoor.erp.warehouse.controller;
 
 
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -124,6 +126,23 @@ public class WarehouseController {
 		return Result.success(list);
 	}
 	
+	@ApiOperation("仓库列表[]")
+	@GetMapping("/getNamelistByAddressid/{addressid}")
+	public Result<List<Warehouse>> getNamelistByAddressid(@PathVariable String  addressid){
+		UserInfo userinfo = UserInfoContext.get();
+		QueryWrapper<Warehouse> queryWrapper=new QueryWrapper<Warehouse>();
+		List<String> ftypes=new LinkedList<String>();
+		ftypes.add("self_test");
+		ftypes.add("self_usable");
+		ftypes.add("self_unusable");
+		queryWrapper.in("ftype", ftypes);
+		queryWrapper.eq("disabled", false);
+		queryWrapper.eq("addressid", addressid);
+		queryWrapper.eq("shopid", userinfo.getCompanyid());
+		List<Warehouse> list=warehouseService.list(queryWrapper);
+		return Result.success(list);
+	}
+	
 	@ApiOperation("获取仓库默认的usable仓位")
 	@GetMapping("/getSelfWarehouseById")
 	public Result<String> getSelfWarehouseByIdAction(String id){
@@ -154,6 +173,7 @@ public class WarehouseController {
 	@SystemControllerLog("删除仓库")
 	@GetMapping(value = "deleteInfo")
     @Transactional
+    @CacheEvict(value = { "warehosueCache" }, allEntries = true)
 	Result<?> deleteAction(String ids)   {
 		String[] idlist = ids.split(",");
 		for (int i = 0; i < idlist.length; i++) {
@@ -167,6 +187,7 @@ public class WarehouseController {
 	
 	@SystemControllerLog(  "更新仓库")
 	@PostMapping(value = "updateData/{id}")
+	@CacheEvict(value = { "warehosueCache" }, allEntries = true)
 	public Result<Warehouse> updateDataAction(@ApiParam("查询当前仓库") @PathVariable("id") String id, @RequestBody Warehouse model) {
 		UserInfo userinfo = UserInfoContext.get();
 		model.setOperator(userinfo.getId());
@@ -199,6 +220,7 @@ public class WarehouseController {
 	
 	@SystemControllerLog(  "更新仓库次序")
 	@PostMapping(value = "updateIndex")
+	@CacheEvict(value = { "warehosueCache" }, allEntries = true)
 	public Result<?> updateDataIndexAction(@RequestBody List<Warehouse> list) {
 		UserInfo userinfo = UserInfoContext.get();
 		if(list!=null&&list.size()>0) {
@@ -217,6 +239,7 @@ public class WarehouseController {
 	
 	@SystemControllerLog( "新增仓库")
 	@PostMapping(value = "saveData")
+	@CacheEvict(value = { "warehosueCache" }, allEntries = true)
 	public Result<Warehouse> saveDataAction(@RequestBody Warehouse model) throws Exception {
 		UserInfo userinfo = UserInfoContext.get();
 		String shopid=userinfo.getCompanyid();

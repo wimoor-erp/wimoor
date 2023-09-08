@@ -4,24 +4,31 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.finances.mapper.AmzSettlementAccStatementMapper;
+import com.wimoor.amazon.finances.pojo.dto.AmzSettlementDTO;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccStatement;
 import com.wimoor.amazon.finances.service.IAmzSettlementAccStatementService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
+import com.wimoor.util.DownloadExcelUtil;
+
+import cn.hutool.core.util.StrUtil;
 @Service
 public class AmzSettlementAccStatementImpl extends ServiceImpl<AmzSettlementAccStatementMapper, AmzSettlementAccStatement> implements IAmzSettlementAccStatementService {
    @Autowired
@@ -125,5 +132,52 @@ public class AmzSettlementAccStatementImpl extends ServiceImpl<AmzSettlementAccS
 	public AmzSettlementAccStatement findCommodityStatement(String id) {
 		return this.baseMapper.selectById(new BigInteger(id));
 	}
+
+	@Override
+	public IPage<Map<String, Object>> selectSettlementOpen(AmzSettlementDTO dto,String shopid) {
+		 Map<String,Object> map=new HashMap<String, Object>();
+		 map.put("shopid",shopid);
+		 map.put("groupid",dto.getGroupid());
+		 map.put("marketplaceid",dto.getMarketplaceid());
+		 if(StrUtil.isNotEmpty(dto.getAmazonAuthId())) {
+			 map.put("authid",dto.getAmazonAuthId());
+		 }
+		 if(StrUtil.isNotEmpty(dto.getEndDate())) {
+			 map.put("startDate",dto.getFromDate());
+			 map.put("endDate",dto.getEndDate());
+		 }
+		 return this.baseMapper.selectSettlementOpen(dto.getPage(), map);
+	}
+
+
+	@Override
+	public void getDownloadSettOpen(SXSSFWorkbook workbook, Map<String, Object> maps) {
+		List<Map<String, Object>> list = this.baseMapper.selectSettlementOpen(maps);
+		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
+		titlemap.put("financial_event_group_start", "账期起始日期");
+		titlemap.put("asin", "ASIN");
+		titlemap.put("sku", "SKU");
+		titlemap.put("pname", "产品名称");
+		titlemap.put("mname", "国家");
+		titlemap.put("posted_date", "出账日期");
+		titlemap.put("ftypename", "费用类型");
+		titlemap.put("ftype", "费用类型-en");
+		titlemap.put("amazon_order_id", "订单ID");
+		titlemap.put("event_type", "事件类型");
+		titlemap.put("currency", "币种");
+		titlemap.put("amount", "金额");
+		titlemap.put("quantity", "数量");
+		if (list.size() > 0 && list != null) { 
+			DownloadExcelUtil.setWorkbook(workbook, titlemap, list);
+		} else {
+			try {
+				throw new Exception("没有数据可导出！");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
 }
 

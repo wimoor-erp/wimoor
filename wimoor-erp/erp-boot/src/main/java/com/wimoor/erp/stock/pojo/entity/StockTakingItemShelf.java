@@ -30,6 +30,8 @@ public class StockTakingItemShelf extends BaseEntity{
     private BigInteger materialid;
 
     private BigInteger shelfid;
+    
+    private BigInteger warehouseid;
 
     private Integer amount;
 

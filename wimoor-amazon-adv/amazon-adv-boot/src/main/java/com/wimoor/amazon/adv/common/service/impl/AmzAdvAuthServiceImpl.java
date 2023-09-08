@@ -38,6 +38,7 @@ import com.wimoor.amazon.adv.common.service.IAmzAdvAuthService;
 import com.wimoor.amazon.adv.common.service.IAmzAdvHttpClientResponseHandler;
 import com.wimoor.amazon.adv.common.service.IAmzAdvRemindService;
 import com.wimoor.amazon.adv.common.service.IAmzAdvReportHandlerService;
+import com.wimoor.amazon.adv.common.service.IAmzAdvSnapshotHandlerService;
 import com.wimoor.amazon.adv.task.service.IAdvSchedulePlanItemService;
 import com.wimoor.amazon.adv.task.service.IAdvSchedulePlanService;
 import com.wimoor.amazon.adv.utils.HttpClientUtil;
@@ -75,6 +76,8 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 	@Autowired
 	@Lazy
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+	@Resource
+	IAmzAdvSnapshotHandlerService iAmzAdvSnapshotHandlerService;
 	@Setter
 	private String redirecturl;
 
@@ -366,12 +369,12 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 							amzAdvProfileMapper.insert(amzAdvProfile);
 							addList.add(amzAdvProfile);
 						}
-						amzAdvReportHandlerService.requestStoreBrand(amzAdvProfile);
+						iAmzAdvSnapshotHandlerService.requestStoreBrand(amzAdvProfile);
 					}
 					 Thread thread = new Thread(new Runnable() {
 							public void run() {
 								for (AmzAdvProfile item : addList) {
-									amzAdvReportHandlerService.requestSnapshotByProfile(item, advauth);
+									iAmzAdvSnapshotHandlerService.requestSnapshotByProfile(item, advauth);
 									amzAdvReportHandlerService.requestReportByProfile(item, advauth);
 								}
 							}

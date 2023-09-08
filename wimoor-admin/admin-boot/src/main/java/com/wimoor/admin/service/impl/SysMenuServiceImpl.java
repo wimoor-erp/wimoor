@@ -4,9 +4,11 @@ package com.wimoor.admin.service.impl;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +23,7 @@ import com.wimoor.admin.common.constants.GlobalConstants;
 import com.wimoor.admin.common.constants.SystemConstants;
 import com.wimoor.admin.mapper.SysMenuMapper;
 import com.wimoor.admin.pojo.entity.SysMenu;
+import com.wimoor.admin.pojo.entity.SysPermission;
 import com.wimoor.admin.pojo.entity.SysUserRole;
 import com.wimoor.admin.pojo.vo.MenuVO;
 import com.wimoor.admin.pojo.vo.NextRouteVO;
@@ -88,7 +91,6 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
                 .map(SysMenu::getId)
                 .collect(Collectors.toSet());
         for (SysMenu sysMenu : menuList) {
-        	 
             // 不在节点 id 集合中存在的 id 即为顶级节点 id, 递归生成列表
             String parentId = sysMenu.getParentId();
             if (!nodeIdSet.contains(parentId)) {
@@ -413,12 +415,37 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         return list;
     }
 
+    public void setPermsession(List<SysMenu> menuList) {
+    	List<SysPermission> perms = permissionService.list();
+    	Map<String,List<SysPermission>> hasPermMenu=new HashMap<String,List<SysPermission>>();
+        for(SysPermission item:perms) {
+        	List<SysPermission> list = hasPermMenu.get(item.getMenuId().toString());
+        	if(list==null) {
+        		list=new LinkedList<SysPermission>();
+        	}
+        	list.add((item));
+        	hasPermMenu.put(item.getMenuId().toString(), list);
+        }
+    	
+    	for(SysMenu item:menuList) {
+   		 List<SysPermission> list = hasPermMenu.get(item.getId());
+   		 if(list!=null) {
+   			 LinkedList<String> permissions = new LinkedList<String>();
+   			 for(SysPermission itemp:list) {
+   				 permissions.add(itemp.getId());
+   			 }
+   			 item.setPermissions(permissions);
+   		 }
+   	  }
+    }
 	@Override
 	public List<MenuVO> listCompanyTreeSelect(UserInfo user) {
 		// TODO Auto-generated method stub
         boolean isadmin=user.getUsertype().equals(UserType.admin.getCode());
         if(isadmin) {
-        	return this.listTable(null);
+        	  List<SysMenu> menuList = this.list();
+        	  setPermsession(menuList);
+              return recursion(menuList);
         }else {
         	String roleid = iManagerLimitService.getCompanyRole(user.getCompanyid());
         	List<SysUserRole> uroles = this.iSysUserRoleService.lambdaQuery().eq(SysUserRole::getUserId, user.getId()).list();
@@ -440,6 +467,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     				menuList.add(menu);
     			}
     		}
+    		setPermsession(menuList);
     		List<MenuVO> menuSelectList = recursion(menuList);
     		return menuSelectList;
         }

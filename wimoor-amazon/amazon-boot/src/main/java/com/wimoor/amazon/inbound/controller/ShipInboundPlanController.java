@@ -59,6 +59,7 @@ public class ShipInboundPlanController {
 					BeanUtil.copyProperties(itemvo, item);
 					itemlist.add(item);
 				}
+				inplanparam.setPlansubid(inplan.getBatchnumber());
 				inplanparam.setPlanitemlist(itemlist);
 				ShipInboundTrans trans=new ShipInboundTrans();
 				BeanUtil.copyProperties(inplan.getTransinfo(),trans);
@@ -139,9 +140,9 @@ public class ShipInboundPlanController {
 	}
 	
 	@GetMapping(value = "getShipRecord")
-	public Result<IPage<Map<String, Object>>> getShipRecordAction(String marketplaceid,String sku)   {
+	public Result<IPage<Map<String, Object>>> getShipRecordAction(String groupid,String marketplaceid,String sku)   {
 		UserInfo user=UserInfoContext.get();
-		List<Map<String, Object>> shipRecord = shipInboundPlanService.getShipRecord(user.getCompanyid(), marketplaceid, sku);
+		List<Map<String, Object>> shipRecord = shipInboundPlanService.getShipRecord(user.getCompanyid(),groupid, marketplaceid, sku);
 		List<Map<String, Object>> shipBadRecord = shipInboundPlanService.getShipBadRecord(user.getCompanyid(), marketplaceid, sku);
 		if(shipRecord==null||shipRecord.size()<=0) {
 			shipRecord=shipBadRecord;

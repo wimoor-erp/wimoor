@@ -6,7 +6,6 @@ import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
@@ -14,9 +13,9 @@ import com.wimoor.amazon.common.mapper.DimensionsInfoMapper;
 import com.wimoor.amazon.common.pojo.entity.DimensionsInfo;
 import com.wimoor.amazon.finances.mapper.FBAEstimatedFeeMapper;
 import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
-import com.wimoor.amazon.inbound.mapper.FBAShipCycleMapper;
+import com.wimoor.amazon.finances.service.IFBAEstimatedFeeService;
 import com.wimoor.amazon.inbound.pojo.entity.FBAShipCycle;
-import com.wimoor.amazon.product.mapper.ProductCategoryMapper;
+import com.wimoor.amazon.inbound.service.IFBAShipCycleService;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
 import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.service.IProductInOptService;
@@ -41,20 +40,19 @@ public class CalculateProfitServiceImpl implements ICalculateProfitService {
 	IMarketplaceService marketplaceService;
 	@Autowired
 	IProductInOptService iProductInOptService;
-	final FBAEstimatedFeeMapper fbaEstimatedFeeMapper;
-	final ProductCategoryMapper productCategoryMapper;
+	final IFBAEstimatedFeeService iFBAEstimatedFeeService;
 	final IReferralFeeService referralFeeService;
 	final IProfitService profitService;
-	final FBAShipCycleMapper fBAShipCycleMapper;
+	final IFBAShipCycleService iFBAShipCycleService;
 	final DimensionsInfoMapper dimensionsInfoMapper;
-    @Autowired
-    ErpClientOneFeignManager erpClientOneFeign;
+
+    
 	public CostDetail getProfit(ProductInfo info, BigDecimal price, AmazonAuthority auth,DimensionsInfo dim_local,BigDecimal cost)   {
 		if (price == null || price.floatValue() == 0.0) {
 			return null;
 		}
 		//使用opt上面带的利润id(假如设置了)
-		ProductInOpt proopt = iProductInOptService.getById(info.getId());
+		ProductInOpt proopt = iProductInOptService.getCacheableById(info.getId());
 		// 获取用户输入信息
 		InputDimensions inputDimension_local = null;
 		InputDimensions inputDimension_amz = null;
@@ -91,13 +89,7 @@ public class CalculateProfitServiceImpl implements ICalculateProfitService {
 	
 		
 		FBAEstimatedFee fbaFee = null;
-		LambdaQueryWrapper<FBAEstimatedFee> queryFbaFee=new LambdaQueryWrapper<FBAEstimatedFee>();
-		queryFbaFee.eq(FBAEstimatedFee::getSku, info.getSku());
-		queryFbaFee.eq(FBAEstimatedFee::getAsin, info.getAsin());
-		queryFbaFee.eq(FBAEstimatedFee::getAmazonauthid, auth.getId());
-		queryFbaFee.eq(FBAEstimatedFee::getMarketplaceid, market.getMarketplaceid());
-		fbaFee = fbaEstimatedFeeMapper.selectOne(queryFbaFee);
-	 
+		fbaFee = iFBAEstimatedFeeService.getOneBySku(info.getSku(),info.getAsin(),auth.getId(), market.getMarketplaceid());
 		if (fbaFee!=null && fbaFee.getProductGroup()!=null) {
 			ref = referralFeeService.findByPgroup(fbaFee.getProductGroup().trim(), country);
 		} else {
@@ -114,9 +106,9 @@ public class CalculateProfitServiceImpl implements ICalculateProfitService {
 		BigDecimal shipmentfee = null;
 		FBAShipCycle stockCycle = null;
 		if ("EU".equals(market.getRegion())) {
-			stockCycle = fBAShipCycleMapper.findShipCycleBySKU(info.getSku(), "EU", auth.getGroupid());
+			stockCycle = iFBAShipCycleService.getFbaShipCycle( auth.getGroupid(), "EU",info.getSku());
 		} else {
-			stockCycle = fBAShipCycleMapper.findShipCycleBySKU(info.getSku(), market.getMarketplaceid(), auth.getGroupid());
+			stockCycle = iFBAShipCycleService.getFbaShipCycle(auth.getGroupid(), market.getMarketplaceid(), info.getSku());
 		}
 		if (stockCycle != null&&stockCycle.getFirstLegCharges()!=null) {
 			shipmentfee = stockCycle.getFirstLegCharges();// 头程运费

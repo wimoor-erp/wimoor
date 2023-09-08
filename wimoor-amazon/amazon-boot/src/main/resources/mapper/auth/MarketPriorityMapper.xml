@@ -12,14 +12,14 @@
     marketplaceid, priority, groupid,opttime,operator
   </sql>
   <select id="findMarketplaceByGroup" resultType="com.wimoor.amazon.auth.pojo.entity.Marketplace"  parameterType="java.lang.String">
-    	    select case when m.region='EU' then 'EU' else m.marketplaceid end  marketplaceId, 
-		  	     case when m.region='EU' then 'EU' else m.market end  market, 
-		  	     case when m.region='EU' then '欧洲' else m.name end  name, 
-		  	     case when m.region='EU' then 'EU' else m.region_name end  region_name, 
-		  	     case when m.region='EU' then 'EU' else  m.end_point end  end_point, 
-  	           case when m.region='EU' then 'EU' else  m.region end  region, 
-  	           case when m.region='EU' then 'EU' else  m.point_name end  point_name, 
-  	           IFNULL(p.priority,m.findex)    findex 
+       SELECT * FROM ( select    case when m.region='EU' then 'EU' else m.marketplaceid end  marketplaceId, 
+		  	     max(case when m.region='EU' then 'EU' else m.market end)  market, 
+		  	     max(case when m.region='EU' then '欧洲' else m.name end)  name, 
+		  	     max(case when m.region='EU' then 'EU' else m.region_name end)  region_name, 
+		  	     max(case when m.region='EU' then 'EU' else  m.end_point end)  end_point, 
+  	             max(case when m.region='EU' then 'EU' else  m.region end)  region, 
+  	             max(case when m.region='EU' then 'EU' else  m.point_name end)  point_name, 
+  	             max(IFNULL(p.priority,m.findex))    findex 
 		from t_marketplace m
 		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
 		left join t_amazon_auth a on a.sellerid=s.sellerid
@@ -27,8 +27,8 @@
 		where a.groupid=#{groupid,jdbcType=CHAR} 
 			and s.disable=false 
 			and a.disable=false
-		 group by case when m.region='EU' then 'EU' else m.marketplaceid end  
-		order by IFNULL(p.priority,m.findex)
+		 group by case when m.region='EU' then 'EU' else m.marketplaceid end  ) v
+		order by v.findex
   </select>
   
   <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >

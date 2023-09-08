@@ -36,8 +36,11 @@ import com.wimoor.amazon.adv.sp.service.IAmzAdvCampaignService;
 import com.wimoor.amazon.adv.utils.AdvUtils;
 import com.wimoor.amazon.base.BaseService;
 import com.wimoor.common.user.UserInfo;
- 
+
+import cn.hutool.core.util.StrUtil;
+
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 
 import tk.mybatis.mapper.entity.Example;
 import tk.mybatis.mapper.entity.Example.Criteria;
@@ -107,12 +110,15 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 		}
 	}
 
-	public List<AmzAdvCampaigns> getSpCampaignsNotArchivedByprofile(BigInteger profileid) {
+	public List<AmzAdvCampaigns> getSpCampaignsNotArchivedByprofile(BigInteger profileid,String name) {
 		if (profileid != null) {
 			Example example = new Example(AmzAdvCampaigns.class);
 			Criteria crit = example.createCriteria();
 			crit.andEqualTo("profileid", profileid);
 			crit.andNotEqualTo("state", "archived");
+			if(StrUtil.isNotEmpty(name)) {
+				crit.andLike("name", "%"+name+"%");
+			}
 			example.setOrderByClause("name asc");
 			List<AmzAdvCampaigns> list = amzAdvCampaignsMapper.selectByExample(example);
 			return list;
@@ -542,6 +548,9 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 		List<Map<String, Object>> listHsa = null;
 		List<Map<String, Object>> listSD = null;
 		getSerchStr(map);
+		if(map.get("serchlist")==null) {
+			throw new BizException("数据列未找到！");
+		}
 		if ("SP".equals(campaignType)) {
 			list = amzAdvCampaignsMapper.getCampaignChart(map);
 		} else if ("HSA".equals(campaignType) || "SB".equals(campaignType)) {
@@ -561,7 +570,7 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 			return null;
 		}
 		String serch1 = (String) map.get("value1");
-		String serch2 = (String) map.get("value2");
+	
 		Calendar c = Calendar.getInstance();
 		Calendar cTime = Calendar.getInstance();
 		String fromDate = (String) map.get("fromDate");
@@ -582,7 +591,7 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 		endDateplus = cTime.getTime();
 		List<String> listLabel = new ArrayList<String>();
 		List<Object> listData1 = new ArrayList<Object>();
-		List<Object> listData2 = new ArrayList<Object>();
+	 
 		Map<String, Object> mapSp = new HashMap<String, Object>();
 		Map<String, Object> mapHsa = new HashMap<String, Object>();
 		Map<String, Object> mapSD = new HashMap<String, Object>();
@@ -590,11 +599,11 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 			for (int i = 0; i < list.size(); i++) {
 				String bydate = list.get(i).get("bydate") == null ? null : list.get(i).get("bydate").toString();
 				String value = list.get(i).get(serch1) == null ? null : list.get(i).get(serch1).toString();
-				String value2 = list.get(i).get(serch2) == null ? null : list.get(i).get(serch2).toString();
-				if (value == null && value2 == null) {
+				 
+				if (value == null) {
 					mapSp.put(bydate, null);
 				} else {
-					mapSp.put(bydate, value + "#" + value2);
+					mapSp.put(bydate, value );
 				}
 			}
 		}
@@ -602,11 +611,10 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 			for (int i = 0; i < listHsa.size(); i++) {
 				String bydate = listHsa.get(i).get("bydate") == null ? null : listHsa.get(i).get("bydate").toString();
 				String value = listHsa.get(i).get(serch1) == null ? null : listHsa.get(i).get(serch1).toString();
-				String value2 = listHsa.get(i).get(serch2) == null ? null : listHsa.get(i).get(serch2).toString();
-				if (value == null && value2 == null) {
+				if (value == null) {
 					mapHsa.put(bydate, null);
 				} else {
-					mapHsa.put(bydate, value + "#" + value2);
+					mapHsa.put(bydate, value );
 				}
 			}
 		}
@@ -614,11 +622,11 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 			for (int i = 0; i < listSD.size(); i++) {
 				String bydate = listSD.get(i).get("bydate") == null ? null : listSD.get(i).get("bydate").toString();
 				String value = listSD.get(i).get(serch1) == null ? null : listSD.get(i).get(serch1).toString();
-				String value2 = listSD.get(i).get(serch2) == null ? null : listSD.get(i).get(serch2).toString();
-				if (value == null && value2 == null) {
+			
+				if (value == null) {
 					mapSD.put(bydate, null);
 				} else {
-					mapSD.put(bydate, value + "#" + value2);
+					mapSD.put(bydate, value );
 				}
 			}
 		}
@@ -629,102 +637,76 @@ public class AmzAdvCampaignServiceImpl extends BaseService<AmzAdvCampaigns> impl
 			String value2 = (String) mapHsa.get(tempkey);
 			String value3 = (String) mapSD.get(tempkey);
 			listLabel.add(tempkey);
-			BigDecimal sp1=new BigDecimal("0");
-			BigDecimal sb1=new BigDecimal("0");
-			BigDecimal sd1=new BigDecimal("0");
-			BigDecimal sp2=new BigDecimal("0");
-			BigDecimal sb2=new BigDecimal("0");
-			BigDecimal sd2=new BigDecimal("0");
+			BigDecimal sp=new BigDecimal("0");
+			BigDecimal sb=new BigDecimal("0");
+			BigDecimal sd=new BigDecimal("0");
             if ( value != null) {
-				String[] valueArray = value.split("#");
-				if (valueArray[0] != null) {
-					sp1=new BigDecimal(valueArray[0]);
-				}
-				if (valueArray[1] != null) {
-					sp2=new BigDecimal(valueArray[1]);
-				}
+					sp=new BigDecimal(value);
 			} 
 			if ( value2 != null) {
-				String[] valueArray = value2.split("#");
-				if (valueArray[0] != null&&!"null".equals(valueArray[0])) {
-					sb1=new BigDecimal(valueArray[0]);
-				}
-				if (valueArray[1] != null&&!"null".equals(valueArray[1])) {
-					sb2=new BigDecimal(valueArray[1]);
-				}
+					sb=new BigDecimal(value2);
 			} 
 			if (value3 != null) {
-				String[] valueArray = value3.split("#");
-				if (valueArray[0] != null && !"null".equals(valueArray[0])) {
-					sd1=new BigDecimal(valueArray[0]);
-				}
-				if (valueArray[1] != null && !"null".equals(valueArray[1])) {
-					sd2=new BigDecimal(valueArray[1]);
-				}
+				sd=new BigDecimal(value3);
 			} 
-		    listData1.add(sp1.add(sb1).add(sd1));
-		    listData2.add(sp2.add(sb2).add(sd2));
-		 
+		    listData1.add(sp.add(sb).add(sd));
 		}
 		Map<String, Object> allmap = new HashMap<String, Object>();
 		allmap.put("labels", listLabel);
 		allmap.put("listdata1", listData1);
-		allmap.put("listdata2", listData2);
 		return allmap;
 	}
 
 	public void getSerchStr(Map<String, Object> map) {
 		String campaignType = (String) map.get("campaignType");
-		String serch = (String) map.get("serchlist");
+		String serch = (String) map.get("searchlist");
 		String[] serchArray = serch.split(",");
 		String serchlist = "";
 		String HSAcsrt = "";
 		for (int i = 0; i < serchArray.length; i++) {
-			if (i > 0) {
 				if ("ACOS".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(cost) / sum(attributedSales14d),0) ACOS ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(cost) / sum(attributedSales7d),0) ACOS ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull(sum(cost) / sum(attributedSales14d),0) ACOS ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(cost) / sum(attributedSales7d),0) ACOS ,";
 				} else if ("ROAS".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(attributedSales14d) / sum(cost),0) ROAS ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(attributedSales7d) / sum(cost),0) ROAS ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull(sum(attributedSales14d) / sum(cost),0) ROAS ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(attributedSales7d) / sum(cost),0) ROAS ,";
 				} else if ("CSRT".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(attributedConversions14d) / sum(clicks),0) CSRT ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(attributedConversions7d) / sum(clicks),0) CSRT ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull(sum(attributedConversions14d) / sum(clicks),0) CSRT ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(attributedConversions7d) / sum(clicks),0) CSRT ,";
 				} else if ("avgcost".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull((sum(cost) / sum(clicks)),0) avgcost ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull((sum(cost) / sum(clicks)),0) avgcost ";
-					map.put("serchlist", serchlist);
+					HSAcsrt = HSAcsrt + "ifnull((sum(cost) / sum(clicks)),0) avgcost ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull((sum(cost) / sum(clicks)),0) avgcost ,";
 				} else if ("CTR".equals(serchArray[i])) {
-					HSAcsrt = HSAcsrt + "ifnull(sum(clicks) / sum(impressions),0) CTR ";
-					map.put("HSAserchlist", HSAcsrt.replace("7", "14"));
-					serchlist = serchlist + "ifnull(sum(clicks) / sum(impressions),0) CTR ";
-					map.put("serchlist", serchlist);
-				}
-			} else {
-				if ("sumUnits".equals(serchArray[i])) {
+					HSAcsrt = HSAcsrt + "ifnull(sum(clicks) / sum(impressions),0) CTR ,";
+					HSAcsrt= HSAcsrt.replace("7", "14");
+					serchlist = serchlist + "ifnull(sum(clicks) / sum(impressions),0) CTR ,";
+				}else if ("sumUnits".equals(serchArray[i])) {
 					if ("all".equals(campaignType)) {
-						serchlist = "sum(attributedUnitsOrdered7d) sumUnits,";
-						HSAcsrt = "sum(attributedConversions14d) sumUnits,";
+						serchlist = serchlist +"sum(attributedUnitsOrdered7d) sumUnits,";
+						HSAcsrt = HSAcsrt+"sum(attributedConversions14d) sumUnits,";
 					} else if ("HSA".equals(campaignType)) {
-						HSAcsrt = "sum(attributedConversions14d) sumUnits,";
+						HSAcsrt = HSAcsrt+"sum(attributedConversions14d) sumUnits,";
 					} else if ("SP".equals(campaignType)) {
-						serchlist = "sum(attributedUnitsOrdered7d) sumUnits,";
+						serchlist = serchlist +"sum(attributedUnitsOrdered7d) sumUnits,";
 					}
 				} else {
-					serchlist = "sum(" + serchArray[i] + ") " + serchArray[i] + ",";
-					HSAcsrt = "sum(" + serchArray[i] + ") " + serchArray[i] + ",";
+					serchlist = serchlist +"sum(" + serchArray[i] + ") " + serchArray[i] + ",";
+					HSAcsrt = HSAcsrt+"sum(" + serchArray[i] + ") " + serchArray[i] + ",";
 				}
-			}
 		}
+		if(serchlist.contains(",")) {
+			serchlist=serchlist.substring(0, serchlist.length()-1);
+		}
+		if(HSAcsrt.contains(",")) {
+			HSAcsrt=HSAcsrt.substring(0, HSAcsrt.length()-1);
+		}
+		map.put("HSAserchlist", HSAcsrt);
+		map.put("serchlist", serchlist);
 		map.put("value1", serchArray[0]);
-		map.put("value2", serchArray[1]);
 	}
 
 	public List<Map<String, Object>> getCampaignPlacement(Map<String, Object> map) {

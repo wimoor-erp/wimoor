@@ -5,17 +5,21 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.product.pojo.dto.ProductListDTO;
 import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
+import com.wimoor.amazon.product.pojo.entity.ProductInfo;
 import com.wimoor.amazon.product.service.IProductInOptService;
 import com.wimoor.amazon.product.service.IProductInOrderService;
 import com.wimoor.amazon.product.service.IProductInfoService;
@@ -25,6 +29,7 @@ import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
+
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
@@ -90,6 +95,29 @@ public class ProductAnalysisController {
 		UserInfo userinfo = UserInfoContext.get();
 		return Result.success(iProductInOrderService.selectDetialById(pid, userinfo.getCompanyid()));
 	}
+	
+	@GetMapping("/productdetailByInfo")
+	public Result<Map<String, Object>> productdetailByInfoAction(String sku,String marketplaceid,String sellerid,String groupid) {
+		UserInfo userinfo = UserInfoContext.get();
+		AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+		if(auth!=null) {
+			LambdaQueryWrapper<ProductInfo> queryWrapper=new LambdaQueryWrapper<ProductInfo>();
+			queryWrapper.eq(ProductInfo::getAmazonAuthId, auth.getId());
+			queryWrapper.eq(ProductInfo::getMarketplaceid, marketplaceid);
+			queryWrapper.eq(ProductInfo::getSku, sku);
+			ProductInfo info = iProductInfoService.getOne(queryWrapper);
+			if(info!=null) {
+				return Result.success(iProductInOrderService.selectDetialById(info.getId(), userinfo.getCompanyid()));
+			}else {
+				return Result.failed();
+			}
+		}else {
+			return Result.failed();
+		}
+		
+	}
+	 
+	
 	@SystemControllerLog("修改分析备注")
 	@GetMapping("/updateAnyRemark")
 	public Result<?> updateAnyRemarkAction(String pid,String remark) {

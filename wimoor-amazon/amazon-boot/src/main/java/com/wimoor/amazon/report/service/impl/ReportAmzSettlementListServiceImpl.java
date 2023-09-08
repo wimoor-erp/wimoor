@@ -191,6 +191,51 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 		}
 		return null;
 	}
+	
+	String currencyToMarketplaceName(AmazonAuthority amazonAuthority ,String currency){
+		String marketname="";
+		if ("USD".equals(currency)) {
+			marketname = "Amazon.com";
+		} else if ("CAD".equals(currency)) {
+			marketname = "Amazon.ca";
+		} else if ("GBP".equals(currency)) {
+			marketname = "Amazon.co.uk";
+		} else if ("INR".equals(currency)) {
+			marketname = "Amazon.in";
+		} else if ("JPY".equals(currency)) {
+			marketname = "Amazon.co.jp";
+		} else if ("AUD".equals(currency)) {
+			marketname = "Amazon.com.au";
+		} else if ("MXN".equals(currency)) {
+			marketname = "Amazon.com.mx";
+		} else if ("AED".equals(currency)) {
+			marketname = "Amazon.ae";
+		}else if ("SAR".equals(currency)) {
+			marketname = "Amazon.sa";
+		}else if("PLN".equals(currency)) {
+			marketname = "Amazon.pl";
+		}else if("SEK".equals(currency)) {
+			marketname = "Amazon.se";
+		}else if ("EUR".equals(currency)) {
+			List<Marketplace> market = marketplaceService.findbyauth(amazonAuthority.getId());
+			for (Marketplace item : market) {
+				if (currency != null && currency.equals(item.getCurrency())) {
+					marketname = item.getPointName();
+					break;
+				}
+			}
+			if (StrUtil.isEmpty(marketname)) {
+				if (amazonAuthority.getMarketPlace().getCurrency().equals(currency)) {
+					marketname = amazonAuthority.getMarketPlace().getPointName();
+				} else {
+					marketname = "Amazon.co.uk";
+				}
+			}
+		}
+		return marketname;
+	}
+	
+	
 	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
 		String log = "settlementId:";
 		int lineNumber = 0;
@@ -353,44 +398,7 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 		if (StrUtil.isEmpty(marketname) && StrUtil.isNotEmpty(currency)) {
 			// 此处考虑部分用户，没有在我们系统绑定对应国家，但是却有对应店铺，系统抓取的时候该国家的数据也会过来。
 			// 而且有很多数据上面是没有marketplace point信息的。所以此处只能写成静态的根据币种转换。
-			if ("USD".equals(currency)) {
-				marketname = "Amazon.com";
-			} else if ("CAD".equals(currency)) {
-				marketname = "Amazon.ca";
-			} else if ("GBP".equals(currency)) {
-				marketname = "Amazon.co.uk";
-			} else if ("INR".equals(currency)) {
-				marketname = "Amazon.in";
-			} else if ("JPY".equals(currency)) {
-				marketname = "Amazon.co.jp";
-			} else if ("AUD".equals(currency)) {
-				marketname = "Amazon.com.au";
-			} else if ("MXN".equals(currency)) {
-				marketname = "Amazon.com.mx";
-			} else if ("AED".equals(currency)) {
-				marketname = "Amazon.ae";
-			}else if ("SAR".equals(currency)) {
-				marketname = "Amazon.sa";
-			}else if("PLN".equals(currency)) {
-				marketname = "Amazon.pl";
-			}else if("SEK".equals(currency)) {
-				marketname = "Amazon.se";
-			}else if ("EUR".equals(currency)) {
-				List<Marketplace> market = marketplaceService.findbyauth(amazonAuthority.getId());
-				for (Marketplace item : market) {
-					if (currency != null && currency.equals(item.getCurrency())) {
-						marketname = item.getPointName();
-						break;
-					}
-				}
-				if (StrUtil.isEmpty(marketname)) {
-					if (amazonAuthority.getMarketPlace().getCurrency().equals(currency)) {
-						marketname = amazonAuthority.getMarketPlace().getPointName();
-					} else {
-						marketname = "Amazon.co.uk";
-					}
-				}
-			}
+			marketname=currencyToMarketplaceName(amazonAuthority,currency);
 		}
 		if (StrUtil.isEmpty(marketname)) {
 			marketname = amazonAuthority.getMarketPlace().getPointName();

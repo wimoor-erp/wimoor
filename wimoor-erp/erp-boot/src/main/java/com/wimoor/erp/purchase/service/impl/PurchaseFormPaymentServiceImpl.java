@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -219,8 +220,19 @@ public class PurchaseFormPaymentServiceImpl extends  ServiceImpl<PurchaseFormPay
 		if(entry.getPaystatus()==1) {
 			throw new BizException("付款已完成，无法操作，请点击继续付款");
 		}
+		BigDecimal haspay=new BigDecimal("0");
+		LambdaQueryWrapper<PurchaseFormPayment> query=new LambdaQueryWrapper<PurchaseFormPayment>();
+		query.eq(PurchaseFormPayment::getFormentryid, payment.getFormentryid());
+		List<PurchaseFormPayment> list = this.baseMapper.selectList(query);
+		for(PurchaseFormPayment item:list) {
+				if (type_cost.endsWith(item.getProjectid())) {
+					if(item.getAuditstatus()==1) {
+						haspay=haspay.add(item.getPayprice());
+					}
+				}
+		}
 		if(entry.getTotalpay()!=null) {
-			entry.setTotalpay(entry.getTotalpay().subtract(payment.getPayprice()));
+			entry.setTotalpay(haspay.subtract(payment.getPayprice()));
 			purchaseFormEntryMapper.updateById(entry);
 		}
 		this.baseMapper.updateById(payment);
@@ -240,11 +252,6 @@ public class PurchaseFormPaymentServiceImpl extends  ServiceImpl<PurchaseFormPay
 			FinAccount account = faccountService.getById(payment.getAcct());
 			PurchaseFormPayment oldpayment = this.baseMapper.selectById(payment.getId());
 			if (oldpayment != null) {
-				if (type_cost.endsWith(payment.getProjectid())) {
-					if(payment.getAuditstatus()==1) {
-						entry.setTotalpay(oldpay.add(payment.getPayprice().subtract(oldpayment.getPayprice())));
-					}
-				}
 				if(this.updateById(payment)) {
 					result++ ;
 				}
@@ -252,11 +259,6 @@ public class PurchaseFormPaymentServiceImpl extends  ServiceImpl<PurchaseFormPay
 					saveRecord(account, payment, oldpayment, user);
 				}
 			} else {
-				if (type_cost.endsWith(payment.getProjectid())) {
-					if(payment.getAuditstatus()==1) {
-						entry.setTotalpay(oldpay.add(payment.getPayprice()));
-					}
-				}
 				payment.setFormentryid(entry.getId());
 				payment.setCreatedate(new Date());
 				payment.setAcct(account.getId());
@@ -268,6 +270,16 @@ public class PurchaseFormPaymentServiceImpl extends  ServiceImpl<PurchaseFormPay
 				}
 			}
 		}
+		BigDecimal haspay=new BigDecimal("0");
+		LambdaQueryWrapper<PurchaseFormPayment> query=new LambdaQueryWrapper<PurchaseFormPayment>();
+		query.eq(PurchaseFormPayment::getFormentryid, entry.getId());
+		List<PurchaseFormPayment> list = this.baseMapper.selectList(query);
+		for(PurchaseFormPayment item:list) {
+				if (type_cost.endsWith(item.getProjectid())&&item.getAuditstatus()==1) {
+					 haspay=haspay.add(item.getPayprice());
+				}
+		}
+		entry.setTotalpay(haspay);
 		if(entry.getTotalpay().compareTo(entry.getOrderprice())>=0) {
 			entry.setPaystatus(1);
 		}

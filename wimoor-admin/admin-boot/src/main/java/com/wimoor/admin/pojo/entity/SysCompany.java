@@ -31,7 +31,7 @@ String invitecode;
 String fromcode;
 
 @TableField(value= "boss_email")
-String boss_email;
+String bossEmail;
 
 public String getId() {
 	if(id==null) {
@@ -43,4 +43,5 @@ public String getId() {
 public void setId(String id) {
 	this.id = id;
 }
+
 }

@@ -30,9 +30,11 @@ public interface IAmzProductSalesPlanService extends IService<AmzProductSalesPla
 	public List<Map<String, Object>> getPlanModel(PlanDTO dto);
 	public IPage<Map<String, Object>> getPlanModel(Page<Object> page, PlanDTO dto);
 	public Integer getAfterSales(AmzProductSalesPlanShipItem item);
-	public IPage<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, Object>> list, boolean needpage) ;
-    public IPage<Map<String, Object>> handleShip(PlanDTO dto, List<Map<String, Object>> list, boolean needpage);
+	public List<Map<String, Object>> handlePurchase(PlanDTO dto, List<Map<String, Object>> list) ;
+	public void setPurchaseRecord(List<Map<String,Object>> record);
+    public List<Map<String, Object>> handleShip(PlanDTO dto, List<Map<String, Object>> list);
 	public  void handleTags(PlanDTO dto, IPage<Map<String, Object>> page) ;
-	List<Map<String, Object>> ExpandCountryDataByGroup(PlanDetailDTO dto);
+	public            List<Map<String, Object>> ExpandCountryDataByGroup(PlanDetailDTO dto);
+	public Map<String,List<Map<String,Object>>> ExpandCountrysDataByGroup(PlanDetailDTO dto);
 	
 }

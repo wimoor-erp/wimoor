@@ -343,22 +343,7 @@ public class ProductFollowHandlerServiceImpl  extends ServiceImpl<ProductFollowM
 		return sellerName;
 	}
 
-	public static String saveTxtByFollow(String marketplaceid, String sku, String authid, String html) {
-		String contextpath = null;
-		FTPServerUtil ftputil=new FTPServerUtil();
-		try {
-			contextpath =  "amazon_follow_html/" +  authid+"/"+marketplaceid+"/"+sku.toUpperCase()  + ".txt";
-			ftputil.uploadFile("amazon_follow_html/" +authid+"/"+marketplaceid,sku.toUpperCase()  + ".txt",new DataInputStream(new ByteArrayInputStream(html.getBytes())));
-		} catch (IOException e) {
-			contextpath = null;
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return contextpath;
-	}
+	 
 
 	public static boolean mkDirectory(String path) {
 		File file = null;

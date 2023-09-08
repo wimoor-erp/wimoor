@@ -389,7 +389,7 @@ public class ProductListingsItemServiceImpl implements IProductListingsItemServi
 			AmazonAuthority amazonAuthority = amazonAuthorityService.getById(dto.getAmazonauthid());
 			Marketplace market = iMarketplaceService.getById(dto.getMarketplaceids().get(0));
 			List<ProductInfo> info = iProductInfoService.selectBySku(dto.getSku(), market.getMarketplaceid(), amazonAuthority.getId());
-			if(info==null||info.size()==0||info.get(0).getTypename()==null) {
+			if(info==null||info.size()==0) {
 				throw new BizException("未找到对应分类");
 			}
 			ProductInfo infoone = info.get(0);
@@ -532,7 +532,6 @@ public class ProductListingsItemServiceImpl implements IProductListingsItemServi
 		public ProductInfo saveAsin(ProductListingItemDTO dto) {
 			// TODO Auto-generated method stub
 			AmazonAuthority amazonAuthority = amazonAuthorityService.getById(dto.getAmazonauthid());
-			String imageurl=null;
 			if(amazonAuthority==null) {
 				throw new BizException("未找到对应授权");
 			}
@@ -555,61 +554,47 @@ public class ProductListingsItemServiceImpl implements IProductListingsItemServi
 				 if(StrUtil.isNotBlank(dto.getMerchantShippingGroup())) {
 						productInOpt.setMerchantShippingGroup(dto.getMerchantShippingGroup());
 				 }
-				 productInOptMapper.updateById(productInOpt);
-			}else {
-				List<String> includedData=new ArrayList<String>();
-				includedData.add("productTypes");
-				includedData.add("summaries");
-				includedData.add("identifiers");
-				includedData.add("images");
-				com.amazon.spapi.model.catalogitems.Item response = iProductCatalogItemService.captureCatalogProduct(amazonAuthority, dto.getAsin(), dto.getMarketplaceids(),includedData);
-				if(response==null) {
-					throw new BizException("未找到对应asin");
-				}
-				info=new ProductInfo();
-				info.setSku(dto.getSku());
-				info.setAsin(dto.getAsin());
-				info.setAmazonAuthId(new BigInteger(dto.getAmazonauthid()));
-				info.setTypename(response.getProductTypes().get(0).getProductType());
-				if(response.getSummaries()!=null&&response.getSummaries().size()>0) {
-					com.amazon.spapi.model.catalogitems.ItemSummaryByMarketplace summaries = response.getSummaries().get(0);
-					info.setName(summaries.getItemName());
-					info.setManufacturer(summaries.getManufacturer());
-					info.setBrand(summaries.getBrand());
-					info.setMarketplaceid(summaries.getMarketplaceId());
-				}
-				if(response.getImages()!=null&&response.getImages().size()>0) {
-					ItemImagesByMarketplace image = response.getImages().get(0);
-					List<ItemImage> images = image.getImages();
-					if(images!=null&&images.size()>0) {
-						for(ItemImage item:images) {
-							if(item.getVariant().compareTo(VariantEnum.MAIN)==0&&item.getWidth()==75) {
-								imageurl=item.getLink();
-								break;
-							}
-						}
-					}
-				}
-				if(info.getMarketplaceid()==null) {
-					info.setMarketplaceid(market.getMarketplaceid());
-				}
-				Picture picture=null;
-			    	if(imageurl!=null) {
+				 Picture picture=null;
+			    	if(dto.getImage()!=null) {
 			    		String path=PictureServiceImpl.productImgPath+amazonAuthority.getShopId()+"/"+amazonAuthority.getId()+"/"+info.getMarketplaceid()+"/";
 			    		try {
-							picture=pictureService.downloadPicture(imageurl, path,null);
+							picture=pictureService.downloadPicture(dto.getImage(), path,null);
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-				} 
-		        if(picture!=null) {
-		        	info.setImage(new BigInteger(picture.getId()));
-		        }
+			    		 if(picture!=null) {
+			    		       	info.setImage(new BigInteger(picture.getId()));
+			    		     	iProductInfoService.updateById(info);
+			    		  }
+				   } 
+				 productInOptMapper.updateById(productInOpt);
+			}else {
+				info=new ProductInfo();
+				info.setSku(dto.getSku());
+				info.setAsin(dto.getAsin());
+				info.setAmazonAuthId(new BigInteger(dto.getAmazonauthid()));
+				if(info.getMarketplaceid()==null) {
+					info.setMarketplaceid(market.getMarketplaceid());
+				}
 				info.setFulfillChannel("DEFAULT");
 			    info.setInvalid(true);
 			    info.setDisable(true);
 			    info.setPrice(new BigDecimal(dto.getPrice()));
+			    Picture picture=null;
+		    	if(dto.getImage()!=null) {
+		    		String path=PictureServiceImpl.productImgPath+amazonAuthority.getShopId()+"/"+amazonAuthority.getId()+"/"+info.getMarketplaceid()+"/";
+		    		try {
+						picture=pictureService.downloadPicture(dto.getImage(), path,null);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		    		 if(picture!=null) {
+		    		       	info.setImage(new BigInteger(picture.getId()));
+		    		     	iProductInfoService.updateById(info);
+		    		  }
+			    } 
 			    iProductInfoService.save(info);
 			    ProductInOpt productInOpt = new ProductInOpt();
 				productInOpt.setPid(new BigInteger(info.getId()));
@@ -622,8 +607,18 @@ public class ProductListingsItemServiceImpl implements IProductListingsItemServi
 				}
 				productInOpt.setBuyprice(new BigDecimal(dto.getPrice()));
 				productInOptMapper.insert(productInOpt);
+			 
+				AmzProductRefresh refresh=new AmzProductRefresh();
+				refresh.setAmazonauthid(new BigInteger(amazonAuthority.getId()));
+				refresh.setAsin(dto.getAsin());
+				refresh.setSku(dto.getSku());
+				refresh.setMarketplaceid(info.getMarketplaceid());
+				refresh.setPid(new BigInteger(info.getId()));
+				refresh.setNotfound(false);
+				refresh.setIsparent(false);
+				iAmzProductRefreshService.save(refresh);
+				iProductCatalogItemService.captureCatalogProductSync(amazonAuthority,refresh, dto.getMarketplaceids());
 			}
-			info.setBinding(imageurl);
 			return info;
 		}
 

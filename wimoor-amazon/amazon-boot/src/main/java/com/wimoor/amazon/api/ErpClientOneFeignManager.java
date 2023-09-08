@@ -94,8 +94,8 @@ public class ErpClientOneFeignManager {
     public Result<Map<String, Object>> getMSkuDeliveryAndInv(    String shopid,
 													    		 String groupid,
 													    		 String msku,
-													    		 String country){
-    	return api.getMSkuDeliveryAndInv(shopid, groupid, msku, country);
+													    		 String country,String needDeliveryCycle){
+    	return api.getMSkuDeliveryAndInv(shopid, groupid, msku, country,needDeliveryCycle);
     }
     
 	public Result<?> getMaterialInventoryInfoAction( String shopid,
@@ -120,5 +120,20 @@ public class ErpClientOneFeignManager {
     
 	public Result<List<Map<String,Object>>> getShipArrivalTimeRecord( String shopid, String country, String groupid, String sku){
 		return api.getShipArrivalTimeRecord(shopid, country, groupid, sku);
+	}
+	
+	public List<Map<String, Object>> findInventoryNowCostByShopId(String shopid) {
+		// TODO Auto-generated method stub
+ 		 Result<List<Map<String, Object>>> result=api.findInventoryNowCostByShopId(shopid);
+ 		 if(Result.isSuccess(result)&&result.getData()!=null) {
+ 			 return result.getData();
+ 		 }else {
+ 			 return null;
+ 		 }
+	}
+
+	public Result<?> getLastRecordsAction(List<String> list) {
+		// TODO Auto-generated method stub
+		return api.getLastRecordsAction(list);
 	}
 }

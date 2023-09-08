@@ -71,7 +71,7 @@ public class OrderReportController {
 		Chart chart=new Chart();
 		if(StrUtil.isNotBlank(dto.getSku()) ) {
 			List<ChartLine> lines =new ArrayList<ChartLine>();
-			ChartLine line= iSummaryDataService.findOrderSummaryBySku(dto.getGroupid(),dto.getAmazonAuthId(), dto.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
+			ChartLine line= iSummaryDataService.findOrderSummaryBySku(dto.getGroupid(),dto.getAmazonAuthId(), dto.getSku(), dto.getMarketplaceid(), dto.getDaysize(),dto.getLineType(), userinfo);
 			lines.add(line);
 			chart.setLines(lines);
 			Calendar end=Calendar.getInstance();
@@ -105,7 +105,7 @@ public class OrderReportController {
 			for(ProductInfo item:groupList) {
 		    	   AmazonAuthority auth = iAmazonAuthorityService.getById(item.getAmazonAuthId());
 		    	   AmazonGroup amzstore = iAmazonGroupService.getById(auth.getGroupid());
-		    	   ChartLine line= iSummaryDataService.findOrderSummaryBySku(auth.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(), userinfo);
+		    	   ChartLine line= iSummaryDataService.findOrderSummaryBySku(auth.getGroupid(),item.getAmazonAuthId().toString(), item.getSku(), dto.getMarketplaceid(), dto.getDaysize(),dto.getLineType(), userinfo);
 				   lines.add(line);
 				   String groupname=amzstore.getName();
 				   String marketname=null;

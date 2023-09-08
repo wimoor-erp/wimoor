@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,7 +78,7 @@ public class AdvertCampaignManagerController {
 	public Result<PageList<Map<String, Object>>> getCampaignListAction(@ApiParam("查询广告活动") @RequestBody QueryForList query) {
 		UserInfo user = UserInfoContext.get();
 		Map<String, Object> map = AdvertController.amzAdvParameterMap(query);
-		map.put("shopid", "26138972975530085");
+		map.put("shopid", user.getCompanyid());
 		PageList<Map<String, Object>> list = amzAdvCampaignService.getCampaignList(map, query.getPageBounds());
 		if (list == null || list.size() == 0) {
 			return Result.success(new PageList<Map<String, Object>>());
@@ -338,16 +339,16 @@ public class AdvertCampaignManagerController {
 		return "SUCCESS";
 	}
 
-	@ResponseBody
-	@RequestMapping("/getCampaignChart")
-	public Map<String, Object> getCampaignChartAction(@ApiParam("查询广告活动") QueryForList query) {
+	@ApiOperation("查询广告活动图表")
+	@PostMapping("/getCampaignChart")
+	public Result<Map<String, Object>> getCampaignChartAction(@ApiParam("查询广告活动") @RequestBody QueryForList query) {
 		UserInfo user = UserInfoContext.get();
 		Map<String, Object> map = AdvertController.amzAdvParameterMap(query);
 		String bytime = query.getBytime();
 		map.put("shopid", user.getCompanyid());
 		map.put("bytime", bytime);
 		Map<String, Object> mapList = amzAdvCampaignService.getCampaignChart(map);
-		return mapList;
+		return Result.success(mapList);
 	}
 
 	@ResponseBody
@@ -427,14 +428,15 @@ public class AdvertCampaignManagerController {
 		return result;
 	}
 
-	@ResponseBody
-	@RequestMapping("/getCampaignPlacement")
-	public List<Map<String, Object>> getCampaignPlacementAction(HttpServletRequest request, Model model) {
-		String profileid = AdvUtils.getRequestValue(request, "profileid");
-		String campaignId = AdvUtils.getRequestValue(request, "campaignId");
-		String campaignType = AdvUtils.getRequestValue(request, "campaignType");
-		String fromDate = AdvUtils.getRequestValue(request, "fromDate");
-		String endDate = AdvUtils.getRequestValue(request, "endDate");
+	 
+	@GetMapping("/getCampaignPlacement")
+	public Result<List<Map<String, Object>>> getCampaignPlacementAction(String profileid,String campaignId,String campaignType,
+			String fromDate,String endDate) {
+		 profileid = AdvUtils.getRequestValue(profileid);
+		 campaignId = AdvUtils.getRequestValue(campaignId);
+		 campaignType = AdvUtils.getRequestValue(campaignType);
+		 fromDate = AdvUtils.getRequestValue(fromDate);
+		 endDate = AdvUtils.getRequestValue(endDate);
 		Map<String, Object> map = new HashMap<String, Object>();
 		if (StringUtil.isEmpty(fromDate) || StringUtil.isEmpty(endDate)) {
 			throw new BaseException("日期区间不能为空！");
@@ -448,12 +450,12 @@ public class AdvertCampaignManagerController {
 		if(list!=null) {
 			AdvertController.convertMapRemoveNA(list);
 		}
-		return list;
+		return Result.success(list);
 	}
 
     @ApiOperation("查询广告活动汇总")
 	@PostMapping("/getSumCampaign")
-	public Result<Object> getSumCampaignAction(@ApiParam("查询广告活动") QueryForList query) {
+	public Result<Object> getSumCampaignAction(@ApiParam("查询广告活动") @RequestBody QueryForList query) {
 		UserInfo user = UserInfoContext.get();
 		Map<String, Object> map = AdvertController.amzAdvParameterMap(query);
 		map.put("shopid", user.getCompanyid());

@@ -1,0 +1,16 @@
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1, '性别', 'gender', 1, NULL, '2019-12-06 19:03:32', '2021-02-08 14:58:01');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (2, '授权方式', 'grant_type', 1, NULL, '2020-10-17 08:09:50', '2021-01-31 09:48:24');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (3, '微服务列表', 'micro_service', 1, NULL, '2021-06-17 00:13:43', '2021-06-17 00:17:22');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (4, '请求方式', 'request_method', 1, NULL, '2021-06-17 00:18:07', '2021-06-17 00:18:07');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1575330968132694017, '用户状态', 'user_status', 1, NULL, '2022-09-29 11:45:46', '2022-09-29 11:45:46');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1580461846135635969, '数据权限', 'limit_data_type', 1, NULL, '2022-10-13 15:34:02', '2022-10-13 15:34:02');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581888127234539522, '销售渠道及发货方式', 'salesChannel', 1, NULL, '2022-10-17 14:01:34', '2022-10-17 14:01:34');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581888461944193026, '卖家销售计划', 'sellerplan', 1, NULL, '2022-10-17 14:02:54', '2022-10-17 14:02:54');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581888764215099394, '运费计算', 'shipmentstyle', 1, NULL, '2022-10-17 14:04:06', '2022-10-17 14:04:06');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581889181447684098, '配送方式', 'isfba', 1, NULL, '2022-10-17 14:05:46', '2022-10-17 14:05:46');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581889888674447362, '订单状态', 'order_status', 1, NULL, '2022-10-17 14:08:34', '2022-10-17 14:08:34');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581890253167853570, '卖家类型', 'is_business_order', 1, NULL, '2022-10-17 14:10:01', '2022-10-17 14:10:01');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581890529090142210, '客户类型', 'customer', 1, NULL, '2022-10-17 14:11:07', '2022-10-17 14:11:07');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581907412451393537, '物流方式US', 'logistics_us', 1, NULL, '2022-10-17 15:18:12', '2022-10-17 15:18:12');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1581907799845699586, '物流方式UK', 'logistics_uk', 1, NULL, '2022-10-17 15:19:45', '2022-10-17 15:19:45');
+REPLACE INTO `t_sys_dict` (`id`, `name`, `code`, `status`, `remark`, `gmt_create`, `gmt_modified`) VALUES (1593091333478154241, '采购币种', 'currency_purchase', 1, NULL, '2022-11-17 11:59:07', '2022-11-17 11:59:07');

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -38,6 +39,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.result.Result;
@@ -369,13 +371,28 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
  		if(vo==null) {
 			throw new ERPBizException("填入数据参数异常！");
 		}
+ 		List<MaterialConsumableVO> consumableList = vo.getConsumableList();
+ 		if(consumableList!=null&&consumableList.size()>0) {
+ 			for(MaterialConsumableVO item:consumableList) {
+ 				if(item.getAmount().floatValue()<0.000001) {
+ 					throw new ERPBizException("辅料数量必须大于0！");
+ 				}
+ 			}
+ 		}
+ 		List<AssemblyVO> asslist = vo.getAssemblyList();
+ 		if(asslist!=null&&asslist.size()>0) {
+ 			for(AssemblyVO item:asslist) {
+ 				if(item.getSubnumber()<=0) {
+ 					throw new ERPBizException("组装数量必须大于0！");
+ 				}
+ 			}
+ 		}
 		Material material=saveBaseInfo(vo,file,user);
 		saveMaterialCustoms(vo,material);
 		saveMaterialAssembly(vo,material);
 		// 获取物料基本信息
 		List<MaterialSupplierVO> supplierlist = vo.getSupplierList();
 		iIMaterialSupplierService.saveOrUpdateSupplier(supplierlist,user,material.getId(),material);
-		List<MaterialConsumableVO> consumableList = vo.getConsumableList();
 		saveMaterialConsumable(consumableList,user,material.getId());
 		saveTags(vo,material,user);
 		if(material.getId()!=null) {
@@ -414,13 +431,17 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	private void saveMaterialAssembly(MaterialInfoVO vo, Material material) {
 		// TODO Auto-generated method stub
 		List<AssemblyVO> asslist = vo.getAssemblyList();
-		List<AssemblyVO> volist = assemblyService.selectByMainmid(material.getId());
-		Set<String> subset=new HashSet<String>();
-		for(AssemblyVO item:volist) {
-			subset.add(item.getSubmid());
+		List<AssemblyVO> sublist = assemblyService.selectByMainmid(material.getId());
+		Map<String,AssemblyVO> subset=new HashMap<String,AssemblyVO>();
+		for(AssemblyVO item:sublist) {
+			subset.put(item.getSubmid(),item);
 		}
-		assemblyService.deleteByMainmid(material.getId());
-		if ("1".equals(material.getIssfg()) && asslist!=null && asslist.size()>0) {
+		List<Assembly> mainlist = assemblyService.selectBySubid(material.getId());
+	 
+		if ( asslist!=null && asslist.size()>0) {
+			if(mainlist!=null&&mainlist.size()>0) {
+				throw new BizException("半成品不能添加组装清单");
+			}
 			for (int i = 0; i < asslist.size(); i++) {
 				AssemblyVO assitem = asslist.get(i);
 				Assembly assembly = new Assembly();
@@ -430,27 +451,60 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 				assembly.setRemark(assitem.getRemark());
 				assembly.setOperator(material.getOperator());
 				assembly.setOpttime(new Date());
-				assemblyService.save(assembly);
 				Material assub = this.getById(assitem.getSubmid());
-				assub.setIssfg("2");
-				this.updateById(assub);
-				subset.remove(assub.getId());
+				if(assub.getIssfg().equals("1")) {
+					throw new BizException("组装清单中的子产品不能存在组合产品");
+				}
+				AssemblyVO oldone = subset.get(assub.getId());
+				if(oldone!=null) {
+					assembly.setId(oldone.getId());
+					assemblyService.updateById(assembly);
+					subset.remove(assub.getId());
+				}else {
+					assemblyService.save(assembly);
+				}
+				if(assub.getIssfg()==null||!assub.getIssfg().equals("2")) {
+					assub.setIssfg("2");
+					this.baseMapper.updateById(assub);
+				}
+			}
+			Material main = this.getById(material.getId());
+			material.setIssfg("1");
+			vo.getMaterial().setIssfg("1");
+			if(main.getIssfg()==null||!main.getIssfg().equals("1")) {
+				main.setIssfg("1");
+				this.baseMapper.updateById(main);
 			}
 		}else {
-			if(material.getIssfg()==null||material.getIssfg().equals("1")) {
-				Material main = this.getById(material.getId());
-				main.setIssfg("0");
-				this.updateById(main);	
-			}
+			    if(mainlist!=null&&mainlist.size()>0) {
+			    	Material main = this.getById(material.getId());
+			    	material.setIssfg("2");
+			    	vo.getMaterial().setIssfg("2");
+			    	if(main.getIssfg()==null||!main.getIssfg().equals("2")) {
+			    		main.setIssfg("2");
+						this.baseMapper.updateById(main);	
+			    	}
+			    }else {
+			    	material.setIssfg("0");
+			    	vo.getMaterial().setIssfg("0");
+			    	Material main = this.getById(material.getId());
+			    	if(main.getIssfg()==null||!main.getIssfg().equals("0")) {
+			    		main.setIssfg("0");
+						this.baseMapper.updateById(main);	
+			    	}
+			    }
 		}
-		for(String id:subset) {
+		for(Entry<String, AssemblyVO> entry:subset.entrySet()) {
+			String id=entry.getKey();
+			assemblyService.removeById(entry.getValue().getId());
 			LambdaQueryWrapper<Assembly> asquery=new LambdaQueryWrapper<Assembly>();
 			asquery.eq(Assembly::getSubmid,id);
 			long count = assemblyService.count(asquery);
 			if(count==0) {
 				Material assub = this.getById(id);
+				if(assub.getIssfg()==null||!assub.getIssfg().equals("0"))
 				assub.setIssfg("0");
-				this.updateById(assub);	
+				this.baseMapper.updateById(assub);	
 			}
 		}
 		
@@ -483,6 +537,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		QueryWrapper<Material> queryWrapper=new QueryWrapper<Material>();
 		queryWrapper.eq("shopid", user.getCompanyid());
 		queryWrapper.eq("sku", vo.getMaterial().getSku());
+		queryWrapper.eq("isDelete",false);
 		String oldowner=null;
 		boolean isupdate=true;
 		String oldpicture=null;
@@ -505,6 +560,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 						throw new ERPBizException("已加入补货计划，请移除后再修改产品组装类别！");
 					}
 			     }
+				
 			}
 			oldowner=material.getOwner();
 			oldpicture=material.getImage();
@@ -567,12 +623,18 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		material.setEffectivedate(materialvo.getEffectivedate());
 		if(itemdim!=null) {
 			material.setItemdimensions(itemdim.getId());
+		}else {
+			material.setItemdimensions(null);
 		}
 		if(boxdim!=null) {
 			material.setBoxdimensions(boxdim.getId());
+		}else {
+			material.setBoxdimensions(null);
 		}
 		if(pkgdim!=null) {
 			material.setPkgdimensions(pkgdim.getId());
+		}else {
+			material.setBoxdimensions(null);
 		}
 		//组装周期
 		if (materialvo.getAssemblyTime() != null) {
@@ -617,6 +679,29 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
  
 
 	DimensionsInfo saveDim(DimensionsInfo dimvo){
+		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
+			if(dimvo.idIsNULL()) {
+				return null;
+			}else {
+				dimensionsInfoService.removeById(dimvo.getId());
+				return null;
+			}
+        }else if(dimvo.getLength()!=null 
+        		&&  dimvo.getWidth()!=null 
+        		&& dimvo.getHeight()!=null 
+        		&& dimvo.getWeight()!=null
+        		&& dimvo.getLength().floatValue()<0.000001
+        		&& dimvo.getWidth().floatValue()<0.000001
+        		&& dimvo.getHeight().floatValue()<0.000001
+        		&& dimvo.getWeight().floatValue()<0.000001
+        		) {
+        	if(dimvo.idIsNULL()) {
+				return null;
+			}else {
+				dimensionsInfoService.removeById(dimvo.getId());
+				return null;
+			}
+        }
 		BigDecimal length = dimvo.getLength();
 		BigDecimal width =  dimvo.getWidth();
 		BigDecimal height = dimvo.getHeight();
@@ -626,10 +711,14 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		dim.setWidth(width);
 		dim.setHeight(height);
 		dim.setWeight(weight);
-		DimensionsInfo old=dimensionsInfoService.getById(dimvo.getId());
+		DimensionsInfo old=null;
+		if(!dimvo.idIsNULL()) {
+		   old=	dimensionsInfoService.getById(dimvo.getId());
+		}
 		if(old!=null) {
-			dim.setId(dimvo.getId());
-			dimensionsInfoService.updateById(dim);
+			dimensionsInfoService.removeById(old.getId());
+			dim.setId(this.warehouseService.getUUID());
+			dimensionsInfoService.save(dim);
 		}else {
 			dimensionsInfoService.save(dim);
 		}
@@ -640,9 +729,6 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	private DimensionsInfo saveItemDim(MaterialInfoVO vo) {
         if(vo==null||vo.getItemDim()==null)return null;
 		DimensionsInfo dimvo=vo.getItemDim();
-		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
-			return null;
-        }
 		if("ok".equals(vo.getIscopy())) {
 			dimvo.setId(null);
 		}
@@ -651,9 +737,6 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	private DimensionsInfo savePkgDim(MaterialInfoVO vo) {
         if(vo==null||vo.getPkgDim()==null)return null;
 		DimensionsInfo dimvo=vo.getPkgDim();
-		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
-			return null;
-        }
 		if("ok".equals(vo.getIscopy())) {
 			dimvo.setId(null);
 		}
@@ -662,9 +745,6 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	private DimensionsInfo saveBoxDim(MaterialInfoVO vo) {
         if(vo==null||vo.getBoxDim()==null)return null;
 		DimensionsInfo dimvo=vo.getBoxDim();
-		if(dimvo.getLength()==null &&  dimvo.getWidth()==null && dimvo.getHeight()==null && dimvo.getWeight()==null) {
-			return null;
-        }
 		if("ok".equals(vo.getIscopy())) {
 			dimvo.setId(null);
 		}

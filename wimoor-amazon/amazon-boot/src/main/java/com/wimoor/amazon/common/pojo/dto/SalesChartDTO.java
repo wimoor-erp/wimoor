@@ -9,5 +9,6 @@ public class SalesChartDTO {
 	String amazonAuthId;
 	String sku;
 	String msku;
+	String lineType;
 	Integer daysize;
 }

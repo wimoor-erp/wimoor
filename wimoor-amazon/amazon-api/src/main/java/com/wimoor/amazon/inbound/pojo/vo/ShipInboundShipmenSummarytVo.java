@@ -128,6 +128,9 @@ public class ShipInboundShipmenSummarytVo{
 	@ApiModelProperty(value = "开始接收日期")
 	private Date receivedate;
     
+	@ApiModelProperty(value = "开始接收日期")
+	private Date shipedDate;
+	
 	@ApiModelProperty(value = "同步订单库存同步1代表没有扣库存，2代表已经扣库存")
 	private Integer syncinv;
 	

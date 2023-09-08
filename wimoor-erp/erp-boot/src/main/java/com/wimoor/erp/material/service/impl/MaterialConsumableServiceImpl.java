@@ -439,6 +439,7 @@ public List<Map<String, Object>> findConsumableDetailBySkuList(UserInfo user, Ma
 		  item.put("residue",need-intneed  );
 		}
 		item.put("out", entryMap.get(item.get("materialid").toString()));
+		
 	}
 	return result;
 }

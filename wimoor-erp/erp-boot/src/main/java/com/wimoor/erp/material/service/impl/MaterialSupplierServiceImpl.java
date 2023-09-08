@@ -96,6 +96,7 @@ public class MaterialSupplierServiceImpl extends  ServiceImpl<MaterialSupplierMa
   						}
   						material.setProductCode(procode);
   						material.setPurchaseUrl(purchaseurl);
+  						material.setDeliveryCycle(item.getDeliverycycle());
   						if(material.getId()!=null) {
   							materialMapper.updateById(material);
   						}

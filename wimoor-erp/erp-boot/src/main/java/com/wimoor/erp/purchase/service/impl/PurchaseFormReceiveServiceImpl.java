@@ -260,6 +260,7 @@ public class PurchaseFormReceiveServiceImpl extends  ServiceImpl<PurchaseFormRec
 		///// 更新entry,totalin,totalre置为0，将totalin的可用库存减掉，待入库改为采购数量，加入收退货记录（t_erp_purchase_form_receive）
 		PurchaseFormReceive item=this.baseMapper.selectById(recid);
 		PurchaseFormEntry purchaseFormEntry = purchaseFormEntryMapper.selectById(item.getFormentryid());
+		PurchaseForm form=purchaseFormMapper.selectById(purchaseFormEntry.getFormid());
 		if(purchaseFormEntry.getTotalin()==0) {
 			throw new ERPBizException("请确认是否已经完成撤销操作，当前没有可以撤销的库存");
 		}
@@ -293,6 +294,7 @@ public class PurchaseFormReceiveServiceImpl extends  ServiceImpl<PurchaseFormRec
 			if (nowtotalin<=purchaseFormEntry.getAmount()) {
                     int needinbound=purchaseFormEntry.getAmount()-nowtotalin;
                     invpara.setAmount(needinbound);
+                    invpara.setWarehouse(form.getWarehouseid());
 				    inventoryService.AddStockByStatus(invpara, Status.inbound, Operate.in);
 			}  
 			purchaseFormEntry.setTotalin(nowtotalin);
@@ -308,10 +310,12 @@ public class PurchaseFormReceiveServiceImpl extends  ServiceImpl<PurchaseFormRec
 			if (purchaseFormEntry.getTotalin()<=purchaseFormEntry.getAmount()) {
 				  if(nowtotalin<=purchaseFormEntry.getAmount()) {
 					    invpara.setAmount(item.getAmount());
+					    invpara.setWarehouse(form.getWarehouseid());
 					    inventoryService.SubStockByStatus(invpara, Status.inbound, Operate.in);
 				  }else {
 					  int needinbound=purchaseFormEntry.getAmount()-purchaseFormEntry.getTotalin();
 					  invpara.setAmount(needinbound);
+					  invpara.setWarehouse(form.getWarehouseid());
 					  inventoryService.SubStockByStatus(invpara, Status.inbound, Operate.in);
 				  }
 			}  
@@ -332,6 +336,7 @@ public class PurchaseFormReceiveServiceImpl extends  ServiceImpl<PurchaseFormRec
 	public PurchaseFormEntry clearReceive(String entryid, UserInfo user) {
 		///// 更新entry,totalin,totalre置为0，将totalin的可用库存减掉，待入库改为采购数量，加入收退货记录（t_erp_purchase_form_receive）
 		PurchaseFormEntry purchaseFormEntry = purchaseFormEntryMapper.selectById(entryid);
+		PurchaseForm form=purchaseFormMapper.selectById(purchaseFormEntry.getFormid());
 		if(purchaseFormEntry.getTotalin()==0) {
 			throw new ERPBizException("请确认是否已经完成撤销操作，当前没有可以撤销的库存");
 		}
@@ -386,6 +391,8 @@ public class PurchaseFormReceiveServiceImpl extends  ServiceImpl<PurchaseFormRec
 		} else {
 			invpara.setAmount(amount);
 		}
+		
+		invpara.setWarehouse(form.getWarehouseid());
 		inventoryService.AddStockByStatus(invpara, Status.inbound, Operate.in);
 		purchaseFormEntry.setAuditstatus(2);
 		purchaseFormEntry.setInwhstatus(0);

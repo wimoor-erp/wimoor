@@ -17,7 +17,6 @@ import javax.xml.transform.TransformerException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
@@ -922,6 +921,7 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 			}
 			return map;
 		}
+		
 		@Override
 		public void showProfitDetial(Map<String, Object> map) {
 			if(map.get("pid")==null||map.get("myprice")==null) {
@@ -931,7 +931,7 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 			BigDecimal myprice = new BigDecimal(map.get("myprice").toString());
 			ProductInProfit productInProfit = productInProfitMapper.selectById(pid);
 			ProductInfo info = this.baseMapper.selectById(pid);
-			ProductInOpt proopt = iProductInOptService.getById(pid);
+			ProductInOpt proopt = iProductInOptService.getCacheableById(pid);
 			AmazonAuthority auth = amazonAuthorityService.getById(info.getAmazonAuthId());
 			String profitcfgid=null;
 			//使用opt上面带的利润id(假如设置了)
@@ -999,7 +999,6 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 				costDetailStr = productInProfit.getCostdetail();
 			} else {
 				ProfitConfig profitcfg = profitCfgService.findConfigAction(profitcfgid);
-				DimensionsInfo dim_amz = dimensionsInfoMapper.selectById(info.getPageDimensions());
 				CostDetail costDetail = calculateProfitService.getProfit(info, myprice, auth,dim_local,cost);
 				if(costDetail==null) {
 					return ;
@@ -1017,13 +1016,16 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 						String weightValue = dim_local.getInputDimensions().getWeight().value.toString() + dim_local.getInputDimensions().getWeight().units;
 						map.put("dimensionsInfo", lengthValue + "-" + widthValue + "-" + heightValue);
 						map.put("dimensionsWeight", weightValue);
-				} else if (dim_amz != null) {
-					String lengthValue = dim_amz.getInputDimensions().getLength().value.toString() + dim_amz.getInputDimensions().getLength().units;
-					String widthValue = dim_amz.getInputDimensions().getWidth().value.toString() + dim_amz.getInputDimensions().getWidth().units;
-					String heightValue = dim_amz.getInputDimensions().getHeight().value.toString() + dim_amz.getInputDimensions().getHeight().units;
-					String weightValue = dim_amz.getInputDimensions().getWeight().value.toString() + dim_amz.getInputDimensions().getWeight().units;
-					map.put("dimensionsInfo", lengthValue + "-" + widthValue + "-" + heightValue);
-					map.put("dimensionsWeight", weightValue);
+				} else {
+					DimensionsInfo dim_amz = dimensionsInfoMapper.selectById(info.getPageDimensions());
+					 if (dim_amz != null) {
+						 String lengthValue = dim_amz.getInputDimensions().getLength().value.toString() + dim_amz.getInputDimensions().getLength().units;
+						 String widthValue = dim_amz.getInputDimensions().getWidth().value.toString() + dim_amz.getInputDimensions().getWidth().units;
+						 String heightValue = dim_amz.getInputDimensions().getHeight().value.toString() + dim_amz.getInputDimensions().getHeight().units;
+						 String weightValue = dim_amz.getInputDimensions().getWeight().value.toString() + dim_amz.getInputDimensions().getWeight().units;
+						 map.put("dimensionsInfo", lengthValue + "-" + widthValue + "-" + heightValue);
+						 map.put("dimensionsWeight", weightValue);
+					 }
 				} 
 			}
 			Map<String, String> costDetailMap = profitService.jsonToMap(costDetailStr);

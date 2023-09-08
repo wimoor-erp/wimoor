@@ -77,6 +77,9 @@
 			<if test="param.fromDate!=null">
 				AND i.openDate>= #{param.fromDate,jdbcType=DATE}
 			</if>
+			<if test="param.owner!=null">
+				AND o.owner= #{param.owner,jdbcType=DATE}
+			</if>
 			<if test="param.toDate!=null">
 				AND i.openDate &lt;= #{param.toDate,jdbcType=DATE}
 			</if>

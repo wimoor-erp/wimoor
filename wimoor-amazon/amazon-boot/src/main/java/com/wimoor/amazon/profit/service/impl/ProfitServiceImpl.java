@@ -25,6 +25,7 @@ import com.wimoor.amazon.profit.mapper.FixedClosingFeeMapper;
 import com.wimoor.amazon.profit.mapper.IndividualFeeMapper;
 import com.wimoor.amazon.profit.mapper.PrepServiceFeeMapper;
 import com.wimoor.amazon.profit.mapper.VariableClosingFeeMapper;
+import com.wimoor.amazon.profit.pojo.dto.ProfitQuery;
 import com.wimoor.amazon.profit.pojo.entity.FBALabelingFee;
 import com.wimoor.amazon.profit.pojo.entity.FixedClosingFee;
 import com.wimoor.amazon.profit.pojo.entity.IndividualFee;
@@ -50,6 +51,8 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.StringFormat;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.util.SpringUtil;
+
+import cn.hutool.core.util.StrUtil;
 @Service("profitService")  
 public class ProfitServiceImpl implements IProfitService{
 	@Resource
@@ -95,7 +98,7 @@ public class ProfitServiceImpl implements IProfitService{
 		unitMap = null;
 	}
 	
-	public static String[] smlAndLightCountry={"US","UK","DE","FR","IT","SE","NL","PL","ES","JP"};
+	public static String[] smlAndLightCountry={"UK","DE","FR","IT","SE","NL","PL","ES","JP"};
 	
 
 	
@@ -157,6 +160,14 @@ public class ProfitServiceImpl implements IProfitService{
 					priceResult = estimateSellingPrice(costDetail, referralR, minimum, FBA, temp, temp2, marginList.get(i));
 					sellingPrice = priceResult.get("sellingPrice");
 					referralFee = priceResult.get("referralFee");
+				}else if("US".equals(country)) {
+						if(sellingPrice.compareTo(new BigDecimal("10.77"))<0) {
+							FBA = getAmazonFeeButRef(costDetail);
+							FBA=FBA.subtract(new BigDecimal("0.77"));
+							priceResult = estimateSellingPrice(costDetail, referralR, minimum, FBA, temp, temp2, marginList.get(i));
+							sellingPrice = priceResult.get("sellingPrice");
+							referralFee = priceResult.get("referralFee");
+						}
 				} else {
 					//判断是否有阶段佣金收费，并且估算的佣金大于minimum，才会用预估的售价重新计算佣金
 					if(referralFee.floatValue()>minimum.floatValue() && resultfee.getPercent2()!=null && resultfee.getPercent2().floatValue()>0){
@@ -616,13 +627,8 @@ public class ProfitServiceImpl implements IProfitService{
 			}
 			
 			if (productTierName != null) {
-				if ("US".equals(country)&&!isSmlAndLight) {
-					if (outboundWeight.compareTo(new BigDecimal("1"))==-1) {//outboundWeight小于1
-						outboundWeight = outboundWeight.multiply(new BigDecimal("16")).setScale(0, BigDecimal.ROUND_CEILING);//磅转换成盎司
-						result.put("productTier", productTierName + "-" + outboundWeight + "oz");
-					} else {
-						result.put("productTier", productTierName + "-" + outboundWeight + "lb");
-					}
+				if(country.equals("US")) {
+					result.put("productTier", productTierName + "-" + outboundWeight + "lb");
 				} else if (("UK".equals(country) || isEUNotUK(country))&&!isSmlAndLight) {
 					BigDecimal weight = profitServiceX.getFBAFormatWeight(country, productTierId, inputDimension, outboundWeight, profitConfigCountry);
 					result.put("productTier", productTierName + "-" + outboundWeight + "-" +weight+ "g");
@@ -841,7 +847,6 @@ public class ProfitServiceImpl implements IProfitService{
 		BigDecimal import_gst=(new BigDecimal("1").add(taxrate)).multiply(declaredValue)
 				.multiply(gstrate).setScale(4, BigDecimal.ROUND_HALF_UP);
 		costDetail.setImport_GST(import_gst);
-		
 		List<Map<String, String>> resultList = calculateSellingPrice(costDetail, typeId, country, referralrate);// 按固定利率估算售价和利润
 		costDetail.setResultList(resultList);
 		return costDetail;
@@ -1330,7 +1335,7 @@ public class ProfitServiceImpl implements IProfitService{
 	}
 	
 	//根据售价计算产品成本详情及利润
-	public CostDetail getCostDetail(CostDetail costDetail, int typeId, BigDecimal referralrate, boolean isSmlAndLight,ProfitConfig profitcfg ) {
+	public CostDetail getCostDetail(ProfitQuery query,CostDetail costDetail, int typeId, BigDecimal referralrate, boolean isSmlAndLight,ProfitConfig profitcfg ) {
 		BigDecimal price = costDetail.getSellingPrice();
 		if (price != null && price.doubleValue()>0) {
 			// 根据售价计算 Amazon Referral Fee
@@ -1368,9 +1373,46 @@ public class ProfitServiceImpl implements IProfitService{
 							costDetail.getOutboundWeight(),cfgcountry);
 					costDetail.setFBA(FBA);
 				}
+				if ("US".equals(costDetail.getCountry())) {
+					if(price.compareTo(new BigDecimal("10.00"))<0) {
+						IProfitService profitServiceX = null;
+						try {
+							profitServiceX = factoryProfitServiceByCountry(costDetail.getCountry());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						String type = "";
+						if (referralFee != null) {
+							type =findTypeById(typeId) ;
+						}
+						String isMedia = "";
+						if (referralFee != null) {
+							isMedia = isMedia(typeId);
+						}
+						String weight_ = query.getWeight();// 重量
+						String WUnit = query.getWunit();// 重量单位
+						String length_ =query.getLength();// 长
+						String LUnit =query.getLunit();// 长度单位
+						String width_ = query.getWidth();// 宽
+						String height_ = query.getHeight();// 高
+						BigDecimal weight = new BigDecimal(weight_);
+						BigDecimal length = new BigDecimal(length_);
+						BigDecimal width = new BigDecimal(width_);
+						BigDecimal height = new BigDecimal(height_);
+						InputDimensions inputDimension = new InputDimensions(length, width, height, LUnit, weight, WUnit);
+						BigDecimal FBA = profitServiceX.calculateFBA(costDetail.getCountry(), 
+								costDetail.getProductTierId(),
+								inputDimension, 
+								isMedia, type,
+								costDetail.getOutboundWeight(),
+								cfgcountry, query.getShipmentType());
+						FBA=FBA.subtract(new BigDecimal("0.77"));
+						costDetail.setFBA(FBA);
+					}
+				}
 			}
-			BigDecimal FBA = getAmazonFeeButRef(costDetail);//除亚马逊佣金之外的所有亚马逊直接收费
 			
+			BigDecimal FBA = getAmazonFeeButRef(costDetail);//除亚马逊佣金之外的所有亚马逊直接收费
 			// 汇率损耗费=[售价-FBA（所有亚马逊直接收费）-佣金]*lostrate;
 			BigDecimal currencyLostFee = price.subtract(FBA.add(costDetail.getFbaTaxFee())).subtract(referralFee)
 					.multiply(costDetail.getCurrencyTransportRate());

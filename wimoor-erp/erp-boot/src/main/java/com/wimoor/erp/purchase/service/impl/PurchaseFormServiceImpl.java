@@ -740,7 +740,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 				}
 				if (entry.getOrderprice() != null && entry.getOrderprice().floatValue() != 0) {
 					resultMap.put("payrate", entry.getTotalpay().multiply(new BigDecimal("100")).divide(entry.getOrderprice(), 0, RoundingMode.HALF_UP));
-					resultMap.put("payneed", entry.getOrderprice().subtract(entry.getTotalpay()));
+					resultMap.put("payneed", entry.getOrderprice().subtract(totalcost));
 				}
 			}
 		}
@@ -1832,6 +1832,12 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 	@Override
 	public List<Map<String, Object>> getEntryData(String id) {
 		return purchaseFormEntryHistoryMapper.findHistoryById(id);
+	}
+
+	@Override
+	public List<Map<String, Object>> getLastFormsByMaterials(List<String> ids) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.findeLastsByMaterialids(ids);
 	}
 
 

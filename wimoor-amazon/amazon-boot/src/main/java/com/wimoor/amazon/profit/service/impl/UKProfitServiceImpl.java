@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.wimoor.amazon.profit.pojo.entity.FBAFormat;
 import com.wimoor.amazon.profit.pojo.entity.ProductTier;
-import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
@@ -57,11 +56,18 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 		if (weight == null) {
 			weight = new BigDecimal("0");
 		}
+		weight = weight.setScale(3, BigDecimal.ROUND_CEILING);// 四舍五入进位取整数，模拟不足一克按一克算；
+		ItemMeasure dimweight = dimensions.getDimensionalWeight(getDimUnit(country));
+		if(dimweight!=null) {
+			if(dimweight.getValue().compareTo(weight)>0) {
+				weight=dimweight.getValue();
+			}
+		}
 		BigDecimal boxweight = productTier.getBoxWeight();
 		if (boxweight == null) {
 			boxweight = new BigDecimal("0");
 		}
-		outboundWeight = weight.add(boxweight).multiply(new BigDecimal("1000")).setScale(0, BigDecimal.ROUND_CEILING);// 进位取整数，模拟不足一克按一克算,单位：g
+		outboundWeight = weight.add(boxweight);// 进位取整数，模拟不足一克按一克算,单位：g
 		return outboundWeight;
 	}
 	
@@ -69,17 +75,7 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 	public BigDecimal calculateFBA(String country, String productTierId, InputDimensions inputDimension, String isMedia, String type,
 			BigDecimal outboundWeight, ProfitConfigCountry profitConfigX, String shipmentType) throws BizException {
 		BigDecimal FBA = new BigDecimal("0");// 当标准尺寸售价£300或以上时，FBA免费，待完善
-		BigDecimal weight = inputDimension.getWeight(getWeightUnit(country)).getValue();
-		if(weight==null){
-			weight=new BigDecimal("0");
-		}
-		weight = weight.setScale(3, BigDecimal.ROUND_CEILING);// 四舍五入进位取整数，模拟不足一克按一克算；
-		ItemMeasure dimweight = inputDimension.getDimensionalWeight(getDimUnit(country));
-		if(dimweight!=null) {
-			if(dimweight.getValue().compareTo(weight)>0) {
-				weight=dimweight.getValue();
-			}
-		}
+	
 		String fenpeiType = "PAN_EU";
 		boolean hasAddedSite = false;
 		if (profitConfigX != null) {
@@ -123,7 +119,7 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 			}
 		}
 		
-		FBAFormat fbaFormat = fbaFormatService.findEUfbaFormat(fenpeiType, productTierId, country, weight);
+		FBAFormat fbaFormat = fbaFormatService.findEUfbaFormat(fenpeiType, productTierId, country, outboundWeight);
 		if (fbaFormat != null) {
 			String format = fbaFormat.getFbaFormat();
 			if (format.contains("?")) {// 如果有逻辑判断
@@ -242,7 +238,7 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 		if (fbaFormat==null) {
 			return new BigDecimal("0");
 		}
-		return fbaFormat.getWeight().multiply(new BigDecimal("1000")).add(outboundWeight).subtract(weight.multiply(new BigDecimal("1000"))).setScale(0);
+		return fbaFormat.getWeight().multiply(new BigDecimal("1000")).subtract(weight.multiply(new BigDecimal("1000"))).setScale(0);
 	}
 	
 }

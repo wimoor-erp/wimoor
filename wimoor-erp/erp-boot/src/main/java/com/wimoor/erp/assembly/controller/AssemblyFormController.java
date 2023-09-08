@@ -855,5 +855,13 @@ public class AssemblyFormController {
 		}
 		
 	}
+	@ApiOperation(value = "修复组装单待入库量")
+	@GetMapping("/refreshInbound")
+	@Transactional
+	public Result<?> refreshInbound(String warehouseid,String materialid) throws BizException {
+		 UserInfo user = UserInfoContext.get();
+		 assemblyFormService.refreshInbound(user.getCompanyid(), warehouseid, materialid);
+		return Result.success();
+	}
 	
 }

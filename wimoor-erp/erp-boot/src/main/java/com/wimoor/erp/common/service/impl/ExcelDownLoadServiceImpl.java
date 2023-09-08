@@ -10,8 +10,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
-
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
@@ -32,11 +30,11 @@ import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.entity.MaterialBrand;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
-import com.wimoor.erp.material.pojo.entity.MaterialConsumable;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
 import com.wimoor.erp.material.pojo.entity.MaterialCustomsItem;
 import com.wimoor.erp.material.pojo.entity.MaterialSupplier;
 import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
+import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.service.IDimensionsInfoService;
 import com.wimoor.erp.material.service.IMaterialBrandService;
 import com.wimoor.erp.material.service.IMaterialCategoryService;
@@ -587,7 +585,7 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 	}
 
 	@Override
-	public void uploadMaterialConsumableFile(UserInfo user, Row info) {
+	public MaterialConsumableVO  uploadMaterialConsumableFile(UserInfo user, Row info) {
 		String sku=null;
 		if (info.getCell(0) != null) {
 			info.getCell(0).setCellType(CellType.STRING);
@@ -606,31 +604,19 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 		if(StrUtil.isNotEmpty(sku) && StrUtil.isNotEmpty(subsku)) {
 			Material material = getMaterialById(user.getCompanyid(), sku);
 			Material submaterial = getMaterialById(user.getCompanyid(), subsku);
+			
 			if(material!=null && submaterial!=null) {
-				QueryWrapper<MaterialConsumable> queryWrapper=new QueryWrapper<MaterialConsumable>();
-				queryWrapper.eq("materialid", material.getId());
-				queryWrapper.eq("submaterialid", submaterial.getId());
-				MaterialConsumable oldcons = materialConsumableMapper.selectOne(queryWrapper);
-				if(oldcons!=null) {
-					if(StrUtil.isNotEmpty(amount))oldcons.setAmount(new BigDecimal(amount));
-					oldcons.setOperator(user.getId());
-					oldcons.setOpttime(new Date());
-					materialConsumableMapper.updateById(oldcons);
-				}else {
-					//新增记录
-					MaterialConsumable entity=new MaterialConsumable();
-					if(StrUtil.isNotEmpty(amount))entity.setAmount(new BigDecimal(amount));
-					entity.setMaterialid(material.getId());
-					entity.setSubmaterialid(submaterial.getId());
-					entity.setOperator(user.getId());
-					entity.setOpttime(new Date());
-					materialConsumableMapper.insert(entity);
-				}
-				
+				MaterialConsumableVO entity=new MaterialConsumableVO();
+				if(StrUtil.isNotEmpty(amount))entity.setAmount(new BigDecimal(amount));
+				entity.setMaterialid(material.getId());
+				entity.setId(submaterial.getId());
+				entity.setSku(material.getSku());
+				entity.setName(material.getName());
+				return entity;
 			}
 		}
 		
-		
+		return null;
 		
 		
 	}

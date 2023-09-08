@@ -3,7 +3,11 @@ package com.wimoor.erp.purchase.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -15,6 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +39,9 @@ import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseWareHouseMaterial;
 import com.wimoor.erp.purchase.service.IPurchasePlanItemService;
 import com.wimoor.erp.purchase.service.IPurchaseWareHouseMaterialService;
+import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
+import com.wimoor.erp.warehouse.service.IWarehouseService;
+import com.wimoor.util.DownloadExcelUtil;
 
 import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
@@ -49,7 +57,7 @@ public class PlanItemController {
 	final IPurchasePlanItemService iPurchasePlanItemService;
 	final protected ISerialNumService serialNumService;
 	final IPurchaseWareHouseMaterialService iPurchaseWareHouseMaterialService;
-	
+	final IWarehouseService iWarehouseService;
 	@PostMapping("/save")
     @Transactional
 	@CacheEvict(value = { "inventoryByMskuCache"  }, allEntries = true)
@@ -105,7 +113,8 @@ public class PlanItemController {
 	@CacheEvict(value = { "inventoryByMskuCache"  }, allEntries = true)
 	public Result<?> deletePlanItemAction(@RequestBody PurchaseWareHouseMaterial pwm) throws ERPBizException {
 		 iPurchaseWareHouseMaterialService.savePurchaseWareHouseMaterial(pwm);
-		 return Result.success();
+		 Warehouse warehouse = iWarehouseService.getById(pwm.getWarehouseid());
+		 return Result.success(warehouse);
 	}
 	
     @PostMapping(value = "/uploadWarhouseSKUFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -159,10 +168,10 @@ public class PlanItemController {
 	}
 
 	@ApiOperation(value = "计划列表")
-	@GetMapping("/list")
-	public Result<?> list(String planid) {
+	@PostMapping("/list/{planid}")
+	public Result<?> list(@PathVariable String planid,@RequestBody List<String> materialidList) {
 		UserInfo user = UserInfoContext.get();
-		return Result.success(iPurchasePlanItemService.getList(user.getCompanyid(),planid));
+		return Result.success(iPurchasePlanItemService.getList(user.getCompanyid(),planid,materialidList));
 	}
 	
 	@ApiOperation(value = "计划列表")
@@ -179,6 +188,24 @@ public class PlanItemController {
 		return Result.success(iPurchasePlanItemService.getList(user.getCompanyid(),planid,batchnumber));
 	}
 
+	@ApiOperation(value = "计划导出")
+	@GetMapping("/downloadItemList")
+	public Result<?> downloadItemList(String planid,HttpServletResponse response) {
+		UserInfo user = UserInfoContext.get();
+		try {
+			List<Map<String, Object>> list = iPurchasePlanItemService.listItem(user.getCompanyid(), planid);
+			Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
+			titlemap.put("sku", "sku");
+			titlemap.put("inwarehouse", "入库仓库");
+			titlemap.put("amount", "计划数量");
+			titlemap.put("name", "操作人");
+			titlemap.put("opttime", "操作时间");
+			DownloadExcelUtil.setWorkbook(response, titlemap, list);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return Result.success();
+	}
 
 	@ApiOperation(value = "计划打包")
 	@PostMapping("/batch")

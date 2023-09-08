@@ -13,11 +13,13 @@ import java.util.Map.Entry;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -41,12 +43,14 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import tk.mybatis.mapper.util.StringUtil;
 
-@Controller 
-@RequestMapping("/advKeywordManager") 
+@Api(tags = "广告产品接口")
+@RestController 
+@RequestMapping("/api/v1/advKeywordManager") 
 public class AdvertKeywordManagerController {
 	
 	@Resource
@@ -186,24 +190,21 @@ public class AdvertKeywordManagerController {
 		return paramList;
 	}
 
-	@ResponseBody
-	@RequestMapping("/getKeywordSuggestBid")
-	public Map<String,Object> getKeywordSuggestBidAction(HttpServletRequest request, Model model){
+	@GetMapping("/getKeywordSuggestBid")
+	public Result<Map<String,Object>> getKeywordSuggestBidAction(String profileid,String id){
 		UserInfo user = UserInfoContext.get();
-		String profileid = AdvUtils.getRequestValue(request,"profileid");
-		String keywordid = AdvUtils.getRequestValue(request,"id");
 		Map<String,Object> map = new HashMap<String, Object>();
-		if(profileid != null && keywordid != null) {
+		if(profileid != null && id != null) {
 			map.put("profileid",profileid);
-			map.put("id",keywordid);
-			return amzAdvKeywordsService.catchKeywordSuggestBid(user, map);
+			map.put("id",id);
+			return Result.success(amzAdvKeywordsService.catchKeywordSuggestBid(user, map));
 		}
-		return null;
+		return Result.failed();
 	}
 	
 	@ApiOperation("查询广告关键词")
 	@PostMapping("/getKeywordList")
-	public Result<PageList<Map<String,Object>>> getKeywordListAction(@ApiParam("查询关键词") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getKeywordListAction(@ApiParam("查询关键词") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query);
 		String state =query.getState();
@@ -333,7 +334,7 @@ public class AdvertKeywordManagerController {
 	
 	@ApiOperation("查询广告关键词图表")
 	@PostMapping("/getKeywordChart")
-	public Result<Map<String,Object>> getKeywordChartAction(@ApiParam("查询关键词") QueryForList query){
+	public Result<Map<String,Object>> getKeywordChartAction(@ApiParam("查询关键词") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query);
 		String state = query.getState();
@@ -372,7 +373,7 @@ public class AdvertKeywordManagerController {
 	
 	@ApiOperation("查询广告否定关键词")
 	@PostMapping("/getNegativaKeywordsList")
-	public Result<PageList<Map<String,Object>>> getNegativaKeywordsListAction(@ApiParam("查询关键词") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getNegativaKeywordsListAction(@ApiParam("查询关键词") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query);
 		String state = query.getState();
@@ -505,7 +506,7 @@ public class AdvertKeywordManagerController {
 	
 	@ApiOperation("查询广告关键词query")
 	@PostMapping("/getKeywordQueryList")
-	public Result<PageList<Map<String,Object>>> getKeywordQueryListAction(@ApiParam("查询关键词") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getKeywordQueryListAction(@ApiParam("查询关键词") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query);
 		String keywordid =query.getKeywordid();
@@ -558,9 +559,8 @@ public class AdvertKeywordManagerController {
 		}
 	}
 	
-	@ResponseBody
-	@RequestMapping("/getKeywordQueryChart")
-	public Result<Map<String,Object>> getKeywordQueryChartAction(@ApiParam("查询关键词") QueryForList query){
+	@PostMapping("/getKeywordQueryChart")
+	public Result<Map<String,Object>> getKeywordQueryChartAction(@ApiParam("查询关键词") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		String state = query.getState();
 		String matchType = query.getMatchType();
@@ -644,7 +644,7 @@ public class AdvertKeywordManagerController {
 	
 	@ApiOperation("查询广告关键词汇总")
 	@PostMapping("/getSumAdvKeywords")
-	public Result<Object> getSumAdvKeywordsAction(@ApiParam("查询关键词") QueryForList query){
+	public Result<Object> getSumAdvKeywordsAction(@ApiParam("查询关键词") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		String state = query.getState();

@@ -3,60 +3,55 @@ package com.wimoor.amazon.adv.controller;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.wimoor.amazon.adv.common.pojo.AmzAdvSerchHistory;
 import com.wimoor.amazon.adv.common.service.IAmzAdvSerchHistoryService;
+import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+
+import io.swagger.annotations.Api;
  
 
-@Controller
-@RequestMapping("/searchHistory")
+@Api(tags = "广告历史查询接口")
+@RestController 
+@RequestMapping("/api/v1/searchHistory")
 public class AmzAdvSerchHistoryController {
 
  
 	@Resource
 	IAmzAdvSerchHistoryService amzAdvSerchHistoryService;
 	
-	@ResponseBody
-	@RequestMapping("/getSerchHistory")
-	public List<AmzAdvSerchHistory> getSerchHistoryAction(HttpServletRequest request, Model model){
+	@GetMapping("/getSerchHistory")
+	public Result<List<AmzAdvSerchHistory>> getSerchHistoryAction(String ftype){
 		UserInfo user = UserInfoContext.get();
-		String ftype = request.getParameter("ftype");
-		return amzAdvSerchHistoryService.getSerchHistoryAction(user.getId(), ftype);
+		return Result.success(amzAdvSerchHistoryService.getSerchHistoryAction(user.getId(), ftype));
 	}
 	
-	@ResponseBody
-	@RequestMapping("/addSerchHistory")
-	public String addSerchHistoryAction(HttpServletRequest request, Model model){
+	@GetMapping("/addSerchHistory")
+	public Result<String> addSerchHistoryAction(String condition,String ftype){
 		UserInfo user = UserInfoContext.get();
-		String condition = request.getParameter("condition");
-		String ftype = request.getParameter("ftype");
 		int i = amzAdvSerchHistoryService.addSerchHistoryAction(user.getId(), condition, ftype);
 		if(i == 1) {
-			return "SUCCESS"; 
+			return Result.success("SUCCESS"); 
 		}
 		else {
-			return "ERROR";
+			return Result.failed();
 		}
 	}
 	
-	@ResponseBody
-	@RequestMapping("/deleteSerchHistory")
-	public String deleteSerchHistoryAction(HttpServletRequest request, Model model){
-		String id = request.getParameter("id");
+	@GetMapping("/deleteSerchHistory")
+	public Result<String> deleteSerchHistoryAction(String id){
 		int i = amzAdvSerchHistoryService.deleteSerchHistoryAction(id);
 		if(i == 1) {
-			return "SUCCESS"; 
+			return Result.success("SUCCESS"); 
 		}
 		else {
-			return "ERROR";
+			return Result.failed();
 		}
 	}
 	

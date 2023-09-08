@@ -1,9 +1,7 @@
 package com.wimoor.amazon.adv.controller.pojo.dto;
 
-import com.wimoor.amazon.adv.common.pojo.BaseException;
 import com.wimoor.amazon.adv.common.pojo.BasePageQuery;
 
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,7 +34,7 @@ public class QueryForList extends BasePageQuery{
 	@ApiModelProperty(value = "广告活动名称")
 	String campaignName ;
 	@ApiModelProperty(value = "广告活动名称")
-	String serchlist;
+	String searchlist;
 	@ApiModelProperty(value = "广告组名称")
 	String adGroupsName ;
 	@ApiModelProperty(value = "广告组状态")

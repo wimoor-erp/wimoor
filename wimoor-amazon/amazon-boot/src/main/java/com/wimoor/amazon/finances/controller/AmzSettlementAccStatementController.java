@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -144,6 +148,45 @@ public class AmzSettlementAccStatementController {
 		List<Map<String, Object>> list = iAmzSettlementAccStatementService.findAmzSettlementAccStatement(user.getCompanyid());
 		return Result.success(dto.getListPage(list));
 	}
+	
+	@PostMapping("/selectSettlementOpen")
+	public Result<?> selectSettlementOpenAction(@RequestBody AmzSettlementDTO dto) {
+		UserInfo user = UserInfoContext.get();
+		IPage<Map<String, Object>> list = iAmzSettlementAccStatementService.selectSettlementOpen(dto,user.getCompanyid());
+		return Result.success(list);
+	}
+	
+	
+	 @PostMapping("/downloadSettlementOpen")
+	   public void downDataExcelByRateAction(@RequestBody AmzSettlementDTO dto, HttpServletResponse response)  {
+	   	// 创建新的Excel工作薄
+	   	SXSSFWorkbook workbook = new SXSSFWorkbook();
+	   	// 将数据写入Excel
+	   	UserInfo user = UserInfoContext.get();
+		   Map<String,Object> map=new HashMap<String, Object>();
+			 map.put("shopid",user.getCompanyid());
+			 map.put("groupid",dto.getGroupid());
+			 map.put("marketplaceid",dto.getMarketplaceid());
+			 if(StrUtil.isNotEmpty(dto.getAmazonAuthId())) {
+				 map.put("authid",dto.getAmazonAuthId());
+			 }
+			 if(StrUtil.isNotEmpty(dto.getEndDate())) {
+				 map.put("startDate",dto.getFromDate());
+				 map.put("endDate",dto.getEndDate());
+			 }
+		    iAmzSettlementAccStatementService.getDownloadSettOpen(workbook, map);
+		   	try {
+		   		response.setContentType("application/force-download");// 设置强制下载不打开
+		   		response.addHeader("Content-Disposition", "attachment;fileName=CommodityRevenueFinRate" + System.currentTimeMillis() + ".xlsx");// 设置文件名
+		   		ServletOutputStream fOut = response.getOutputStream();
+		   		workbook.write(fOut);
+		   		workbook.close();
+		   		fOut.flush();
+		   		fOut.close();
+		   	} catch (Exception e) {
+		   		e.printStackTrace();
+		   	}
+	   }
 	
 	
 	@SystemControllerLog( "删除费用结算")

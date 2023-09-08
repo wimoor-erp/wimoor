@@ -378,6 +378,9 @@ public class InventoryReportController {
 		String byday = dto.getByday();
 		UserInfo user = UserInfoContext.get();
 		String shopid = user.getCompanyid();
+		if(dto.getMarketplaceid()!=null&&dto.getMarketplaceid().equals("IEU")) {
+			marketplaceid="EU";
+		}
 		return Result.success(iFBAInventoryService.selectInventoryCost(dto.getPage(),groupid, marketplaceid, sku, shopid, byday));
 	}
 

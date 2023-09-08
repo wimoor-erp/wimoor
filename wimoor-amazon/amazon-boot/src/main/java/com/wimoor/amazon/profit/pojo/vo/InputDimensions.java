@@ -112,11 +112,11 @@ public 	class InputDimensions {
 	}
 	
 	public ItemMeasure getDimensionalWeight(String toUnit) throws BizException {
-		if (toUnit.equals(unit_in)) {
+		if (toUnit!=null&&toUnit.equals(unit_in)) {
 			//Effective February 22, 2018, we will calculate dimensional weight as the unit volume (based on length x width x height in inches) divided by 139 (instead of 166). 
 			BigDecimal d = getVolume(toUnit).getValue().divide(new BigDecimal("139"),4,BigDecimal.ROUND_HALF_UP);
 			dimensionalWeight = new ItemMeasure(d, toUnit);
-		} else if (toUnit.equals(unit_cm)) {
+		} else if (toUnit!=null&&toUnit.equals(unit_cm)) {
 			//自 2018 年 8 月 29 日起，我们将采用以下方式计算体积重量：商品体积（根据长 x 宽 x 高，以立方厘米为单位）除以 5,000（而非之前的 6,000）
 			BigDecimal d = getVolume(toUnit).getValue().divide(new BigDecimal("5000"),4,BigDecimal.ROUND_HALF_UP);
 			dimensionalWeight = new ItemMeasure(d, toUnit);
@@ -181,7 +181,7 @@ public 	class InputDimensions {
 			if (unitConversionMap.get(key)!=null) {
 				value = measure.getValue().multiply(unitConversionMap.get(key));
 			} else{
-				throw new BizException("在unitConversionMap里面没有找到对应单位的转换关系！请联系管理员！");
+				throw new BizException(key+"在unitConversionMap里面没有找到对应单位的转换关系！请联系管理员！");
 			}
 		}
 		if("cm".equals(toUnit)) {

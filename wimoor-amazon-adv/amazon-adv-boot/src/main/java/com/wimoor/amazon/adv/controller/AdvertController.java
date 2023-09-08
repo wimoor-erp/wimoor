@@ -157,53 +157,55 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 		return resultList;
 	}
 
-	@ResponseBody
-	@RequestMapping("/loadCampaignsNotArchived")
-	public Object getCampaignsNotArchivedAction(HttpServletRequest request, Model model) {
-		String profileid = request.getParameter("profileid");
-		List<AmzAdvCampaigns>    listsp = null;
-		List<AmzAdvCampaignsHsa> listsb = null;
-		List<AmzAdvCampaignsSD> listsd = null;
+	@GetMapping("/loadCampaignsNotArchived")
+	public Result<?> getCampaignsNotArchivedAction(String profileid,String campaignType,String name) {
 		List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
 		if (StringUtil.isNotEmpty(profileid)) {
-			listsp = amzAdvCampaignService.getSpCampaignsNotArchivedByprofile(new BigInteger(profileid));
-			listsb = amzAdvCampaignHsaService.getHsaCampaignsNotArchivedByprofile(new BigInteger(profileid));
-			listsd = amzAdvCampaignsSDService.getSDCampaignsNotArchivedByprofile(new BigInteger(profileid));
-		}
-		if (listsp != null) {
-			for (AmzAdvCampaigns item : listsp) {
-				Map<String, Object> amzadvCampaigns = new HashMap<String, Object>();
-				amzadvCampaigns.put("campaignid", item.getCampaignid());
-				amzadvCampaigns.put("campaigntype", item.getCampaigntype());
-				amzadvCampaigns.put("name", item.getName());
-				amzadvCampaigns.put("profileid", item.getProfileid());
-				amzadvCampaigns.put("targetingType", item.getTargetingtype());
-				resultList.add(amzadvCampaigns);
+			if(campaignType.equals("sp")){
+				List<AmzAdvCampaigns>    listsp = amzAdvCampaignService.getSpCampaignsNotArchivedByprofile(new BigInteger(profileid),name);
+				if (listsp != null) {
+					for (AmzAdvCampaigns item : listsp) {
+						Map<String, Object> amzadvCampaigns = new HashMap<String, Object>();
+						amzadvCampaigns.put("campaignid", item.getCampaignid());
+						amzadvCampaigns.put("campaigntype", item.getCampaigntype());
+						amzadvCampaigns.put("name", item.getName());
+						amzadvCampaigns.put("profileid", item.getProfileid());
+						amzadvCampaigns.put("targetingType", item.getTargetingtype());
+						resultList.add(amzadvCampaigns);
+					}
+				}
+			}
+			if(campaignType.equals("sb")) {
+				List<AmzAdvCampaignsHsa> listsb = amzAdvCampaignHsaService.getHsaCampaignsNotArchivedByprofile(new BigInteger(profileid));
+				if (listsb != null) {
+					for (AmzAdvCampaignsHsa item : listsb) {
+						Map<String, Object> amzadvCampaigns = new HashMap<String, Object>();
+						amzadvCampaigns.put("campaignid", item.getCampaignid());
+						amzadvCampaigns.put("campaigntype", "hsa");
+						amzadvCampaigns.put("name", item.getName());
+						amzadvCampaigns.put("profileid", item.getProfileid());
+						amzadvCampaigns.put("targetingType", "");
+						resultList.add(amzadvCampaigns);
+					}
+				}
+			}
+			if(campaignType.equals("sd")) {
+				List<AmzAdvCampaignsSD> listsd = amzAdvCampaignsSDService.getSDCampaignsNotArchivedByprofile(new BigInteger(profileid));
+				if (listsd != null) {
+					for (AmzAdvCampaignsSD item : listsd) {
+						Map<String, Object> amzadvCampaigns = new HashMap<String, Object>();
+						amzadvCampaigns.put("campaignid", item.getCampaignid());
+						amzadvCampaigns.put("campaigntype", "sd");
+						amzadvCampaigns.put("name", item.getName());
+						amzadvCampaigns.put("profileid", item.getProfileid());
+						amzadvCampaigns.put("targetingType", "");
+						resultList.add(amzadvCampaigns);
+					}
+				}
+				
 			}
 		}
-		if (listsb != null) {
-			for (AmzAdvCampaignsHsa item : listsb) {
-				Map<String, Object> amzadvCampaigns = new HashMap<String, Object>();
-				amzadvCampaigns.put("campaignid", item.getCampaignid());
-				amzadvCampaigns.put("campaigntype", "hsa");
-				amzadvCampaigns.put("name", item.getName());
-				amzadvCampaigns.put("profileid", item.getProfileid());
-				amzadvCampaigns.put("targetingType", "");
-				resultList.add(amzadvCampaigns);
-			}
-		}
-		if (listsd != null) {
-			for (AmzAdvCampaignsSD item : listsd) {
-				Map<String, Object> amzadvCampaigns = new HashMap<String, Object>();
-				amzadvCampaigns.put("campaignid", item.getCampaignid());
-				amzadvCampaigns.put("campaigntype", "sd");
-				amzadvCampaigns.put("name", item.getName());
-				amzadvCampaigns.put("profileid", item.getProfileid());
-				amzadvCampaigns.put("targetingType", "");
-				resultList.add(amzadvCampaigns);
-			}
-		}
-		return resultList;
+		return Result.success(resultList);
 	}
 
 	@ResponseBody
@@ -217,19 +219,16 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 		return listsp;
 	}
 
-	@ResponseBody
-	@RequestMapping("/loadAdGroup")
-	public Object getAdGroupAction(HttpServletRequest request, Model model) {
-		String profileid = request.getParameter("profileid");
-		String campaignsid = request.getParameter("campaignsid");
-		String campaignType = request.getParameter("campaignType");
+	@GetMapping("/loadAdGroup")
+	public Result<?>  getAdGroupAction(String profileid,String campaignsid,String campaignType) {
 				UserInfo user = UserInfoContext.get();
-		if (StringUtil.isEmpty(profileid) || "all".equals(profileid))
-			return null;
+		if (StringUtil.isEmpty(profileid) || "all".equals(profileid)) {
+			return Result.failed();
+		}
 		if(campaignType!=null&&"sd".equals(campaignType.toLowerCase())) {
-			return amzAdvAdgroupsSDService.getAdGroupByCampaignsId(user, new BigInteger(profileid), campaignsid);
+			return Result.success(amzAdvAdgroupsSDService.getAdGroupByCampaignsId(user, new BigInteger(profileid), campaignsid));
 		}else {
-		     return amzAdvAdGroupService.getAdGroupByCampaignsId(user, new BigInteger(profileid), campaignsid);
+			return Result.success( amzAdvAdGroupService.getAdGroupByCampaignsId(user, new BigInteger(profileid), campaignsid));
 		}
 	}
 
@@ -314,7 +313,9 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 		String targetingType = query.getTargetingType();
 		String campaignType = query.getCampaignType();
 		String campaignName =query.getCampaignName();
-		String serchlist =query.getSerchlist();
+		String searchlist =query.getSearchlist();
+		String adGroupsName =query.getAdGroupsName();
+		String adGroupsStatus =query.getAdGroupsStatus();
 		if (StringUtil.isNotEmpty(campaignName)) {
 			campaignName = "%"+ campaignName + "%";
 		} else {
@@ -322,12 +323,17 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 		}
 		if (campaignType == null)
 			campaignType = "all";
+		if ("all".equals(targetingType))
+			targetingType = null;
+		if (("all").equals(campaignStatus))
+			campaignStatus = null;
+		if (("all").equals(adGroupsStatus))
+			adGroupsStatus = null;
 		map.put("campaignName", campaignName);
 		map.put("campaignStatus", campaignStatus);
 		map.put("targetingType", targetingType);
 		map.put("campaignType", campaignType);
-		String adGroupsName =query.getAdGroupsName();
-		String adGroupsStatus =query.getAdGroupsStatus();
+		
 		if (StringUtil.isNotEmpty(adGroupsName)) {
 			adGroupsName =  "%"+ adGroupsName + "%";
 		} else {
@@ -360,7 +366,7 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 			endDate=endDate.replaceAll("/","-");
 			map.put("endDate", endDate);
 		}
-		map.put("serchlist", serchlist);
+		map.put("searchlist", searchlist);
 		map.put("paralist", paralist);
 		map.put("isZeroPage", isZeroPage);
 		return map;
@@ -399,48 +405,48 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 			}
 			if (totalsumSales.compareTo(BigDecimal.ZERO) == 1) {
 				BigDecimal totalacos = totalcost.multiply(new BigDecimal("100")).divide(totalsumSales, 2, RoundingMode.HALF_UP);
-				maps.put("totalacos", totalacos + "%");
+				maps.put("ACOS", totalacos + "%");
 			} else {
-				maps.put("totalacos", 0);
+				maps.put("ACOS", 0);
 			}
 			if (totalclicks.compareTo(BigDecimal.ZERO) == 1) {
-				maps.put("totalavgcost", totalcost.divide(totalclicks, 2, RoundingMode.HALF_UP));
+				maps.put("avgcost", totalcost.divide(totalclicks, 2, RoundingMode.HALF_UP));
 				BigDecimal totalcsrt = totalattributedUnitsOrdered.multiply(new BigDecimal("100")).divide(totalclicks, 2, RoundingMode.HALF_UP);
-				maps.put("totalcsrt", totalcsrt + "%");
+				maps.put("CSRT", totalcsrt + "%");
 			} else {
-				maps.put("totalavgcost", 0);
-				maps.put("totalcsrt", 0);
+				maps.put("avgcost", 0);
+				maps.put("CSRT", 0);
 			}
 			if (totalimpressions.compareTo(BigDecimal.ZERO) == 1) {
 				BigDecimal totalctr = totalclicks.multiply(new BigDecimal("100")).divide(totalimpressions, 2, RoundingMode.HALF_UP);
-				maps.put("totalctr", totalctr + "%");
+				maps.put("CTR", totalctr + "%");
 			} else {
-				maps.put("totalctr", 0);
+				maps.put("CTR", 0);
 			}
 			if (totalcost.compareTo(BigDecimal.ZERO) == 1) {
 				BigDecimal totalroas = totalsumSales.divide(totalcost, 2, RoundingMode.HALF_UP);
-				maps.put("totalroas", totalroas);
+				maps.put("ROAS", totalroas);
 			} else {
-				maps.put("totalroas", 0);
+				maps.put("ROAS", 0);
 			}
-			maps.put("totalcost", totalcost);
-			maps.put("totalclicks", totalclicks);
-			maps.put("totalimpressions", totalimpressions);
-			maps.put("totalsumunits", totalsumUnits);
-			maps.put("totalsumsales", totalsumSales);
-			maps.put("totalattributedunitsordered", totalattributedUnitsOrdered);
+			maps.put("cost", totalcost);
+			maps.put("clicks", totalclicks);
+			maps.put("impressions", totalimpressions);
+			maps.put("sumUnits", totalsumUnits);
+			maps.put("sumSales", totalsumSales);
+			maps.put("attributedUnitsOrdered", totalattributedUnitsOrdered);
 		} else {
-			maps.put("totalacos", 0);
-			maps.put("totalavgcost", 0);
-			maps.put("totalcsrt", 0);
-			maps.put("totalctr", 0);
-			maps.put("totalroas", 0);
-			maps.put("totalcost", 0);
-			maps.put("totalclicks", 0);
-			maps.put("totalimpressions", 0);
-			maps.put("totalsumunits", 0);
-			maps.put("totalsumsales", 0);
-			maps.put("totalattributedunitsordered", 0);
+			maps.put("ACOS", 0);
+			maps.put("avgcost", 0);
+			maps.put("CSRT", 0);
+			maps.put("CTR", 0);
+			maps.put("ROAS", 0);
+			maps.put("cost", 0);
+			maps.put("clicks", 0);
+			maps.put("impressions", 0);
+			maps.put("sumUnits", 0);
+			maps.put("sumSales", 0);
+			maps.put("attributedUnitsOrdered", 0);
 		}
 		return maps;
 	}

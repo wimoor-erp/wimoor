@@ -94,6 +94,12 @@ public class PlanController {
 		return Result.success(iPurchasePlanService.getLastForm(BeanUtil.beanToMap(material)));
 	}
 	
+	@PostMapping("/getLasts")
+	public Result<?> getLastRecordsAction(@RequestBody List<String> ids) throws ERPBizException {
+		return Result.success(iPurchasePlanService.getLastForms(ids));
+	}
+	
+	
 	@GetMapping("/getLast3")
 	public Result<?> getLast3RecordAction(String id) throws ERPBizException {
 		Material material = iMaterialService.getById(id);

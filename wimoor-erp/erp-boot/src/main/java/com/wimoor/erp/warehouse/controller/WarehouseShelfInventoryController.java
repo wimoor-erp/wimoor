@@ -2,6 +2,7 @@ package com.wimoor.erp.warehouse.controller;
 
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,7 @@ public class WarehouseShelfInventoryController {
      		WarehouseShelfInventoryOptRecord invopt=invoptList.get(i);
      		invopt.setShopid(new BigInteger(user.getCompanyid()));
      		invopt.setOperator(new BigInteger(user.getId()));
+     		invopt.setOpttime(LocalDateTime.now());
      		if(invopt.getQuantity()<=0) {
 	     		throw new BizException("上架数量必须大于0");
 	     	}
@@ -105,6 +107,7 @@ public class WarehouseShelfInventoryController {
     		WarehouseShelfInventoryOptRecord invopt=invoptList.get(i);
 	     	invopt.setOperator(new BigInteger(user.getId()));
 	     	invopt.setShopid(new BigInteger(user.getCompanyid()));
+	     	invopt.setOpttime(LocalDateTime.now());
 	     	if(invopt.getQuantity()<=0) {
 	     		throw new BizException("下架数量必须大于0");
 	     	}
@@ -164,14 +167,14 @@ public class WarehouseShelfInventoryController {
     	if(StrUtil.isNotEmpty(condition.getMaterialid())) {
     		param.put("materialid",condition.getMaterialid());
     	}
+    	if(StrUtil.isNotEmpty(condition.getWarehouseid())) {
+    		param.put("warehouseid",condition.getWarehouseid());
+    	}
     	Page<WarehouseShelfInventoryVo> page = condition.getPage();
 		page.addOrder(OrderItem.desc("orderitem"));
 		IPage<WarehouseShelfInventoryVo> list = iWarehouseShelfInventoryService.getUnShelfInventoryList(page,param);
 		if(StrUtil.isNotBlank(condition.getAddressid())) {
-			  ErpWarehouseAddress address = iErpWarehouseAddressService.getById(condition.getAddressid());
-			for(WarehouseShelfInventoryVo item:list.getRecords()) {
-				item.setWarehousename(address.getName());
-				item.setWarehouseid(condition.getAddressid());
+			  for(WarehouseShelfInventoryVo item:list.getRecords()) {
 				item.setShelfid(condition.getShelfid());
 			}
 		}

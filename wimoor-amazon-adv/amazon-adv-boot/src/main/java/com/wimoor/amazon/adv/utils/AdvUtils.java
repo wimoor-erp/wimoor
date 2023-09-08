@@ -29,6 +29,13 @@ public class AdvUtils {
 		}
 		return value;
 	}
+	
+	public static String getRequestValue(String value) {
+		if (StrUtil.isEmpty(value) || "all".equals(value)) {
+			value = null;
+		}
+		return value;
+	}
   
     
     public static String getKeyByTimeType(Map<String, Object> map,Calendar c){

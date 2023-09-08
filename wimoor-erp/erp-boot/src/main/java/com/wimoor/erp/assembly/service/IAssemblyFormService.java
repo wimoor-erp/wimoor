@@ -60,4 +60,8 @@ public interface IAssemblyFormService extends IService<AssemblyForm> {
 	public Map<String, Object> resetAssForm(UserInfo user,String id);
 
 	IPage<Map<String, Object>> findByCondition(AssemblyFormListDTO dto);
+	
+	public void refreshInbound(String shopid,String warehouseid,String materialid) ;
+
+	List<AssemblyForm> getLastFormsByMaterials(List<String> ids);
 }

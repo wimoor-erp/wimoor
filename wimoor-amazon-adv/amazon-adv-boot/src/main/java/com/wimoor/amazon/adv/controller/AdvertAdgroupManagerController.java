@@ -13,7 +13,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,7 +59,7 @@ public class AdvertAdgroupManagerController {
 	
     @ApiOperation("查询广告组")
 	@PostMapping("/getAdGroupList")
-	public Result<PageList<Map<String,Object>>> getAdGroupListAction(@ApiParam("查询广告组") QueryForList query){
+	public Result<PageList<Map<String,Object>>> getAdGroupListAction(@ApiParam("查询广告组") @RequestBody QueryForList query){
 	 	UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query);
 		map.put("shopid", user.getCompanyid());
@@ -218,7 +220,7 @@ public class AdvertAdgroupManagerController {
 	
 	@ApiOperation("查询广告活动图表")
 	@PostMapping("/getAdGroupChart")
-	public Result<Map<String,Object>> getAdGroupChartAction(@ApiParam("查询广告活动") QueryForList query){
+	public Result<Map<String,Object>> getAdGroupChartAction(@ApiParam("查询广告活动") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		String bytime =query.getBytime();
@@ -229,18 +231,14 @@ public class AdvertAdgroupManagerController {
 	}
 	
  
-	@ResponseBody
-	@RequestMapping("/getAdGroupSuggestBid")
-	public Map<String,Object> getAdGroupSuggestBidAction(HttpServletRequest request, Model model){
+	@GetMapping("/getAdGroupSuggestBid")
+	public Result<Map<String,Object>> getAdGroupSuggestBidAction(String profileid,String adgroupid,String campaignid){
 		UserInfo user = UserInfoContext.get();
-		String profileid = request.getParameter("profileid");
-		String adGroupid = request.getParameter("id");
-		String campaignid = request.getParameter("campaignId");
 		Map<String,Object> map = new HashMap<String, Object>();
 		map.put("profileid",profileid);
-		map.put("id",adGroupid);
+		map.put("id",adgroupid);
 		map.put("campaignId",campaignid);
-		return amzAdvAdGroupService.catchAdGroupSuggestBid(user, map);
+		return Result.success(amzAdvAdGroupService.catchAdGroupSuggestBid(user, map));
 	}
 	
 	@ResponseBody
@@ -300,7 +298,7 @@ public class AdvertAdgroupManagerController {
 
 	@ApiOperation("查询广告组汇总")
 	@PostMapping("/getSumAdGroup")
-	public Result<Object> getSumAdGroupAction(@ApiParam("查询广告组") QueryForList query){
+	public Result<Object> getSumAdGroupAction(@ApiParam("查询广告组") @RequestBody QueryForList query){
 		UserInfo user = UserInfoContext.get();
 		Map<String,Object> map = AdvertController.amzAdvParameterMap(query); 
 		map.put("shopid", user.getCompanyid());

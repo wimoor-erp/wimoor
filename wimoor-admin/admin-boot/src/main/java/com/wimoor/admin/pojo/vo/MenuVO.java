@@ -35,7 +35,8 @@ public class MenuVO extends BaseEntity {
     private Integer visible;
 
     private String redirect;
-
+    
+    private List<String> permissions;
     @JsonInclude(value = JsonInclude.Include.NON_NULL)
     private List<MenuVO> children;
 

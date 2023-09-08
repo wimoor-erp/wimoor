@@ -69,4 +69,7 @@ public class AmzFinAccount implements Serializable {
     
     @TableField(value="refreshtime")
     private Date refreshtime;
+    
+    @TableField(value="nexttoken")
+    private String nexttoken;
 }

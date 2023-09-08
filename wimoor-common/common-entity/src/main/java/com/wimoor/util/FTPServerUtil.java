@@ -26,9 +26,9 @@ public class FTPServerUtil {
 		 }
 	 }
 	    public   FTPClient getFTPClient() throws SocketException,IOException {
-	    	String ftpHost= "47.112.0.222";
-	    	String ftpUserName= "pwftp";
-		    String ftpPassword="Wimoor123*";
+	    	String ftpHost= "";
+	    	String ftpUserName= "";
+		    String ftpPassword="";
 		    int ftpPort=21;
 	    	if(ftpClient==null) {
 	        ftpClient = new FTPClient();

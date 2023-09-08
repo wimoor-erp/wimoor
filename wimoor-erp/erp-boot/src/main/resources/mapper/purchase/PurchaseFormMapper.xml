@@ -13,6 +13,29 @@
 		id, number, remark, creator,createdate,shopid
 	</sql>
 
+
+
+	<select id="findeLastsByMaterialids" resultType="java.util.Map" parameterType="java.lang.String">
+			SELECT e.materialid,f.createdate, e.amount,e.auditstatus,e.id entryid,e.totalin totalin,e.totalpay totalpay
+		from
+		(
+			select
+			a.materialid,MAX(f.createdate) createdate
+			from t_erp_purchase_form_entry a
+			LEFT JOIN t_erp_purchase_form f ON f.id=a.formid
+			where a.materialid IN (
+		           <foreach collection="list" item="id" index="index" separator=",">
+								  #{id,jdbcType=CHAR}
+							 </foreach>			
+			)
+			AND f.createdate>DATE_SUB(CURRENT_date() ,INTERVAL 1 YEAR)
+		   GROUP BY a.materialid
+		) v
+		left join t_erp_purchase_form_entry e ON e.materialid=v.materialid
+		LEFT JOIN  t_erp_purchase_form f  ON f.id=e.formid
+		WHERE  f.createdate=v.createdate
+	</select>
+
 	<select id="findeLastByMaterialid" resultType="java.util.Map" parameterType="java.lang.String">
 		select f.createdate, e.amount,e.auditstatus,e.id entryid,e.totalin totalin,e.totalpay totalpay
 		from t_erp_purchase_form f
@@ -196,7 +219,7 @@
 		    case when entry.paystatus!=1 then entry.orderprice - ifnull(p.costfee,0)-ifnull(p.appwaitPay,0) else 0 end  waitPay,
 		    case when entry.paystatus!=1 then  ifnull(p.appwaitPay,0) else 0 end appwaitPay,
 		    entry.auditstatus,IFNULL(d.weight,0)*IFNULL(entry.amount,0) weight,
-		    ifnull(pc.url,pc.location) image
+		    ifnull(pc.url,pc.location) image,w.name wname
 		from t_erp_purchase_form_entry entry
 		left join t_erp_material m on m.id=entry.materialid
 		left join t_dimensions d on d.id=m.pkgDimensions

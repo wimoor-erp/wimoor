@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
+import com.wimoor.amazon.profit.pojo.dto.ProfitQuery;
 import com.wimoor.amazon.profit.pojo.entity.ProductTier;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
@@ -62,7 +63,7 @@ public interface IProfitService {
 			BigDecimal taxrate, BigDecimal gstrate, BigDecimal sellingGSTRate, BigDecimal referralrate,
 			boolean isSmlAndLight) throws BizException;
 
-	public CostDetail getCostDetail(CostDetail costDetail, int typeId, BigDecimal referralrate, boolean isSmlAndLight, ProfitConfig profitcfg);
+	public CostDetail getCostDetail(ProfitQuery query, CostDetail costDetail, int typeId, BigDecimal referralrate, boolean isSmlAndLight, ProfitConfig profitcfg);
 
 	public Map<String, String> getProductTier(ProfitConfigCountry profitConfigCountry, InputDimensions inputDimension,
 			String country, String isMedia, BigDecimal cost, boolean isSmlAndLight, String type) throws BizException;

@@ -171,7 +171,7 @@ public class ShipInboundShipmentServiceImpl extends  ServiceImpl<ShipInboundShip
    	    	 }else if(dto.getSearchtype().equals("name")) {
     	    	 dto.setSearch("%"+dto.getSearch().trim()+"%");
 	    	 }else {
-	    		 dto.setSearch(dto.getSearch().trim());
+	    		 dto.setSearch("%"+dto.getSearch().trim()+"%");
 	    	 }
    	    }else {
    	    	     dto.setSearch(null);
@@ -1371,6 +1371,12 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 			}
 		}
 	 }
+
+	@Override
+	public List<Map<String, Object>> findInboundItemByInboundplanId(String inboundplanid) {
+		// TODO Auto-generated method stub
+		return  shipInboundItemMapper.selectByInboundplanid(inboundplanid);
+	}
 }
 
 

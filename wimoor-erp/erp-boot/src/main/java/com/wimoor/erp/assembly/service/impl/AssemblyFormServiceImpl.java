@@ -112,7 +112,9 @@ public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,Ass
 	@Autowired
 	@Lazy
 	IPurchaseWareHouseStatusService purchaseWareHouseStatusService;
-	
+	public void refreshInbound(String shopid,String warehouseid,String materialid) {
+		this.baseMapper.refreshInbound(shopid, warehouseid, materialid);
+	}
 	public Map<String, Object> getCountNum(Map<String, Object> param) {
 		Map<String, Object> numMap = new HashMap<String, Object>();
 		List<Map<String, Object>> list = this.baseMapper.getCountNum(param);
@@ -572,12 +574,20 @@ public class AssemblyFormServiceImpl extends  ServiceImpl<AssemblyFormMapper,Ass
 		}
 		return null;
 	}
+	
+	public List<AssemblyForm> getLastFormsByMaterials(List<String> ids) {
+		if (ids == null||ids.size()==0)
+			return null;
+		List<AssemblyForm> list = this.baseMapper.findLastByMaterials(ids);
+		return list;
+	}
+	
 
 	public List<AssemblyForm> getLastFormByMaterial(Object id, int i) {
 		if (id == null) {
 			return null;
 		}
-		IPage<AssemblyForm> list = this.baseMapper.findLastByMaterial(new Page<AssemblyForm>(i,1),id.toString());
+		IPage<AssemblyForm> list = this.baseMapper.findLastByMaterial(new Page<AssemblyForm>(1,i),id.toString());
 		return list.getRecords();
 	}
 

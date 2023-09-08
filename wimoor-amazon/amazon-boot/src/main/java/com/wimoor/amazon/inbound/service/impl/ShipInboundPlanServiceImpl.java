@@ -737,9 +737,9 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanMappe
 			return this.baseMapper.getShipRecordByMarket( marketplaceid, groupid);
 		}
 		
-		public List<Map<String, Object>> getShipRecord(String shopid, String marketplaceid, String sku) {
+		public List<Map<String, Object>> getShipRecord(String shopid,String groupid, String marketplaceid, String sku) {
 			// TODO Auto-generated method stub
-			return this.baseMapper.getShipRecord( marketplaceid, sku,shopid);
+			return this.baseMapper.getShipRecord(groupid, marketplaceid, sku,shopid);
 		}
 
 		@Override

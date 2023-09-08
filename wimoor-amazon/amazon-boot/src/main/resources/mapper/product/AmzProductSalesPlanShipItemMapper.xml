@@ -21,16 +21,22 @@
     </resultMap>
     
 <select id="getSummary" resultType="java.util.Map" parameterType="java.lang.String">
-		SELECT COUNT(0) skunum,SUM(amount) amount FROM (
-		SELECT msku,SUM(amount) amount from t_amz_product_sales_plan_ship_item
-		WHERE groupid=#{groupid,jdbcType=CHAR} 
-		and warehouseid=#{warehouseid,jdbcType=CHAR} 
-		AND shopid=#{shopid,jdbcType=CHAR}
+		SELECT COUNT(0) skunum,SUM(amount) amount,ifnull(sum(weight),0) weight FROM (
+		SELECT msku,SUM(amount) amount,
+		sum(amount*(case when ifnull(d.length,0)*ifnull(d.width,0)*ifnull(d.height,0)/5000>ifnull(d.weight,0) 
+		                 then ifnull(d.length,0)*ifnull(d.width,0)*ifnull(d.height,0)/5000 
+		                 else ifnull(d.weight,0) end )) weight
+		from t_amz_product_sales_plan_ship_item i
+		left join t_erp_material m on m.sku=i.msku and m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=0
+		left join t_dimensions d on d.id=m.pkgDimensions
+		WHERE i.groupid=#{groupid,jdbcType=CHAR} 
+		and i.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		AND i.shopid=#{shopid,jdbcType=CHAR}
 		GROUP BY msku ) v
 </select>
 
 <select id="hasplanItem" resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDetailDTO">
-           select  groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end marketplaceid,sku,
+           select  groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end marketplaceid,sku,msku,
                    sum(case when m.region='EU' then 2 else 1 end) subnum,
                    max(aftersalesday) aftersalesday,sum(amount)  amount 
                    from t_amz_product_sales_plan_ship_item i
@@ -38,28 +44,49 @@
                    where shopid=#{shopid,jdbcType=CHAR}
                      and groupid=#{groupid,jdbcType=CHAR}
                      and warehouseid=#{warehouseid,jdbcType=CHAR}
-                     and msku=#{msku,jdbcType=CHAR}
-				  group by groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end,sku
+                     <if test="msku!=null">
+						 and msku=#{msku,jdbcType=CHAR}
+						</if>
+						 <if test="mskus!=null">
+						AND msku in (
+						     <foreach collection="mskus" item="msku" index="index" separator=",">
+								  #{msku,jdbcType=CHAR}
+							 </foreach>			
+						)
+						</if>
+				  group by groupid,amazonauthid,case when m.region='EU' then 'EU' else i.marketplaceid end,sku,msku
 </select>
 
 <select id="hasplanItemEu" resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDetailDTO">
-           select  groupid,amazonauthid,i.marketplaceid,sku,
+           select  groupid,amazonauthid,i.marketplaceid,sku,msku,
                    count(0) subnum,max(aftersalesday) aftersalesday,sum(amount)  amount
                    from t_amz_product_sales_plan_ship_item i
                    left join t_marketplace m on m.marketplaceid=i.marketplaceid
                    where shopid=#{shopid,jdbcType=CHAR}
                    and groupid=#{groupid,jdbcType=CHAR}
                    and warehouseid=#{warehouseid,jdbcType=CHAR}
-                   and sku=#{sku,jdbcType=CHAR}
+                   <if test="sku!=null">
+                    and sku=#{sku,jdbcType=CHAR}
+                   </if>
+                    <if test="msku!=null">
+						 and msku=#{msku,jdbcType=CHAR}
+						</if>
+						 <if test="mskus!=null">
+						AND msku in (
+						     <foreach collection="mskus" item="msku" index="index" separator=",">
+								  #{msku,jdbcType=CHAR}
+							 </foreach>			
+						)
+						</if>
 				   and m.region='EU'
-				   group by groupid,amazonauthid,i.marketplaceid,sku
+				   group by groupid,amazonauthid,i.marketplaceid,sku,msku
 </select>
 
 				   
 <select id="getPlanedItem" resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDTO">
-	          select msku vmsku,
+	          select t.msku vmsku,
 			         <if test=" dto.marketplaceids!=null">
-		  	            SUM(case when marketplaceid in (
+		  	            SUM(case when t.marketplaceid in (
 		                    <foreach collection="dto.marketplaceids" item="marketplaceid" index="index" separator=",">
 					         	  <if test="marketplaceid == 'IEU'||marketplaceid == 'EU'">
 								      'A13V1IB3VIYZZH','A17E79C6D8DWNP',
@@ -70,17 +97,23 @@
 								   </if>
 								 #{marketplaceid,jdbcType=CHAR} 
 						   </foreach>		
-						   ) then amount else 0 end) marketamount,
+						   ) then t.amount else 0 end) marketamount,
 		  	         </if>
 		  	         <if test=" dto.marketplaceids==null">
-		  	            SUM(amount) marketamount,
+		  	            SUM(t.amount) marketamount,
 		  	         </if>
-			  sum(amount) amount
-			  from  t_amz_product_sales_plan_ship_item 
-			  where  groupid=#{dto.groupid,jdbcType=CHAR} 
-			    and  shopid=#{dto.shopid,jdbcType=CHAR}
-			    and  warehouseid=#{dto.warehouseid,jdbcType=CHAR}
-			  group by msku
+			     SUM(t.amount) amount,
+			     (select sum(i.amount) 
+			          from t_amz_product_sales_plan_ship_item i
+			          where i.shopid=#{dto.shopid,jdbcType=CHAR}
+			          and i.groupid!=#{dto.groupid,jdbcType=CHAR}
+			          and i.warehouseid=#{dto.warehouseid,jdbcType=CHAR}
+			          and i.msku=t.msku)    otheramount
+			  from  t_amz_product_sales_plan_ship_item  t
+			  where   t.shopid=#{dto.shopid,jdbcType=CHAR}
+			    and   t.groupid=#{dto.groupid,jdbcType=CHAR}
+			    and   t.warehouseid=#{dto.warehouseid,jdbcType=CHAR}
+			  group by t.msku
 </select>
  
 		    

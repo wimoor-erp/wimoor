@@ -808,7 +808,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	}
 
 	@Override
-	public Integer findOverseaById(String materialid, String shopid, String groupid, String country) {
+	public Material findOverseaById(String materialid, String shopid, String groupid, String country) {
 		// TODO Auto-generated method stub
 		return this.baseMapper.findOverseaById(materialid,shopid,groupid,country);
 	}
@@ -823,6 +823,12 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 	public List<Map<String, Object>> findLocalInventory(Map<String, Object> param) {
 		// TODO Auto-generated method stub
 		return  this.baseMapper.findLocalInventory(param);
+	}
+
+	@Override
+	public List<Map<String, Object>> findInventoryNowCostByShopId(String shopid) {
+		// TODO Auto-generated method stub
+		return this.baseMapper.findInventoryNowCostByShopId(shopid);
 	}
  
 }

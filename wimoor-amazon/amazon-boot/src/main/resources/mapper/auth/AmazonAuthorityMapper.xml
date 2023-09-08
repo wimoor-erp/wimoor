@@ -53,7 +53,15 @@
 		</if>
 		 and (status is null or status!='invalid')
 	</select>
-	
+	<select id="getAllBossEmalShop"   resultType="java.lang.String">
+		select
+		 distinct shop_id shopid
+		from t_amazon_auth a
+		left join t_shop s on s.id=a.shop_id
+		where  a.`disable` = false
+		 and (status is null or status!='invalid')
+		 and s.boss_email is not null
+	</select>
 	<select id="selectBySellerIdAndShopId" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.auth.pojo.entity.AmazonAuthority">
 		select
 		<include refid="Base_Column_List" />

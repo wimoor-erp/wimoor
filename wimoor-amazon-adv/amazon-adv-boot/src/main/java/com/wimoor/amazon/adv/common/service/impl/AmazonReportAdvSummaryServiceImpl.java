@@ -41,6 +41,7 @@ public class AmazonReportAdvSummaryServiceImpl extends BaseService<ProductAdvert
 	IAmzAdvAuthService amzAdvAuthService;
 	@Resource
 	ProductAdvertReportMapper productAdvertReportMapper;
+	
 	Map<String, Map<String, SummaryObject>> summarymap = null;
 
 	public void addAdvReportSummary(ProductAdvertReport padv) {

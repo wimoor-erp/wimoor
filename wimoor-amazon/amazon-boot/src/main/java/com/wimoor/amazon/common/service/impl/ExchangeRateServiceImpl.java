@@ -67,7 +67,7 @@ public class ExchangeRateServiceImpl extends ServiceImpl<ExchangeRateMapper, Exc
 				if("人民币".equals(name)) continue;
 				ExchangeRate einfo=null;
 				QueryWrapper<ExchangeRate> query=new 	QueryWrapper<ExchangeRate>();
-				query.eq("name",name);
+				query.eq("symbol",name);
 				einfo = this.baseMapper.selectOne(query);
 				if(einfo==null) {
 					continue;
@@ -77,7 +77,7 @@ public class ExchangeRateServiceImpl extends ServiceImpl<ExchangeRateMapper, Exc
 				exchangeRate.setName(einfo.getName());
 				exchangeRate.setPrice(new BigDecimal(price));
 				exchangeRate.setType(einfo.getType());
-				exchangeRate.setSymbol(einfo.getName());
+				exchangeRate.setSymbol(einfo.getSymbol());
 				exchangeRate.setUtctime(GeneralUtil.getDatez(date));
 				ExchangeRate old = this.baseMapper.selectOne(query);
 				if (old!=null) {
