@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.finances.mapper.FBAReimbursementsFeeReportMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.FBAReimbursementsFeeReport">
+        <id column="id" property="id" />
+        <result column="approval_date" property="approvalDate" />
+        <result column="reimbursement_id" property="reimbursementId" />
+        <result column="case_id" property="caseId" />
+        <result column="amazon_order_id" property="amazonOrderId" />
+        <result column="reason" property="reason" />
+        <result column="sku" property="sku" />
+        <result column="fnsku" property="fnsku" />
+        <result column="asin" property="asin" />
+        <result column="conditions" property="conditions" />
+        <result column="currency_unit" property="currencyUnit" />
+        <result column="amount_per_unit" property="amountPerUnit" />
+        <result column="amount_total" property="amountTotal" />
+        <result column="quantity_reimbursed_cash" property="quantityReimbursedCash" />
+        <result column="quantity_reimbursed_inventory" property="quantityReimbursedInventory" />
+        <result column="quantity_reimbursed_total" property="quantityReimbursedTotal" />
+        <result column="original_reimbursement_id" property="originalReimbursementId" />
+        <result column="original_reimbursement_type" property="originalReimbursementType" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="lastupdate" property="lastupdate" />
+    </resultMap>
+    <select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+  	SELECT IFNULL(p.location,p.url) image,i.name,m.name marketname,g.name gname,t.*
+	FROM t_fba_reimbursements_fee_report t 
+	LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+	LEFT JOIN t_amazon_group g ON g.id=a.groupid
+	LEFT JOIN t_marketplace m ON m.marketplaceid=t.marketplaceid
+	LEFT JOIN t_product_info i ON i.sku=t.sku AND i.amazonAuthId=t.amazonauthid AND i.marketplaceid=m.marketplaceId
+	LEFT JOIN t_picture p ON p.id=i.image
+	where  
+	t.approval_date &gt; #{param.fromDate,jdbcType=CHAR} and t.approval_date &lt; #{param.toDate,jdbcType=CHAR}
+	<if test="param.amazonauthid==null">
+	 and exists(select id from t_amazon_auth ah left join t_marketplace mm on mm.aws_region=ah.aws_region where 
+			    ah.id=a.id and ah.shop_id = #{param.shopid,jdbcType=CHAR}  
+				 <if test="param.groupid!=null">
+			    	AND  ah.groupid=#{param.groupid,jdbcType=CHAR}
+			    </if>
+				 <if test="param.marketplaceid!=null">
+			    	AND  mm.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+			    </if>
+	 		  ) 
+     </if>
+     <if test="param.marketplaceid!=null">
+    	AND  m.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+    </if>
+    <if test="param.amazonauthid!=null">
+    	AND  t.amazonauthid=#{param.amazonauthid,jdbcType=CHAR}
+    </if>
+     <if test="param.search!=null">
+    	AND  (t.sku like #{param.search,jdbcType=CHAR} or t.asin like #{param.search,jdbcType=CHAR})
+    </if>
+  </select> 
+    
+  <insert id="insertBatch"  parameterType="java.util.List">
+    insert into t_fba_reimbursements_fee_report (
+      id, approval_date, reimbursement_id, case_id, 
+      amazon_order_id, reason, sku, 
+      fnsku, asin, conditions, 
+      currency_unit, amount_per_unit, amount_total, 
+      quantity_reimbursed_cash, quantity_reimbursed_inventory, quantity_reimbursed_total, 
+      original_reimbursement_id, original_reimbursement_type, marketplaceid, 
+      amazonauthid, lastupdate
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (uuid_short(), #{stm.approvalDate,jdbcType=TIMESTAMP}, #{stm.reimbursementId,jdbcType=CHAR}, #{stm.caseId,jdbcType=CHAR}, 
+      #{stm.amazonOrderId,jdbcType=CHAR}, #{stm.reason,jdbcType=CHAR}, #{stm.sku,jdbcType=CHAR}, 
+      #{stm.fnsku,jdbcType=CHAR}, #{stm.asin,jdbcType=CHAR}, #{stm.conditions,jdbcType=CHAR}, 
+      #{stm.currencyUnit,jdbcType=CHAR}, #{stm.amountPerUnit,jdbcType=DECIMAL}, #{stm.amountTotal,jdbcType=DECIMAL}, 
+      #{stm.quantityReimbursedCash,jdbcType=INTEGER}, #{stm.quantityReimbursedInventory,jdbcType=INTEGER}, #{stm.quantityReimbursedTotal,jdbcType=INTEGER}, 
+      #{stm.originalReimbursementId,jdbcType=CHAR}, #{stm.originalReimbursementType,jdbcType=CHAR}, #{stm.marketplaceid,jdbcType=CHAR}, 
+      #{stm.amazonauthid,jdbcType=CHAR}, #{stm.lastupdate,jdbcType=TIMESTAMP}
+      )
+      </foreach> 
+  </insert>
+  
+  <update id="repaireMarket">
+  			UPDATE  t_fba_reimbursements_fee_report r
+			LEFT JOIN t_orders_report rt ON rt.amazon_order_id=r.amazon_order_id AND rt.sku=r.sku
+			LEFT JOIN t_marketplace m ON m.point_name=rt.sales_channel
+			 SET r.marketplaceid=case when m.marketplaceId IS NULL then 'A13V1IB3VIYZZH' ELSE m.marketplaceId END 
+			WHERE r.marketplaceid='A1F83G8C2ARO7P' AND r.currency_unit='EUR'
+  </update>
+  
+  <select id="findSku_Reimbursements" parameterType="java.util.Map" resultType="java.util.Map">
+			   SELECT sku, sum(amount_total) amount FROM  t_fba_reimbursements_fee_report
+			 WHERE amazonauthid=#{amazonAuthId,jdbcType=CHAR} AND marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			 AND approval_date >=#{fromDate,jdbcType=DATE} AND approval_date&lt; #{endDate,jdbcType=DATE}
+			 GROUP BY sku
+  </select>
+</mapper>

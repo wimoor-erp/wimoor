@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInOptMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInOpt">
+        <id column="pid" property="pid" />
+        <result column="remark" property="remark" />
+        <result column="priceremark" property="priceremark" />
+        <result column="buyprice" property="buyprice" />
+        <result column="businessprice" property="businessprice" />
+        <result column="businesstype" property="businesstype" />
+        <result column="businesslist" property="businesslist" />
+        <result column="disable" property="disable" />
+        <result column="presales" property="presales" />
+        <result column="lastupdate" property="lastupdate" />
+        <result column="remark_analysis" property="remarkAnalysis" />
+        <result column="msku" property="msku" />
+        <result column="fnsku" property="fnsku" />
+        <result column="review_daily_refresh" property="reviewDailyRefresh" />
+        <result column="profitid" property="profitid" />
+        <result column="status" property="status" />
+        <result column="operator" property="operator" />
+    </resultMap>
+   
+  <update id="updateBySessionRpt" parameterType="java.lang.String">
+        update t_product_in_ses o 
+		inner join t_product_info i on i.id=o.pid
+		   and  i.amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+		   and  i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		set   o.session_day7=null,o.session_rate7=null,o.buybox_rate7=null;
+		  
+		update t_product_in_ses o 
+		inner join t_product_info i on i.id=o.pid
+		inner join (
+			select  amazonAuthid,marketplaceid,sku,sum(Sessions) Sessions
+					,avg(Buy_Box_Percentage) Buy_Box_Percentage,sum(Units_Ordered) unitsOrdered
+			from t_amz_product_pageviews
+			where byday >= date_add(curdate(),INTERVAL -9 DAY)
+					and byday &lt;date_add(curdate(),INTERVAL -2 DAY) 
+					and amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+					and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			group by amazonAuthid,marketplaceid,sku
+		) v on v.amazonAuthid=i.amazonauthid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+		set  
+		o.session_day7=v.Sessions,
+		o.session_rate7=v.unitsOrdered/v.Sessions,
+		o.buybox_rate7=v.Buy_Box_Percentage,
+		o.units_ordered7=v.unitsOrdered;
+		
+		
+	insert into t_product_in_ses (pid,session_day7,session_rate7,buybox_rate7,units_ordered7)	
+    select 
+	    i.id,v.Sessions,ifnull(v.unitsOrdered,0)/v.Sessions,v.Buy_Box_Percentage ,v.unitsOrdered  
+	 from  t_product_info i  
+	 left join 	(select  amazonAuthid,marketplaceid,sku,sum(Sessions) Sessions
+					     ,avg(Buy_Box_Percentage) Buy_Box_Percentage,sum(Units_Ordered) unitsOrdered
+				  from t_amz_product_pageviews
+				  where byday >= date_add(curdate(),INTERVAL -9 DAY)
+					   and byday &lt;date_add(curdate(),INTERVAL -2 DAY) 
+					   and amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+					   and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+				  group by amazonAuthid,marketplaceid,sku
+		) v on v.amazonAuthid=i.amazonAuthid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+	 left join t_product_in_ses o on o.pid=i.id
+	 where o.pid is null  
+	 and i.amazonAuthid=#{amazonauthid,jdbcType=CHAR}
+	 and i.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+    </update>
+   
+  <select id="updateAllOpt" parameterType="java.lang.String"  resultType="java.lang.Integer">
+        update t_product_in_adv o 
+		inner join t_product_info i on i.id=o.pid
+		inner join t_amazon_auth a on a.id=i.amazonauthid
+		inner join (
+		select sellerid,marketplaceid,sku,sum(ifnull(clicks,0)) clicks7
+		,sum(ifnull(impressions,0)) impressions7,sum(ifnull(orders,0)) orders7 ,
+		sum(ifnull(clicks,0))/sum(ifnull(impressions,0)) ctr7,
+		sum(ifnull(orders,0))/sum(ifnull(clicks,0)) spc7, 
+		sum(ifnull(spend,0))/sum(ifnull(clicks,0)) cpc7,
+		sum(ifnull(spend,0)) spend7,sum(ifnull(totalsales,0)) totalsales7
+		 from t_amz_advert_report_summary 
+		where bydate > date_add(curdate(),INTERVAL -8 DAY)
+		and bydate &lt;= date_add(curdate(),INTERVAL -1 DAY) 
+		group by sellerid,marketplaceid,sku
+		) v on v.sellerid=a.sellerid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+		set o.adv_impr7=v.impressions7 ,o.adv_sales7=v.orders7,o.adv_clicks7=v.clicks7,
+		o.adv_spend7=v.spend7,o.adv_cpc7=v.cpc7 ,o.adv_spc7=v.spc7 ,
+		o.adv_ctr7=v.ctr7,
+		o.adv_acos7=case when ifnull(v.totalsales7,0)=0 then 0 else v.spend7/v.totalsales7 end,
+		o.lastupdate=now() ;
+		
+	insert into t_product_in_adv (pid,adv_impr7,adv_sales7,adv_clicks7,adv_spend7,adv_cpc7,adv_spc7,adv_ctr7,adv_acos7,lastupdate)	
+    select 
+	    i.id,v.impressions7 ,v.orders7,v.clicks7,v.spend7,v.cpc7 ,v.spc7 ,v.ctr7,
+		 case when ifnull(v.totalsales7,0)=0 then 0 else v.spend7/v.totalsales7 end ,now()
+	 from  t_product_info i  
+	  inner join t_amazon_auth a on a.id=i.amazonauthid
+	 left join 	(select sellerid,marketplaceid,sku,sum(ifnull(clicks,0)) clicks7
+		          ,sum(ifnull(impressions,0)) impressions7,
+		          sum(ifnull(orders,0)) orders7 ,
+		          sum(ifnull(clicks,0))/sum(ifnull(impressions,0)) ctr7,
+	           	  sum(ifnull(orders,0))/sum(ifnull(clicks,0)) spc7, sum(ifnull(spend,0))/sum(ifnull(clicks,0)) cpc7,
+		           sum(ifnull(spend,0)) spend7,sum(ifnull(totalsales,0)) totalsales7
+		        from t_amz_advert_report_summary 
+	       	    where bydate > date_add(curdate(),INTERVAL -8 DAY)
+		        and bydate &lt;= date_add(curdate(),INTERVAL -1 DAY) 
+		group by sellerid,marketplaceid,sku
+		) v on v.sellerid=a.sellerid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+	 left join t_product_in_adv o on o.pid=i.id
+	 where o.pid is null   ;
+	    update t_product_in_adv o 
+		inner join t_product_info i on i.id=o.pid
+		inner join t_amazon_auth a on a.id=i.amazonauthid
+		set 
+			o.adv_sales7=null ,
+			o.adv_clicks7=null,
+			o.adv_spend7=null ,
+			o.adv_impr7=null  ,
+			o.adv_cpc7=null   ,
+			o.adv_spc7=null   ,
+			o.adv_ctr7=null   ,
+			o.adv_acos7=null  
+			where 
+			o.lastupdate&lt;date_add(now(), interval -1 hour);
+			select 1 from dual;
+  </select>
+  
+  <select id="updateByAdvReport" parameterType="java.lang.String" resultType="java.lang.Integer">
+        update t_product_in_adv o 
+		inner join t_product_info i on i.id=o.pid
+		inner join t_amazon_auth a on a.id=i.amazonauthid
+		   and  a.sellerid=#{sellerid,jdbcType=CHAR}
+		   and  i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		set 
+			o.adv_sales7=null ,
+			o.adv_clicks7=null,
+			o.adv_spend7=null ,
+			o.adv_impr7=null  ,
+			o.adv_cpc7=null   ,
+			o.adv_spc7=null   ,
+			o.adv_ctr7=null   ,
+			o.adv_acos7=null  ;
+		
+		
+        update t_product_in_adv o 
+		inner join t_product_info i on i.id=o.pid
+		inner join t_amazon_auth a on a.id=i.amazonauthid
+		inner join (
+		select sellerid,marketplaceid,sku,sum(ifnull(clicks,0)) clicks7
+		,sum(ifnull(impressions,0)) impressions7,sum(ifnull(orders,0)) orders7 ,
+		sum(ifnull(clicks,0))/sum(ifnull(impressions,0)) ctr7,
+		sum(ifnull(orders,0))/sum(ifnull(clicks,0)) spc7, 
+		sum(ifnull(spend,0))/sum(ifnull(clicks,0)) cpc7,
+		sum(ifnull(spend,0)) spend7,sum(ifnull(totalsales,0)) totalsales7
+		 from t_amz_advert_report_summary    
+		 where bydate > date_add(curdate(),INTERVAL -8 DAY)
+		and bydate &lt;= date_add(curdate(),INTERVAL -1 DAY) 
+		and sellerid=#{sellerid,jdbcType=CHAR}
+		and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		group by sellerid,marketplaceid,sku
+		) v on v.sellerid=a.sellerid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+		set o.adv_impr7=v.impressions7 ,o.adv_sales7=v.orders7,o.adv_clicks7=v.clicks7,
+		o.adv_spend7=v.spend7,o.adv_cpc7=v.cpc7 ,o.adv_spc7=v.spc7 ,
+		o.adv_ctr7=v.ctr7,
+		o.adv_acos7=case when ifnull(v.totalsales7,0)=0 then 0 else v.spend7/v.totalsales7 end,
+		o.lastupdate=now() ;
+		
+	insert into t_product_in_adv (pid,adv_impr7,adv_sales7,adv_clicks7,adv_spend7,adv_cpc7,adv_spc7,adv_ctr7,adv_acos7,lastupdate)	
+    select 
+	    i.id,v.impressions7 ,v.orders7,v.clicks7,v.spend7,v.cpc7 ,v.spc7 ,v.ctr7,
+		 case when ifnull(v.totalsales7,0)=0 then 0 else v.spend7/v.totalsales7 end,now()  
+	 from  t_product_info i  
+	  inner join t_amazon_auth a on a.id=i.amazonauthid
+	 left join 	(select sellerid,marketplaceid,sku,sum(ifnull(clicks,0)) clicks7
+		          ,sum(ifnull(impressions,0)) impressions7,
+		          sum(ifnull(orders,0)) orders7 ,
+		          sum(ifnull(clicks,0))/sum(ifnull(impressions,0)) ctr7,
+	           	  sum(ifnull(orders,0))/sum(ifnull(clicks,0)) spc7, sum(ifnull(spend,0))/sum(ifnull(clicks,0)) cpc7,
+		           sum(ifnull(spend,0)) spend7,sum(ifnull(totalsales,0)) totalsales7
+		        from t_amz_advert_report_summary   
+	       	    where bydate > date_add(curdate(),INTERVAL -8 DAY)
+		        and bydate &lt;= date_add(curdate(),INTERVAL -1 DAY) 
+		        and sellerid=#{sellerid,jdbcType=CHAR}
+		        and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		group by sellerid,marketplaceid,sku
+		) v on v.sellerid=a.sellerid and v.marketplaceid=i.marketplaceid and v.sku=i.sku
+	 left join t_product_in_adv o on o.pid=i.id
+	 where o.pid is null   
+	 	and a.sellerid=#{sellerid,jdbcType=CHAR}
+		and i.marketplaceid=#{marketplaceid,jdbcType=CHAR};
+		
+		select 1 from dual;
+  </select>
+  
+  <select id="findProductSaleOrder" resultType="java.util.Map" parameterType="java.util.Map">
+  	select pd.sku,sum(ifnull(sa.attributedConversions7dSameSKU,0)) sameOrder,
+  		sum(ifnull(d.attributedConversions7d,0) - ifnull(sa.attributedConversions7dSameSKU,0)) otherOrder,
+  		sum(ifnull(d.attributedConversions7d,0)) allOrder
+	from t_amz_adv_rpt2_sp_productads t
+		left join t_amz_adv_rpt2_sp_productads_attributed d on d.adId=t.adId and d.bydate=t.bydate
+		left join t_amz_adv_productads pd on pd.adGroupId=t.adGroupId and pd.campaignId=t.campaignId and pd.adId=t.adId and pd.profileid=t.profileid
+		left join t_amz_adv_rpt2_sp_productads_attributed_same sa on sa.adId=t.adId and sa.bydate=t.bydate
+		left join t_amz_adv_adgroups ad on ad.adGroupId=t.adGroupId and ad.campaignId=t.campaignId and t.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=t.campaignId and cm.profileid=t.profileid
+	left join t_amz_adv_profile tp on tp.id = t.profileid
+	where pd.sku = #{param.sku,jdbcType=CHAR}
+		and t.bydate &lt;= #{param.fromDate,jdbcType=DATE} and t.bydate &gt;= #{param.endDate,jdbcType=DATE}
+		and tp.marketplaceId = #{param.marketplaceid,jdbcType=CHAR}
+		and tp.sellerId = #{param.sellerid,jdbcType=CHAR}
+    group by pd.sku
+  </select>
+  <select id="selectMaterialSize" resultType="java.util.Map" parameterType="java.util.Map">
+		select p.sku,p.name pname,ifnull(p2.location,p1.location) image,p.inSnl isSmlAndLight,ps.sales_month,
+			dm.length slength,dm.length_units slength_units,
+			dm.width swidth,dm.width_units swidth_units,
+			dm.height sheight,dm.height_units sheight_units,
+			dm.weight sweight,dm.weight_units sweight_units,
+			ifnull(ef.longest_side,dp.`length`) `length` ,
+			ifnull(ef.unit_of_dimension,dp.length_units) length_units,
+			ifnull(ef.median_side,dp.width) width,
+			ifnull(ef.unit_of_dimension,dp.width_units) width_units,
+			ifnull(ef.shortest_side,dp.height) height,
+			ifnull(ef.unit_of_dimension,dp.height_units) height_units,
+			ifnull(ef.item_package_weight,dp.weight) weight,
+			ifnull(ef.unit_of_weight,dp.weight_units) weight_units,
+			ifnull(ef.your_price,pp.landed_amount) price,
+			ifnull(ef.currency,pp.landed_currency) currency,
+			ef.estimated_fee_total totalfee,
+			ef.estimated_referral_fee_per_unit referralfee,
+			ef.expected_domestic_fulfilment_fee_per_unit edfba,
+			ef.expected_efn_fulfilment_fee_per_unit_uk efnfba,
+			ef.product_size_tier productTier,
+			ifnull(p.pgroup,'') pgroup,ifnull(mc.`name`,'') category,
+			ef.estimated_fixed_closing_fee fixclosing, ef.lastupdate
+		from t_product_info p
+		left join t_amazon_auth a on a.id=p.amazonAuthId
+		left join t_product_in_opt opt on opt.pid=p.id
+		left join t_product_in_order ps on p.id=ps.pid
+		left join t_erp_material m on m.sku = ifnull(opt.msku,p.sku) and m.shopid = a.shop_id and m.isDelete = 0
+		left join t_erp_material_category mc on m.categoryid=mc.id
+		left join t_picture p1 on m.image=p1.id
+		left join t_dimensions dm on m.pkgDimensions=dm.id
+		left join t_product_price pp on p.marketplaceid=pp.MarketplaceId and pp.SellerId=a.sellerid 
+										and pp.SellerSKU=p.sku and pp.isnewest=true and pp.ptype='BUYP'
+		left join t_picture p2 on p2.id=p.image
+		left join t_fba_estimated_fees ef on p.sku=ef.sku and ef.marketplaceid=p.marketplaceid and ef.asin=p.asin
+		left join t_amz_dimensions dp on dp.id=p.pageDimensions
+		where a.shop_id=#{param.shopid,jdbcType=CHAR} and p.isparent=false and p.invalid=0 and ifnull(opt.disable,0)=0
+		<if test="param.groupid != null">
+			and a.groupid = #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.owner != null">
+			and opt.owner= #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid != null">
+			and p.marketplaceId = #{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.skuname != null">
+			and (p.sku like #{param.skuname,jdbcType=CHAR} or opt.msku like #{param.skuname,jdbcType=CHAR})
+		</if>
+	</select>
+	
+	
+	<select id="findMSKUByShopid" parameterType="java.lang.String" resultType="java.util.Map">
+		select o.msku msku,p.sku ,mp.name market,gro.name groupname,m.id,p.asin
+		from t_product_info  p
+		left join t_product_in_opt o  on p.id = o.pid
+		left join t_erp_material m on m.sku = ifnull(o.msku,p.sku)
+		left join t_marketplace mp on mp.marketplaceid=p.marketplaceid
+		left join t_amazon_auth auth on auth.id = p.amazonAuthId
+		left join t_amazon_group gro on gro.id = auth.groupid
+		where auth.shop_id = #{shopid,jdbcType=CHAR} 
+		and ifnull(p.invalid,false)=false
+		and p.isparent=false
+		and ifnull(o.disable,false)=false
+		<if test="marketplaceid!=null">
+			and p.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid!=null">
+			and gro.id = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="groupList !=null">
+			and gro.id in(
+			<foreach collection="groupList" item="grop" index="index" separator=",">
+				#{grop,jdbcType=BIGINT} 
+			</foreach>
+			)
+		</if>
+		order by p.sku asc
+	</select>
+	
+		<select id="findProductInfoByUpload" resultType="com.wimoor.amazon.product.pojo.entity.ProductInfo" parameterType="java.lang.String">
+		select p.*
+		from t_product_info p
+		left join t_marketplace m on m.marketplaceid=p.marketplaceid
+		where p.sku=#{sku,jdbcType=CHAR}
+			and m.name=#{marketname,jdbcType=CHAR}
+			and p.amazonAuthId=
+		(select a.id
+		from t_amazon_auth a
+		left join t_amazon_group g on g.id=a.groupid
+		left join t_amazonseller_market m on a.sellerid=m.sellerid
+		left join t_marketplace mp on mp.marketplaceid=m.marketplace_id
+		where mp.name= #{marketname,jdbcType=CHAR}
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+			and g.name=#{groupname,jdbcType=CHAR}
+		)
+	</select>
+	
+	 <select id="findAdvert" resultType="java.util.Map"  >
+    select 
+    bydate,sum(clicks) cks,sum(impressions) imp,sum(ROUND(ctr*100,2)) ctr, max(currency) currency, 
+    sum(spend) spd,sum(cpc) cpc,sum(ROUND(`acos`*100,2))/count(0) `acos`,sum(ROUND(RoAS*100,2))/count(0) roas,sum(orders) orders,sum(units) aus,
+    sum(ROUND(spc*100,2))/count(0) spc ,sum(totalsales) tos,case when sum(clicks)!=0 then ROUND(sum(orders)*100/sum(clicks),2) else 0 end cr
+    from t_amz_advert_report_summary r
+    where   sellerid = #{sellerid,jdbcType=CHAR}
+     <if test="sku != null" >
+        and    sku = #{sku,jdbcType=CHAR}
+      </if>
+      <if test="marketplaceid != null" >
+        and    marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      </if>
+       <if test="begindate != null" >
+        and    bydate &gt;= #{begindate,jdbcType=CHAR}
+      </if>
+        <if test="enddate != null" >
+        and    bydate &lt;= #{enddate,jdbcType=CHAR}
+      </if>
+      group by bydate
+  </select>
+  
+    <select id="getMonthSumNum" resultType="java.util.Map" parameterType="java.util.Map" >
+		  select  date_format(max(byday),'%Y-%m') byday,max(v.quantity) quantity
+		   from (select byday,sum(quantity) quantity
+		   from  t_amz_product_active_daynum a
+		    left join t_amazon_auth ath on ath.id=a.amazonAuthId and ath.disable = 0
+		    where ath.shop_id=#{shopid,jdbcType=CHAR}
+		     <if test="groupid != null" >
+		      and  ath.groupid=#{groupid,jdbcType=CHAR}
+		      </if>
+		        <if test="marketplaceId != null" >
+		       and a.marketplaceid=#{marketplaceId,jdbcType=CHAR}
+		      </if>
+		      <if test="begin != null" >
+		       and a.byday>=#{begin,jdbcType=DATE}
+		      </if>
+		       <if test="end != null" >
+		       and a.byday&lt;=#{end,jdbcType=DATE}
+		      </if> 
+		 group by byday
+		 ) v
+		group by concat( year(v.byday) ,'-' ,month(v.byday))
+  </select>
+  
+</mapper>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.report.dao.AmzAdvSumAllTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.report.pojo.AmzAdvSumAllType" >
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <id column="state" property="state" jdbcType="CHAR" />
+    <id column="campaignType" property="campaigntype" jdbcType="CHAR" />
+    <id column="recordType" property="recordtype" jdbcType="CHAR" />
+    <id column="byday" property="byday" jdbcType="DATE" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    profileid, state, campaignType, recordType, byday, quantity, opttime
+  </sql>
+    <select id="selectByKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.report.pojo.AmzAdvSumAllTypeKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_sumalltype
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </select>
+  <update id="updateByKey" parameterType="com.wimoor.amazon.adv.report.pojo.AmzAdvSumAllType" >
+    update t_amz_adv_sumalltype
+    set quantity = #{quantity,jdbcType=INTEGER},
+      opttime = #{opttime,jdbcType=TIMESTAMP}
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </update> 
+  <select id="getTypeNumberWithoutUnUseable" resultType="java.util.Map">
+  select t.recordType,sum(t.quantity) quantity,min(t.opttime) opttime
+		 from t_amz_adv_sumalltype t
+		 left join  t_amz_adv_profile p on t.profileid=p.id 
+		 left join  t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		and t.byday= #{byday,jdbcType=CHAR}
+		and (`state`='enabled' or `state`='paused' )
+		group by t.recordType
+  </select>
+    <select id="getTypeNumberEnabled" resultType="java.util.Map">
+  select t.recordType,sum(t.quantity) quantity,min(t.opttime) opttime
+		 from t_amz_adv_sumalltype t
+		 left join  t_amz_adv_profile p on t.profileid=p.id 
+		 left join  t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		and t.byday= #{byday,jdbcType=CHAR}
+		and (`state`='enabled')
+		group by t.recordType
+  </select>
+  <select id="getMonthSumNum" resultType="java.util.Map" parameterType="java.util.Map" >
+  select  date_format(max(byday),'%Y-%m') byday,max(v.quantity) quantity
+ from (select byday,sum(quantity) quantity
+ from  t_amz_adv_sumalltype a
+    left join t_amz_adv_profile p on p.id=a.profileid
+    left join t_amz_adv_auth ath on ath.id=p.advauthId and ath.disable = 0
+    where ath.shopid=#{shopid,jdbcType=CHAR}
+       and state='enabled'
+      <if test="recordType != null" >
+       and recordType=#{recordType,jdbcType=CHAR}
+      </if>
+     <if test="groupid != null" >
+      and  ath.groupid=#{groupid,jdbcType=CHAR}
+      </if>
+     <if test="profileid != null" >
+       and p.id=#{profileid,jdbcType=CHAR}
+      </if>
+        <if test="marketplaceId != null" >
+       and p.marketplaceId=#{marketplaceId,jdbcType=CHAR}
+      </if>
+      <if test="begin != null" >
+       and a.byday>=#{begin,jdbcType=DATE}
+      </if>
+       <if test="end != null" >
+       and a.byday&lt;=#{end,jdbcType=DATE}
+      </if> 
+ group by byday
+ ) v
+group by concat( year(v.byday) ,'-' ,month(v.byday))
+  </select>
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvSumAllTypeKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_sumalltype
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvSumAllTypeKey" >
+    delete from t_amz_adv_sumalltype
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvSumAllType" >
+    insert into t_amz_adv_sumalltype (profileid, state, campaignType, 
+      recordType, byday, quantity, 
+      opttime)
+    values (#{profileid,jdbcType=BIGINT}, #{state,jdbcType=CHAR}, #{campaigntype,jdbcType=CHAR}, 
+      #{recordtype,jdbcType=CHAR}, #{byday,jdbcType=DATE}, #{quantity,jdbcType=INTEGER}, 
+      #{opttime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvSumAllType" >
+    insert into t_amz_adv_sumalltype
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="profileid != null" >
+        profileid,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="campaigntype != null" >
+        campaignType,
+      </if>
+      <if test="recordtype != null" >
+        recordType,
+      </if>
+      <if test="byday != null" >
+        byday,
+      </if>
+      <if test="quantity != null" >
+        quantity,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="profileid != null" >
+        #{profileid,jdbcType=BIGINT},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=CHAR},
+      </if>
+      <if test="campaigntype != null" >
+        #{campaigntype,jdbcType=CHAR},
+      </if>
+      <if test="recordtype != null" >
+        #{recordtype,jdbcType=CHAR},
+      </if>
+      <if test="byday != null" >
+        #{byday,jdbcType=DATE},
+      </if>
+      <if test="quantity != null" >
+        #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvSumAllType" >
+    update t_amz_adv_sumalltype
+    <set >
+      <if test="quantity != null" >
+        quantity = #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvSumAllType" >
+    update t_amz_adv_sumalltype
+    set quantity = #{quantity,jdbcType=INTEGER},
+      opttime = #{opttime,jdbcType=TIMESTAMP}
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </update> -->
+</mapper>

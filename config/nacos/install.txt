@@ -1,0 +1,5 @@
+官网：https://nacos.io/zh-cn/
+下载界面：https://github.com/alibaba/nacos/releases
+zip下载地址：https://github.com/alibaba/nacos/releases/download/2.3.0/nacos-server-2.3.0.zip
+tar下载地址：https://github.com/alibaba/nacos/releases/download/2.3.0/nacos-server-2.3.0.tar.gz
+nacos 配置文件DEFAULT_GROUP.zip

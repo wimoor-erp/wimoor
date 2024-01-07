@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.inventory.mapper.InventoryMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.inventory.pojo.entity.Inventory">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="materialid" property="materialid" jdbcType="CHAR" />
+		<result column="quantity" property="quantity" jdbcType="INTEGER" />
+		<result column="status" property="status" jdbcType="CHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, warehouseid, shopid, materialid, quantity, status, operator, opttime
+	</sql>
+	<select id="findLocalWarehouseInventory" resultType="com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo" parameterType="java.lang.String">
+	  SELECT  i.warehouseid,i.materialid ,w.name warehousename,m.name ,m.sku,
+				sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory i
+			left join t_erp_warehouse w ON w.id=i.warehouseid
+			left join t_erp_material m on m.id=i.materialid
+			where i.shopid=#{shopid,jdbcType=CHAR} 
+			and w.disabled=0
+            and i.materialid=#{materialid,jdbcType=CHAR}
+            and i.quantity>0
+			group by i.shopid,warehouseid,i.materialid
+	</select>
+	<!-- 确认当前SKU的inventory对象(根据状态去查询) -->
+	<select id="selectNowInv" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select iv.id,iv.shopid,iv.warehouseid,iv.materialid,iv.quantity,iv.status,iv.operator,iv.opttime
+		from t_erp_inventory iv
+		inner join t_erp_warehouse w on w.id=iv.warehouseid and w.disabled=0
+		where iv.warehouseid=#{warehouse,jdbcType=CHAR} 
+			and iv.materialid=#{material,jdbcType=CHAR}
+			and iv.shopid=#{shopid,jdbcType=CHAR}
+			and iv.status=#{status,jdbcType=CHAR}
+		for update;
+	</select>
+	 <select id="selectAllInvSubWarehouse" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select iv.materialid id,iv.shopid,max(iv.warehouseid) warehouseid,iv.materialid,sum(iv.quantity) quantity,max(iv.status) status,
+		max(iv.operator) operator,max(iv.opttime) opttime
+		from t_erp_inventory iv
+		inner join t_erp_warehouse w on w.id=iv.warehouseid and w.disabled=0
+		where w.parentid=#{warehouse,jdbcType=CHAR} 
+			and iv.materialid=#{material,jdbcType=CHAR}
+			and iv.shopid=#{shopid,jdbcType=CHAR}
+			and iv.status=#{status,jdbcType=CHAR}
+			and w.ftype='self_usable'
+			group by iv.materialid
+	</select>
+
+	<select id="findInvDetailById" parameterType="java.lang.String" resultType="java.util.Map">
+	      select sum( case when substring_index(i.status,'_',1) ='inbound' then i.quantity else 0 end ) inbound,
+				sum( case when substring_index(i.status,'_',1)='outbound' then i.quantity else 0 end ) outbound,
+				sum( case when substring_index(i.status,'_',1)='fulfillable' then i.quantity else 0 end ) fulfillable
+			from t_erp_inventory i
+			left join t_erp_warehouse w on i.warehouseid=w.id
+			where (i.warehouseid=#{warehouseid,jdbcType=CHAR} or w.parentid=#{warehouseid,jdbcType=CHAR} )
+				and i.materialid=#{materialid,jdbcType=CHAR}
+				and i.shopid=#{shopid,jdbcType=CHAR}
+				and w.ftype='self_usable'
+	</select>
+
+	<select id="findInvByWarehouseId" parameterType="java.lang.String" resultType="java.util.Map">
+		select inv.materialid ,
+			sum( case when substring_index(status,'_',1) ='inbound' then quantity else 0 end ) inbound,
+			sum( case when substring_index(status,'_',1) ='outbound' then quantity else 0 end ) outbound,
+			sum( case when substring_index(status,'_',1) ='fulfillable' then quantity else 0 end ) fulfillable
+		from t_erp_inventory inv
+		where inv.shopid=#{shopid,jdbcType=CHAR}
+		<if test="warehouseid!=null">
+			and inv.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		</if>
+			and inv.materialid=#{materialid,jdbcType=CHAR}
+		group by inv.materialid
+	</select>
+	
+ 
+	<select id="findLocalInventory" resultType="java.util.Map" parameterType="java.util.Map">
+		select 
+			uuid_short() id, 
+			i.warehouseid warehouseid, 
+			i.name warehouse,
+			i.name warehousename,
+			m.sku,
+			m.name name,
+			m.id materialid, 
+			ifnull(i.inbound,0) inbound,
+			ifnull(i.fulfillable,0) fulfillable,
+			ifnull(i.outbound,0) outbound,
+			m.price,
+			ifnull(p.location,p.url) image,
+			m.issfg
+		from  t_erp_material m
+		left join (
+			select iv.shopid,iv.warehouseid,iv.materialid,max(w.name) name,
+				sum( case when substring_index(iv.status,'_',1)='inbound' then iv.quantity else 0 end ) inbound,
+				sum( case when substring_index(iv.status,'_',1)='outbound' then iv.quantity else 0 end ) outbound,
+				sum( case when substring_index(iv.status,'_',1)='fulfillable' then iv.quantity else 0 end ) fulfillable
+			from t_erp_inventory iv
+			left join t_erp_warehouse w on  w.id=iv.warehouseid  
+			where iv.shopid=#{param.shopid,jdbcType=CHAR} and w.disabled=0
+			<if test="param.warehouseid != null">
+			    and iv.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+		    </if>
+		    <if test="param.addressid != null">
+			    and w.addressid=#{param.addressid,jdbcType=CHAR}
+		    </if>
+			group by iv.shopid,iv.warehouseid,iv.materialid
+		) i on   i.materialid=m.id
+		<if test="param.itemsku!=null">
+			left join t_erp_assembly ass on ass.mainmid =m.id
+			left join t_erp_material m2 on m2.id=ass.submid
+		</if>
+		<if test="param.conssku!=null">
+			left join t_erp_material_consumable cons on cons.materialid=m.id
+			left join t_erp_material m3 on m3.id=cons.submaterialid
+		</if>
+		left join t_picture p on p.id=m.image
+		where  m.shopid=#{param.shopid,jdbcType=CHAR}  and m.isDelete=false
+	    <if test="param.myself != null">
+			and m.owner=#{param.myself,jdbcType=CHAR} 
+		</if>
+		<if test="param.skuid != null">
+			and m.id=#{param.skuid,jdbcType=CHAR}
+		</if>
+		<if test="param.itemsku!=null">
+			and m2.sku=#{param.itemsku,jdbcType=CHAR}
+		</if>
+		<if test="param.conssku!=null">
+			and m3.sku=#{param.conssku,jdbcType=CHAR}
+		</if>
+		<if test="param.category!=null">
+			and m.categoryid=#{param.category,jdbcType=CHAR}
+		</if>
+		<if test="param.ftypes!=null">
+			and m.issfg=#{param.ftypes,jdbcType=CHAR}
+		</if>
+		<if test="param.search != null">
+			and m.sku like #{param.search,jdbcType=CHAR} 
+		</if>
+		<if test="param.hasInv=='true'">
+		   and (i.fulfillable>0 or i.outbound>0 or i.inbound>0)
+		</if>
+		<if test="param.hasinv!=null">
+		   and  (i.fulfillable>0 or i.outbound>0 or i.inbound>0)
+		</if>
+		ORDER BY i.name
+	</select>
+	
+      <select id="findNotFBAWithStockCycle" resultType="java.util.Map" parameterType="java.lang.String">
+		<if test="id != ''">
+			select max(w.id) id, max(w.parentid) parentid, w.name warehouse,max(w.ftype) ftype,max(m.sku) sku,max(m.id) skuid,
+				max(ifnull(s.stockingCycle,wp.stocking_cycle)) stockingCycle,
+				max(ifnull(s.min_cycle,wp.min_cycle)) mincycle,0 firstlegcharges,
+				sum(i.inbound) inbound,sum(i.fulfillable) fulfillable,sum(i.outbound) outbound
+			from t_erp_warehouse w
+			left join t_erp_warehouse wp on w.parentid=wp.id
+			left join t_erp_stockcycle s on w.parentid=s.warehouseid and s.materialid=#{id,jdbcType=CHAR}
+			cross join t_erp_material m
+			left join (
+				select shopid,warehouseid,materialid ,
+					sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+					sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+					sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+				from t_erp_inventory where shopid=#{shopid,jdbcType=CHAR}
+				group by shopid,warehouseid,materialid
+			) i on i.materialid=m.id and w.id=i.warehouseid
+			where wp.ftype ='self' 
+			<if test="ftype!=null">
+				and w.ftype=#{ftype,jdbcType=CHAR} 
+			</if>
+				and w.disabled=0 and m.id=#{id,jdbcType=CHAR} 
+				and w.shopid=#{shopid,jdbcType=CHAR}
+			GROUP BY w.name ORDER BY w.name
+		</if>
+		<if test="id == ''">
+			select w.id, w.parentid, w.name warehouse,w.ftype ftype,wp.stocking_cycle stockingCycle
+			from t_erp_warehouse w
+			left join t_erp_warehouse wp on w.parentid=wp.id
+			where wp.ftype ='self' 
+				and w.shopid=#{shopid,jdbcType=CHAR} 
+				and w.disabled=0
+			ORDER BY w.name
+		</if>
+	</select>
+	
+	<select id="findLocalInventorySum" resultType="java.util.Map" parameterType="java.util.Map">
+		select '' sku,sum(i.inbound) inbound,sum(i.fulfillable) fulfillable,sum(i.outbound) outbound
+		from (
+			select shopid,warehouseid,materialid ,
+				sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory
+			where shopid=#{param.shopid,jdbcType=CHAR}
+			<if test="param.warehouseid != null">
+			    and  warehouseid=#{param.warehouseid,jdbcType=CHAR}
+		    </if>
+			group by shopid,warehouseid,materialid
+		) i  
+		left join t_erp_material m on i.materialid=m.id
+		<if test="param.itemsku!=null">
+			left join t_erp_assembly ass on ass.mainmid =m.id
+			left join t_erp_material m2 on m2.id=ass.submid
+		</if>
+		<if test="param.conssku!=null">
+			left join t_erp_material_consumable cons on cons.materialid=m.id
+			left join t_erp_material m3 on m3.id=cons.submaterialid
+		</if>
+		where  m.shopid=#{param.shopid,jdbcType=CHAR}  and m.isDelete=false
+	    <if test="param.myself != null">
+			and m.owner=#{param.myself,jdbcType=CHAR} 
+		</if>
+		<if test="param.skuid != null">
+			and m.id=#{param.skuid,jdbcType=CHAR}
+		</if>
+		<if test="param.itemsku!=null">
+			and m2.sku=#{param.itemsku,jdbcType=CHAR}
+		</if>
+		<if test="param.conssku!=null">
+			and m3.sku=#{param.conssku,jdbcType=CHAR}
+		</if>
+		<if test="param.category!=null">
+			and m.categoryid=#{param.category,jdbcType=CHAR}
+		</if>
+		<if test="param.ftypes!=null">
+			and m.issfg=#{param.ftypes,jdbcType=CHAR}
+		</if>
+		<if test="param.search != null">
+			and m.sku like #{param.search,jdbcType=CHAR} 
+		</if>
+
+	</select>
+
+	<select id="findNotFBABySku" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.id, w.name warehouse, ifnull(i.inbound,0)
+		inbound,ifnull(i.fulfillable,0) fulfillable, ifnull(i.outbound,0) outbound
+		from t_erp_warehouse w
+		left join t_erp_warehouse wp on w.parentid=wp.id
+		left join (
+			select shopid,warehouseid,materialid ,
+				sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory
+			where shopid=#{shopid,jdbcType=CHAR}
+			<if test="skuid!='all'">
+				and materialid=#{skuid,jdbcType=CHAR}
+			</if>
+			group by shopid,warehouseid
+		) i on w.id=i.warehouseid
+		where wp.ftype ='self' 
+			and w.shopid=#{shopid,jdbcType=CHAR}
+			and w.parentid=#{whparentid,jdbcType=CHAR}
+	</select>
+
+	<select id="findInventoryDetail" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT * from (
+		select max(p.msku) sku,max(p.sku) psku ,max(p.pname) pname,max(p.marketplaceid) marketplaceid
+		<if test="warehouseList_FBA != null">
+			,
+			<foreach collection="warehouseList_FBA" item="warehouseFBA" index="warehouse_i" open=" " separator="," close=" ">
+				<if test="warehouseFBA != null">
+				ifnull(max(case when p.marketplaceid =#{warehouseFBA.id,jdbcType=CHAR}
+				then ifnull(i.afn_warehouse_quantity,0)
+				else 0
+				end ),0) `${warehouseFBA.id}`
+				</if>
+			</foreach>
+		</if>
+		from (
+		SELECT DISTINCT  p1.sku,ifnull(opt.msku,p1.sku) msku,case when mk.region!='EU' then p1.marketplaceid else 'EU' end marketplaceid,a.shop_id shopid,a.id amazonAuthId ,p1.name pname
+		from t_product_info p1 
+		left join t_product_in_opt opt on opt.pid=p1.id 
+		left join t_marketplace mk on mk.marketplaceid=p1.marketplaceid
+		left join t_amazon_auth a on p1.amazonAuthId=a.id and a.`disable`=0 
+		where a.shop_id=#{shopid,jdbcType=CHAR} and p1.isparent=0 and p1.invalid=0 
+		UNION all
+		SELECT DISTINCT null sku,sku msku,null marketplaceid,shopid,null amazonAuthId ,null pname
+		from t_erp_material 
+		where shopid=#{shopid,jdbcType=CHAR} and isDelete=0) p
+		left join t_inventory_report i on i.amazonAuthId=p.amazonAuthId and i.sku=p.sku and i.isnewest=true and i.marketplaceid=p.marketplaceid
+		GROUP BY p.msku
+		) A
+		left join (
+			SELECT m.sku sku2,m.id skuid,p.location image,m.name,d.length,d.width,d.height,ifnull(d.weight,"-") weight,
+				m.price,ifnull(c.`name`,"-") supplier ,m.owner ownerid,u.`name` owner, DATE_FORMAT(m.effectivedate, '%Y-%m-%d') effectivedate
+			<if test="warehouseList != null">
+				,
+				<foreach collection="warehouseList" item="warehouse" index="warehouse_i" open=" " separator="," close=" ">
+					SUM( case when w.id =#{warehouse.id,jdbcType=CHAR} then
+					ifnull(i.fulfillable,0)+ifnull(i.outbound,0) else 0 end ) `self${warehouse.id}`
+				</foreach>
+			</if>
+			from t_erp_material m
+		    left join t_dimensions d on d.id=m.pkgDimensions
+			left join t_erp_customer c on c.id=m.supplier
+			left join t_userinfo u on u.id=m.owner
+			left join (
+				select shopid,warehouseid,materialid ,
+					sum(case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+					sum(case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+					sum(case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+				from t_erp_inventory
+				where shopid=#{shopid,jdbcType=CHAR}
+				group by shopid,warehouseid,materialid
+			) i on i.materialid=m.id
+			left join t_erp_warehouse w on w.id=i.warehouseid
+			left join t_picture p on p.id=m.image
+			left join t_erp_warehouse wp on w.parentid=wp.id and wp.ftype ='self'
+			where m.shopid=#{shopid,jdbcType=CHAR}
+				and m.isDelete = 0
+			GROUP BY m.id
+		) B on A.sku=B.sku2
+			where 1=1
+		<if test="skuid != null">
+			and A.psku=#{skuid,jdbcType=CHAR}
+		</if>
+		 <if test="myself != null">
+			and B.ownerid=#{myself,jdbcType=CHAR}  
+		</if>
+	</select>
+	
+	<select id="selectSubASList" resultType="java.util.Map" parameterType="java.lang.String">
+		select t.*,w.name warehouse,m.sku skuid,m.name mname,m.color
+			mcolor,IFNULL(pic.location,pic.url) image,t.quantity amount
+		from t_erp_inventory t
+		left join t_erp_warehouse w on w.id=t.warehouseid
+		left join t_erp_material m on m.id=t.materialid
+		left join t_picture pic on m.image=pic.id
+		where t.materialid=#{materialid,jdbcType=CHAR}
+		<if test="warehouseid != null">
+			and t.warehouseid=#{warehouseid,jdbcType=CHAR}
+		</if>
+			and t.shopid=#{shopid,jdbcType=CHAR}
+			and t.`status`='fulfillable'
+		order by t.quantity desc limit 1
+	</select>
+
+	<select id="findInboundDetail" parameterType="java.lang.String" resultType="java.util.Map">
+		select (
+			select max(name) from t_erp_formtype
+			where id = substring(status,position('_' in status)+1 ,length(status)) ) as name, 
+              status,   
+			  quantity ,
+			  warehouseid,
+			  materialid
+		from t_erp_inventory
+		where shopid=#{shopid,jdbcType=CHAR} 
+			and warehouseid=#{warehouseid,jdbcType=CHAR}
+		<if test="materialid!=null">
+			and materialid=#{materialid,jdbcType=CHAR}
+		</if>
+			and status like 'inbound_%' 
+	</select>
+
+	<select id="findOutboundDetail" parameterType="java.lang.String" resultType="java.util.Map">
+		select (
+			  select max(name) from t_erp_formtype where id = substring(status,position('_' in status)+1 ,length(status)) ) as name,
+			  status,   
+			  quantity ,
+			  warehouseid,
+			  materialid
+		from t_erp_inventory
+		where shopid=#{shopid,jdbcType=CHAR} 
+		and warehouseid=#{warehouseid,jdbcType=CHAR}
+		<if test="materialid!=null">
+			and materialid=#{materialid,jdbcType=CHAR}
+		</if>
+			and status like 'outbound_%' 
+	</select>
+	
+	<select id="selectInventoryDetail" parameterType="java.lang.String" resultType="java.util.Map">
+	  	SELECT t.shopid,t.materialid,t.warehouseid,m.sku,max(t.opttime) createdate,max(case when t.`status`='fulfillable' then t.opttime else null end) opttime,
+			sum(case when t.`status`='outbound' and (t.operate='readyout' or t.operate='changeadd') then t.quantity ELSE 0 END) outboundadd,
+			sum(case when t.`status`='outbound' AND (t.operate='out' OR t.operate='cancel' or t.operate='changesub') 
+				then t.quantity ELSE 0 END) outboundsub,
+			sum(case when t.`status`='fulfillable' AND (t.operate='out' OR t.operate='readyout' or t.operate='changeadd') 
+				then t.quantity ELSE 0 END) fulfillablesub,
+			sum(case when t.`status`='fulfillable' AND (t.operate='in' OR t.operate='cancel' or t.operate='changesub') 
+				then t.quantity ELSE 0 END) fulfillableadd,
+			sum(case when t.`status`='inbound' and (t.operate='readyin' or t.operate='in') then t.quantity ELSE 0 END) inboundadd,
+			sum(case when t.`status`='inbound' and (t.operate='out' or t.operate='stop' or t.operate='cancel') then t.quantity ELSE 0 END) inboundsub,
+			min(case when t.`status`='fulfillable' and t.operate !='readyout' then t.operate ELSE CONCAT('z',t.operate) END ) operate,
+			min(case when t.operate !='changeadd' and t.operate !='changesub' then t.operate ELSE CONCAT('z',t.operate) END) operate2,
+			t.number, w.name wname, p.name oftype, wt.name wftype, u.name operator ,t.formtype,
+	         max(case when t.`status`='fulfillable' then t.invqty else null end) invqty
+		from t_erp_inventory_record t
+		left join t_erp_material m on m.id=t.materialid
+		left join t_erp_warehouse w on w.id=t.warehouseid
+		left join t_erp_formtype p on p.id=t.formtype
+		left join t_erp_warehouse_type wt on wt.id=w.ftype
+		left join t_userinfo u on u.id=t.operator
+		where t.shopid=#{shopid,jdbcType=CHAR}
+		<if test="search!=null">
+			and m.sku=#{search,jdbcType=CHAR}
+		</if>
+		<if test="skuid!=null and skuid !='all'">
+			and m.id=#{skuid,jdbcType=CHAR }
+		</if>
+		<if test="wparentid !=null">
+			and w.parentid=#{wparentid,jdbcType=CHAR}
+		</if>
+		<if test="toDate!=null">
+			and t.opttime &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and t.opttime &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="ftypeid!=null">
+			and p.id=#{ftypeid,jdbcType=CHAR}
+		</if>
+		<if test="formnum!=null">
+			and t.number=#{formnum,jdbcType=CHAR}
+		</if>
+		GROUP BY t.materialid,t.NUMBER,t.warehouseid
+	</select>
+
+	<select id="getSelfInvDetail" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT m.id,m.sku,m.price,item.amount,item.overamount,item.lossamount,i.warehouseid,
+			sum(case when i.`status`='fulfillable' then i.quantity else 0 end) fulfillable,
+			sum(case when POSITION('outbound' IN i.`status`) then i.quantity else 0 end) outbound
+		from t_erp_inventory i
+		LEFT JOIN t_erp_material m on m.id=i.materialid
+		LEFT JOIN t_erp_stocktaking_item item on item.stocktakingid=#{stocktakingid,jdbcType=CHAR} and
+			item.warehouseid = i.warehouseid and item.materialid=m.id
+		where i.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		group by m.id 
+		ORDER BY m.sku;
+	</select>
+
+	<select id="getSelfInvBySKU" parameterType="java.lang.String"  resultType="java.util.Map">
+		SELECT m.id,m.sku,m.price,m.name,IFNULL(p.location,p.url) image,
+			sum(case when i.`status`='fulfillable' then i.quantity else 0 end) fulfillable,
+			SUM(case when POSITION('outbound' IN i.`status`) then i.quantity else 0 end ) outbound,
+			SUM(case when POSITION('inbound' IN i.`status`) then i.quantity else 0 end ) inbound
+		from t_erp_material m
+		LEFT JOIN t_picture p on m.image=p.id 
+		LEFT JOIN t_erp_inventory i on m.id=i.materialid and i.warehouseid=#{warehouseid,jdbcType=CHAR}
+		where m.id=#{materialid,jdbcType=CHAR} 
+		group by m.id
+	</select>
+
+	<select id="getInvChangeRate" parameterType="java.util.Map" resultType="java.util.Map">
+		select w.name,v1.qtysum startqty,v2.qtysum endqty,v3.salesum salesum,
+			case when v1.qtysum+v2.qtysum&gt;0 then v3.salesum/((v1.qtysum+v2.qtysum)/2) else 0 end wrate,
+			case when v1.qtysum+v2.qtysum&gt;0 then 
+			(datediff(#{fromDate,jdbcType=DATE} ,#{endDate,jdbcType=DATE} )+1)/(v3.salesum/((v1.qtysum+v2.qtysum)/2)) else 0 end wday
+		from t_erp_warehouse w 
+		left join (
+			select his.shopid,wh.parentid warehouseid, modifyday,
+				sum(case when `status`='fulfillable' or LOCATE('outbound',`status`)&gt;0 then his.quantity else 0 end ) qtysum
+			from t_erp_inventory_his his
+			left join t_erp_warehouse wh on his.warehouseid=wh.id
+			where his.modifyday&lt;=#{fromDate,jdbcType=DATE}
+				and his.shopid=#{shopid,jdbcType=CHAR}
+			<if test="materialid!=null">
+				and materialid=#{materialid,jdbcType=CHAR}
+			</if>
+			group by his.shopid,wh.parentid
+			having modifyday=max(modifyday) 
+		) v1 on v1.shopid=w.shopid and v1.warehouseid=w.id
+		left join (
+			select his.shopid,wh.parentid warehouseid, modifyday,
+				sum(case when `status`='fulfillable' or LOCATE('outbound',`status`)&gt;0 then his.quantity else 0 end ) qtysum
+			from t_erp_inventory_his his
+			left join t_erp_warehouse wh on his.warehouseid=wh.id
+			where his.modifyday&lt;=#{endDate,jdbcType=DATE}
+				and his.shopid=#{shopid,jdbcType=CHAR}
+			<if test="materialid!=null">
+				and materialid=#{materialid,jdbcType=CHAR}
+			</if>
+			group by his.shopid,wh.parentid
+			having modifyday=max(modifyday) 
+		)v2 on w.shopid=v2.shopid and w.id=v2.warehouseid
+		left join (
+			select re.shopid,wh.parentid warehouseid ,sum(quantity) salesum 
+			from t_erp_inventory_record re
+			left join t_erp_warehouse wh on re.warehouseid=wh.id
+			where re.opttime&gt;=#{fromDate,jdbcType=DATE} 
+				and re.opttime&lt;=#{endDate,jdbcType=DATE}
+				and re.operate='out' and re.shopid=#{shopid,jdbcType=CHAR}
+			<if test="materialid!=null">
+				and re.materialid=#{materialid,jdbcType=CHAR}
+			</if>
+			group by re.shopid,wh.parentid 
+		) v3 on v3.shopid=w.shopid and v3.warehouseid=w.id
+		where w.disabled =false 
+			and w.ftype = 'self' 
+			and w.shopid=#{shopid,jdbcType=CHAR}
+		<if test="sku!=null">
+			union
+			select w.name,v1.startqty startqty,v1.endqty endqty,v3.salesum,
+				case when v1.startqty+v1.endqty>0 then v3.salesum/((v1.startqty+v1.endqty)/2) else 0 end wrate,
+				case when v1.startqty+v1.endqty>0 then
+				(datediff(#{fromDate,jdbcType=DATE},#{endDate,jdbcType=DATE})+1)/(v3.salesum/((v1.startqty+v1.endqty)/2))
+				else 0 end wday
+			from t_erp_warehouse_fba w
+			left join (
+				select marketplaceid,
+				sum(case when date(byday) =#{fromDate,jdbcType=DATE} then ir.afn_fulfillable_quantity else 0 end ) startqty,
+				sum(case when date(byday) =#{endDate,jdbcType=TIMESTAMP} then ir.afn_fulfillable_quantity else 0 end ) endqty
+				from t_inventory_report ir
+				left join t_amazon_auth auth on auth.id=ir.amazonAuthId
+				where date(byday) =#{fromDate,jdbcType=DATE} or date(byday) =#{endDate,jdbcType=DATE}
+					and auth.shop_id=#{shopid,jdbcType=CHAR}
+					and sku=#{sku,jdbcType=CHAR}
+				group by marketplaceid
+			) v1 on v1.marketplaceid=w.marketplaceid
+			left join (
+				select marketplaceid,sum(quantity) salesum 
+				from t_orders_summary s
+				left join t_amazon_auth auth on auth.id=s.amazonAuthId
+				where auth.shop_id=#{shopid,jdbcType=CHAR}
+					and purchase_date&gt;=#{fromDate,jdbcType=DATE} 
+					and purchase_date&lt;=#{endDate,jdbcType=DATE}
+					and sku=#{sku,jdbcType=CHAR}
+				group by marketplaceid
+			) v3 on v3.marketplaceid=w.marketplaceid
+			where w.shopid=#{shopid,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="localInventoryByDay" parameterType="java.util.Map" resultType="java.util.Map">
+		select his.shopid,w.parentid,sum(his.quantity) qty
+		<if test="parentid !=null">
+			,his.materialid
+		</if>
+		from (select shopid,warehouseid,materialid,`status`,max(modifyday) modifyday, max(opttime) opttime
+		from t_erp_inventory_his
+		where modifyday &lt;= #{byday,jdbcType=DATE}
+			and (`status`='fulfillable' or `status` like 'outbound%')
+		<if test="materialid !=null">
+			and materialid=#{materialid,jdbcType=CHAR}
+		</if>
+		<if test="warehouseid !=null">
+			and warehouseid=#{warehouseid,jdbcType=CHAR}
+		</if>
+			and shopid=#{shopid,jdbcType=CHAR}
+		group by shopid,warehouseid,materialid,status
+		) v
+		left join t_erp_inventory_his his on his.shopid=v.shopid and his.warehouseid=v.warehouseid
+			and his.materialid=v.materialid and his.`status`=v.`status` and his.modifyday=v.modifyday
+			and his.opttime=v.opttime
+		left join t_erp_warehouse w on w.id=his.warehouseid
+		<if test="parentid !=null">
+			where w.parentid=#{parentid,jdbcType=CHAR}
+		</if>
+		group by his.shopid,w.parentid
+		<if test="parentid !=null">
+			,his.materialid
+		</if>
+	</select>
+	
+	<select id="localOutInventoryByRange" parameterType="java.util.Map" resultType="java.util.Map">
+		select re.shopid,wh.parentid,sum(quantity) salesum
+		<if test="parentid!=null">
+			,re.materialid
+		</if>
+		from t_erp_inventory_record re
+		left join t_erp_warehouse wh on re.warehouseid=wh.id
+		where re.opttime&gt;=#{fromDate,jdbcType=DATE} 
+		<if test="endDate!=null">
+		 and re.opttime&lt;=#{endDate,jdbcType=DATE}
+		</if> 
+			and re.operate='out' and (re.`status`='fulfillable' or re.`status`='outbound') and re.shopid=#{shopid,jdbcType=CHAR}
+		<if test="materialid!=null">
+			and re.materialid=#{materialid,jdbcType=CHAR}
+		</if>
+		 <if test="shopid!=null">
+			and re.shopid=#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="warehouseid!=null">
+			and re.warehouseid=#{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="parentid!=null">
+			and wh.parentid =#{parentid,jdbcType=CHAR}
+		</if>
+		group by re.shopid,wh.parentid
+		<if test="parentid!=null">
+			,re.materialid
+		</if>
+	</select>
+
+	<!-- 库存货值 -->
+	<select id="findInventoryCost" parameterType="java.lang.String" resultType="java.util.Map">
+			select m.id id,m.sku,0 inbound, 
+			ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0)  quantity,
+			m.price price,
+			m.remark,
+			iv.fulfillable fulfillable,
+			(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.price totalprice,
+			(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.other_cost otherFeer
+			,0 inpasspay,0 inpasscost 
+			from t_erp_inventory_his_day  iv
+			left join t_erp_material m on m.id=iv.materialid
+			where m.isDelete = 0
+			and iv.byday=#{byday,jdbcType=CHAR}
+			AND iv.shopid=#{shopid,jdbcType=CHAR} 
+			and iv.warehouseid=#{warehouseid,jdbcType=CHAR}
+			<if test="sku !=null">
+				and m.sku like #{sku,jdbcType=CHAR}
+			</if>
+	</select>
+
+	<select id="findInventoryCostTotal" parameterType="java.lang.String" resultType="java.util.Map">
+		 select 
+		     sum(0) inbound,
+             sum(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))  quantity,
+			 sum(iv.fulfillable) fulfillable,
+			 sum((ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.price) totalprice,
+			 sum((ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.other_cost) otherFeer,
+			 sum(0) inpasspay,
+			 sum(0) inpasscost 
+			from t_erp_inventory_his_day  iv
+			left join t_erp_material m on m.id=iv.materialid
+			where m.isDelete = 0
+			and iv.byday=#{byday,jdbcType=CHAR}
+			AND iv.shopid=#{shopid,jdbcType=CHAR} 
+			and iv.warehouseid=#{warehouseid,jdbcType=CHAR}
+			<if test="sku !=null">
+				and m.sku like #{sku,jdbcType=CHAR}
+			</if>
+	</select>
+	
+	<!-- 库存货值 -->
+	<select id="findInventoryNowCost" parameterType="java.lang.String" resultType="java.util.Map">
+		select * from (
+			select m.id id,m.sku,max(m.price) price,m.remark,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`) ) 
+				then iv.quantity else 0 end) quantity,
+				sum(case when (iv.`status`='fulfillable')  then iv.quantity else 0 end) fulfillable,
+				sum(case when POSITION('inbound' IN iv.`status`) then iv.quantity else '0' end) inbound,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`) ) 
+				then iv.quantity else 0 end )*max(m.price) totalprice,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`) ) 
+				then iv.quantity else 0 end )*max(m.other_cost) otherFeer
+			from t_erp_inventory iv
+			left join t_erp_material m on m.id=iv.materialid and iv.shopid=m.shopid
+			where iv.quantity >0
+				and iv.warehouseid=#{warehouseid,jdbcType=CHAR}
+				and iv.shopid=#{shopid,jdbcType=CHAR} and m.isDelete = 0
+			<if test="sku !=null">
+				and m.sku like #{sku,jdbcType=CHAR}
+			</if>
+			group by m.id
+		) vold
+		left join (
+			select m.id mtid,
+	            sum(case when(entry.inwhstatus=0) then
+				case when(ifnull(entry.orderprice,0)-(ifnull(entry.totalin,0))*ifnull(entry.itemprice,0)>=0)
+				then ifnull(entry.orderprice,0)-(ifnull(entry.totalin,0))*ifnull(entry.itemprice,0) else 0 end else 0 end) inpasscost,
+				sum(case when(entry.paystatus=0) then case
+				when(((entry.totalin)*entry.itemprice-entry.totalpay)>=0)
+				then (entry.totalin)*entry.itemprice-entry.totalpay else 0 end else 0 end) inpasspay
+			from t_erp_purchase_form_entry entry
+			left join t_erp_material m on entry.materialid=m.id and entry.auditstatus=2
+			left join t_erp_purchase_form ff on ff.id=entry.formid
+			where ff.warehouseid=#{warehouseid,jdbcType=CHAR}
+			and m.shopid=#{shopid,jdbcType=CHAR}
+			<if test="sku !=null">
+				and m.sku like #{sku,jdbcType=CHAR}
+			</if>
+			group by m.id
+		) vnew on vold.id=vnew.mtid
+	</select>
+
+	<select id="findInventoryNowCostTotal" parameterType="java.lang.String" resultType="java.util.Map">
+		select fulfillable,inbound,totalprice,inpasscost,inpasspay,otherFeer
+		from (
+			select iv.warehouseid,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end) fulfillable,
+				sum(case when POSITION('inbound' IN iv.`status`) then iv.quantity else 0 end) inbound,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end*m.price) totalprice,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end*m.other_cost) otherFeer
+			from t_erp_inventory iv
+			left join t_erp_material m on m.id=iv.materialid and iv.shopid=m.shopid
+			where iv.quantity >0
+			and iv.warehouseid=#{warehouseid,jdbcType=CHAR}
+			and iv.shopid=#{shopid,jdbcType=CHAR}
+			and m.shopid=#{shopid,jdbcType=CHAR} and m.isDelete = 0
+			<if test="sku !=null">
+				and m.sku like #{sku,jdbcType=CHAR}
+			</if>
+		) vold
+		left join (
+			select ff.warehouseid wid,
+			   sum(case when(entry.inwhstatus=0) then
+				case when(ifnull(entry.orderprice,0)-(ifnull(entry.totalin,0))*ifnull(entry.itemprice,0)>=0)
+				then ifnull(entry.orderprice,0)-(ifnull(entry.totalin,0))*ifnull(entry.itemprice,0) else 0 end else 0 end) inpasscost,
+			sum(case when(entry.paystatus=0) then
+			case when(((entry.totalin)*entry.itemprice-entry.totalpay)>=0)
+			then (entry.totalin)*entry.itemprice-entry.totalpay else 0 end else 0 end) inpasspay
+			from t_erp_purchase_form_entry entry
+			left join t_erp_material m on entry.materialid=m.id and entry.auditstatus=2
+			left join t_erp_purchase_form ff on ff.id=entry.formid
+			where ff.warehouseid=#{warehouseid,jdbcType=CHAR}
+			and m.shopid=#{shopid,jdbcType=CHAR}
+			<if test="sku !=null">
+				and m.sku like #{sku,jdbcType=CHAR}
+			</if>
+		) vnew on vold.warehouseid=vnew.wid
+	</select>
+
+	<select id="findInventoryNowCostByShopId" parameterType="java.lang.String" resultType="java.util.Map">
+		select max(wf.`name`) warehousename, 
+			sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end*m.price) totalprice
+		from t_erp_inventory iv
+		left join t_erp_warehouse w on w.id=iv.warehouseid and iv.shopid=w.shopid
+		left join t_erp_warehouse wf on w.parentid=wf.id and wf.disabled=0
+		left join t_erp_material m on m.id=iv.materialid and iv.shopid=m.shopid
+		where iv.quantity >0 
+			and iv.shopid=#{shopid,jdbcType=CHAR}
+		group by wf.id 
+		order by wf.isdefault desc,wf.opttime asc 
+	</select>
+	<select id="findFulByMaterial" parameterType="java.lang.String" resultType="java.util.Map">
+	SELECT w.name,t.quantity FROM  t_erp_inventory t
+	LEFT JOIN t_erp_warehouse w ON w.id=t.warehouseid
+	WHERE t.materialid=#{id,jdbcType=CHAR} AND t.`status`='fulfillable'
+	</select>
+	
+	
+	<select id="getInventory" parameterType="java.lang.String" resultType="java.util.Map">
+	    select  sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+				sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+				sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+			from t_erp_inventory
+			where shopid=#{shopid,jdbcType=CHAR}
+		    and materialid=#{materialid,jdbcType=CHAR}
+		    and warehouseid=#{warehouseid,jdbcType=CHAR}
+	</select>
+	<select id="findOverseaById" parameterType="java.lang.String" resultType="com.wimoor.erp.material.pojo.entity.Material">
+	   select 
+	       max(m.id) id,
+	       max(m.name) name,
+	       max(m.sku) sku,
+	       max(m.delivery_cycle) delivery_cycle,
+	       max(m.price) price,
+	       sum(case when (iv.`status`='fulfillable' or POSITION('inbound' IN iv.`status`)) then iv.quantity else 0 end) overseaqty
+	   from t_erp_material m 
+	   left join t_erp_warehouse w on w.shopid=#{shopid,jdbcType=CHAR} and   (w.groupid is null or w.groupid=#{groupid,jdbcType=CHAR})
+	   <if test="country=='EU'">
+	      and w.country in ('DE','FR','IT','ES','SA','NL','PL','SE')
+	   </if>
+	    <if test="country!='EU'">
+	     and w.country=#{country,jdbcType=CHAR}
+	   </if>
+	   left join t_erp_inventory iv on iv.materialid =m.id and iv.warehouseid=w.id
+	   where m.sku=#{sku,jdbcType=CHAR} and m.isdelete=0   and m.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+</mapper>

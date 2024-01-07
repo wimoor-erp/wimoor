@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.StockCycleMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.StockCycle" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="stockingCycle" property="stockingcycle" jdbcType="INTEGER" />
+    <result column="min_cycle" property="mincycle" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, warehouseid, materialid, stockingCycle,operator,opttime,min_cycle,
+  </sql>
+  
+  <select id="selectByMaterial" resultType="java.util.Map" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_stockcycle
+    where materialid = #{materialid,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByMaterial" parameterType="java.lang.String" >
+    delete from t_erp_stockcycle
+    where materialid = #{materialid,jdbcType=CHAR}
+  </delete>
+ 
+</mapper>

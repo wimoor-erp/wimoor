@@ -1,0 +1,738 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMonthMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzSettlementSummarySkuMonth">
+        <id column="id" property="id" />
+        <result column="amazonAuthId" property="amazonAuthId" />
+        <result column="sku" property="sku" />
+        <result column="asin" property="asin" />
+        <result column="msku" property="msku" />
+        <result column="owner" property="owner" />
+        <result column="currency" property="currency" />
+        <result column="category" property="category" />
+        <result column="marketplace_name" property="marketplaceName" />
+        <result column="posted_date" property="postedDate" />
+        <result column="order_amount" property="orderAmount" />
+        <result column="sales" property="sales" />
+        <result column="refundsales" property="refundsales" />
+        <result column="refundorder" property="refundorder" />
+        <result column="principal" property="principal" />
+        <result column="commission" property="commission" />
+        <result column="fbafee" property="fbafee" />
+        <result column="refund" property="refund" />
+        <result column="shipping" property="shipping" />
+        <result column="promotion" property="promotion" /> 
+        <result column="tax" property="tax" />
+        <result column="otherfee" property="otherfee" />
+        <result column="share_storage_fee" property="shareStorageFee" />
+        <result column="share_long_storage_fee" property="shareLongStorageFee" />
+        <result column="share_adv_spend_fee" property="shareAdvSpendFee" />
+        <result column="share_coupon_redemption_fee" property="shareCouponRedemptionFee" />
+        <result column="share_reserve_fee" property="shareReserveFee" />
+        <result column="share_shop_other_fee" property="shareShopOtherFee" />
+        <result column="local_price" property="localPrice" />
+        <result column="local_other_cost" property="localOtherCost" />
+        <result column="local_shipmentfee" property="localShipmentfee" />
+        <result column="local_vat" property="localVat" />
+        <result column="local_companytax" property="localCompanytax" />
+        <result column="local_customstax" property="localCustomstax" />
+        <result column="local_exchangelost" property="localExchangelost" />
+        <result column="local_marketfee" property="localMarketfee" />
+        <result column="local_lostrate" property="localLostrate" />
+        <result column="local_otherfee" property="localOtherfee" />
+        <result column="local_shipment_item_fee" property="localShipmentItemFee" />
+        <result column="rpt_storage_fee" property="rptStorageFee" />
+        <result column="rpt_long_storage_fee" property="rptLongStorageFee" />
+        <result column="rpt_adv_spend_fee" property="rptAdvSpendFee" />
+        <result column="pid" property="pid" />
+        <result column="mid" property="mid" />
+    </resultMap>
+
+	<select id="findSku_AdvSpend" parameterType="java.util.Map" resultType="java.util.Map">
+			select  
+			   sku,
+	           max(currency) currency,
+			   sum(rs.spend)   spend,
+			   sum(rs.totalsales) totalsales,
+			   sum(rs.units) units
+		   from t_amz_advert_report_summary_month rs 
+		   where rs.sellerid=#{sellerid,jdbcType=CHAR} 
+		   		  and rs.bydate >=  #{fromDate,jdbcType=DATE} 
+		          and  rs.bydate &lt; #{endDate,jdbcType=DATE}
+			      and rs.marketplaceid=#{marketplaceid,jdbcType=CHAR} 	
+			      GROUP BY rs.sku
+	</select> 
+	
+	<select id="findByCondition" parameterType="java.util.Map" resultType="java.util.Map">
+	 select 
+	  <if test="param.type=='sku'">
+	      m.sku,max(m.asin) asin,
+	  </if>
+	  <if test="param.type=='msku'">
+	      m.msku,
+	  </if>
+	  <if test="param.type=='categoryid'">
+	      m.categoryid,
+	  </if>
+	   <if test="param.type=='owner'">
+	      m.owner,
+	  </if>
+	  <if test="param.type=='groupid'">
+	      m.groupid,
+	  </if>
+	  <if test="param.type=='asin'">
+	      m.asin,
+	  </if>
+	   <if test="param.type=='parentasin'">
+	       m.parentasin,max(g.id) groupid,
+	       max(mk.marketplaceid) marketplaceid,
+	       sum(case when m.parentasin=m.asin then 0 else 1 end ) subnum,
+	  </if>
+	    <if test="param.type=='month'">
+	      m.posted_date,
+	  </if>
+	     max(m.currency) currency,
+		 max(g.name) groupname,
+		 max(mk.name) marketname,
+		 max(i.name) pname,
+		 max(mt.name) mname,
+		 max(ifnull(p.location,p.url)) image,
+		 max(c.name) categoryname,
+		 max(u.name) ownername,
+		 sum(m.`order_amount`) `order_amount`,
+		 sum(m.`sales`) `sales`,
+		 sum(m.`refundsales`) `refundsales`,
+		 sum(m.`refundorder`) `refundorder`,
+		 SUM(CASE WHEN 
+			    m.marketplace_name = 'Amazon.fr'
+				OR m.marketplace_name = 'Amazon.nl'
+				OR m.marketplace_name = 'Amazon.co.uk'
+				OR m.marketplace_name = 'Amazon.de'
+				OR m.marketplace_name = 'Amazon.es'
+				OR m.marketplace_name = 'Amazon.it' 
+			THEN 
+				IFNULL(m.principal, 0)   +   IFNULL(m.tax, 0)  ELSE  	IFNULL(m.principal, 0)  
+			END) principal,
+		 sum(m.`commission`) `commission`,
+		 sum(m.`fbafee`) `fbafee`,
+		 sum(m.`refund`) `refund`,
+		 sum(m.`shipping`) `shipping`,
+		 sum(m.`promotion`) `promotion`,
+		 SUM(CASE WHEN 
+		    m.marketplace_name = 'Amazon.fr'
+			OR m.marketplace_name = 'Amazon.nl'
+			OR m.marketplace_name = 'Amazon.co.uk'
+			OR m.marketplace_name = 'Amazon.de'
+			OR m.marketplace_name = 'Amazon.es'
+			OR m.marketplace_name = 'Amazon.it' 
+			THEN  
+			IFNULL(m.otherfee, 0)  ELSE IFNULL(m.otherfee, 0)  +  	IFNULL(m.tax, 0) 
+			END) otherfee,
+			
+		 sum(ifnull(m.principal,0)+ifnull(m.commission,0)
+			+ifnull(m.fbafee,0)+ifnull(m.refund,0)
+			+ifnull(m.otherfee,0)+ifnull(m.tax,0)+ifnull(m.shipping,0)+ifnull(m.promotion,0))   setincome,
+		 sum(m.`share_storage_fee`) `share_storage_fee`,
+		 sum(m.`share_long_storage_fee`) `share_long_storage_fee`,
+		 sum(m.`share_adv_spend_fee`) `share_adv_spend_fee`,
+		 sum(m.`share_coupon_redemption_fee`) `share_coupon_redemption_fee`,
+		 sum(m.`share_reserve_fee`) `share_reserve_fee`,
+		 sum(m.`share_shop_other_fee`) `share_shop_other_fee`,
+		 sum(m.share_reimbursement_fee) share_reimbursement_fee,
+		 sum(
+				ifnull(m.principal,0)               +ifnull(m.commission,0)
+				+ifnull(m.fbafee,0)                 +ifnull(m.refund,0)
+				+ifnull(m.otherfee,0)               +ifnull(m.tax,0)
+				+ifnull(m.shipping,0)               +ifnull(m.promotion,0)
+				+ifnull(m.share_storage_fee,0)      +ifnull(m.share_long_storage_fee,0)
+				+ifnull(m.share_adv_spend_fee,0)	+ifnull(m.share_coupon_redemption_fee,0)
+			    +ifnull(m.share_reserve_fee,0)	    +ifnull(m.share_shop_other_fee,0)
+			    +ifnull(m.share_reimbursement_fee,0)
+				)   income,
+		 sum(m.`local_price`) `local_price`,
+		 sum(m.`local_other_cost`) `local_other_cost`,
+		 sum(m.`local_return_tax`) `local_return_tax`,
+		 sum(m.`local_shipment_item_fee`) `local_shipment_item_fee`,
+		 sum(m.`local_fifo_shipment_fee`) `local_fifo_shipment_fee`,
+	     sum(m.`local_fifo_cost`) `local_fifo_cost`,
+		 sum(m.`profit_local_shipmentfee`) `profit_local_shipmentfee`,
+		 sum(m.`profit_vat`) `profit_vat`,
+		 sum(m.`profit_companytax`) `profit_companytax`,
+		 sum(m.`profit_customstax`) `profit_customstax`,
+		 sum(m.`profit_exchangelost`) `profit_exchangelost`,
+		 sum(m.`profit_lostrate`) `profit_lostrate`,
+		 sum(m.`profit_marketfee`) `profit_marketfee`,
+		 sum(m.`profit_otherfee`) `profit_otherfee`,
+		 sum(m.`rpt_storage_fee`) `rpt_storage_fee`,
+		 sum(m.`rpt_long_storage_fee`) `rpt_long_storage_fee`,
+		 sum(m.`rpt_adv_spend_fee`) `rpt_adv_spend_fee`,
+		 sum(m.`rpt_adv_sales`) `rpt_adv_sales`,
+		 sum(m.`rpt_adv_units`) `rpt_adv_units`,
+		 sum(m.`rpt_reimbursements_fee`) `rpt_reimbursements_fee`,
+		 sum(m.`fin_sum_fee`) `fin_sum_fee`,
+		 sum(m.`profit`) `profit`,
+		 max(mt.price) `price`,
+		 max(m.mid) `mid`
+	 from 
+	 <if test="param.currency=='MARKET'">
+	     t_amz_settlement_summary_sku_month m
+	 </if>
+	 <if test="param.currency=='CNY'">
+	     t_amz_settlement_summary_sku_month_cny m
+	 </if>
+	  <if test="param.currency=='USD'">
+	     t_amz_settlement_summary_sku_month_usd m
+	  </if>
+	 left join t_product_info i on i.id=m.pid
+	 left join t_marketplace mk on mk.point_name=m.marketplace_name
+	 left join t_erp_material mt on mt.id=m.mid
+	 left join t_erp_material_category c on c.id=m.categoryid
+	 left join t_picture p on p.id=i.image
+	 left join t_amazon_auth a on a.id=m.amazonAuthId
+	 left join t_amazon_group g on g.id=a.groupid
+	 left join t_userinfo u on u.id=m.owner
+	 where a.shop_id=#{param.shopid,jdbcType=CHAR}  
+	 <if test="param.search!=null">
+	      <if test="param.searchtype=='asin'">
+	        and m.asin like #{param.search,jdbcType=CHAR}
+	      </if>
+	       <if test="param.searchtype=='sku'">
+	        and m.sku like #{param.search,jdbcType=CHAR}
+	      </if>
+	        <if test="param.searchtype=='msku'">
+	        and m.msku like #{param.search,jdbcType=CHAR}
+	      </if>
+	      <if test="param.searchtype=='parentasin'">
+	        and m.parentasin like #{param.search,jdbcType=CHAR}
+	      </if>
+	      <if test="param.searchtype=='name'">
+	        and i.name like #{param.search,jdbcType=CHAR}
+	      </if>
+	 </if>
+	   <if test="param.marketplaceName!=null">
+	    and m.marketplace_name=#{param.marketplaceName,jdbcType=CHAR}
+	   </if>
+	   <if test="param.owner!=null">
+	    and m.owner=#{param.owner,jdbcType=CHAR}
+	   </if>
+	   <if test="param.groupid!=null">
+	    and m.groupid=#{param.groupid,jdbcType=CHAR}
+	   </if>
+	  	<if test="param.fromDate!=null">
+	    and m.posted_date>=#{param.fromDate,jdbcType=CHAR}
+	   </if>
+	    <if test="param.endDate!=null">
+	    and m.posted_date&lt;=#{param.endDate,jdbcType=CHAR}
+	   </if>
+	  <if test="param.parentasin!=null">
+	    and m.parentasin =#{param.parentasin,jdbcType=CHAR}
+	   </if>
+	     <if test="param.categoryid!=null">
+	    and m.categoryid =#{param.categoryid,jdbcType=CHAR}
+	   </if>
+	  <if test="param.type=='sku'">
+	     group by m.amazonAuthId,m.marketplace_name,m.sku
+	  </if>
+	  <if test="param.type=='msku'">
+	     group by m.msku
+	  </if>
+	  <if test="param.type=='categoryid'">
+	     group by m.categoryid
+	  </if>
+	   <if test="param.type=='owner'">
+	     group by m.owner
+	  </if>
+	  <if test="param.type=='groupid'">
+	     group by m.groupid
+	  </if>
+	  <if test="param.type=='asin'">
+	     group by m.amazonAuthId,m.marketplace_name,m.asin
+	  </if>
+	   <if test="param.type=='parentasin'">
+	     group by m.amazonAuthId,m.marketplace_name,m.parentasin
+	  </if>
+	   <if test="param.type=='month'">
+	      group by  m.posted_date
+	  </if>
+	</select>
+	
+	<select id="findSummaryByCondition" parameterType="java.util.Map" resultType="java.util.Map">
+	 select 
+	     max(m.currency) currency,
+		 sum(m.`order_amount`) `order_amount`,
+		 sum(m.`sales`) `sales`,
+		 sum(m.`refundsales`) `refundsales`,
+		 sum(m.`refundorder`) `refundorder`,
+		 sum(case when m.marketplace_name='Amazon.fr' or m.marketplace_name='Amazon.nl'
+			or m.marketplace_name='Amazon.co.uk' or m.marketplace_name='Amazon.de'
+			or m.marketplace_name='Amazon.es' or m.marketplace_name='Amazon.it'
+			then ifnull(m.principal,0)+ ifnull(m.tax,0)
+			else ifnull(m.principal,0) end)  principal,
+		 sum(m.`commission`) `commission`,
+		 sum(m.`fbafee`) `fbafee`,
+		 sum(m.`refund`) `refund`,
+		 sum(m.`shipping`) `shipping`,
+		 sum(m.`promotion`) `promotion`,
+		 
+		 sum(case when m.marketplace_name='Amazon.fr' or m.marketplace_name='Amazon.nl'
+			or m.marketplace_name='Amazon.co.uk' or m.marketplace_name='Amazon.de'
+			or m.marketplace_name='Amazon.es' or m.marketplace_name='Amazon.it'
+			 then ifnull(m.otherfee,0)
+			else ifnull(m.otherfee,0)+ifnull(m.tax,0) end)  otherfee,
+			
+		 sum(ifnull(m.principal,0)+ifnull(m.commission,0)
+			+ifnull(m.fbafee,0)+ifnull(m.refund,0)
+			+ifnull(m.otherfee,0)+ifnull(m.tax,0)+ifnull(m.shipping,0)+ifnull(m.promotion,0))   setincome,
+		 sum(m.`share_storage_fee`) `share_storage_fee`,
+		 sum(m.`share_long_storage_fee`) `share_long_storage_fee`,
+		 sum(m.`share_adv_spend_fee`) `share_adv_spend_fee`,
+		 sum(m.`share_coupon_redemption_fee`) `share_coupon_redemption_fee`,
+		 sum(m.`share_reserve_fee`) `share_reserve_fee`,
+		 sum(m.`share_shop_other_fee`) `share_shop_other_fee`,
+		 sum(
+				ifnull(m.principal,0)               +ifnull(m.commission,0)
+				+ifnull(m.fbafee,0)                 +ifnull(m.refund,0)
+				+ifnull(m.otherfee,0)               +ifnull(m.tax,0)
+				+ifnull(m.shipping,0)               +ifnull(m.promotion,0)
+				+ifnull(m.share_storage_fee,0)      +ifnull(m.share_long_storage_fee,0)
+				+ifnull(m.share_adv_spend_fee,0)	+ifnull(m.share_coupon_redemption_fee,0)
+			    +ifnull(m.share_reserve_fee,0)	    +ifnull(m.share_shop_other_fee,0)
+			    +ifnull(m.share_reimbursement_fee,0)
+				)   income,
+		 sum(m.`local_price`) `local_price`,
+		 sum(m.`local_other_cost`) `local_other_cost`,
+		 sum(m.`local_return_tax`) `local_return_tax`,
+		 sum(m.`local_shipment_item_fee`) `local_shipment_item_fee`,
+		 sum(m.`local_fifo_shipment_fee`) `local_fifo_shipment_fee`,
+	     sum(m.`local_fifo_cost`) `local_fifo_cost`,
+		 sum(m.`profit_local_shipmentfee`) `profit_local_shipmentfee`,
+		 sum(m.`profit_vat`) `profit_vat`,
+		 sum(m.`profit_companytax`) `profit_companytax`,
+		 sum(m.`profit_customstax`) `profit_customstax`,
+		 sum(m.`profit_exchangelost`) `profit_exchangelost`,
+		 sum(m.`profit_lostrate`) `profit_lostrate`,
+		 sum(m.`profit_marketfee`) `profit_marketfee`,
+		 sum(m.`profit_otherfee`) `profit_otherfee`,
+		 sum(m.`rpt_storage_fee`) `rpt_storage_fee`,
+		 sum(m.`rpt_long_storage_fee`) `rpt_long_storage_fee`,
+		 sum(m.`rpt_adv_spend_fee`) `rpt_adv_spend_fee`,
+		 sum(m.`rpt_adv_sales`) `rpt_adv_sales`,
+		 sum(m.`rpt_adv_units`) `rpt_adv_units`,
+		 sum(m.`rpt_reimbursements_fee`) `rpt_reimbursements_fee`,
+		 sum(m.`fin_sum_fee`) `fin_sum_fee`,
+		 sum(m.`profit`) `profit`
+	 from 
+	 <if test="param.currency=='MARKET'">
+	     t_amz_settlement_summary_sku_month m
+	 </if>
+	 <if test="param.currency=='CNY'">
+	     t_amz_settlement_summary_sku_month_cny m
+	 </if>
+	  <if test="param.currency=='USD'">
+	     t_amz_settlement_summary_sku_month_usd m
+	  </if>
+	   left join t_amazon_auth a on a.id=m.amazonAuthId
+	   left join t_product_info i on i.id=m.pid
+	 where a.shop_id=#{param.shopid,jdbcType=CHAR}  
+	   <if test="param.marketplaceName!=null">
+	    and m.marketplace_name=#{param.marketplaceName,jdbcType=CHAR}
+	   </if>
+	   <if test="param.owner!=null">
+	    and m.owner=#{param.owner,jdbcType=CHAR}
+	   </if>
+	   <if test="param.groupid!=null">
+	    and m.groupid=#{param.groupid,jdbcType=CHAR}
+	   </if>
+	  	<if test="param.fromDate!=null">
+	    and m.posted_date>=#{param.fromDate,jdbcType=CHAR}
+	   </if>
+	    <if test="param.endDate!=null">
+	    and m.posted_date&lt;=#{param.endDate,jdbcType=CHAR}
+	   </if>
+	   <if test="param.search!=null">
+	      <if test="param.searchtype=='asin'">
+	        and m.asin like #{param.search,jdbcType=CHAR}
+	      </if>
+	       <if test="param.searchtype=='sku'">
+	        and m.sku like #{param.search,jdbcType=CHAR}
+	      </if>
+	        <if test="param.searchtype=='msku'">
+	        and m.msku like #{param.search,jdbcType=CHAR}
+	      </if>
+	      <if test="param.searchtype=='parentasin'">
+	        and m.parentasin like #{param.search,jdbcType=CHAR}
+	      </if>
+	      <if test="param.searchtype=='name'">
+	        and i.name like #{param.search,jdbcType=CHAR}
+	      </if>
+	 </if>
+	</select>
+	<delete id="deleteMonth" parameterType="java.util.Map">
+		delete from t_amz_settlement_summary_sku_month where amazonAuthId=#{amazonAuthId,jdbcType=CHAR}  
+		and marketplace_name=#{marketplaceName,jdbcType=CHAR}  and posted_date=#{fromDate,jdbcType=DATE};
+		delete from t_amz_settlement_summary_sku_month_usd where amazonAuthId=#{amazonAuthId,jdbcType=CHAR}  
+		and marketplace_name=#{marketplaceName,jdbcType=CHAR}  and posted_date=#{fromDate,jdbcType=DATE};
+		delete from t_amz_settlement_summary_sku_month_cny where amazonAuthId=#{amazonAuthId,jdbcType=CHAR}  
+		and marketplace_name=#{marketplaceName,jdbcType=CHAR}  and posted_date=#{fromDate,jdbcType=DATE};
+	</delete> 
+	
+<insert id="insertBatch"  parameterType="java.util.List">
+    insert  into  t_amz_settlement_summary_sku_month ( 
+    `id`,
+	`amazonAuthId`,
+	`sku`,
+	`asin`,
+	`msku`,
+	`parentasin`,
+	`categoryid`,
+	`groupid`,
+	`marketplace_name`,
+	`posted_date`,
+	`owner`,
+	`pid`,
+	`mid`,
+	`currency`,
+	`order_amount`,
+	`sales`,
+	`refundsales`,
+	`refundorder`,
+	`principal`,
+	`commission`,
+	`fbafee`,
+	`refund`,
+	`shipping`,
+	`promotion`,
+	`tax`,
+	`otherfee`,
+	`share_storage_fee`,
+	`share_long_storage_fee`,
+	`share_adv_spend_fee`,
+	`share_coupon_redemption_fee`,
+	`share_reserve_fee`,
+	`share_reimbursement_fee`,
+	`share_shop_other_fee`,
+	`local_price`,
+	`local_other_cost`,
+	`local_return_tax`,
+	`local_shipment_item_fee`,
+	`local_fifo_shipment_fee`,
+	`local_fifo_cost`,
+	`profit_local_shipmentfee`,
+	`profit_vat`,
+	`profit_companytax` ,
+	`profit_customstax`,
+	`profit_exchangelost`,
+	`profit_lostrate`,
+	`profit_marketfee`,
+	`profit_otherfee`,
+	`rpt_storage_fee`,
+	`rpt_long_storage_fee`,
+	`rpt_adv_spend_fee`,
+	`rpt_adv_sales`,
+	`rpt_adv_units`,
+	`rpt_reimbursements_fee`,
+	`fin_sum_fee`,
+	`profit`
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (
+      #{stm.id,jdbcType=CHAR}, 
+      #{stm.amazonAuthId,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR},
+      #{stm.asin,jdbcType=CHAR},
+      #{stm.msku,jdbcType=CHAR},  
+      #{stm.parentasin,jdbcType=CHAR}, 
+      #{stm.categoryid,jdbcType=CHAR}, 
+      #{stm.groupid,jdbcType=CHAR},  
+      #{stm.marketplaceName,jdbcType=CHAR},
+      #{stm.postedDate,jdbcType=TIMESTAMP}, 
+      #{stm.owner,jdbcType=CHAR}, 
+      #{stm.pid,jdbcType=CHAR}, 
+      #{stm.mid,jdbcType=CHAR}, 
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.orderAmount,jdbcType=INTEGER}, 
+      #{stm.sales,jdbcType=INTEGER}, 
+      #{stm.refundsales,jdbcType=INTEGER},
+      #{stm.refundorder,jdbcType=INTEGER}, 
+      #{stm.principal,jdbcType=DECIMAL},
+      #{stm.commission,jdbcType=DECIMAL},
+      #{stm.fbafee,jdbcType=DECIMAL}, 
+      #{stm.refund,jdbcType=DECIMAL}, 
+      #{stm.shipping,jdbcType=DECIMAL},
+      #{stm.promotion,jdbcType=DECIMAL},  
+      #{stm.tax,jdbcType=DECIMAL},
+      #{stm.otherfee,jdbcType=DECIMAL},
+      #{stm.shareStorageFee,jdbcType=DECIMAL},
+      #{stm.shareLongStorageFee,jdbcType=DECIMAL},
+      #{stm.shareAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.shareCouponRedemptionFee,jdbcType=DECIMAL},
+      #{stm.shareReserveFee,jdbcType=DECIMAL},
+      #{stm.shareReimbursementFee,jdbcType=DECIMAL},
+      #{stm.shareShopOtherFee,jdbcType=DECIMAL},
+      #{stm.localPrice,jdbcType=DECIMAL},
+      #{stm.localOtherCost,jdbcType=DECIMAL},
+      #{stm.localReturnTax,jdbcType=DECIMAL},
+      #{stm.localShipmentItemFee,jdbcType=DECIMAL},
+      #{stm.localFifoShipmentFee,jdbcType=DECIMAL},
+      #{stm.localFifoCost,jdbcType=DECIMAL},
+      #{stm.profitLocalShipmentfee,jdbcType=DECIMAL},
+      #{stm.profitVat,jdbcType=DECIMAL},
+      #{stm.profitCompanytax,jdbcType=DECIMAL},
+      #{stm.profitCustomstax,jdbcType=DECIMAL},
+      #{stm.profitExchangelost,jdbcType=DECIMAL},
+      #{stm.profitLostrate,jdbcType=DECIMAL},
+      #{stm.profitMarketfee,jdbcType=DECIMAL},
+      #{stm.profitOtherfee,jdbcType=DECIMAL},
+      #{stm.rptStorageFee,jdbcType=DECIMAL},
+      #{stm.rptLongStorageFee,jdbcType=DECIMAL},
+      #{stm.rptAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.rptAdvSales,jdbcType=DECIMAL},
+      #{stm.rptAdvUnits,jdbcType=DECIMAL},
+      #{stm.rptReimbursementsFee,jdbcType=DECIMAL},
+      #{stm.finSumFee,jdbcType=DECIMAL},
+      #{stm.profit,jdbcType=DECIMAL}
+      )
+      </foreach> 
+  </insert>
+  <insert id="insertBatchCNY"  parameterType="java.util.List">
+     insert  into  t_amz_settlement_summary_sku_month_cny ( 
+     `id`,
+	`amazonAuthId`,
+	`sku`,
+	`asin`,
+	`msku`,
+	`parentasin`,
+	`categoryid`,
+	`groupid`,
+	`marketplace_name`,
+	`posted_date`,
+	`owner`,
+	`pid`,
+	`mid`,
+	`currency`,
+	`order_amount`,
+	`sales`,
+	`refundsales`,
+	`refundorder`,
+	`principal`,
+	`commission`,
+	`fbafee`,
+	`refund`,
+	`shipping`,
+	`promotion`,
+	`tax`,
+	`otherfee`,
+	`share_storage_fee`,
+	`share_long_storage_fee`,
+	`share_adv_spend_fee`,
+	`share_coupon_redemption_fee`,
+	`share_reserve_fee`,
+	`share_reimbursement_fee`,
+	`share_shop_other_fee`,
+	`local_price`,
+	`local_other_cost`,
+	`local_return_tax`,
+	`local_shipment_item_fee`,
+	`local_fifo_shipment_fee`,
+	`local_fifo_cost`,
+	`profit_local_shipmentfee`,
+	`profit_vat`,
+	`profit_companytax` ,
+	`profit_customstax`,
+	`profit_exchangelost`,
+	`profit_lostrate`,
+	`profit_marketfee`,
+	`profit_otherfee`,
+	`rpt_storage_fee`,
+	`rpt_long_storage_fee`,
+	`rpt_adv_spend_fee`,
+	`rpt_adv_sales`,
+	`rpt_adv_units`,
+	`rpt_reimbursements_fee`,
+	`fin_sum_fee`,
+	`profit`
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (
+      #{stm.id,jdbcType=CHAR}, 
+      #{stm.amazonAuthId,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR},
+      #{stm.asin,jdbcType=CHAR},
+      #{stm.msku,jdbcType=CHAR},  
+      #{stm.parentasin,jdbcType=CHAR}, 
+      #{stm.categoryid,jdbcType=CHAR}, 
+      #{stm.groupid,jdbcType=CHAR},  
+      #{stm.marketplaceName,jdbcType=CHAR},
+      #{stm.postedDate,jdbcType=TIMESTAMP}, 
+      #{stm.owner,jdbcType=CHAR}, 
+      #{stm.pid,jdbcType=CHAR}, 
+      #{stm.mid,jdbcType=CHAR}, 
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.orderAmount,jdbcType=INTEGER}, 
+      #{stm.sales,jdbcType=INTEGER}, 
+      #{stm.refundsales,jdbcType=INTEGER},
+      #{stm.refundorder,jdbcType=INTEGER}, 
+      #{stm.principal,jdbcType=DECIMAL},
+      #{stm.commission,jdbcType=DECIMAL},
+      #{stm.fbafee,jdbcType=DECIMAL}, 
+      #{stm.refund,jdbcType=DECIMAL}, 
+      #{stm.shipping,jdbcType=DECIMAL},
+      #{stm.promotion,jdbcType=DECIMAL},  
+      #{stm.tax,jdbcType=DECIMAL},
+      #{stm.otherfee,jdbcType=DECIMAL},
+      #{stm.shareStorageFee,jdbcType=DECIMAL},
+      #{stm.shareLongStorageFee,jdbcType=DECIMAL},
+      #{stm.shareAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.shareCouponRedemptionFee,jdbcType=DECIMAL},
+      #{stm.shareReserveFee,jdbcType=DECIMAL},
+      #{stm.shareReimbursementFee,jdbcType=DECIMAL},
+      #{stm.shareShopOtherFee,jdbcType=DECIMAL},
+      #{stm.localPrice,jdbcType=DECIMAL},
+      #{stm.localOtherCost,jdbcType=DECIMAL},
+      #{stm.localReturnTax,jdbcType=DECIMAL},
+      #{stm.localShipmentItemFee,jdbcType=DECIMAL},
+      #{stm.localFifoShipmentFee,jdbcType=DECIMAL},
+      #{stm.localFifoCost,jdbcType=DECIMAL},
+      #{stm.profitLocalShipmentfee,jdbcType=DECIMAL},
+      #{stm.profitVat,jdbcType=DECIMAL},
+      #{stm.profitCompanytax,jdbcType=DECIMAL},
+      #{stm.profitCustomstax,jdbcType=DECIMAL},
+      #{stm.profitExchangelost,jdbcType=DECIMAL},
+      #{stm.profitLostrate,jdbcType=DECIMAL},
+      #{stm.profitMarketfee,jdbcType=DECIMAL},
+      #{stm.profitOtherfee,jdbcType=DECIMAL},
+      #{stm.rptStorageFee,jdbcType=DECIMAL},
+      #{stm.rptLongStorageFee,jdbcType=DECIMAL},
+      #{stm.rptAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.rptAdvSales,jdbcType=DECIMAL},
+      #{stm.rptAdvUnits,jdbcType=DECIMAL},
+      #{stm.rptReimbursementsFee,jdbcType=DECIMAL},
+      #{stm.finSumFee,jdbcType=DECIMAL},
+      #{stm.profit,jdbcType=DECIMAL}
+      )
+      </foreach> 
+  </insert>
+  <insert id="insertBatchUSD"  parameterType="java.util.List">
+    insert  into  t_amz_settlement_summary_sku_month_usd ( 
+    `id`,
+	`amazonAuthId`,
+	`sku`,
+	`asin`,
+	`msku`,
+	`parentasin`,
+	`categoryid`,
+	`groupid`,
+	`marketplace_name`,
+	`posted_date`,
+	`owner`,
+	`pid`,
+	`mid`,
+	`currency`,
+	`order_amount`,
+	`sales`,
+	`refundsales`,
+	`refundorder`,
+	`principal`,
+	`commission`,
+	`fbafee`,
+	`refund`,
+	`shipping`,
+	`promotion`,
+	`tax`,
+	`otherfee`,
+	`share_storage_fee`,
+	`share_long_storage_fee`,
+	`share_adv_spend_fee`,
+	`share_coupon_redemption_fee`,
+	`share_reserve_fee`,
+	`share_reimbursement_fee`,
+	`share_shop_other_fee`,
+	`local_price`,
+	`local_other_cost`,
+	`local_return_tax`,
+	`local_shipment_item_fee`,
+	`local_fifo_shipment_fee`,
+	`local_fifo_cost`,
+	`profit_local_shipmentfee`,
+	`profit_vat`,
+	`profit_companytax` ,
+	`profit_customstax`,
+	`profit_exchangelost`,
+	`profit_lostrate`,
+	`profit_marketfee`,
+	`profit_otherfee`,
+	`rpt_storage_fee`,
+	`rpt_long_storage_fee`,
+	`rpt_adv_spend_fee`,
+	`rpt_adv_sales`,
+	`rpt_adv_units`,
+	`rpt_reimbursements_fee`,
+	`fin_sum_fee`,
+	`profit`
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (
+      #{stm.id,jdbcType=CHAR}, 
+      #{stm.amazonAuthId,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR},
+      #{stm.asin,jdbcType=CHAR},
+      #{stm.msku,jdbcType=CHAR},  
+      #{stm.parentasin,jdbcType=CHAR}, 
+      #{stm.categoryid,jdbcType=CHAR}, 
+      #{stm.groupid,jdbcType=CHAR},  
+      #{stm.marketplaceName,jdbcType=CHAR},
+      #{stm.postedDate,jdbcType=TIMESTAMP}, 
+      #{stm.owner,jdbcType=CHAR}, 
+      #{stm.pid,jdbcType=CHAR}, 
+      #{stm.mid,jdbcType=CHAR}, 
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.orderAmount,jdbcType=INTEGER}, 
+      #{stm.sales,jdbcType=INTEGER}, 
+      #{stm.refundsales,jdbcType=INTEGER},
+      #{stm.refundorder,jdbcType=INTEGER}, 
+      #{stm.principal,jdbcType=DECIMAL},
+      #{stm.commission,jdbcType=DECIMAL},
+      #{stm.fbafee,jdbcType=DECIMAL}, 
+      #{stm.refund,jdbcType=DECIMAL}, 
+      #{stm.shipping,jdbcType=DECIMAL},
+      #{stm.promotion,jdbcType=DECIMAL},  
+      #{stm.tax,jdbcType=DECIMAL},
+      #{stm.otherfee,jdbcType=DECIMAL},
+      #{stm.shareStorageFee,jdbcType=DECIMAL},
+      #{stm.shareLongStorageFee,jdbcType=DECIMAL},
+      #{stm.shareAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.shareCouponRedemptionFee,jdbcType=DECIMAL},
+      #{stm.shareReserveFee,jdbcType=DECIMAL},
+      #{stm.shareReimbursementFee,jdbcType=DECIMAL},
+      #{stm.shareShopOtherFee,jdbcType=DECIMAL},
+      #{stm.localPrice,jdbcType=DECIMAL},
+      #{stm.localOtherCost,jdbcType=DECIMAL},
+      #{stm.localReturnTax,jdbcType=DECIMAL},
+      #{stm.localShipmentItemFee,jdbcType=DECIMAL},
+      #{stm.localFifoShipmentFee,jdbcType=DECIMAL},
+      #{stm.localFifoCost,jdbcType=DECIMAL},
+      #{stm.profitLocalShipmentfee,jdbcType=DECIMAL},
+      #{stm.profitVat,jdbcType=DECIMAL},
+      #{stm.profitCompanytax,jdbcType=DECIMAL},
+      #{stm.profitCustomstax,jdbcType=DECIMAL},
+      #{stm.profitExchangelost,jdbcType=DECIMAL},
+      #{stm.profitLostrate,jdbcType=DECIMAL},
+      #{stm.profitMarketfee,jdbcType=DECIMAL},
+      #{stm.profitOtherfee,jdbcType=DECIMAL},
+      #{stm.rptStorageFee,jdbcType=DECIMAL},
+      #{stm.rptLongStorageFee,jdbcType=DECIMAL},
+      #{stm.rptAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.rptAdvSales,jdbcType=DECIMAL},
+      #{stm.rptAdvUnits,jdbcType=DECIMAL},
+      #{stm.rptReimbursementsFee,jdbcType=DECIMAL},
+      #{stm.finSumFee,jdbcType=DECIMAL},
+      #{stm.profit,jdbcType=DECIMAL}
+      )
+      </foreach> 
+  </insert>
+</mapper>

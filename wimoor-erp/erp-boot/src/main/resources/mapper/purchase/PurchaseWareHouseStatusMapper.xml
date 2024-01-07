@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseWareHouseStatusMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseWareHouseStatus" >
+    <id column="warehouseid" property="warehouseid" jdbcType="BIGINT" />
+    <result column="purchase_status" property="purchaseStatus" jdbcType="INTEGER" />
+    <result column="assbly_status" property="assblyStatus" jdbcType="INTEGER" />
+    <result column="userid" property="userid" jdbcType="BIGINT" />
+    <result column="opptime" property="opptime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    warehouseid, purchase_status, assbly_status, userid, opptime
+  </sql>
+   
+</mapper>

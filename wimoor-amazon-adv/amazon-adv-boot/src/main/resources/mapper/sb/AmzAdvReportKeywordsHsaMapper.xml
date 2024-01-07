@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.wimoor.amazon.adv.sb.dao.AmzAdvReportKeywordsHsaMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sb.pojo.AmzAdvReportKeywordsHsa">
+		<id column="keywordId" property="keywordid" jdbcType="BIGINT" />
+		<id column="bydate" property="bydate" jdbcType="DATE" />
+		<result column="profileid" property="profileid" jdbcType="BIGINT" />
+		<result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+		<result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+		<result column="keywordBid" property="keywordbid" jdbcType="DECIMAL" />
+		<result column="impressions" property="impressions" jdbcType="INTEGER" />
+		<result column="clicks" property="clicks" jdbcType="INTEGER" />
+		<result column="cost" property="cost" jdbcType="DECIMAL" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="attributedSales14d" property="attributedsales14d" jdbcType="DECIMAL" />
+		<result column="attributedSales14dSameSKU" property="attributedsales14dsamesku" jdbcType="DECIMAL" />
+		<result column="attributedConversions14d" property="attributedconversions14d" jdbcType="DECIMAL" />
+		<result column="attributedConversions14dSameSKU" property="attributedconversions14dsamesku" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+	`campaignId`,
+	`adGroupId`,
+	`keywordId`,
+	`bydate`,
+	`profileid`,
+	`keywordBid`,
+	`impressions`,
+	`clicks`,
+	`cost`,
+	`opttime`,
+	`attributedSales14d`,
+	`attributedSales14dSameSKU`,
+	`attributedConversions14d`,
+	`attributedConversions14dSameSKU`
+	</sql>
+
+	<insert id="insertBatchVideo" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_hsa_keywords_video (
+			`keywordId`,
+			`bydate`,
+			`opttime`,
+			`viewableImpressions`,
+			`videoFirstQuartileViews`,
+			`videoMidpointViews`,
+			`videoThirdQuartileViews`,
+			`videoCompleteViews`,
+			`video5SecondViews`,
+			`video5SecondViewRate`,
+			`videoUnmutes`,
+			`vtr`,
+			`vctr`
+			 )
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.keywordid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},
+		    #{adv.opttime,jdbcType=TIMESTAMP},
+			#{adv.viewableImpressions,jdbcType=INTEGER},
+			#{adv.videoFirstQuartileViews,jdbcType=INTEGER},
+            #{adv.videoMidpointViews,jdbcType=INTEGER}, 
+            #{adv.videoThirdQuartileViews,jdbcType=INTEGER}, 
+            #{adv.videoCompleteViews,jdbcType=INTEGER},
+            #{adv.video5SecondViews,jdbcType=INTEGER},  
+            #{adv.video5SecondViewRate,jdbcType=DECIMAL}, 
+            #{adv.videoUnmutes,jdbcType=INTEGER}, 
+            #{adv.vtr,jdbcType=DECIMAL}, 
+            #{adv.vctr,jdbcType=DECIMAL}
+			)
+		</foreach>
+	</insert>
+	
+		<insert id="insertBatchAttributed" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_hsa_keywords_attributed (
+			`keywordId`,
+			`bydate`,
+			`attributedSales14d`,
+			`attributedSales14dSameSKU`,
+			`attributedConversions14d`,
+			`attributedConversions14dSameSKU`) values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.keywordid,jdbcType=BIGINT},
+			#{adv.bydate,jdbcType=DATE},
+			#{adv.attributedsales14d,jdbcType=DECIMAL},
+		    #{adv.attributedsales14dsamesku,jdbcType=DECIMAL},
+			#{adv.attributedconversions14d,jdbcType=INTEGER},
+			#{adv.attributedconversions14dsamesku,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+	
+
+<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_hsa_keywords (
+			`campaignId`,
+			`adGroupId`,
+			`keywordId`,
+			`bydate`,
+			`profileid`,
+			`keywordBid`,
+			`impressions`,
+			`clicks`,
+			`cost`,
+			`opttime` 
+			 )
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.campaignid,jdbcType=BIGINT},#{adv.adgroupid,jdbcType=BIGINT},
+			#{adv.keywordid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},
+		    #{adv.profileid,jdbcType=BIGINT},#{adv.keywordbid,jdbcType=DECIMAL},
+		    #{adv.impressions,jdbcType=INTEGER},#{adv.clicks,jdbcType=INTEGER},
+		    #{adv.cost,jdbcType=DECIMAL},
+		    #{adv.opttime,jdbcType=TIMESTAMP} 
+			)
+		</foreach>
+	</insert>
+	
+	<insert id="insertBatchBrand" parameterType="java.util.List">
+		replace into t_amz_adv_rpt2_hsa_keywords_brand (
+			`keywordId`,
+			`bydate`,
+			`opttime`,
+			`attributedDetailPageViewsClicks14d`,
+			`attributedOrdersNewToBrand14d`,
+			`attributedOrdersNewToBrandPercentage14d`,
+			`attributedOrderRateNewToBrand14d`,
+			`attributedSalesNewToBrand14d`,
+			`attributedSalesNewToBrandPercentage14d`,
+			`attributedUnitsOrderedNewToBrand14d`,
+			`attributedUnitsOrderedNewToBrandPercentage14d`,
+			`unitsSold14d`,
+			`dpv14d`)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.keywordid,jdbcType=BIGINT},#{adv.bydate,jdbcType=DATE},
+		    #{adv.opttime,jdbcType=TIMESTAMP},
+            #{adv.attributedDetailPageViewsClicks14d,jdbcType=INTEGER}, 
+            #{adv.attributedOrdersNewToBrand14d,jdbcType=INTEGER}, 
+            #{adv.attributedOrdersNewToBrandPercentage14d,jdbcType=DECIMAL}, 
+            #{adv.attributedOrderRateNewToBrand14d,jdbcType=INTEGER}, 
+            #{adv.attributedSalesNewToBrand14d,jdbcType=INTEGER}, 
+            #{adv.attributedSalesNewToBrandPercentage14d,jdbcType=DECIMAL}, 
+            #{adv.attributedUnitsOrderedNewToBrand14d,jdbcType=INTEGER}, 
+            #{adv.attributedUnitsOrderedNewToBrandPercentage14d,jdbcType=DECIMAL}, 
+            #{adv.unitsSold14d,jdbcType=INTEGER}, 
+            #{adv.dpv14d,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+	<select id="getKeywordsHsa" resultType="java.util.LinkedHashMap" parameterType="java.util.Map">
+		select
+		<if test="dateType == 'daily'">
+			t.bydate,
+		</if>
+			c.name campaignName,c.name adGroupName,k.state keywordStatus, matchType, keywordText,
+			sum(t.impressions) impressions, sum(t.clicks) clicks, sum(t.cost) Spend,
+			ifnull((sum(t.clicks) / sum(t.impressions)),0) 'Click Thru Rate (CTR)',
+			ifnull((sum(t.cost) / sum(t.clicks)),0) 'Cost Per Click (CPC)',
+			ifnull(sum(a.attributedSales14d),0) '14 Day Total Sales',
+			case when ifnull(sum(t.cost),0) > 0 
+			and ifnull(sum(a.attributedSales14d),0) = 0
+			then 0
+			else ifnull((sum(t.cost) / sum(a.attributedSales14d)),0)
+			end 'Total Advertising Cost of Sales (ACoS)',
+			ifnull((sum(a.attributedSales14d) / sum(t.cost)),0) 'Total Return on Advertising Spend (RoAS)',
+			ifnull(sum(a.attributedConversions14d),0) '14 Day Total Orders',
+			ifnull(sum(a.attributedConversions14d),0) '14 Day Total Units',
+			ifnull((sum(a.attributedConversions14d) / sum(t.clicks)),0) '14 Day Conversion Rate'
+		from t_amz_adv_rpt2_hsa_keywords t
+		left join t_amz_adv_rpt2_hsa_keywords_attributed a on a.bydate=t.bydate and a.keywordId=t.keywordId
+		left join t_amz_adv_keywords k on k.keywordId=t.keywordId
+		left join t_amz_adv_campaigns_hsa c  on c.campaignId=k.campaignId and c.profileid=t.profileid
+		where t.profileid = #{profileid,jdbcType=CHAR}
+		and t.bydate &lt;= #{endDate,jdbcType=CHAR}
+		and t.bydate &gt;= #{fromDate,jdbcType=CHAR}
+		<if test="dateType == 'daily'">
+			group by t.bydate, t.campaignId,t.keywordId
+		</if>
+		<if test="dateType == 'total'">
+			group by t.campaignId,t.keywordId
+		</if>
+	</select>
+</mapper>

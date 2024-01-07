@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipPlanItemMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipPlanItem">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="plansubid" property="plansubid" jdbcType="CHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="materialid" property="materialid" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="INTEGER" />
+		<result column="needship" property="needship" jdbcType="INTEGER" />
+		<result column="goodsworth" property="goodsworth" jdbcType="DECIMAL" />
+		<result column="planweight" property="planweight" jdbcType="DECIMAL" />
+		<result column="dimweight" property="dimweight" jdbcType="DECIMAL" />
+	</resultMap>
+
+	<select id="summaryPlan" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT COUNT(materialid) totalnum ,sum(itemnum) itenum,SUM(amount) amount FROM (
+		SELECT p.materialid, sum(p.planweight*(ifnull(p.amount,0)+ifnull(p.selfamount,0))) weight,
+		    COUNT(id) itemnum,
+			sum(ifnull(p.amount,0)+ifnull(p.selfamount,0)) amount,sum(p.goodsworth*(ifnull(p.amount,0)+ifnull(p.selfamount,0))) goodsworth
+		from t_erp_ship_planitem p
+		where p.status=1
+			and p.plansubid in (
+				select ps.id
+				from t_erp_ship_plansub ps
+				where ps.status=1 
+					and ps.planid=#{planid,jdbcType=CHAR} 
+			)
+			GROUP BY p.materialid
+			) V 
+	</select>
+
+	<select id="summaryPlanByMarketplace" resultType="java.util.Map" parameterType="java.lang.String">
+		select v.marketplaceid,v.market,v.region, v.priority,v.`status`, 
+			sum(v.skuNum) skuNum, sum(v.amount) amount,sum(v.selfamount) selfamount,
+			SUM(v.weight) weight, SUM(v.dimweight) dimweight,
+			sum(v.boxweight) boxweight, SUM(v.goodsworth) goodsworth 
+		from(
+			SELECT a.marketplaceid,c.market,c.region, IFNULL(d.priority,c.findex) priority,
+				ifnull(count(b.materialid),0) skuNum, sum(b.amount) amount,sum(b.selfamount) selfamount,
+				SUM((ifnull(b.amount,0)+ifnull(b.selfamount,0))*dm.weight) weight,
+				SUM((ifnull(b.amount,0)+ifnull(b.selfamount,0))*((dm.length*dm.width*dm.height)/5000)) dimweight,
+				case when ifnull(m.boxnum,0) > 0 and ifnull(dm2.id,0) > 0
+				then ifnull(SUM(ifnull((ifnull(b.amount,0)+ifnull(b.selfamount,0))/m.boxnum,0)*(dm2.length*dm2.width*dm2.height)),0)/1000000
+				else ifnull(SUM((ifnull(b.amount,0)+ifnull(b.selfamount,0))*(dm.length*dm.width*dm.height)),0)/1000000 end boxweight,
+				SUM((ifnull(b.amount,0)+ifnull(b.selfamount,0))*m.price) goodsworth ,a.`status`
+			from t_erp_ship_plansub a
+			LEFT join t_erp_ship_planitem b on a.id=b.plansubid and b.`status`!=0
+			left join t_erp_ship_plan p on p.id=a.planid
+			left join t_erp_material m on m.id=b.materialid
+			left join t_dimensions dm on dm.id=m.pkgDimensions
+			left join t_dimensions dm2 on dm2.id=m.boxDimensions
+			left join t_erp_market_priority d on d.marketplaceId = a.marketplaceId and d.groupid=p.amazongroupid
+			left join t_marketplace c on c.marketplaceId =case when a.marketplaceid='EU' then 'A13V1IB3VIYZZH' else a.marketplaceid end
+			where a.planid = #{planid,jdbcType=CHAR} 
+				and a.`status`=1 and (b.amount>0 or b.selfamount>0)
+			GROUP BY m.sku,c.marketplaceId ) v
+		GROUP BY v.marketplaceId
+		ORDER BY v.priority
+	</select>
+	
+	<select id="summaryPlanEUItemByMarketplace" resultType="java.util.Map" parameterType="java.lang.String">
+		select v.marketplaceid,v.market,v.marketname,v.sku,v.`status`, v.region, v.priority,
+			sum(v.skuNum) skuNum, sum(v.amount) amount, SUM(v.weight) weight, SUM(v.dimweight) dimweight,
+			SUM(v.boxweight) boxweight, SUM(v.goodsworth) goodsworth 
+		from (	
+		SELECT c.marketplaceid,c.market,c.name marketname,m.sku,
+			c.region, IFNULL(d.priority,c.findex) priority,
+			ifnull(count(b.materialid),0) skuNum, ifnull(sum(b.amount),0) amount,
+			ifnull(SUM(b.amount*dm.weight),0) weight,
+			ifnull(SUM(b.amount*((dm.length*dm.width*dm.height)/5000)),0) dimweight,
+			case when ifnull(m.boxnum,0) > 0 and ifnull(dm2.id,0) > 0
+			then ifnull(SUM(ifnull((b.amount/m.boxnum),0)*(dm2.length*dm2.width*dm2.height)),0)/1000000
+			else ifnull(SUM(b.amount*(dm.length*dm.width*dm.height)),0)/1000000 end boxweight,
+			ifnull(SUM(b.amount*m.price),0) goodsworth ,a.`status`
+		from t_erp_ship_plan plan
+		left join t_erp_ship_plansub a on a.planid=plan.id and a.marketplaceid='EU'
+		left join t_amazon_auth auth on auth.groupid=plan.amazongroupid and auth.region='EU'
+		left join t_amazonseller_market mkt on mkt.sellerid=auth.sellerid
+		left join t_erp_ship_plansub_euitem b on b.plansubid=a.id and b.marketplaceid= mkt.marketplace_id
+		left join t_erp_material m on m.id=b.materialid
+		left join t_dimensions dm on dm.id=m.pkgDimensions
+		left join t_dimensions dm2 on dm2.id=m.boxDimensions
+		left join t_erp_market_priority d on d.marketplaceId = b.marketplaceId and d.groupid=plan.amazongroupid
+		left join t_marketplace c on c.marketplaceId =mkt.marketplace_id
+		where plan.id = #{planid,jdbcType=CHAR} 
+			and a.`status`=1 
+			and b.id is not null
+		GROUP BY b.marketplaceid ,m.sku)v
+		GROUP BY v.marketplaceid
+		ORDER BY v.priority;
+	</select>
+	
+	<select id="summaryPlanByMarketplace2" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT a.marketplaceid,c.market,c.region, IFNULL(d.priority,c.findex) priority,a.`status`,
+			count(IFNULL(b2.materialid,b.materialid)) skuNum, 
+			sum(IFNULL(b2.amount,b.amount)) amount,
+			SUM(IFNULL(b2.amount*b2.planweight,b.amount*b.planweight)) weight,
+			SUM(IFNULL(b2.amount*b2.dimweight,b.amount*b.dimweight)) dimweight,
+			SUM(IFNULL(b2.amount*b2.goodsworth,b.amount*b.goodsworth)) goodsworth 
+		from t_erp_ship_plansub a
+		left join t_erp_ship_plan p on p.id=a.planid
+		LEFT join t_erp_ship_planitem b on a.id=b.plansubid and b.`status`!=0 and a.`status`=1
+		LEFT join t_erp_ship_planitem b2 on a.id=b2.plansubid and b2.`status`!=0 and a.`status`=2
+		left join t_marketplace c on a.marketplaceid=c.marketplaceId
+		left join t_erp_market_priority d on d.marketplaceId = c.marketplaceId and d.groupid=p.amazongroupid
+		where a.planid=#{planid,jdbcType=CHAR} 
+			and a.`status`!=0
+		GROUP BY a.marketplaceid ORDER BY IFNULL(d.priority,c.findex);
+	</select>
+
+	<select id="findItemByCondition" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT item.*
+		from t_erp_ship_plansub sub
+		left join t_erp_ship_planitem item on sub.id = item.plansubid
+		where sub.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and item.sku=#{sku,jdbcType=CHAR}
+			and sub.planid=#{planid,jdbcType=CHAR}
+			and item.status=1 and sub.status=1
+	</select>
+
+	<select id="getSubmitSubPlanItem" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT a.materialid,a.plansubid,b.marketplaceid
+		from t_erp_ship_planitem a
+		LEFT JOIN t_erp_ship_plansub b on a.plansubid = b.id and a.status!=0
+		where b.status=2 
+			and b.marketplaceid = (
+				SELECT marketplaceid
+				from t_erp_ship_plansub
+				where `status`=2
+				ORDER BY opttime limit 1
+			)
+			and b.planid=#{planid,jdbcType=CHAR}
+	</select>
+
+	<select id="getPlanItemByMaterial" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT a.*
+		from t_erp_ship_planitem a
+		LEFT JOIN t_erp_ship_plansub b on a.plansubid = b.id and a.status!=0
+		where a.materialid=#{materialid,jdbcType=CHAR}
+			and b.planid=#{planid,jdbcType=CHAR}
+			and a.status=1
+	</select>
+
+	<delete id="deleteAllPlanItem" parameterType="java.lang.String">
+		delete a
+		from t_erp_ship_planitem a
+		where a.plansubid in (
+			select b.id
+			from t_erp_ship_plansub b
+			where b.planid=#{planid,jdbcType=CHAR} 
+		)
+	</delete>
+
+	<select id="selectByplansubid" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.*,b.sku
+		from t_erp_ship_planitem a
+		LEFT join t_erp_material b on a.materialid=b.id
+		where a.plansubid=#{plansubid,jdbcType=CHAR} and a.`status`=1
+	</select>
+
+	<select id="findPlanSubDetail" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT m.sku,m.name,m.color,IFNULL(p.location,p.url) image, i.sku psku,
+			IFNULL(dm.weight,0) weight,i.*,inv.quantity fulfillable,ifnull(m.boxnum,0) boxnum,
+			case when (IFNULL(((dm.length*dm.width*dm.height)/5000),0)>IFNULL(dm.weight,0))
+			then IFNULL(((dm.length*dm.width*dm.height)/5000),0)
+			else IFNULL(dm.weight,0) end pweight,
+			case when ifnull(dm2.id,0) > 0 and ifnull(m.boxnum,0) > 0
+			then ifnull((dm2.length*dm2.width*dm2.height),0)/1000000
+			else ifnull((dm.length*dm.width*dm.height),0)/1000000 end boxweight,m.issfg,m.shopid,
+			w.name wname,cm.material material,cm.addfee addfee
+		from t_erp_ship_planitem i
+		left join t_erp_ship_plansub s on i.plansubid=s.id and i.`status`=1
+		left join t_erp_material m on i.materialid=m.id AND m.isDelete=false
+		left join t_picture p on m.image=p.id
+		left join t_erp_inventory inv on inv.materialid=m.id and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.`status`='fulfillable'
+		left join t_erp_warehouse w on w.id=#{warehouseid,jdbcType=CHAR}
+		left join t_dimensions dm on dm.id=m.pkgDimensions
+		left join t_dimensions dm2 on dm2.id=m.boxDimensions
+		left join t_erp_material_customs cm on cm.matreialid=m.id
+		where s.planid=#{planid,jdbcType=CHAR}
+			and s.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+			and s.`status`=1
+			and i.amount>0
+	</select>
+	
+	<select id="findPlanEuSubDetail" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT m.sku,m.name,m.color,IFNULL(p.location,p.url) image, inv.quantity fulfillable,
+			i.amount,i.planid,i.materialid,i.id,i.marketplaceid,i.plansubid,i.sku psku,IFNULL(dm.weight,0) weight,
+			case when (IFNULL(((dm.length*dm.width*dm.height)/5000),0)>IFNULL(dm.weight,0))
+			then IFNULL(((dm.length*dm.width*dm.height)/5000),0)
+			else IFNULL(dm.weight,0) end pweight,m.issfg,m.shopid
+		from t_erp_ship_plansub_euitem i
+		left join t_erp_ship_plansub s on i.plansubid=s.id
+		left join t_erp_material m on i.materialid=m.id
+		left join t_picture p on m.image=p.id
+		left join t_erp_inventory inv on inv.materialid=m.id and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.`status`='fulfillable'
+		left join t_dimensions dm on dm.id=m.pkgDimensions
+		where s.planid=#{planid,jdbcType=CHAR}
+			and i.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+			and s.`status`=1
+			and i.amount>0
+	</select>
+	
+</mapper>

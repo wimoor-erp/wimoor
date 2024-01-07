@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SysUserMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SysUser" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="CHAR" />
+    <result column="salt" property="salt" jdbcType="CHAR" />
+    <result column="leader_id" property="leaderId" jdbcType="CHAR" />
+    <result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="losingEffect" property="losingeffect" jdbcType="DATE" />
+    <result column="logicDelete" property="logicDelete" jdbcType="BIT" />
+    <result column="disable" property="disable" jdbcType="BIT" />
+    <result column="isActive" property="isActive" jdbcType="BIT" />
+    <result column="hasEmail" property="hasEmail" jdbcType="BIT" />
+    <result column="member" property="member" jdbcType="INTEGER" />
+    <result column="passwordkey" property="passwordkey" jdbcType="CHAR" />
+    <result column="lastlogintime" property="lastlogintime" jdbcType="TIMESTAMP" />
+    <result column="lastloginip" property="lastloginip" jdbcType="CHAR" />
+    <result column="lastloginsession" property="lastloginsession" jdbcType="CHAR" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, account, password, leader_id, createDate, losingEffect, logicDelete, disable,isActive,hasEmail,
+     member,passwordkey,lastlogintime,lastloginip,lastloginsession,ftype
+  </sql>
+  <select id="getShortUUID" resultType="java.math.BigInteger">
+    select uuid_short();
+  </select>
+  
+      <select id="getDIFFReport"  resultType="java.lang.Integer">
+	    SELECT TIMESTAMPDIFF(SECOND,MAX(lastuptime),NOW()) from t_amz_auth_api_timelimit t 
+				WHERE t.apiname='createReport'
+	</select>
+	
+    <select id="findUserInfoById" parameterType="java.lang.String" resultType="java.util.Map">
+		select p.location image, u.*
+		from   t_userinfo u  
+		left join t_picture p on p.id=u.picture
+		where u.id=#{id,jdbcType=CHAR} 
+	</select>
+	
+ 
+	
+	 <select id="listQuery" resultType="com.wimoor.admin.pojo.vo.UserVO" parameterType="com.wimoor.admin.pojo.dto.UserDTO" >
+		    select * from (
+			    select  u.id,i.name,u.account,u.createDate,u.losingEffect ,p.location image ,null roles,null perms,d.name deptname,
+					    case when u.`disable` =1 then 1
+					       else case when DATEDIFF(u.losingEffect,NOW()) >0 then 0 ELSE 2 END 
+					     END `status`,
+					     IFNULL((select max(case when role_id=#{dto.roleid,jdbcType=CHAR} then 1 else 0 end) from t_user_role where user_id=u.id),0) rolecount
+			    from t_user_shop s  
+			    left join t_user u on u.leader_id=s.user_id
+			    left join t_userinfo i on i.id=u.id
+			    left join t_picture p on p.id=i.picture 
+			    left join t_sys_dept d on d.id=u.deptid
+			    where  s.shop_id = #{dto.shopid,jdbcType=CHAR} and u.logicDelete=false
+			     <if test="dto.name!=null">
+			       and i.name like #{dto.name,jdbcType=CHAR}
+			     </if>
+			     <if test="dto.account!=null">
+			       and u.account like #{dto.account,jdbcType=CHAR}
+			     </if>
+		      ) v where 1=1
+		      <if test="dto.roleid!=null">
+		       and rolecount>0
+		     </if>
+		     <if test="dto.status!=null">
+		       and status= #{dto.status,jdbcType=CHAR}
+		     </if>
+	 </select>
+	 
+     <select id="findShopIdByUserId" resultType="java.lang.String" parameterType="java.lang.String" >
+		    select distinct  s.shop_id from t_user_shop s   where  s.user_id= #{userId,jdbcType=CHAR}
+	 </select>
+	 
+  <select id="findByAccountOrEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select t.id, t.account, t.password,t.salt, t.leader_id, t.createDate,
+			t.losingEffect, t.logicDelete, t.disable,t.isActive,t.hasEmail,
+			t.member,t.passwordkey,t.lastlogintime,t.lastloginip,t.lastloginsession,t.ftype
+		from t_user t 
+		left join t_userinfo u on t.id=u.id 
+		where (t.account=#{account,jdbcType=CHAR} or (u.email=#{account,jdbcType=CHAR} and t.hasEmail=1))
+		and t.logicDelete!=1
+	</select>
+	  <select id="findExcludedUrls" resultType="java.util.Map" parameterType="java.lang.String">
+			    select  distinct  a.*
+			    from t_authority a   
+			    left join (select r.authority_id from 
+			    t_role_authority r  
+			    inner join t_user_role u on r.role_id=u.role_id 
+				and u.user_id=#{userid,jdbcType=CHAR}) V
+			    on V.authority_id=a.id
+			    where V.authority_id is null
+       </select>
+       
+      <select id="findOwnerAll" resultType="java.util.Map" parameterType="java.lang.String">
+        SELECT  u.id,u.account,i.name from t_user u  
+		LEFT JOIN t_userinfo i ON i.id=u.id
+		WHERE u.`disable`=0 AND u.losingEffect>NOW() AND u.logicDelete=0
+		AND exists( SELECT user_id FROM t_user_shop WHERE  shop_id=#{shopid,jdbcType=CHAR}
+		             AND (user_id= u.id  OR user_id=u.leader_id )
+				  )
+		<if test="search!=null">
+			and u.name like #{search,jdbcType=CHAR}
+		</if>
+      </select>
+      
+      
+     <update id="mergeAccountData"   parameterType="java.lang.String">
+			SELECT s.shop_id,u.id INTO @fromshopid,@fromuserid  FROM t_user u 
+			left join t_user_shop s ON  s.user_id=u.id
+			WHERE ACCOUNT=#{fromuser,jdbcType=CHAR} AND leader_id=26138972975759242;
+			
+			SELECT  s.shop_id,u.id INTO @toshopid,@touserid  FROM t_user u
+			LEFT JOIN t_user_shop s ON s.user_id=u.id
+			WHERE ACCOUNT =#{touser,jdbcType=CHAR} AND leader_id=26138972975759242;
+			 
+			update t_user u  SET u.leader_id=@touserid WHERE u.leader_id=@fromuserid;
+			
+			update t_role r 
+			left join t_role r2  ON r2.shopid=@toshopid AND r2.name=r.name
+			SET r.shopid=@toshopid,r.name=case when r2.name IS NULL then r.name ELSE CONCAT(r2.name,'_copy') END
+			WHERE r.shopid=@fromshopid;
+			
+			UPDATE t_sys_tags  c 
+			LEFT JOIN  t_sys_tags c2  ON c2.shopid=@toshopid AND c2.name=c.name
+			SET c.shopid=@toshopid,c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END
+			WHERE c.shopid=@fromshopid;
+			
+			UPDATE t_sys_tags_groups  c 
+			LEFT JOIN  t_sys_tags_groups c2  ON c2.shop_id=@toshopid AND c2.name=c.name
+			SET c.shop_id=@toshopid,c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END
+			WHERE c.shop_id=@fromshopid;
+			
+			UPDATE t_amazon_group g SET g.shopid=@toshopid WHERE g.shopid=@fromshopid;
+			UPDATE t_amazon_auth a SET a.shop_id=@toshopid WHERE a.shop_id=@fromshopid;
+			UPDATE t_amz_adv_auth  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			
+			UPDATE t_erp_warehouse  w
+			left join t_erp_warehouse w2  ON w2.shopid=@toshopid AND w2.name=w.name
+			SET w.shopid=@toshopid,w.NUMBER=CONCAT(w.NUMBER,'10'),w.name=case when w2.name IS NULL then w.name ELSE CONCAT(w2.name,'_copy') END
+			WHERE w.shopid=@fromshopid;
+			
+			UPDATE 	t_erp_warehouse_address  w
+			left join t_erp_warehouse_address w2  ON w2.shopid=@toshopid AND w2.name=w.name
+			SET w.shopid=@toshopid,w.NUMBER=CONCAT(w.NUMBER,'10'),w.name=case when w2.name IS NULL then w.name ELSE CONCAT(w2.name,'_copy') END
+			WHERE w.shopid=@fromshopid;
+			
+			UPDATE t_erp_customer c
+			left join t_erp_customer c2  ON c2.shopid=@toshopid AND c2.name=c.name
+			SET c.shopid=@toshopid,c.NUMBER=CONCAT(c.NUMBER,'10'),c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END
+			WHERE c.shopid=@fromshopid;
+			 
+			UPDATE t_erp_material_his m
+			LEFT JOIN  t_erp_material m2  ON m2.shopid=@toshopid AND m2.sku=m.sku
+			SET m.shopid=@toshopid,m.sku=case when m2.sku IS NULL then m.sku ELSE CONCAT(m2.sku,'_copy') END
+			WHERE m.shopid=@fromshopid;
+			  
+			UPDATE t_erp_material m
+			LEFT JOIN  t_erp_material m2  ON m2.shopid=@toshopid AND m2.sku=m.sku
+			SET m.shopid=@toshopid ,m.sku=case when m2.sku IS NULL then m.sku ELSE CONCAT(m2.sku,'_copy') END
+			WHERE m.shopid=@fromshopid;
+			  
+			  
+			UPDATE t_erp_material_brand  c
+			LEFT JOIN  t_erp_material_brand c2  ON c2.shopid=@toshopid AND c2.name=c.name
+			SET c.shopid=@toshopid,c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END
+			WHERE c.shopid=@fromshopid;
+			  
+			UPDATE t_erp_material_category  c
+			LEFT JOIN  t_erp_material_category c2  ON c2.shopid=@toshopid AND c2.name=c.name
+			SET c.shopid=@toshopid,c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END
+			WHERE c.shopid=@fromshopid;
+			  
+			UPDATE t_erp_ship_transcompany  c 
+			LEFT JOIN  t_erp_ship_transcompany c2  ON c2.shopid=@toshopid AND c2.name=c.name
+			SET c.shopid=@toshopid,c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END
+			WHERE c.shopid=@fromshopid;
+			  
+			UPDATE t_erp_inventory  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_inventory_his  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_inventory_record  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_ship_address  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_ship_addressto  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			
+			UPDATE t_erp_warehouse_shelf  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_warehouse_shelf_inventory  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_warehouse_shelf_inventory_opt_record  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			
+			
+			
+			UPDATE t_erp_v3_purchase_plan  SET shopid=@toshopid ,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_dispatch_oversea_form  SET shopid=@toshopid ,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_purchase_form  SET shopid=@toshopid ,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_outwh_form  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_dispatch_form  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_changewh_form  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_assembly_form  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_ship_inboundplan  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			UPDATE t_erp_inwh_form  SET shopid=@toshopid,NUMBER=CONCAT(NUMBER,'10') WHERE shopid=@fromshopid;
+			
+			UPDATE t_erp_v3_purchase_plan_consumable_item  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_v3_purchase_plan_item  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_v3_purchase_plan_item_history  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_v3_purchase_plan_warehouse  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			
+			UPDATE t_erp_ship_transcompany  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_stocktaking  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			UPDATE t_erp_whse_unsalable_rpt  SET shopid=@toshopid WHERE shopid=@fromshopid;
+			
+			UPDATE t_erp_fin_account  c 
+			LEFT JOIN  t_erp_fin_account c2  ON c2.shopid=@toshopid AND c2.name=c.name
+			SET c.shopid=@toshopid,
+			c.name=case when c2.name IS NULL then c.name ELSE CONCAT(c2.name,'_copy') END,
+			c.isdefault=false
+			WHERE c.shopid=@fromshopid;
+			
+			UPDATE  t_erp_fin_journalaccount  SET shopid=@toshopid  WHERE shopid=@fromshopid;
+			
+			UPDATE  t_erp_fin_project p 
+			LEFT JOIN t_erp_fin_project p2 ON p2.shopid=@toshopid AND p2.name=p.name
+			SET p.shopid=@toshopid ,p.name=case when p2.name IS NULL then p.name ELSE CONCAT(p2.name,'_copy') END
+			WHERE p.shopid=@fromshopid ;
+			 
+      </update>
+</mapper>

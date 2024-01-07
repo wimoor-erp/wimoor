@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.finance.mapper.FinTypeJournalMonthlyMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.finance.pojo.entity.FinTypeJournalMonthly" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="projectid" property="projectid" jdbcType="CHAR" />
+    <result column="acct" property="acct" jdbcType="CHAR" />
+    <result column="year" property="year" jdbcType="CHAR" />
+    <result column="month" property="month" jdbcType="CHAR" />
+    <result column="rec" property="rec" jdbcType="DECIMAL" />
+    <result column="pay" property="pay" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, projectid, acct, year, month, rec, pay
+  </sql>
+  <select id="selectByYearMonth" parameterType="java.lang.String" resultMap="BaseResultMap" >
+  	SELECT * from t_erp_fin_type_journalmonthly t where   t.year=#{year,jdbcType=CHAR} and t.month=#{month,jdbcType=CHAR}
+  	and t.acct=#{acct,jdbcType=CHAR} and t.projectid=#{projectid,jdbcType=CHAR}
+  </select>
+  
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_fin_type_journalmonthly
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_fin_type_journalmonthly
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.FinTypeJournalMonthly" >
+    insert into t_erp_fin_type_journalmonthly (id, type, acct, year, 
+      month, rec, pay)
+    values (#{id,jdbcType=CHAR}, #{type,jdbcType=CHAR}, #{acct,jdbcType=CHAR}, #{year,jdbcType=CHAR}, 
+      #{month,jdbcType=CHAR}, #{rec,jdbcType=DECIMAL}, #{pay,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.FinTypeJournalMonthly" >
+    insert into t_erp_fin_type_journalmonthly
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="acct != null" >
+        acct,
+      </if>
+      <if test="year != null" >
+        year,
+      </if>
+      <if test="month != null" >
+        month,
+      </if>
+      <if test="rec != null" >
+        rec,
+      </if>
+      <if test="pay != null" >
+        pay,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=CHAR},
+      </if>
+      <if test="acct != null" >
+        #{acct,jdbcType=CHAR},
+      </if>
+      <if test="year != null" >
+        #{year,jdbcType=CHAR},
+      </if>
+      <if test="month != null" >
+        #{month,jdbcType=CHAR},
+      </if>
+      <if test="rec != null" >
+        #{rec,jdbcType=DECIMAL},
+      </if>
+      <if test="pay != null" >
+        #{pay,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.FinTypeJournalMonthly" >
+    update t_erp_fin_type_journalmonthly
+    <set >
+      <if test="type != null" >
+        type = #{type,jdbcType=CHAR},
+      </if>
+      <if test="acct != null" >
+        acct = #{acct,jdbcType=CHAR},
+      </if>
+      <if test="year != null" >
+        year = #{year,jdbcType=CHAR},
+      </if>
+      <if test="month != null" >
+        month = #{month,jdbcType=CHAR},
+      </if>
+      <if test="rec != null" >
+        rec = #{rec,jdbcType=DECIMAL},
+      </if>
+      <if test="pay != null" >
+        pay = #{pay,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.FinTypeJournalMonthly" >
+    update t_erp_fin_type_journalmonthly
+    set type = #{type,jdbcType=CHAR},
+      acct = #{acct,jdbcType=CHAR},
+      year = #{year,jdbcType=CHAR},
+      month = #{month,jdbcType=CHAR},
+      rec = #{rec,jdbcType=DECIMAL},
+      pay = #{pay,jdbcType=DECIMAL}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

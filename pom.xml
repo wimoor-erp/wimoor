@@ -1,0 +1,117 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.wimoor</groupId>
+  <artifactId>wimoor-all</artifactId>
+  <version>2.0.0</version>
+  <packaging>pom</packaging>
+
+  <modules>
+  	<module>wimoor-common</module>
+  	<module>wimoor-admin</module>
+  	<module>wimoor-gateway</module>
+  	<module>wimoor-auth</module>
+  	<module>wimoor-shopee</module>
+  	<module>wimoor-erp</module>
+  	<module>wimoor-amazon</module>
+  	<module>wimoor-amazon-adv</module>
+  </modules>
+  
+   <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.5</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    
+    <properties>
+          <java.version>1.8</java.version>
+          <spring-boot.version>2.5.4</spring-boot.version>
+          <spring-cloud.version>2021.0.1</spring-cloud.version>
+          <spring-cloud-alibaba.version>2021.1</spring-cloud-alibaba.version>
+          <druid.version>1.2.4</druid.version>
+          <mybatis-plus.version>3.4.3</mybatis-plus.version>
+          <lombok.version>1.18.18</lombok.version>
+          <javax-validator.version>1.1.0.Final</javax-validator.version>
+          <hutool.version>5.5.8</hutool.version>
+          <minio.version>8.0.3</minio.version>
+          <spring-cloud-starter-seata.version>2021.0.1.0</spring-cloud-starter-seata.version>
+          <seata.springboot.starter.version>1.4.2</seata.springboot.starter.version>
+          <seata-all.version>1.4.2</seata-all.version>
+     </properties>
+     
+      <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+
+    </dependencies>
+    
+      <dependencyManagement>
+        <dependencies>
+	            <!--Spring Cloud 相关依赖-->
+	            <dependency>
+	                <groupId>org.springframework.cloud</groupId>
+	                <artifactId>spring-cloud-dependencies</artifactId>
+	                <version>${spring-cloud.version}</version>
+	                <type>pom</type>
+	                <scope>import</scope>
+	            </dependency>
+
+	            <!--Spring Cloud & Alibaba 相关依赖-->
+	            <dependency>
+	                <groupId>com.alibaba.cloud</groupId>
+	                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+	                <version>${spring-cloud-alibaba.version}</version>
+	                <type>pom</type>
+	                <scope>import</scope>
+	            </dependency>
+	           
+		        <dependency>
+		          <groupId>javax.validation</groupId>
+		          <artifactId>validation-api</artifactId>
+		          <version>${javax-validator.version}</version>
+		        </dependency>
+		        
+		       <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+               </dependency>
+               
+			   <dependency>
+				    <groupId>com.alibaba.cloud</groupId>
+				    <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+				    <version>${spring-cloud-starter-seata.version}</version>
+				</dependency>
+				
+				<dependency>
+				    <groupId>io.seata</groupId>
+				    <artifactId>seata-all</artifactId>
+				    <version>${seata-all.version}</version>
+				</dependency>
+				
+				<dependency>
+				    <groupId>io.seata</groupId>
+				    <artifactId>seata-spring-boot-starter</artifactId>
+				    <version>${seata.springboot.starter.version}</version>
+				</dependency>
+				
+				<dependency>
+					<groupId>com.squareup.okhttp3</groupId>
+					<artifactId>okhttp</artifactId>
+					<version>3.14.4</version>
+			     </dependency>
+            </dependencies>
+  
+ 
+            </dependencyManagement>
+    
+
+ 
+</project>

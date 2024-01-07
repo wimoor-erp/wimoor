@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialConsumableMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialConsumable" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="materialid" property="materialid" jdbcType="BIGINT" />
+    <result column="submaterialid" property="submaterialid" jdbcType="BIGINT" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <select id="selectConsumableByMainMmid" resultType="com.wimoor.erp.material.pojo.vo.MaterialConsumableVO" parameterType="java.lang.String" >
+  		SELECT m.name,ifnull(p.url,p.location) image,t.amount,t.materialid,t.submaterialid id,m.sku,m.price price 
+  		FROM t_erp_material_consumable t
+		LEFT JOIN t_erp_material m ON m.id=t.submaterialid
+		LEFT JOIN t_picture p on p.id=m.image
+		WHERE t.materialid=#{id,jdbcType=CHAR}
+  </select>
+  
+  <select id="selectConsumableBySubmid" resultType="com.wimoor.erp.material.pojo.vo.MaterialConsumableVO" parameterType="java.lang.String" >
+  		SELECT m.name,ifnull(p.url,p.location) image,t.amount,t.materialid,t.submaterialid id,m.sku,m.price price 
+  		FROM t_erp_material_consumable t
+		LEFT JOIN t_erp_material m ON m.id=t.materialid
+		LEFT JOIN t_picture p on p.id=m.image
+		WHERE t.submaterialid=#{id,jdbcType=CHAR}
+  </select>
+  
+  	
+	<select id="findCanConsumableByInventory" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select  min(ifnull(inv.quantity,0)/a.amount)
+		from  t_erp_material_consumable  a
+		left join t_erp_inventory inv on inv.materialid=a.submaterialid and inv.status='fulfillable'
+		left join t_erp_warehouse w on w.id=inv.warehouseid
+		left join t_erp_material m on m.id=a.materialid
+		where a.materialid = #{materialid,jdbcType=CHAR}
+		and m.shopid = #{shopid,jdbcType=CHAR}
+		and w.shopid = #{shopid,jdbcType=CHAR}
+		and (w.id=#{warehouseid,jdbcType=CHAR} or w.parentid=#{warehouseid,jdbcType=CHAR}) 
+	</select>
+  
+    <select id="findConsumableDetailByShipment" resultType="java.util.Map" parameterType="java.lang.String">
+		select max(IFNULL(pic.location,pic.url)) image,max(msub.name) mname,
+			   max(msub.sku) sku ,max(ifnull(inv.quantity,0)) inventoryqty,
+ 			   ifnull(sum(item.QuantityShipped*cs.amount),0)+ifnull(sum(ci.quantity),0) needamount,
+ 			   msub.id materialid,
+ 			   max(plan.warehouseid) warehouseid
+		from  t_erp_ship_inbounditem item
+		left join t_erp_ship_inboundplan plan on plan.id=item.inboundplanid
+		left join t_marketplace mk on mk.marketplaceid=plan.marketplaceid
+		left join t_amazon_auth a on a.groupid=plan.amazongroupid  and a.region=case when mk.region='UK' then 'EU' ELSE mk.region end
+		left join t_product_info p on p.sku=item.SellerSKU and p.marketplaceid=plan.marketplaceid and p.amazonauthid=a.id
+		left join t_product_in_opt opt on opt.pid=p.id
+		left join t_erp_material m on m.sku=ifnull(opt.msku,p.sku) and m.shopid=plan.shopid and m.isdelete=0
+		left join t_erp_material_consumable cs on cs.materialid=m.id
+		left join t_erp_material msub on cs.submaterialid = msub.id  and msub.isdelete=0
+		left join t_erp_material_consumable_inventory ci on    ci.materialid= cs.submaterialid 
+		                                                   and ci.warehouseid=plan.warehouseid 
+		                                                   and ci.shopid=plan.shopid
+		left join t_picture pic on msub.image=pic.id
+		left join t_erp_inventory inv on inv.materialid=msub.id and inv.warehouseid=plan.warehouseid and inv.status='fulfillable'
+		where plan.shopid=#{shopid,jdbcType=CHAR}  and item.ShipmentId=#{shipmentid,jdbcType=CHAR}
+		AND msub.id IS NOT null
+		group by msub.id
+  </select>
+      <select id="findConsumableDetailBySkuList" resultType="java.util.Map" parameterType="java.util.Map">
+	  select     
+	           max(IFNULL(pic.location,pic.url)) image,
+	           max(msub.name) mname,
+			   max(msub.sku) sku ,
+			   max(m.sku) mainsku,
+			   max(ifnull(inv.quantity,0)) inventoryqty,
+ 			   ifnull(sum(cs.amount),0) units,
+ 			   ifnull(max(ci.quantity),0) residue,
+ 			   msub.id materialid
+		from   t_erp_material m 
+		left join t_erp_material_consumable cs on cs.materialid=m.id
+		left join t_erp_material msub on cs.submaterialid = msub.id
+		left join t_erp_material_consumable_inventory ci on    ci.materialid= cs.submaterialid 
+		                                                   and ci.warehouseid=#{warehouseid,jdbcType=CHAR}
+		                                                   and ci.shopid=msub.shopid
+		left join t_picture pic on msub.image=pic.id
+		left join t_erp_inventory inv on inv.materialid=msub.id and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+		where m.shopid=#{shopid,jdbcType=CHAR}  and  m.isdelete=false
+		 <if test="mskulist!=null">
+			and m.sku in
+			<foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		</if>
+		AND msub.id IS NOT null
+		group by msub.id
+  </select>
+  <select id="findConsumableDetailList" resultType="java.util.Map" parameterType="java.util.Map" >
+   select IFNULL(pic.location,pic.url) image,msub.name mname,
+			item.SellerSKU sku ,cs.amount rate,item.QuantityShipped qty
+		from  t_erp_ship_inbounditem item
+		left join t_erp_ship_inboundplan plan on plan.id=item.inboundplanid
+		left join t_marketplace mk on mk.marketplaceid=plan.marketplaceid
+		left join t_amazon_auth a on a.groupid=plan.amazongroupid and a.region=case when mk.region='UK' then 'EU' ELSE mk.region end
+		left join t_product_info p on p.sku=item.SellerSKU and p.marketplaceid=plan.marketplaceid and p.amazonauthid=a.id
+		left join t_product_in_opt opt on opt.pid=p.id
+		left join t_erp_material m on m.sku=ifnull(opt.msku,p.sku) and m.shopid=plan.shopid
+		left join t_erp_material_consumable cs on cs.materialid=m.id
+		left join t_erp_material msub on cs.materialid = msub.id
+		left join t_picture pic on msub.image=pic.id
+		where plan.shopid=#{shopid,jdbcType=CHAR}  and item.ShipmentId=#{shipmentid,jdbcType=CHAR}
+		AND cs.submaterialid=#{materialid,jdbcType=CHAR}
+		AND msub.id IS NOT NULL
+  </select>
+</mapper>

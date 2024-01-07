@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inventory.mapper.InventorySummaryReportMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.InventorySummaryReport">
+        <id column="id" property="id" />
+        <result column="byday" property="byday" />
+        <result column="fnsku" property="fnsku" />
+        <result column="asin" property="asin" />
+        <result column="msku" property="msku" />
+        <result column="title" property="title" />
+        <result column="disposition" property="disposition" />
+        <result column="startingWarehouseBalance" property="startingWarehouseBalance" />
+        <result column="inTransitBetweenWarehouses" property="inTransitBetweenWarehouses" />
+        <result column="receipts" property="receipts" />
+        <result column="customerShipments" property="customerShipments" />
+        <result column="customerReturns" property="customerReturns" />
+        <result column="vendorReturns" property="vendorReturns" />
+        <result column="warehouseTransferInOut" property="warehouseTransferInOut" />
+        <result column="found" property="found" />
+        <result column="lost" property="lost" />
+        <result column="damaged" property="damaged" />
+        <result column="disposed" property="disposed" />
+        <result column="otherEvents" property="otherEvents" />
+        <result column="endingWarehouseBalance" property="endingWarehouseBalance" />
+        <result column="unknownEvents" property="unknownEvents" />
+        <result column="location" property="location" />
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvAuthMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvAuth">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="groupid" property="groupid" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="code" property="code" jdbcType="CHAR" />
+		<result column="region" property="region" jdbcType="CHAR" />
+		<result column="access_token" property="accessToken" jdbcType="VARCHAR" />
+		<result column="refresh_token" property="refreshToken" jdbcType="VARCHAR" />
+		<result column="token_type" property="tokenType" jdbcType="CHAR" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="disable" property="disable" jdbcType="BIT" />
+		<result column="disableTime" property="disableTime" jdbcType="TIMESTAMP" />
+		<result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, groupid, shopid, code, region, access_token, refresh_token, token_type, creator, opttime, disable, disableTime,createtime
+	</sql>
+	
+	<update id="updateAdvAuthDisable" parameterType="java.util.Map">
+		update t_amz_adv_auth tp 
+		set tp.disable=#{disable,jdbcType=BIT} 
+		where tp.groupid=#{groupid,jdbcType=CHAR}
+			and tp.region=#{region,jdbcType=CHAR};
+	</update>
+
+	<select id="findViewList" resultType="java.util.Map" parameterType="java.lang.String">
+		select g.name,g.id,a.code 
+		from t_amazon_group g
+		left join t_amz_adv_auth a on a.groupid=g.id and a.disable = 0
+		where a.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+    
+	<select id="selectProfileByGroup" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.groupid,p.id id,m.name,ifnull(p.type,'seller') ftype,p.sellerid,m.market,
+		p.marketplaceid,p.currencyCode currency,timezone
+		from t_amz_adv_profile p
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		where a.groupid=#{groupid,jdbcType=CHAR}
+		order by m.findex asc
+	</select>
+
+	<select id="getProfileByGroupAndmarkplace" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.groupid,p.id id,m.name region,tg.name groupname,p.currencyCode currency
+		from t_amz_adv_profile p
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		where p.marketplaceId=#{marketplaceid,jdbcType=CHAR} 
+			and a.groupid=#{groupid,jdbcType=CHAR}
+	</select>
+
+	<select id="getRegionByAdvgroup" resultType="com.wimoor.amazon.adv.common.pojo.Marketplace" parameterType="java.lang.String">
+		select distinct m.*
+		from t_amz_adv_profile p
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		<if test="advgroupid != null and advgroupid !='all'">
+			and a.groupid=#{advgroupid,jdbcType=CHAR}
+		</if>
+			and m.marketplaceId is not null
+		order by m.findex asc
+	</select>
+
+	<select id="getProfileIdByGroup" resultType="com.wimoor.amazon.adv.common.pojo.AmzAdvProfile" parameterType="java.lang.String">
+		select p.*
+		from t_amz_adv_profile p
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_marketplace m on m.marketplaceId=p.marketplaceId
+		where a.shopid=#{shopid,jdbcType=CHAR}
+			and a.groupid=#{advgroupid,jdbcType=CHAR}
+			and m.marketplaceId is not null
+		order by m.findex asc
+	</select>
+
+	<select id="findBindAdvCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(t.id) nums
+		from t_amz_adv_auth t
+		where t.shopid=#{shopid,jdbcType=CHAR}
+			and t.disable = 0
+	</select>
+
+	<select id="findgroupBySellerId" resultType="java.util.Map">
+		select auth.id authid, gro.name groName, gro.id groId, g.name gName,g.id gId,auth.shopid
+		from t_amz_adv_auth auth
+		left join t_amz_adv_profile pro on auth.id = pro.advauthId
+		left join t_amazon_auth amz on amz.sellerid = pro.sellerId
+		left join t_amazon_group g on g.id = amz.groupid
+		left join t_amz_adv_group gro on gro.id = auth.groupid
+		where auth.region != 'TT'
+		group by auth.id,pro.sellerid
+	</select>
+	<select id="selectNotDisableList" resultMap="BaseResultMap">
+		SELECT * FROM t_amz_adv_auth t 
+		WHERE t.`disable`=0  
+	</select>
+
+	<delete id="deleteAdventDateForSellerId" parameterType="java.lang.String">
+		delete from t_amz_advert_report where sellerid = #{sellerid,jdbcType=CHAR};
+		delete from t_amz_advert_report_summary where sellerid = #{sellerid,jdbcType=CHAR};
+	</delete>
+
+	<delete id="deleteAdventDateForProfileId" parameterType="java.math.BigInteger">
+		delete from t_amz_adv_profile where id = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_adgroups where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_adgroups_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_assets where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_brand where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_campaigns where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_campaigns_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_campkeywords_negativa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_keywords where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_keywords_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_keywords_negativa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_operate_log where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_portfolios where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_productads where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_product_targe where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_product_targe_negativa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_remark where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_adgroups where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_adgroups_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_asins where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_campaignsplace_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_campaigns_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_compaigns where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_compaignsplace where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_keywords where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_keywordsquery where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_keywords_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_productads where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_product_targe where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_product_target_query where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_rpt_product_targe_hsa where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_stores where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_sumalltype where profileid = #{profileid,jdbcType=BIGINT};
+		delete from t_amz_adv_sumpdtads where profileid = #{profileid,jdbcType=BIGINT};
+	</delete>
+
+	<select id="findAmzAdvAuthWithDisable" resultType="java.util.Map">
+		select t.id authid, t.disable, t.disableTime, t.groupid, tp.id profileid, tp.sellerId
+		from t_amz_adv_auth t
+		left join t_amz_adv_profile tp on tp.advauthId = t.id
+		where t.disable = 1
+			and tp.id is not null
+			and 90 &lt;= datediff(now(), ifnull(t.disableTime,now()))
+	</select>
+ 
+</mapper>

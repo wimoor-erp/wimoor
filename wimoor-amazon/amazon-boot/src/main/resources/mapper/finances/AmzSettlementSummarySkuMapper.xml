@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper">
+ 
+	<sql id="Base_Column_List">
+		amazonAuthId, sku, marketplace_name, posted_date, order_amount, sales, principal, commission, refund
+	</sql>
+	
+	<select id="findFinItemDataByCondition" parameterType="java.util.Map" resultType="java.util.Map">
+			SELECT  d.sku, d.currency 
+			<foreach collection="fieldlist" item="fielditem" index="field_list" open="" separator="" close="">
+				,SUM( case when convert(itemid,CHAR) = #{fielditem.value,jdbcType=CHAR} THEN ifnull(amount,0) ELSE 0 END ) ${fielditem.field}
+			</foreach>
+			from t_amz_fin_user_item_data d
+			left join t_marketplace m on m.marketplaceid=d.marketplaceid
+			left join t_amazon_group g on g.id=d.groupid
+			left join t_amazon_auth a on a.groupid=g.id and a.region=case when m.region='UK' then 'EU' else m.region end
+			where a.shop_id=#{shopid,jdbcType=CHAR}
+				and d.byday &gt;= #{fromDate,jdbcType=DATE}
+				and d.byday &lt;= #{endDate,jdbcType=DATE}
+				and m.point_name=#{marketplace_name,jdbcType=CHAR}
+				and d.groupid = #{groupid,jdbcType=CHAR}
+			group by  d.sku,d.currency 
+	</select>
+	
+	
+		<select id="findSettlementSummarySku_FinItemData" parameterType="java.util.Map" resultType="java.util.Map">
+		    SELECT 
+			<foreach collection="fieldlist" item="fielditem" index="field_list" open="" separator="," close="">
+				 SUM( case when convert(itemid,CHAR) = #{fielditem.value,jdbcType=CHAR}    THEN 
+				                case d.currency
+							    <foreach collection="currencyrate.entrySet()" index="key" item="value">
+							        when #{key} then #{value}*ifnull(amount,0) 
+							      </foreach>
+				                   ELSE 0  END
+				         ELSE 0 END ) ${fielditem.field}
+			</foreach>
+			from t_amz_fin_user_item_data d
+			where d.shopid =#{shopid,jdbcType=CHAR}
+			    <if test="groupid!=null">
+			    and d.groupid=#{groupid,jdbcType=CHAR}
+			    </if>
+			    <if test="marketplaceid!=null">
+				and d.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			    </if>
+			    <if test="sku!=null">
+				and d.sku=#{sku,jdbcType=CHAR}
+			    </if>
+			    <if test="datetype==null">
+				 and d.byday &gt;= #{fromDate,jdbcType=DATE}
+				 and d.byday &lt;= #{endDate,jdbcType=DATE}
+				</if>
+				 <if test="datetype!=null">
+				 and d.byday &gt;= #{setfromDate,jdbcType=DATE}
+				 and d.byday &lt;= #{setendDate,jdbcType=DATE}
+			    </if>
+	</select>
+ 
+ 
+
+	 <select id="findSettlementAmountTypeSummary" resultType="java.util.Map" parameterType="java.util.Map">
+     select v.*,g.name groupname,case when ns.transaction_type is null then 0 else 1 end nosku 
+	     from ( select Max(r.amazonauthid) amazonauthid,
+	            max(r.marketplace_name) maketpointname,transaction_type,amount_type,
+	            amount_description, sum(
+	            case r.currency
+			   <foreach collection="currencyrate.entrySet()" index="key" item="value">
+				  when #{key} then #{value}*ifnull( r.amount,0) 
+				 </foreach>
+				 ELSE 0  END
+	           ) amount
+			   from  
+			   t_amz_settlement_summary_month   r
+			   <if test="datetype!=null">
+			    left join t_amz_settlement_acc_report acc on acc.settlement_id=r.settlementid
+			  </if>
+			   where 1=1
+			   <if test="datetype==null">
+			   and r.posted_date &gt;=#{fromDate,jdbcType=CHAR}
+	  	       and r.posted_date &lt;=#{endDate,jdbcType=CHAR}
+	  	       </if>
+	  	       <if test="datetype!=null">
+	  	        and	acc.deposit_date &gt;=#{fromDate,jdbcType=CHAR}
+	  	        and acc.deposit_date &lt;=#{endDate,jdbcType=CHAR}
+	  	        <if test="amazonauthid!=null">
+	  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+	  	        </if>
+	  	         <if test="marketplace_name!=null">
+	  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+	  	         </if>
+	  	       </if>
+	               <if test="amazonauthid!=null"> 
+				             and r.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+				   </if>
+				   <if test='amazonAuthId==null'>
+					   and exists(select id from t_amazon_auth where id=r.amazonAuthId and shop_id= #{shopid,jdbcType=CHAR}
+								  <if test='groupid!=null'>
+									and groupid = #{groupid,jdbcType=CHAR}
+								  </if>
+								 )  
+				 </if>
+		    <if test="marketplace_name != null">
+				and  r.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+			</if>  
+	  	     group by transaction_type,amount_type,amount_description ) v
+  	     left join t_amazon_auth a on a.id=v.amazonauthid
+  	     left join t_amazon_group g on g.id=a.groupid
+  	     left join t_amz_settlement_amount_type_nonsku ns on  ns.transaction_type=v.transaction_type AND ns.amount_type=v.amount_type 
+          AND (ns.amount_description=v.amount_description OR ns.amount_description='*')
+	</select>
+		
+
+
+	
+
+	
+ 	<select id="findSettlementSummarySku_Returns" parameterType="java.util.Map" resultType="java.util.Map">
+			 select   ifnull(sum(ifnull(rt.quantity,0)),0) refundnum , ifnull(sum(ifnull(rt.mfnqty,0)),0) mfnqty 
+		              from  t_amz_settlement_summary_returns rt
+					 <if test="datetype!=null">
+						    left join t_amz_settlement_acc_report acc on acc.settlement_id=rt.settlementid
+					 </if>
+		              where 1=1
+		              <if test="datetype==null">
+		                 and rt.posted_date &gt;= #{fromDate,jdbcType=DATE} 
+		                 and rt.posted_date  &lt;= #{endDate,jdbcType=DATE}
+		              </if>
+				 <if test="datetype!=null">
+				  	        and	acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+				  	        and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+				  	    <!--     and rt.posted_date &gt;= #{setfromDate,jdbcType=DATE} 
+		                    and rt.posted_date  &lt;= #{setendDate,jdbcType=DATE} -->
+				  	        <if test="amazonauthid!=null">
+				  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+				  	        </if>
+				  	         <if test="marketplace_name!=null">
+				  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+				  	         </if>
+				  	       </if>
+		                 <if test='amazonAuthId!=null'>
+						 and rt.amazonAuthId=#{amazonAuthId,jdbcType=CHAR} 
+						 </if>
+						 <if test="marketplaceid!=null">
+						 and rt.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+						 </if>
+						 <if test="sku!=null">
+						 and rt.sku=#{sku,jdbcType=CHAR} 
+						 </if>
+						 <if test='amazonAuthId==null'>
+							and exists(select id from t_amazon_auth where id=rt.amazonAuthId and shop_id= #{shopid,jdbcType=CHAR}
+							<if test='groupid!=null'>
+								and groupid = #{groupid,jdbcType=CHAR}
+							</if>
+							)  
+						</if>
+	</select>  
+	
+	
+		
+ <select id="findSettlementSummary" parameterType="java.util.Map" resultType="java.util.Map">
+ 	  select 
+	        sum(t.order_amount)  ordernum,	
+	        sum(case 'CNY'
+		     <foreach collection="currencyrate.entrySet()" index="key" item="value">
+			       when #{key} then #{value}*ifnull(t.local_price,0) 
+			 </foreach>
+			 ELSE 0  END)  price,	
+	    sum(case 'CNY'
+	      <foreach collection="currencyrate.entrySet()" index="key" item="value">
+	          when #{key} then #{value}*ifnull(t.local_other_cost,0) 
+ 			 </foreach>
+			 ELSE 0  END)  otherCost,	
+	    sum(case m.currency
+	      <foreach collection="currencyrate.entrySet()" index="key" item="value">
+			  when #{key} then #{value}*(ifnull(t.profit_marketfee,0)
+										  +ifnull(t.profit_vat,0)
+										  +ifnull(t.profit_companytax,0)
+										  +ifnull(t.profit_customstax,0)
+										  +ifnull(t.profit_exchangelost,0)
+										  +ifnull(t.profit_lostrate,0)
+										  +ifnull(t.profit_otherfee,0)) 
+			 </foreach>
+			 ELSE 0  END)  othersfee,	
+	     sum(case 'CNY'
+	      <foreach collection="currencyrate.entrySet()" index="key" item="value">
+			  when #{key} then #{value}*ifnull( t.profit_local_shipmentfee,0) 
+			 </foreach>
+		     ELSE 0  END)  shipmentfee  
+			from t_amz_settlement_summary_sku t
+			left join t_marketplace m on m.point_name=t.marketplace_name
+			<if test="datetype!=null">
+		    left join t_amz_settlement_acc_report acc on acc.settlement_id=t.settlementid
+		    </if>
+			where  1=1
+			<if test="datetype==null">
+			      and t.posted_date &gt;= #{fromDate,jdbcType=DATE}
+				  and t.posted_date &lt;= #{endDate,jdbcType=DATE}
+			</if>
+			  <if test="datetype!=null">
+		  	        and	acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+		  	        and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+		  	        <if test="amazonauthid!=null">
+		  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+		  	        </if>
+		  	         <if test="marketplace_name!=null">
+		  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+		  	         </if>
+	  	       </if>
+			 <if test="marketplaceid!=null">
+					and t.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+			 </if>
+			 <if test='amazonAuthId==null'>
+				and exists(select id from t_amazon_auth where id=t.amazonAuthId and shop_id= #{shopid,jdbcType=CHAR}
+							<if test='groupid!=null'>
+								and groupid = #{groupid,jdbcType=CHAR}
+							</if>
+			               )  
+			 </if>
+			<if test='amazonAuthId!=null'>
+			and t.amazonAuthId= #{amazonAuthId,jdbcType=CHAR}
+			</if>	
+ </select>
+ 
+<select id="findSettlementSummarySku" parameterType="java.util.Map" resultType="java.util.Map">
+	select 
+		g.name groupname,
+	    m.name marketname,
+        v.sku,
+		v.amazonAuthId amazonAuthId,
+		ifnull(v.currency,m.currency) currency ,
+		m.marketplaceId marketplaceid,
+	    IFNULL(pic.location,pic.url) image,
+		info.name pname,
+		info.asin asin,
+		u.name ownername,
+	    v.market,
+		v.principal,
+		v.salenum,
+		v.ordernum,
+		v.refundsales,
+		v.refundorder,
+		case when ifnull(v.salenum,0)= 0 then 0 else  ifnull(v.principal,0)/ifnull(v.salenum,0)  end avgprice,
+		v.commission,
+		v.fbafee,
+		v.refund,
+		v.otherfee,
+		v.setincome,	
+        v.shipping,
+        v.promotion,
+        v.income,
+        v.share_storage_fee,
+		v.share_long_storage_fee,
+		v.share_adv_spend_fee,
+		v.share_coupon_redemption_fee,
+		v.share_reserve_fee,
+		v.share_reimbursement_fee,
+		v.share_shop_other_fee,
+		v.local_price,
+		v.local_other_cost,
+		v.local_return_tax,
+		v.profit_local_shipmentfee,
+		v.profit_marketfee,
+		v.profit_vat,
+		v.profit_companytax,
+		v.profit_customstax,
+		v.profit_exchangelost,
+		v.profit_lostrate,
+		v.profit_otherfee
+		<if test='isdownload!=null'>
+		,mt.name mname
+		</if>
+ from 
+		(select 
+		t.sku,
+		t.marketplace_name market,
+		t.amazonAuthId,
+		max(t.currency ) currency,
+		max(t.owner) owner,
+		case when t.marketplace_name='Amazon.fr' or t.marketplace_name='Amazon.nl'
+		or t.marketplace_name='Amazon.co.uk' or t.marketplace_name='Amazon.de'
+		or t.marketplace_name='Amazon.es' or t.marketplace_name='Amazon.it'
+		then sum(ifnull(t.principal,0))+ sum(ifnull(t.tax,0)) 
+		else sum(ifnull(t.principal,0)) end  principal,
+		sum(ifnull(t.sales,0)) salenum,
+		sum(ifnull(t.order_amount,0)) ordernum,
+		sum(ifnull(t.refundsales,0)) refundsales,
+		sum(ifnull(t.refundorder,0)) refundorder,
+		sum(ifnull(t.commission,0)) commission,
+		sum(ifnull(t.fbafee,0)) fbafee,
+		sum(ifnull(t.refund,0)) refund,
+		case when t.marketplace_name='Amazon.fr' or t.marketplace_name='Amazon.nl'
+		or t.marketplace_name='Amazon.co.uk' or t.marketplace_name='Amazon.de'
+		or t.marketplace_name='Amazon.es' or t.marketplace_name='Amazon.it'
+		 then sum(ifnull(t.otherfee,0))
+		else sum(ifnull(t.otherfee,0))+ sum(ifnull(t.tax,0))  end otherfee,
+		sum(ifnull(t.shipping,0)) shipping,
+		sum(ifnull(t.promotion,0)) promotion,
+		sum(ifnull(t.principal,0)+ifnull(t.commission,0)
+		+ifnull(t.fbafee,0)+ifnull(t.refund,0)
+		+ifnull(t.otherfee,0)+ifnull(t.tax,0)+ifnull(t.shipping,0)+ifnull(t.promotion,0))   setincome,
+		sum(share_storage_fee) share_storage_fee,
+		sum(share_long_storage_fee) share_long_storage_fee,
+		sum(share_adv_spend_fee) share_adv_spend_fee,
+		sum(share_coupon_redemption_fee) share_coupon_redemption_fee,
+		sum(share_reserve_fee) share_reserve_fee,
+		sum(share_reimbursement_fee) share_reimbursement_fee,
+		sum(share_shop_other_fee) share_shop_other_fee,
+		sum(
+		ifnull(t.principal,0)               +ifnull(t.commission,0)
+		+ifnull(t.fbafee,0)                 +ifnull(t.refund,0)
+		+ifnull(t.otherfee,0)               +ifnull(t.tax,0)
+		+ifnull(t.shipping,0)               +ifnull(t.promotion,0)
+		+ifnull(t.share_storage_fee,0)      +ifnull(t.share_long_storage_fee,0)
+		+ifnull(t.share_adv_spend_fee,0)	+ifnull(t.share_coupon_redemption_fee,0)
+	    +ifnull(t.share_reserve_fee,0)	    +ifnull(t.share_shop_other_fee,0)
+	    +ifnull(t.share_reimbursement_fee,0)
+		)   income,
+		sum(local_price) local_price,
+		sum(local_other_cost) local_other_cost,
+		sum(local_return_tax) local_return_tax,
+		sum(profit_local_shipmentfee) profit_local_shipmentfee,
+		sum(profit_marketfee) profit_marketfee,
+		sum(profit_vat) profit_vat,
+		sum(profit_companytax) profit_companytax,
+		sum(profit_customstax) profit_customstax,
+		sum(profit_exchangelost) profit_exchangelost,
+		sum(profit_lostrate) profit_lostrate,
+		sum(profit_otherfee) profit_otherfee,
+		max(t.mid) mid
+		from t_amz_settlement_summary_sku t
+	    left join t_amz_settlement_acc_report acc on acc.settlement_id=t.settlementid
+		where  1=1
+		<if test="datetype==null">
+		  and t.posted_date &gt;= #{fromDate,jdbcType=DATE}
+		  and t.posted_date &lt;= #{endDate,jdbcType=DATE}
+		</if>
+ 		<if test="datetype!=null">
+  	        and	acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+  	        and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+  	        <if test="amazonauthid!=null">
+  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+  	        </if>
+  	         <if test="marketplace_name!=null">
+  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+  	         </if>
+  	       </if>
+		<if test="marketplaceid!=null">
+			and t.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+		<if test='amazonAuthId==null'>
+		and exists(select id from t_amazon_auth where id=t.amazonAuthId and shop_id= #{shopid,jdbcType=CHAR}
+		<if test='groupid!=null'>
+			and groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		)  
+		</if>
+		<if test='amazonAuthId!=null'>
+		and t.amazonAuthId= #{amazonAuthId,jdbcType=CHAR}
+		</if>	
+		<if test='search!=null'>
+		and t.sku like #{search,jdbcType=CHAR}
+		</if>
+		<if test='owner!=null'>
+			and t.owner = #{owner,jdbcType=CHAR}
+		</if>
+		<if test='myself!=null'>
+			and t.owner = #{myself,jdbcType=CHAR}
+		</if>
+		group by t.amazonAuthId,t.sku,t.marketplace_name) v
+		left join t_amazon_auth au on au.id=v.amazonAuthId
+		
+		<if test='isdownload!=null'>
+			left join t_erp_material mt on mt.id=v.mid
+		</if>
+	    left join t_amazon_group g on g.id=au.groupid
+	    left join t_marketplace m on m.point_name=v.market
+		left join t_product_info info on info.marketplaceid=m.marketplaceId and info.sku=v.sku and info.amazonauthid=v.amazonAuthId
+		left join t_product_in_opt opt on opt.pid=info.id
+		left join t_picture pic on pic.id=info.image 
+		left join t_userinfo u on u.id=v.owner
+	</select>
+  
+    <select id="summaryData" resultType="java.lang.Double" parameterType="java.lang.String">
+		 SELECT 
+			(SELECT sum(ifnull(amount,0)) from t_amz_settlement_report r   WHERE  r.settlement_id= #{settlementid,jdbcType=CHAR}) 
+			 -
+			ifnull((SELECT 
+			 SUM(ifnull(r.principal,0)+IFNULL(r.commission,0)+IFNULL(r.fbafee,0)+IFNULL(r.refund,0)+IFNULL(r.otherfee,0)+IFNULL(r.tax,0)) amount
+			from t_amz_settlement_summary_sku r WHERE r.settlementid= #{settlementid,jdbcType=CHAR}),0)
+    </select>
+	<delete id="refreshSummary"  parameterType="java.util.Map">
+		delete from t_amz_settlement_summary_sku
+		where  settlementid=#{settlement_id,jdbcType=CHAR}; 
+			
+		insert into t_amz_settlement_summary_sku
+		select UUID_SHORT(), 
+		    r.settlementid,
+		    r.amazonauthid,
+		    IFNULL(r.sku,'*'),
+		    rt.marketplace_name,
+		    posted_date,
+		    max(r.currency) currency,
+	        sum(case when amount_description='Principal' and transaction_type='Order' and amount_type='ItemPrice' then quantity_orders else 0 end) order_amount,
+			sum(case when amount_description='Principal' and transaction_type='Order' and amount_type='ItemPrice' then quantity_purchased else 0 end) sales,
+			sum(case when amount_description='Principal' and transaction_type='Refund' and amount_type='ItemPrice' then
+			   case when quantity_orders>quantity_purchased then quantity_purchased else   quantity_purchased end else 0 end) refundsales,
+			sum(case when amount_description='Principal' and transaction_type='Refund' and amount_type='ItemPrice' then quantity_orders else 0 end) refundorder,
+			sum(case when amount_description='Principal' and amount_type='ItemPrice' and transaction_type='Order' then amount else 0 end) principal,
+			sum(case when amount_description like 'Commission%' and (transaction_type='Order' or  transaction_type='Refund') then amount else 0 end) commission,
+			sum(case when (amount_description like 'FBA%') and transaction_type='Order' then amount else 0 end ) fbafee,
+			sum(case when amount_description='Principal' and amount_type='ItemPrice'  and transaction_type='Refund' then amount else 0 end ) refund,
+			sum(case when  (amount_description='Shipping' and amount_type='ItemPrice' ) or  (amount_description='ShippingTax' and amount_type='ItemPrice') 
+		             then amount else 0 end
+		         ) shipping,
+		    sum(case when amount_type='Promotion' then amount else 0 end) promotion,
+		    sum(case when amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' then amount else 0 end) tax,
+			sum(
+				case when 
+				not(amount_description='Principal' and amount_type='ItemPrice' and transaction_type='Order') and
+				not(amount_description like 'Commission%' and  (transaction_type='Order' or  transaction_type='Refund') ) and
+				not(amount_description like 'FBA%' and transaction_type='Order') and
+				not(amount_description='Principal' and amount_type='ItemPrice'  and transaction_type='Refund' ) and
+				not(amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' )  and 
+				not(amount_description='Shipping' and amount_type='ItemPrice')  and
+				not(amount_description='ShippingTax' and amount_type='ItemPrice')  and
+				not(amount_type='Promotion')
+				then amount else 0 end 
+			    ) otherfee ,
+			0 share_storage_fee,
+			0 share_long_storage_fee,
+			0 share_adv_spend_fee,
+			0 share_coupon_redemption_fee,
+			0 share_reserve_fee,
+			0 share_rem_fee,
+			0 share_shop_other_fee,
+			0 `local_price`,
+	        0 `local_other_cost`,
+	        0 local_return_tax,
+	        0 `profit_local_shipmentfee`,
+	        0 `profit_marketfee`,
+	        0 `profit_vat`,
+	        0 `profit_companytax`,
+	        0 `profit_customstax`,
+	        0 `profit_exchangelost`,
+	        0 `profit_lostrate`,
+	        0 `profit_otherfee`,
+	        null `owner` ,
+	        null `pid`,
+	        null `mid`
+		from t_amz_settlement_summary_day r
+		left JOIN t_amz_settlement_acc_report rt ON r.settlementid=rt.settlement_id
+		where  r.settlementid=#{settlement_id,jdbcType=CHAR}
+		group BY r.amazonAuthId,sku,rt.marketplace_name,r.posted_date
+	</delete>
+	
+	<select id="findSettlementOverall" resultType="java.util.Map" parameterType="java.util.Map">
+		select * from (
+		SELECT max(r.id) id,max(a.groupid) pid,r.amazonauthid,r.marketplace_name,max(r.currency) currency,
+		sum(case when amount_description='Principal'  and transaction_type='Order'  then amount else 0 end) principal,
+		sum(case when r.amount_description = 'Commission' AND (r.transaction_type='Order' or  r.transaction_type='Refund')  then amount else 0 end) commission,
+		sum(case when (amount_description like 'FBA%') and transaction_type='Order' then amount else 0 end ) fbafee,
+		sum(case when amount_description='Principal' and transaction_type='Refund' then amount else 0 end ) refund,
+		sum(case when amount_type='Cost of Advertising' and transaction_type='ServiceFee' then amount else 0 end ) advfee,
+		sum(case when amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' then amount else 0 end) tax,
+		sum(case when amount_description='Storage Fee' and transaction_type='other-transaction' then amount else 0 end ) storagefee,
+		sum(case when amount_description='FBA International Freight Shipping Charge' then amount else 0 end) shipcharge,
+		sum(case when amount_description='Previous Reserve Amount Balance' or 
+		amount_description='Current Reserve Amount' then amount else 0 end) reserve,
+		 		sum(case when amount_description='Previous Reserve Amount Balance' or 
+		 amount_description like 'Save%' then amount else 0 end) savefee,
+		 sum(case when amount_description='Transfer of funds unsuccessful: Amazon has cancelled your transfer of funds.' then amount else 0 end) untransfer,
+		SUM(amount) setin
+		FROM t_amz_settlement_summary_month r 
+		LEFT JOIN t_amazon_auth a ON a.id=r.amazonAuthId
+	  <if test="datetype!=null">
+		left join t_amz_settlement_acc_report acc on acc.settlement_id=r.settlementid
+	  </if>
+		 where 1=1
+			 <if test="datetype==null">
+				 and r.posted_date &gt;=#{fromDate,jdbcType=CHAR}
+		  	     and r.posted_date &lt;=#{endDate,jdbcType=CHAR}
+		  	 </if>
+		  	  <if test="datetype!=null">
+		  	        and	acc.deposit_date &gt;=#{fromDate,jdbcType=CHAR}
+		  	        and acc.deposit_date &lt;=#{endDate,jdbcType=CHAR}
+	<!-- 	  	        and r.posted_date &gt;=#{setfromDate,jdbcType=CHAR}
+		  	        and r.posted_date &lt;=#{setendDate,jdbcType=CHAR} -->
+		  	        <if test="amazonAuthId!=null">
+		  	          and acc.amazonauthid=#{amazonAuthId,jdbcType=CHAR} 
+		  	        </if>
+		  	         <if test="marketplace_name!=null">
+		  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+		  	         </if>
+		  	 </if>
+		     <if test="amazonAuthId!=null"> 
+					 and r.amazonauthid=#{amazonAuthId,jdbcType=CHAR} 
+			 </if>
+		     <if test='amazonAuthId==null'>
+					  and a.shop_id= #{shopid,jdbcType=CHAR}
+					  <if test='groupid!=null'>
+						 and a.groupid = #{groupid,jdbcType=CHAR}
+					 </if>
+		      </if>
+		     <if test="marketplace_name != null">
+					and  r.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+			 </if>  
+		GROUP BY r.amazonauthid,r.marketplace_name
+		) v11 order by v11.setin desc
+	</select>
+	
+	
+	<select id="findSettlementLocalSkuInfo" resultType="java.util.Map" parameterType="java.lang.String">
+			select 
+		 	    v.*,
+		        opt.fnsku,
+		        mt.id mid,
+				au.groupid,
+				mt.sku msku,
+				au.groupid,
+				info.id pid,
+				m.marketplaceId marketplaceid,
+				m.market country,
+				ifnull(mt.vatrate,0) vatrate,
+				info.asin asin,
+				ifnull(mt.price,0) itemprice,
+				ifnull(opt.owner,mt.owner) owner,
+				ifnull(mt.other_cost,0) otherCost,
+			    ifnull(dim.length,0)*ifnull(dim.width,0)*ifnull(dim.height,0) volume, 
+			    ifnull(dim.weight,0) weight
+		 FROM 
+		   	  (SELECT 	t.amazonAuthId,t.marketplace_name market, t.sku  
+				        from t_amz_settlement_summary_sku t
+		         left join t_amz_settlement_acc_report acc on acc.settlement_id=t.settlementid
+		      	WHERE t.settlementid=#{settlement_id,jdbcType=CHAR}
+		      	GROUP BY t.amazonAuthId,t.marketplace_name, t.sku
+		       ) v
+				left join t_amazon_auth au on au.id=v.amazonAuthId
+			    left join t_marketplace m on m.point_name=v.market
+				left join t_product_info info on info.marketplaceid=m.marketplaceId and info.sku=v.sku and info.amazonauthid=v.amazonAuthId
+				left join t_product_in_opt opt on opt.pid=info.id
+				left join t_erp_material mt on mt.sku=ifnull(opt.msku,info.sku) and mt.shopid=au.shop_id and mt.isDelete = 0
+				left join t_dimensions dim on dim.id=mt.pkgDimensions
+			
+	</select>
+	
+	<select id="summarySkuMonthly" resultType="com.wimoor.amazon.finances.pojo.entity.AmzSettlementSummarySkuMonth" parameterType="java.util.Map">
+	SELECT  max(uuid_short()) id, 
+		    r.amazonauthid,
+		    IFNULL(r.sku,'*') sku,
+		    max(ifnull(o.msku,r.sku)) msku,
+		    max(i.parentAsin) parentasin,
+		    max(r.marketplace_name) marketplace_name,
+		    max(m.categoryid) categoryid,
+		    max(a.groupid) groupid,
+		    max(i.asin) asin,
+		    max(posted_date) posted_date,
+		    max(ifnull(r.currency,mk.currency)) currency,
+	        sum(r.order_amount) order_amount,
+			sum(r.sales) sales,
+			sum(r.refundsales) refundsales,
+			sum(r.refundorder) refundorder,
+			sum(r.principal) principal,
+			sum(r.commission) commission,
+			sum(r.fbafee) fbafee,
+			sum(r.refund) refund,
+			sum(r.shipping) shipping,
+		    sum(r.promotion) promotion,
+		    sum(r.tax) tax,
+			sum(r.otherfee) otherfee ,
+			sum(r.share_storage_fee) share_storage_fee,
+			sum(r.share_long_storage_fee) share_long_storage_fee,
+			sum(r.share_adv_spend_fee) share_adv_spend_fee,
+			sum(r.share_coupon_redemption_fee) share_coupon_redemption_fee,
+			sum(r.share_reserve_fee) share_reserve_fee,
+			sum(r.share_reimbursement_fee) share_reimbursement_fee,
+			sum(r.share_shop_other_fee) share_shop_other_fee,
+			sum(ifnull(m.price,0)*(ifnull(r.sales,0)-ifnull(r.refundsales,0))) `local_price`,
+	        sum(ifnull(m.other_cost,0)*(ifnull(r.sales,0)-ifnull(r.refundsales,0))) `local_other_cost`,
+	        sum(r.local_return_tax) local_return_tax,
+	        sum(r.`profit_local_shipmentfee`) `profit_local_shipmentfee`,
+	        sum(r.`profit_marketfee`) `profit_marketfee`,
+	        sum(r.`profit_vat`) `profit_vat`,
+	        sum(r.`profit_companytax`) `profit_companytax`,
+	        sum(r.`profit_customstax`) `profit_customstax`,
+	        sum(r.`profit_exchangelost`) `profit_exchangelost`,
+	        sum(r.`profit_lostrate`) `profit_lostrate`,
+	        sum(r.`profit_otherfee`) `profit_otherfee`,
+	        max(ifnull(o.`owner`,m.`owner`)) `owner` ,
+	        max(m.price) price,
+	        max(r.`pid`) `pid`,
+	        max(r.`mid`) `mid`
+		from t_amz_settlement_summary_sku r
+		left join t_product_info i on i.id=r.pid
+		left join t_product_in_opt o on o.pid=r.pid
+		left join t_amz_settlement_acc_report acc on acc.settlement_id=r.settlementid
+		left join t_marketplace mk on mk.point_name=acc.marketplace_name
+		left join t_erp_material m on m.id=r.mid
+		left join t_amazon_auth a on a.id=r.amazonAuthId
+		where r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}  AND r.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+		AND r.posted_date&gt;=#{fromDate,jdbcType=DATE} AND r.posted_date &lt; #{endDate,jdbcType=DATE}
+		GROUP BY r.amazonAuthId,r.marketplace_name,r.sku
+	</select>
+	<update id="replaceBatch"  parameterType="java.util.List">
+	 replace  into  t_amz_settlement_summary_sku ( 
+    `id` ,
+	`settlementid`,
+	`amazonAuthId`,
+	`sku`,
+	`marketplace_name`,
+	`posted_date`,
+	`currency`,
+	`order_amount`,
+	`sales`,
+	`refundsales`,
+	`refundorder`,
+	`principal` ,
+	`commission`,
+	`fbafee` ,
+	`refund`,
+	`shipping` ,
+	`promotion`,
+	`tax`,
+	`otherfee`,
+	`share_storage_fee`,
+	`share_long_storage_fee`,
+	`share_adv_spend_fee`,
+	`share_coupon_redemption_fee`,
+	`share_reserve_fee`,
+	`share_reimbursement_fee`,
+	`share_shop_other_fee`,
+	`local_price`,
+	`local_other_cost`,
+	`local_return_tax`,
+	`profit_local_shipmentfee`,
+	`profit_marketfee`,
+	`profit_vat`,
+	`profit_companytax`,
+	`profit_customstax`,
+	`profit_exchangelost`,
+	`profit_lostrate`,
+	`profit_otherfee`,
+	`owner`,
+	`pid`,
+	`mid`
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (
+      #{stm.id,jdbcType=CHAR}, 
+      #{stm.settlementId,jdbcType=CHAR}, 
+      #{stm.amazonauthid,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR},
+      #{stm.marketplaceName,jdbcType=CHAR},
+      #{stm.postedDate,jdbcType=TIMESTAMP}, 
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.orderAmount,jdbcType=INTEGER}, 
+      #{stm.sales,jdbcType=INTEGER}, 
+      #{stm.refundsales,jdbcType=INTEGER},
+      #{stm.refundorder,jdbcType=INTEGER}, 
+      #{stm.principal,jdbcType=DECIMAL},
+      #{stm.commission,jdbcType=DECIMAL},
+      #{stm.fbafee,jdbcType=DECIMAL}, 
+      #{stm.refund,jdbcType=DECIMAL}, 
+      #{stm.shipping,jdbcType=DECIMAL},
+      #{stm.promotion,jdbcType=DECIMAL},  
+      #{stm.tax,jdbcType=DECIMAL},
+      #{stm.otherfee,jdbcType=DECIMAL},
+      #{stm.shareStorageFee,jdbcType=DECIMAL},
+      #{stm.shareLongStorageFee,jdbcType=DECIMAL},
+      #{stm.shareAdvSpendFee,jdbcType=DECIMAL},
+      #{stm.shareCouponRedemptionFee,jdbcType=DECIMAL},
+      #{stm.shareReserveFee,jdbcType=DECIMAL},
+      #{stm.shareReimbursementFee,jdbcType=DECIMAL},
+      #{stm.shareShopOtherFee,jdbcType=DECIMAL},
+      #{stm.localPrice,jdbcType=DECIMAL},
+      #{stm.localOtherCost,jdbcType=DECIMAL},
+      #{stm.localReturnTax,jdbcType=DECIMAL},
+      #{stm.profitLocalShipmentfee,jdbcType=DECIMAL},
+      #{stm.profitMarketfee,jdbcType=DECIMAL},
+      #{stm.profitVat,jdbcType=DECIMAL},
+      #{stm.profitCompanytax,jdbcType=DECIMAL},
+      #{stm.profitCustomstax,jdbcType=DECIMAL},
+      #{stm.profitExchangelost,jdbcType=DECIMAL},
+      #{stm.profitLostrate,jdbcType=DECIMAL},
+      #{stm.profitOtherfee,jdbcType=DECIMAL},
+      #{stm.owner,jdbcType=CHAR}, 
+      #{stm.pid,jdbcType=CHAR}, 
+      #{stm.mid,jdbcType=CHAR}
+      )
+      </foreach> 
+	</update>
+</mapper>

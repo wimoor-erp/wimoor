@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.finance.mapper.FinJournalDailyMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.finance.pojo.entity.FinJournalDaily" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="acct" property="acct" jdbcType="CHAR" />
+    <result column="byday" property="byday" jdbcType="TIMESTAMP" />
+    <result column="rec" property="rec" jdbcType="DECIMAL" />
+    <result column="pay" property="pay" jdbcType="DECIMAL" />
+    <result column="balance" property="balance" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, acct, byday, rec, pay, balance
+  </sql>
+  <select id="selectByday" resultMap="BaseResultMap" parameterType="java.lang.String"  >
+  	SELECT * from t_erp_fin_journaldaily t where    byday = #{day,jdbcType=CHAR}
+  	and t.acct=#{acct,jdbcType=CHAR}
+  </select>
+    <select id="selectAfterByday" resultMap="BaseResultMap" parameterType="java.lang.String"  >
+  	SELECT * from t_erp_fin_journaldaily t where    byday > #{day,jdbcType=CHAR}
+  	and t.acct=#{acct,jdbcType=CHAR}
+  </select>
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_fin_journaldaily
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_fin_journaldaily
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.JournalDaily" >
+    insert into t_erp_fin_journaldaily (id, acct, byday, 
+      rec, pay, balance)
+    values (#{id,jdbcType=CHAR}, #{acct,jdbcType=CHAR}, #{byday,jdbcType=TIMESTAMP}, 
+      #{rec,jdbcType=DECIMAL}, #{pay,jdbcType=DECIMAL}, #{balance,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.JournalDaily" >
+    insert into t_erp_fin_journaldaily
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="acct != null" >
+        acct,
+      </if>
+      <if test="byday != null" >
+        byday,
+      </if>
+      <if test="rec != null" >
+        rec,
+      </if>
+      <if test="pay != null" >
+        pay,
+      </if>
+      <if test="balance != null" >
+        balance,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="acct != null" >
+        #{acct,jdbcType=CHAR},
+      </if>
+      <if test="byday != null" >
+        #{byday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="rec != null" >
+        #{rec,jdbcType=DECIMAL},
+      </if>
+      <if test="pay != null" >
+        #{pay,jdbcType=DECIMAL},
+      </if>
+      <if test="balance != null" >
+        #{balance,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.JournalDaily" >
+    update t_erp_fin_journaldaily
+    <set >
+      <if test="acct != null" >
+        acct = #{acct,jdbcType=CHAR},
+      </if>
+      <if test="byday != null" >
+        byday = #{byday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="rec != null" >
+        rec = #{rec,jdbcType=DECIMAL},
+      </if>
+      <if test="pay != null" >
+        pay = #{pay,jdbcType=DECIMAL},
+      </if>
+      <if test="balance != null" >
+        balance = #{balance,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.JournalDaily" >
+    update t_erp_fin_journaldaily
+    set acct = #{acct,jdbcType=CHAR},
+      byday = #{byday,jdbcType=TIMESTAMP},
+      rec = #{rec,jdbcType=DECIMAL},
+      pay = #{pay,jdbcType=DECIMAL},
+      balance = #{balance,jdbcType=DECIMAL}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

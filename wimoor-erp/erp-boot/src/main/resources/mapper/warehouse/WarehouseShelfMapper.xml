@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.warehouse.mapper.WarehouseShelfMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.warehouse.pojo.entity.WarehouseShelf">
+        <id column="id" property="id" />
+        <result column="addressid" property="addressid" />
+        <result column="name" property="name" />
+        <result column="number" property="number" />
+        <result column="capacity" property="capacity" />
+        <result column="length" property="length" />
+        <result column="width" property="width" />
+        <result column="height" property="height" />
+        <result column="parentid" property="parentid" />
+        <result column="sort" property="sort" />
+        <result column="treepath" property="treepath" />
+        <result column="shopid" property="shopid" />
+        <result column="iswarn" property="iswarn" />
+        <result column="isdelete" property="isdelete" />
+        <result column="isfrozen" property="isfrozen" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+        <result column="creator" property="creator" />
+        <result column="creattime" property="creattime" />
+    </resultMap>
+	<select id="getShelfCount"   resultType="java.lang.Integer" >
+		SELECT count(s.id)
+		FROM  t_erp_warehouse_shelf s  
+		left join t_erp_warehouse_address w on w.id=s.addressid
+		WHERE  w.shopid=#{shopid,jdbcType=CHAR}
+		   and s.addressid=#{addressid,jdbcType=CHAR}
+	</select>  
+</mapper>

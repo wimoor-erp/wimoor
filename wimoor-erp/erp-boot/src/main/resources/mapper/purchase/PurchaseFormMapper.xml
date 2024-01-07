@@ -1,0 +1,1271 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseFormMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseForm">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="number" property="number" jdbcType="CHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, number, remark, creator,createdate,shopid
+	</sql>
+
+
+
+	<select id="findeLastsByMaterialids" resultType="java.util.Map" parameterType="java.lang.String">
+			SELECT e.materialid,f.createdate, e.amount,e.auditstatus,e.id entryid,e.totalin totalin,e.totalpay totalpay
+		from
+		(
+			select
+			a.materialid,MAX(f.createdate) createdate
+			from t_erp_purchase_form_entry a
+			LEFT JOIN t_erp_purchase_form f ON f.id=a.formid
+			where a.materialid IN (
+		           <foreach collection="list" item="id" index="index" separator=",">
+								  #{id,jdbcType=CHAR}
+							 </foreach>			
+			)
+			AND f.createdate>DATE_SUB(CURRENT_date() ,INTERVAL 1 YEAR)
+		   GROUP BY a.materialid
+		) v
+		left join t_erp_purchase_form_entry e ON e.materialid=v.materialid
+		LEFT JOIN  t_erp_purchase_form f  ON f.id=e.formid
+		WHERE  f.createdate=v.createdate
+	</select>
+
+	<select id="findeLastByMaterialid" resultType="java.util.Map" parameterType="java.lang.String">
+		select f.createdate, e.amount,e.auditstatus,e.id entryid,e.totalin totalin,e.totalpay totalpay
+		from t_erp_purchase_form f
+		left join t_erp_purchase_form_entry e on f.id=e.formid
+		where e.materialid=#{materialid,jdbcType=CHAR}
+		order by f.createdate desc
+	</select>
+
+	<select id="getEnteyInfo" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT form.number,form.createdate,m.sku,entry.totalin,entry.inwhstatus,
+			max(u.name) operator,max(r.opttime) opttime
+		from t_erp_purchase_form_entry entry
+		left join t_erp_purchase_form_receive r on r.formentryid=entry.id
+		left join t_erp_purchase_form form on form.id=entry.formid
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_userinfo u on u.id=r.operator
+		where entry.id=#{entryid,jdbcType=CHAR}
+		group by entry.id
+
+	</select>
+
+	<select id="selectByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select entry.id,form.number,m.sku,entry.supplier,entry.auditstatus,entry.audittime,
+		  IFNULL(pic.location,pic.url) image,m.color,m.name mname,entry.itemprice,c.name suppliername,
+			entry.amount,entry.orderprice, form.creator,cu.name creatorname,DATE_FORMAT(form.createdate,'%Y-%m-%d %T') createdate,entry.materialid,
+			form.warehouseid warehouseid, w.name warehousename, w.address warehouseadress ,entry.remark notice,
+			entry.totalpay,entry.totalin,entry.inwhstatus,entry.paystatus ,ifnull(s.purchaseUrl,m.purchaseUrl)  purchaseUrl,ifnull(s.MOQ,m.MOQ) moq,
+			ifnull(s.deliverycycle,m.delivery_cycle) delivery_cycle, ifnull(entry.deliverydate,'') deliverydate, 
+			ifnull(entry.closepaydate,'') closepaydate, ifnull(entry.closerecdate,'') closerecdate, 
+			CAST(al.alibaba_auth AS CHAR) alibaba_auth,CAST(al.alibaba_orderid AS CHAR) alibaba_orderid,
+			m.issfg,'1' withoutEdit,entry.remark remark,al.order_status orderstatus,entry.ischange ischange,
+			(select GROUP_CONCAT(tagid) from t_erp_material_tags where mid= entry.materialid) tags,m.mtype
+		from t_erp_purchase_form_entry entry
+		left join t_erp_material m on entry.materialid=m.id
+		left join t_picture pic on m.image=pic.id
+		left join t_erp_purchase_form form on entry.formid=form.id
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_material_supplier s on s.supplierid=entry.supplier and s.materialid=entry.materialid
+		left join t_erp_warehouse w on w.id=form.warehouseid 
+		left join t_userinfo cu on cu.id=form.creator
+		left join t_erp_purchase_form_entry_alibabainfo al on al.entryid=entry.id
+		left join t_erp_purchase_form_entry_alibabainfo_ext e on e.entryid=entry.id
+		where form.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test='param.auditstatus!=null and param.auditstatus =="all"'>
+			and (entry.auditstatus is not null)
+		</if>
+		<if test='param.entrylist!=null and param.formid==null'>
+			and (
+			<foreach collection="param.entrylist" item="item" index="index" separator="or">
+				entry.id=#{item,jdbcType=CHAR}
+			</foreach>
+			)
+		</if>
+		<if test='param.auditstatus=="0"'>
+			and entry.auditstatus=0 
+		</if>
+		<if test='param.auditstatus=="1"'>
+			and entry.auditstatus=1 
+		</if>
+		<if test='param.auditstatus=="3"'>
+			and entry.auditstatus=3
+		</if>
+		<if test='param.auditstatus=="4"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0
+			<if test='param.auditstatusparam=="pay"'>
+				and entry.paystatus=1
+			</if>
+			<if test='param.auditstatusparam=="notpay"'>
+				and entry.paystatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+			    and entry.deliverydate &lt; now()
+			</if>
+			<if test='param.auditstatusparam=="needrec"'>
+				and e.signinfo is not null
+			</if>
+			
+		</if>
+		<if test='param.auditstatus=="5"'>
+			and entry.auditstatus=2 and entry.paystatus=3
+			<if test='param.auditstatusparam=="in"'>
+				and entry.inwhstatus=1
+			</if>
+			<if test='param.auditstatusparam=="notin"'>
+				and entry.inwhstatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+				and entry.inwhstatus=0
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="6"'>
+			and entry.auditstatus=2  and (entry.paystatus=0)
+			<if test='param.auditstatusparam=="in"'>
+				and entry.inwhstatus=1
+			</if>
+			<if test='param.auditstatusparam=="notin"'>
+				and entry.inwhstatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+				and entry.inwhstatus=0
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="8"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0 and entry.paystatus=0
+		</if>
+		<if test='param.auditstatus=="9"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0 and entry.paystatus=1
+		</if>
+		<if test='param.auditstatus=="10"'>
+			and entry.auditstatus=2
+			and entry.inwhstatus=0
+			and entry.deliverydate &lt; now()
+		</if>
+		<if test='param.auditstatus=="11"'>
+			and entry.paystatus=1
+		</if>
+		<if test='param.auditstatus=="12"'>
+			and entry.inwhstatus=1
+		</if>
+		<if test="param.ftype=='sku' and param.search!=null">
+			and m.sku like #{param.search,jdbcType=CHAR} 
+		</if>
+		 <if test="param.ftype=='order' and param.search!=null">
+			and form.number like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.formid!=null">
+			and entry.formid= #{param.formid,jdbcType=CHAR}
+		</if>
+		<if test="param.name!=null">
+			and m.name like #{param.name,jdbcType=CHAR}
+		</if>
+		<if test="param.owner!=null">
+			and m.owner= #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.issfg!=null">
+			and m.issfg= #{param.issfg,jdbcType=CHAR}
+		</if>
+		<if test="param.categoryId!=null">
+			and m.categoryid= #{param.categoryId,jdbcType=CHAR}
+		</if>
+		<if test="param.remark!=null">
+			and (form.remark like #{param.remark,jdbcType=CHAR} or entry.remark like #{param.remark,jdbcType=CHAR})
+		</if>
+		<if test="param.supplierid!=null">
+			and entry.supplier = #{param.supplierid,jdbcType=CHAR}
+		</if>
+		<if test="param.groupid!=null and param.groupid!=''">
+			and form.groupid = #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.warehouse!=null">
+			and form.warehouseid  = #{param.warehouse,jdbcType=CHAR}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="createdate" '>
+			and form.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="deliverydate" '>
+			and entry.deliverydate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and entry.deliverydate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="approvaldate" '>
+			and entry.audittime &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and entry.audittime &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="param.myself != null">
+			and m.owner=#{param.myself,jdbcType=CHAR }
+		</if>
+		<if test="param.entryorders != null">
+			${param.entryorders}
+		</if>
+		<if test="param.entryorders ==null">
+			order by  m.sku desc
+		</if>
+	</select>
+	
+	<select id="getPayRecSumReport" resultType="java.util.Map" parameterType="java.util.Map">
+		select form.createdate,form.number,m.sku ,c.name supplier,entry.itemprice ,entry.id entryid,
+			entry.amount,entry.orderprice,entry.totalpay,entry.paystatus,entry.inwhstatus,
+			entry.totalin,entry.deliverydate,p.shipfee,p.facttotalpay,
+			case when  entry.paystatus=1 then ROUND(p.costfee/entry.amount,2)  else entry.itemprice end factitemprice,
+			entry.remark skuRemark, form.remark orderRemark,
+			entry.closepaydate closepaydate,entry.closerecdate closerecdate,
+			m.name name, p.totalrefund,entry.totalre totalreturn,
+		    p.otherfee ,p.payment_method,
+		    case when entry.paystatus!=1 then entry.orderprice - ifnull(p.costfee,0)-ifnull(p.appwaitPay,0) else 0 end  waitPay,
+		    case when entry.paystatus!=1 then  ifnull(p.appwaitPay,0) else 0 end appwaitPay,
+		    entry.auditstatus,IFNULL(d.weight,0)*IFNULL(entry.amount,0) weight,
+		    ifnull(pc.url,pc.location) image,w.name wname
+		from t_erp_purchase_form_entry entry
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_purchase_form form on form.id=entry.formid
+		left join t_erp_warehouse w on w.id=form.warehouseid
+		left join t_picture pc on pc.id=m.image
+		left join (
+			select pay.formentryid,
+			sum(case when pay.auditstatus=1 and pay.projectid='26138972997300238' then pay.payprice else 0 end) shipfee ,
+			sum(case when pay.auditstatus=1 
+			              and  pay.projectid!='26138972997300238' 
+			              and  pay.projectid!='26138972997300240' 
+			then pay.payprice else 0 end) otherfee,
+		   sum(case when pay.auditstatus=1  and  pay.projectid='26138972997300240' and pay.payprice&lt;0 then pay.payprice else 0 end) totalrefund,
+		   sum(case when pay.auditstatus=1  and  pay.projectid='26138972997300240' then pay.payprice else 0 end) costfee,
+		   sum(case when pay.auditstatus=2  and  pay.projectid='26138972997300240' then pay.payprice else 0 end) appwaitPay,
+			GROUP_CONCAT(distinct pm.name) payment_method,
+			sum(pay.payprice) facttotalpay
+			from t_erp_purchase_form_payment pay
+			left join t_erp_purchase_form_payment_method pm on pm.id=pay.payment_method
+			 LEFT JOIN  t_erp_purchase_form_entry e ON e.id=pay.formentryid
+			LEFT JOIN  t_erp_purchase_form f ON f.id=e.formid
+			WHERE f.shopid=#{param.shopid,jdbcType=CHAR}  
+		 <if test='param.toDate!=null and  param.datetype=="createdate" '>
+			and f.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and f.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="deliverydate" '>
+			and e.deliverydate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and e.deliverydate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="approvaldate" '>
+			and e.audittime &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and e.audittime &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+ 		<if test="param.datetype==null">
+			<if test='param.fromDate!=null'>
+				and f.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test='param.toDate!=null'>
+				and f.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+			</if>
+		</if>
+		<if test='param.auditstatus=="0"'>
+			and e.auditstatus=0 
+		</if>
+		<if test='param.auditstatus=="1"'>
+			and e.auditstatus=1 
+		</if>
+		<if test='param.auditstatus=="3"'>
+			and e.auditstatus=3
+		</if>
+		<if test='param.auditstatus=="4"'>
+			and e.auditstatus=2 and e.inwhstatus=0
+			<if test='param.auditstatusparam=="pay"'>
+				and e.paystatus=1
+			</if>
+			<if test='param.auditstatusparam=="notpay"'>
+				and e.paystatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+			    and e.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="5"'>
+			and e.auditstatus=2 and e.paystatus=3
+			<if test='param.auditstatusparam=="in"'>
+				and e.inwhstatus=1
+			</if>
+			<if test='param.auditstatusparam=="notin"'>
+				and e.inwhstatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+				and e.inwhstatus=0
+			    and e.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="6"'>
+			and e.auditstatus=2 and e.paystatus=0
+			<if test='param.auditstatusparam=="in"'>
+				and e.inwhstatus=1
+			</if>
+			<if test='param.auditstatusparam=="notin"'>
+				and e.inwhstatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+				and e.inwhstatus=0
+			    and e.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="8"'>
+			and e.auditstatus=2 and e.inwhstatus=0 and e.paystatus=0
+		</if>
+		<if test='param.auditstatus=="9"'>
+			and e.auditstatus=2 and e.inwhstatus=0 and e.paystatus=1
+		</if>
+		<if test='param.auditstatus=="10"'>
+			and e.auditstatus=2
+			and e.inwhstatus=0
+			and e.deliverydate &lt; now()
+		</if>
+	    <if test='param.auditstatus=="15"'>
+			and e.auditstatus>=1
+		</if>
+		<if test='param.auditstatus=="11"'>
+			and e.paystatus=1
+		</if>
+		<if test='param.auditstatus=="12"'>
+			and e.inwhstatus=1
+		</if>
+			group by pay.formentryid
+		) p on p.formentryid=entry.id
+		where form.shopid=#{param.shopid,jdbcType=CHAR} 
+		<if test='param.entrylist!=null and param.formid==null'>
+			and (
+			<foreach collection="param.entrylist" item="item" index="index" separator="or">
+				entry.id=#{item,jdbcType=CHAR}
+			</foreach>
+			)
+		</if>
+		<if test='param.auditstatus=="0"'>
+			and entry.auditstatus=0 
+		</if>
+		<if test='param.auditstatus=="1"'>
+			and entry.auditstatus=1 
+		</if>
+		<if test='param.auditstatus=="3"'>
+			and entry.auditstatus=3
+		</if>
+		<if test='param.auditstatus=="4"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0
+			<if test='param.auditstatusparam=="pay"'>
+				and entry.paystatus=1
+			</if>
+			<if test='param.auditstatusparam=="notpay"'>
+				and entry.paystatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="5"'>
+			and entry.auditstatus=2 and entry.paystatus=3
+			<if test='param.auditstatusparam=="in"'>
+				and entry.inwhstatus=1
+			</if>
+			<if test='param.auditstatusparam=="notin"'>
+				and entry.inwhstatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+				and entry.inwhstatus=0
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="6"'>
+			and entry.auditstatus=2 and entry.paystatus=0
+			<if test='param.auditstatusparam=="in"'>
+				and entry.inwhstatus=1
+			</if>
+			<if test='param.auditstatusparam=="notin"'>
+				and entry.inwhstatus=0
+			</if>
+			<if test='param.auditstatusparam=="outdate"'>
+				and entry.inwhstatus=0
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='param.auditstatus=="8"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0 and entry.paystatus=0
+		</if>
+		<if test='param.auditstatus=="9"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0 and entry.paystatus=1
+		</if>
+		<if test='param.auditstatus=="10"'>
+			and entry.auditstatus=2
+			and entry.inwhstatus=0
+			and entry.deliverydate &lt; now()
+		</if>
+	    <if test='param.auditstatus=="15"'>
+			and entry.auditstatus>=1
+		</if>
+		<if test='param.auditstatus=="11"'>
+			and entry.paystatus=1
+		</if>
+		<if test='param.auditstatus=="12"'>
+			and entry.inwhstatus=1
+		</if>
+		<if test="param.search!=null and param.entryList==null">
+			<if test="param.searchtype!=null">
+			   <if test="param.searchtype=='sku'">
+			   	and  m.sku like #{param.search,jdbcType=CHAR}
+			   </if>
+			    <if test="param.searchtype=='number'">
+			   	 and form.number like #{param.search,jdbcType=CHAR}
+			   </if>
+			    <if test="param.searchtype=='supplier'">
+			   	 and c.name like #{param.search,jdbcType=CHAR}
+			   </if>
+			</if>
+		</if>
+		<if test="param.formid!=null">
+			and entry.formid= #{param.formid,jdbcType=CHAR}
+		</if>
+		<if test="param.supplierid!=null">
+			and entry.supplier = #{param.supplierid,jdbcType=CHAR}
+		</if>
+		<if test="param.warehouse!=null">
+			and w.id = #{param.warehouse,jdbcType=CHAR}
+		</if>
+
+		<if test="param.myself != null">
+			and m.owner=#{param.myself,jdbcType=CHAR }
+		</if>
+		<if test='param.search!=null '>
+			<if test="param.searchtype!=null">
+			   <if test="param.searchtype=='sku'">
+			   	and  m.sku like #{param.search,jdbcType=CHAR}
+			   </if>
+			    <if test="param.searchtype=='number'">
+			   	 and  form.number like #{param.search,jdbcType=CHAR}
+			   </if>
+			    <if test="param.searchtype=='supplier'">
+			    and c.name like #{param.search,jdbcType=CHAR}
+			    </if>
+			</if>
+		</if>
+		<if test="param.datetype==null">
+			<if test='param.fromDate!=null'>
+				and form.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test='param.toDate!=null'>
+				and form.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+			</if>
+		</if>
+		<if test="param.name!=null">
+			and m.name like #{param.name,jdbcType=CHAR}
+		</if>
+		<if test="param.owner!=null">
+			and m.owner= #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.issfg!=null">
+			and m.issfg= #{param.issfg,jdbcType=CHAR}
+		</if>
+		<if test="param.categoryId!=null">
+			and m.categoryid= #{param.categoryId,jdbcType=CHAR}
+		</if>
+		<if test="param.remark!=null">
+			and (form.remark like #{param.remark,jdbcType=CHAR} or entry.remark like #{param.remark,jdbcType=CHAR})
+		</if>
+		<if test="param.supplierid!=null">
+			and entry.supplier = #{param.supplierid,jdbcType=CHAR}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="createdate" '>
+			and form.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="deliverydate" '>
+			and entry.deliverydate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and entry.deliverydate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="approvaldate" '>
+			and entry.audittime &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and entry.audittime &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="createdate" '>
+			and form.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="deliverydate" '>
+			and entry.deliverydate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and entry.deliverydate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='param.toDate!=null and  param.datetype=="approvaldate" '>
+			and entry.audittime &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and entry.audittime &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+	</select>
+
+	 
+
+	<select id="getPayRecSumTotal" resultType="java.util.Map" parameterType="java.util.Map">
+		select sum(entry.itemprice) itemprice, sum(entry.amount) amount, sum(entry.orderprice) orderprice,
+			sum(entry.totalpay) totalpay, sum(entry.totalin) totalin, sum(p.shipfee) shipfee,
+		    sum(p.otherfee) otherfee,sum(case when entry.paystatus!=1 then entry.orderprice - ifnull(p.costfee,0) else 0 end) waitPay
+		from t_erp_purchase_form_entry entry
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_purchase_form form on form.id=entry.formid
+		left join t_erp_warehouse w on w.id=form.warehouseid
+		left join (
+			select pay.formentryid,
+			sum(case when pay.auditstatus=1 and pay.projectid='26138972997300238' then pay.payprice else 0 end) shipfee ,
+			sum(case when pay.auditstatus=1 
+			              and  pay.projectid!='26138972997300238' 
+			              and  pay.projectid!='26138972997300240' 
+			then pay.payprice else 0 end) otherfee,
+		   sum(case when pay.auditstatus=1  and  pay.projectid='26138972997300240' and pay.payprice&lt;0 then pay.payprice else 0 end) totalrefund,
+		   sum(case when pay.auditstatus=1  and  pay.projectid='26138972997300240' then pay.payprice else 0 end) costfee,
+		   sum(case when pay.auditstatus=2  and  pay.projectid='26138972997300240' then pay.payprice else 0 end) appwaitPay,
+			GROUP_CONCAT(distinct pm.name) payment_method,
+			sum(pay.payprice) facttotalpay
+			from t_erp_purchase_form_payment pay
+			left join t_erp_purchase_form_payment_method pm on pm.id=pay.payment_method
+			LEFT JOIN  t_erp_purchase_form_entry e ON e.id=pay.formentryid
+			LEFT JOIN  t_erp_purchase_form f ON f.id=e.formid
+			WHERE f.shopid=#{shopid,jdbcType=CHAR}   
+		 <if test='endDate!=null and  datetype=="createdate" '>
+			and f.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and f.createdate &lt;= #{endDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='endDate!=null and  datetype=="deliverydate" '>
+			and e.deliverydate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and e.deliverydate &lt;= #{endDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='endDate!=null and  datetype=="approvaldate" '>
+			and e.audittime &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and e.audittime &lt;= #{endDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='toDate!=null and  datetype=="createdate" '>
+			and f.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and f.createdate &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='toDate!=null and  datetype=="deliverydate" '>
+			and e.deliverydate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and e.deliverydate &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='toDate!=null and  datetype=="approvaldate" '>
+			and e.audittime &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and e.audittime &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+ 		<if test="datetype==null">
+			<if test='fromDate!=null'>
+				and f.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test='endDate!=null'>
+				and f.createdate &lt;= #{endDate,jdbcType=TIMESTAMP}
+			</if>
+		</if>
+		<if test='auditstatus=="0"'>
+			and e.auditstatus=0 
+		</if>
+		<if test='auditstatus=="1"'>
+			and e.auditstatus=1 
+		</if>
+		<if test='auditstatus=="3"'>
+			and e.auditstatus=3
+		</if>
+		<if test='auditstatus=="4"'>
+			and e.auditstatus=2 and e.inwhstatus=0
+			<if test='auditstatusparam=="pay"'>
+				and e.paystatus=1
+			</if>
+			<if test='auditstatusparam=="notpay"'>
+				and e.paystatus=0
+			</if>
+			<if test='auditstatusparam=="outdate"'>
+			    and e.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='auditstatus=="5"'>
+			and e.auditstatus=2 and e.paystatus=3
+			<if test='auditstatusparam=="in"'>
+				and e.inwhstatus=1
+			</if>
+			<if test='auditstatusparam=="notin"'>
+				and e.inwhstatus=0
+			</if>
+			<if test='auditstatusparam=="outdate"'>
+				and e.inwhstatus=0
+			    and e.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='auditstatus=="6"'>
+			and e.auditstatus=2 and e.paystatus=0
+			<if test='auditstatusparam=="in"'>
+				and e.inwhstatus=1
+			</if>
+			<if test='auditstatusparam=="notin"'>
+				and e.inwhstatus=0
+			</if>
+			<if test='auditstatusparam=="outdate"'>
+				and e.inwhstatus=0
+			    and e.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='auditstatus=="8"'>
+			and e.auditstatus=2 and e.inwhstatus=0 and e.paystatus=0
+		</if>
+		<if test='auditstatus=="9"'>
+			and e.auditstatus=2 and e.inwhstatus=0 and e.paystatus=1
+		</if>
+		<if test='auditstatus=="10"'>
+			and e.auditstatus=2
+			and e.inwhstatus=0
+			and e.deliverydate &lt; now()
+		</if>
+	    <if test='auditstatus=="15"'>
+			and e.auditstatus>=1
+		</if>
+		<if test='auditstatus=="11"'>
+			and e.paystatus=1
+		</if>
+		<if test='auditstatus=="12"'>
+			and e.inwhstatus=1
+		</if>
+			group by pay.formentryid
+		) p on p.formentryid=entry.id
+		where form.shopid=#{shopid,jdbcType=CHAR} 
+		<if test='entrylist!=null and formid==null'>
+			and (
+			<foreach collection="entrylist" item="item" index="index" separator="or">
+				entry.id=#{item,jdbcType=CHAR}
+			</foreach>
+			)
+		</if>
+		<if test='auditstatus=="0"'>
+			and entry.auditstatus=0 
+		</if>
+		<if test='auditstatus=="1"'>
+			and entry.auditstatus=1 
+		</if>
+		<if test='auditstatus=="3"'>
+			and entry.auditstatus=3
+		</if>
+		<if test='auditstatus=="4"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0
+			<if test='auditstatusparam=="pay"'>
+				and entry.paystatus=1
+			</if>
+			<if test='auditstatusparam=="notpay"'>
+				and entry.paystatus=0
+			</if>
+			<if test='auditstatusparam=="outdate"'>
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='auditstatus=="5"'>
+			and entry.auditstatus=2 and entry.paystatus=3
+			<if test='auditstatusparam=="in"'>
+				and entry.inwhstatus=1
+			</if>
+			<if test='auditstatusparam=="notin"'>
+				and entry.inwhstatus=0
+			</if>
+			<if test='auditstatusparam=="outdate"'>
+				and entry.inwhstatus=0
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='auditstatus=="6"'>
+			and entry.auditstatus=2 and entry.paystatus=0
+			<if test='auditstatusparam=="in"'>
+				and entry.inwhstatus=1
+			</if>
+			<if test='auditstatusparam=="notin"'>
+				and entry.inwhstatus=0
+			</if>
+			<if test='auditstatusparam=="outdate"'>
+				and entry.inwhstatus=0
+			    and entry.deliverydate &lt; now()
+			</if>
+		</if>
+		<if test='auditstatus=="8"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0 and entry.paystatus=0
+		</if>
+		<if test='auditstatus=="9"'>
+			and entry.auditstatus=2 and entry.inwhstatus=0 and entry.paystatus=1
+		</if>
+		<if test='auditstatus=="10"'>
+			and entry.auditstatus=2
+			and entry.inwhstatus=0
+			and entry.deliverydate &lt; now()
+		</if>
+	    <if test='auditstatus=="15"'>
+			and entry.auditstatus>=1
+		</if>
+		<if test='auditstatus=="11"'>
+			and entry.paystatus=1
+		</if>
+		<if test='auditstatus=="12"'>
+			and entry.inwhstatus=1
+		</if>
+		<if test="search!=null and entryList==null">
+			<if test="searchtype!=null">
+			   <if test="searchtype=='sku'">
+			   	and m.sku like #{search,jdbcType=CHAR}
+			   </if>
+			    <if test="searchtype=='number'">
+			   	 and form.number like #{search,jdbcType=CHAR}
+			   </if>
+			    <if test="searchtype=='supplier'">
+			    and c.name like #{search,jdbcType=CHAR}
+			    </if>
+			</if>
+		</if>
+		<if test="search!=null">
+			<if test="searchtype!=null">
+			   <if test="searchtype=='sku'">
+			   	and m.sku like #{search,jdbcType=CHAR}
+			   </if>
+			    <if test="searchtype=='number'">
+			   	 and form.number like #{search,jdbcType=CHAR}
+			   </if>
+			    <if test="searchtype=='supplier'">
+			    and c.name like #{search,jdbcType=CHAR}
+			    </if>
+			</if>
+		</if>
+		<if test="formid!=null">
+			and entry.formid= #{formid,jdbcType=CHAR}
+		</if>
+		<if test="supplierid!=null">
+			and entry.supplier = #{supplierid,jdbcType=CHAR}
+		</if>
+		<if test="warehouse!=null">
+			and w.id = #{warehouse,jdbcType=CHAR}
+		</if>
+
+		<if test="myself != null">
+			and m.owner=#{myself,jdbcType=CHAR }
+		</if>
+		<if test="datetype==null">
+			<if test='fromDate!=null'>
+				and form.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test='endDate!=null'>
+				and form.createdate &lt;= #{endDate,jdbcType=TIMESTAMP}
+			</if>
+		</if>
+		<if test="name!=null">
+			and m.name like #{name,jdbcType=CHAR}
+		</if>
+		<if test="owner!=null">
+			and m.owner= #{owner,jdbcType=CHAR}
+		</if>
+		<if test="issfg!=null">
+			and m.issfg= #{issfg,jdbcType=CHAR}
+		</if>
+		<if test="categoryId!=null">
+			and m.categoryid= #{categoryId,jdbcType=CHAR}
+		</if>
+		<if test="remark!=null">
+			and (form.remark like #{remark,jdbcType=CHAR} or entry.remark like #{remark,jdbcType=CHAR})
+		</if>
+		<if test="supplierid!=null">
+			and entry.supplier = #{supplierid,jdbcType=CHAR}
+		</if>
+		<if test='endDate!=null and  datetype=="createdate" '>
+			and form.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{endDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='endDate!=null and  datetype=="deliverydate" '>
+			and entry.deliverydate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and entry.deliverydate &lt;= #{endDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='endDate!=null and  datetype=="approvaldate" '>
+			and entry.audittime &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and entry.audittime &lt;= #{endDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='toDate!=null and  datetype=="createdate" '>
+			and form.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='toDate!=null and  datetype=="deliverydate" '>
+			and entry.deliverydate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and entry.deliverydate &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test='toDate!=null and  datetype=="approvaldate" '>
+			and entry.audittime &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and entry.audittime &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+	</select>
+	
+	<select id="selectByConditionForm" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT * from (
+			SELECT pf.*, 
+			    sum(pe.orderprice) orderprice, 
+				sum(case when pe.auditstatus=2 or pe.auditstatus=3 then pe.orderprice else 0 end) orderprice2,
+			<if test="param.search!=null and param.ftype=='sku'">
+				<if test='param.auditstatus=="2" or param.auditstatus=="3"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus >=2 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="1" or param.auditstatus=="20"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus >=0 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="all"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus is not null then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="4"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =2 and pe.inwhstatus=0 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="5"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =2 and pe.paystatus=3 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="6"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =2 and pe.paystatus=0  then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="8"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =2 and pe.paystatus=0 and pe.inwhstatus=0 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="9"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =2 and pe.paystatus=1 and pe.inwhstatus=0 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="10"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =2 and pe.inwhstatus=0 and pe.deliverydate &lt; now() then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="0"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.auditstatus =0 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="11"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.paystatus =1 then 1 else 0 end) hasSKU ,
+				</if>
+				<if test='param.auditstatus=="12"'>
+					sum(case when m.sku like #{param.search,jdbcType=CHAR} and pe.inwhstatus =1 then 1 else 0 end) hasSKU ,
+				</if>
+			</if>
+				sum(case when pe.auditstatus=0 then 1 else 0 end) hasStatus0,
+				sum(case when pe.auditstatus=1 then 1 else 0 end) hasStatus1,
+				sum(case when pe.auditstatus=2 then 1 else 0 end) hasStatus2,
+				sum(case when pe.auditstatus=3 then 1 else 0 end) hasStatus3,
+				sum(case when pe.paystatus =1 then 1 else 0 end)  hasStatus11,
+				sum(case when pe.inwhstatus =1 then 1 else 0 end) hasStatus12,
+				sum(case when 
+				      (pe.auditstatus=2 and pe.inwhstatus=0
+				<if test='param.auditstatusparam=="outdate"'>
+			   	 	  and pe.deliverydate &lt; now()
+				</if>
+				<if test='param.auditstatusparam=="pay"'>
+					  and pe.paystatus=1
+				</if>
+				<if test='param.auditstatusparam=="notpay"'>
+					  and pe.paystatus=0
+				</if>
+				<if test='param.auditstatusparam=="needrec"'>
+					  and (e.signinfo is not null)
+				</if>
+				) then 1 else 0 end) hasStatus4,
+				sum(case when 
+				(pe.auditstatus=2 and pe.paystatus=3
+				<if test='param.auditstatusparam=="outdate"'>
+					and pe.inwhstatus=0
+			   	 	and pe.deliverydate &lt; now()
+				</if>
+				<if test='param.auditstatusparam=="in"'>
+					and pe.inwhstatus=1
+				</if>
+				<if test='param.auditstatusparam=="notin"'>
+					and pe.inwhstatus=0
+				</if>
+				) then 1 else 0 end) hasStatus5,
+				sum(case when 
+				(pe.auditstatus=2  and pe.paystatus=0
+				<if test='param.auditstatusparam=="outdate"'>
+					and pe.inwhstatus=0
+			   	 	and pe.deliverydate &lt; now()
+				</if>
+				<if test='param.auditstatusparam=="in"'>
+					and pe.inwhstatus=1
+				</if>
+				<if test='param.auditstatusparam=="notin"'>
+					and pe.inwhstatus=0
+				</if>
+				) then 1 else 0 end) hasStatus6,
+				sum(case when pe.auditstatus is not null then 1 else 0 end) hasStatus7,
+				sum(case when pe.auditstatus=2 and pe.paystatus=0 and pe.inwhstatus=0  then 1 else 0 end) hasStatus8,
+				sum(case when pe.auditstatus=2 and pe.paystatus=1 and pe.inwhstatus=0  then 1 else 0 end) hasStatus9,
+				sum(case when pe.auditstatus=2 and pe.deliverydate &lt; now() and pe.inwhstatus=0  then 1 else 0 end) hasStatus10,
+			<if test="param.supplierid!=null and param.supplierid!=''">
+				sum(case when pe.supplier=#{param.supplierid,jdbcType=INTEGER} then 1 else 0 end) hassupplierid,
+			</if>
+				max(w.`name`) warehouse ,
+				max(w.parentid) warehouseParent,
+				max(u.`name`) usrname , 
+				min(pe.deliverydate) deliverydate,
+				min(pe.audittime) audittime,
+				max(c.name) suppliername
+				 
+			from t_erp_purchase_form pf
+			left join t_erp_warehouse w on pf.warehouseid=w.id
+			left join t_userinfo u on pf.creator=u.id
+			left join t_erp_purchase_form_entry pe on pf.id=pe.formid
+			left join t_erp_purchase_form_entry_alibabainfo_ext e on e.entryid=pe.id
+			left join t_erp_material m on pe.materialid=m.id
+			left join t_erp_customer c on c.id=pe.supplier
+			where pf.shopid=#{param.shopid,jdbcType=CHAR}
+			<if test='param.auditstatus=="1"'>
+			    and pe.auditstatus=1
+			</if>
+			<if test='param.auditstatus=="2" or param.auditstatus=="4" or param.auditstatus=="5" or param.auditstatus=="6" or param.auditstatus=="8" or param.auditstatus=="9" or param.auditstatus=="10"'>
+				 and pe.auditstatus=2
+			</if>
+			<if test='param.auditstatus=="11"'>
+				and pe.paystatus =1
+			</if>
+			<if test='param.auditstatus=="12"'>
+				and pe.inwhstatus =1
+			</if>
+			<if test='param.auditstatus=="0"'>
+				and pe.auditstatus=0
+			</if>
+		   <if test='param.toDate!=null and  param.datetype=="createdate" '>
+			and pf.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+			and pf.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test='param.toDate!=null and  param.datetype=="deliverydate" '>
+				and pe.deliverydate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+				and pe.deliverydate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test='param.toDate!=null and  param.datetype=="approvaldate" '>
+				and pe.audittime &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+				and pe.audittime &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test="param.myself != null">
+			   and m.owner=#{param.myself,jdbcType=CHAR }
+		    </if>
+		   <if test="param.warehouse!=null">
+			  and w.id=#{param.warehouse,jdbcType=CHAR}
+		   </if>
+		   <if test="param.groupid!=null and param.groupid!=''">
+			  and pf.groupid=#{param.groupid,jdbcType=CHAR}
+		   </if>
+			<if test="param.entrylist!=null and  param.ftype=='logistics'">
+				and (
+				<foreach collection="param.entrylist" item="item" index="index" separator="or">
+					pe.id=#{item,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+			group by pf.id 
+		) p
+		where 1=1
+
+		<if test='param.auditstatus=="1"'>
+			and p.hasStatus1>0
+		</if>
+		<if test='param.auditstatus=="20"'>
+			and p.hasStatus1=0
+		</if>
+		<if test='param.auditstatus=="2"'>
+			and p.hasStatus2>0
+		</if>
+		<if test='param.auditstatus=="3"'>
+			and p.hasStatus2=0 and p.hasStatus3>0
+		</if>
+		<if test='param.auditstatus=="all"'>
+			and (p.hasStatus7>0) 
+		</if>
+		<if test='param.auditstatus=="4"'>
+			and (p.hasStatus4>0) 
+		</if>
+		<if test='param.auditstatus=="5"'>
+			and (p.hasStatus5>0) 
+		</if>
+		<if test='param.auditstatus=="6"'>
+			and (p.hasStatus6>0) 
+		</if>
+		<if test='param.auditstatus=="8"'>
+			and (p.hasStatus8>0) 
+		</if>
+		<if test='param.auditstatus=="9"'>
+			and (p.hasStatus9>0) 
+		</if>
+		<if test='param.auditstatus=="10"'>
+			and (p.hasStatus10>0) 
+		</if>
+		<if test='param.auditstatus=="11"'>
+			and (p.hasStatus11>0) 
+		</if>
+		<if test='param.auditstatus=="12"'>
+			and (p.hasStatus12>0) 
+		</if>
+		<if test='param.auditstatus=="0"'>
+			and (p.hasStatus0>0) 
+		</if>
+	    <if test="param.ftype=='sku' and param.search!=null">
+			and p.hasSKU>0
+		</if>
+		 <if test="param.ftype=='order' and param.search!=null">
+			and p.number like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.supplierid!=null and param.supplierid!=''">
+			and p.hassupplierid>0
+		</if>
+		order by p.createdate desc
+	</select>
+	
+	<select id="selectSummarytByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select count(entry.id) skunum, sum(entry.amount) totalamount, sum(entry.orderprice) totalprice
+		from t_erp_purchase_form_entry entry
+		left join t_erp_material m on entry.materialid=m.id
+		left join t_picture pic on m.image=pic.id
+		left join t_erp_purchase_form form on entry.formid=form.id
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_warehouse w on w.id=form.warehouseid
+		left join t_userinfo cu on cu.id=form.creator
+		left join t_erp_material_mark mark on mark.materialid=m.id and mark.ftype='notice'
+		where form.shopid=#{shopid,jdbcType=CHAR}
+		<if test="auditstatus!=null and auditstatus!=''">
+			and entry.auditstatus=#{auditstatus,jdbcType=INTEGER}
+		</if>
+		<if test="search!=null">
+			and (m.sku like #{search,jdbcType=CHAR} or form.number like #{search,jdbcType=CHAR})
+		</if>
+		<if test="supplierid!=null">
+			and entry.supplier = #{supplierid,jdbcType=CHAR}
+		</if>
+		<if test="toDate!=null">
+			and form.createdate &gt;= #{fromDate,jdbcType=TIMESTAMP}
+			and form.createdate &lt;= #{toDate,jdbcType=TIMESTAMP}
+		</if>
+	</select>
+
+	<select id="purchaseReport">
+		select m.sku,c.name, sum(case when rec.ftype='in' then rec.amount else 0 end ) rec , #实际入库量
+			sum(case when rec.ftype='re' then rec.amount else 0 end ) recback ,#退货数量
+			sum(case when pay.projectid='26138972997300240' then payprice else 0 end ) pay , #实际采购金额
+			sum(case when pay.projectid='26138972997300238' then payprice else 0 end ) payship, #采购运费
+			sum(entry.orderprice)- sum(case when pay.projectid='26138972997300240' then payprice else 0 end ) paydiff ,
+			#付款差额 sum(entry.amount)- sum(case when rec.ftype='in' then rec.amount else 0 end ) recdiff #入库差额
+		from t_erp_purchase_form form
+		left join t_erp_purchase_form_entry entry on entry.formid=form.id
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_purchase_form_payment pay on pay.formentryid=entry.id
+		left join t_erp_purchase_form_receive rec on rec.formentryid=entry.id
+		group by entry.materialid,entry.supplier
+	</select>
+
+	<select id="purchaseSumReport" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(form.createdate,'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(form.createdate,date_format(form.createdate,'%w')-7),'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(form.createdate) ,'-' ,month(form.createdate)) createdate,
+		</if>
+			sum(entry.totalpay) payprice, sum(entry.totalin) amount 
+		from t_erp_purchase_form form
+		left join t_erp_purchase_form_entry entry on entry.formid=form.id
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_warehouse w on w.id=form.warehouseid
+		left join t_erp_material m on m.id=entry.materialid
+		where entry.auditstatus=3
+		<if test="sku != null">
+			and (m.sku like #{sku,jdbcType=CHAR} or c.name like #{sku,jdbcType=CHAR})
+		</if>
+		<if test="warehouseid!=null">
+			and w.id =#{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="shopid != null">
+			and form.shopid =#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="begindate != null">
+			and form.createdate &gt;=#{begindate,jdbcType=CHAR}
+		</if>
+		<if test="enddate != null">
+			and form.createdate &lt;#{enddate,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(form.createdate,'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(form.createdate,date_format(form.createdate,'%w')-7),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(form.createdate) ,'-' ,month(form.createdate))
+		</if>
+	</select>
+	
+	<select id="purchaseRecSumReport" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(form.createdate,'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(form.createdate,date_format(form.createdate,'%w')-7),'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(form.createdate) ,'-' ,month(form.createdate)) createdate,
+		</if>
+			sum(case when pay.auditstatus=1 then pay.payprice else 0 end) payprice, sum(rec.amount) amount 
+			from t_erp_purchase_form form
+		left join t_erp_purchase_form_entry entry on entry.formid=form.id
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_warehouse w on w.id=form.warehouseid
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_purchase_form_payment pay on pay.formentryid=entry.id
+		left join t_erp_purchase_form_receive rec on rec.formentryid=entry.id
+		where entry.totalin>0
+		<if test="sku != null">
+			and (m.sku like #{sku,jdbcType=CHAR} or c.name like #{sku,jdbcType=CHAR})
+		</if>
+		<if test="warehouseid!=null">
+			and w.id =#{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="shopid != null">
+			and form.shopid =#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="begindate != null">
+			and form.createdate &gt;=#{begindate,jdbcType=CHAR}
+		</if>
+		<if test="enddate != null">
+			and form.createdate &lt;=#{enddate,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(form.createdate,'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(form.createdate,date_format(form.createdate,'%w')-7),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(form.createdate) ,'-' ,month(form.createdate))
+		</if>
+	</select>
+
+	<select id="getPurchaseSumReportNew" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(rec.opttime,'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(rec.opttime,date_format(rec.opttime,'%w')-7),'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(rec.opttime) ,'-' ,month(rec.opttime)) createdate,
+		</if>
+			sum(rec.amount) amount
+		from t_erp_purchase_form_entry entry
+		left join t_erp_purchase_form_receive rec on rec.formentryid=entry.id
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_purchase_form form on form.id=entry.formid
+		left join t_erp_warehouse w on form.warehouseid = w.id
+		where entry.inwhstatus>=1
+		<if test="shopid != null">
+			and form.shopid =#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="warehouseid!=null">
+			and w.id =#{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="sku != null">
+			and m.sku like #{sku,jdbcType=CHAR}
+		</if>
+		<if test="begindate != null">
+			and rec.opttime &gt;=#{begindate,jdbcType=CHAR}
+		</if>
+		<if test="enddate != null">
+			and rec.opttime  &lt;=#{enddate,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(rec.opttime,'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(rec.opttime,date_format(rec.opttime,'%w')-7),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(rec.opttime) ,'-' ,month(rec.opttime))
+		</if>
+	</select>
+
+	<select id="getLastPurchaseRecord" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT sum(e.amount) amount,max(date_format(p.createdate,'%Y-%m-%d')) createdate
+		from t_erp_purchase_form p
+		left join t_erp_purchase_form_entry e on p.id=e.formid
+		where p.shopid=#{shopid,jdbcType=CHAR}
+			and p.warehouseid=#{warehouseid,jdbcType=CHAR}
+			and e.auditstatus = 3
+		group by p.id
+		order by p.createdate desc limit 1;
+	</select>
+
+	<select id="getPurchaseEntryStatus" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT sum(e.amount) amount,max(date_format(p.createdate,'%Y-%m-%d')) createdate
+		from t_erp_purchase_form p
+		left join t_erp_purchase_form_entry e on p.id=e.formid
+		where p.shopid=#{shopid,jdbcType=CHAR}
+			and p.warehouseid=#{warehouseid,jdbcType=CHAR}
+			and e.auditstatus = 3
+		group by p.id
+		order by p.createdate desc limit 1;
+	</select>
+
+	<select id="findEntryByIdAndSupplier" resultType="java.util.Map" parameterType="java.lang.String">
+		select entry.id,form.number,m.sku,entry.supplier,entry.auditstatus,
+			IFNULL(pic.location,pic.url) image,m.color,m.name mname,entry.itemprice,c.name suppliername,
+			entry.amount,entry.orderprice,form.id formid, form.creator,cu.name creatorname,form.createdate,
+			entry.materialid, form.warehouseid warehouseid, w.name warehousename ,entry.remark notice,entry.totalpay,
+			entry.totalin,entry.inwhstatus,entry.paystatus ,m.purchaseUrl,m.MOQ moq,m.delivery_cycle,
+			ifnull(entry.deliverydate,'') deliverydate ,m.specification
+		from t_erp_purchase_form_entry entry
+		left join t_erp_material m on entry.materialid=m.id
+		left join t_picture pic on m.image=pic.id
+		left join t_erp_purchase_form form on entry.formid=form.id
+		left join t_erp_customer c on c.id=entry.supplier
+		left join t_erp_warehouse w on w.id=form.warehouseid
+		left join t_userinfo cu on cu.id=form.creator
+		left join t_erp_purchase_form_entry_alibabainfo al on al.entryid=entry.id
+		where entry.formid=#{formid,jdbcType=CHAR} and m.isDelete=0
+			and entry.supplier=#{supplier,jdbcType=CHAR}
+	</select>
+	
+	<select id="findSupplierByForm" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT entry.supplier id,cust.name 
+		FROM t_erp_purchase_form t
+		LEFT JOIN t_erp_purchase_form_entry entry ON entry.formid=t.id
+		LEFT JOIN t_erp_customer cust ON cust.id=entry.supplier
+		WHERE t.id=#{formid,jdbcType=CHAR}
+		GROUP BY entry.supplier
+	</select>
+	<select id="selectPurchaseNumAllStatus" parameterType="java.util.Map" resultType="java.util.Map">
+		 <if test="param.method == 1">
+ 			SELECT sum(case when v.nopass>0 then 1 ELSE 0 END) nopass,
+					 sum(case when v.passpay>0 then 1 ELSE 0 END) passpay,
+					 sum(case when v.passnopay>0 then 1 ELSE 0 END) passnopay,
+					 sum(case when v.passinware>0 then 1 ELSE 0 END) passinware
+			  FROM (SELECT  
+			SUM(case when en.auditstatus=1 then 1 ELSE 0 END ) nopass,
+			SUM(case when en.auditstatus=2 AND en.paystatus=3  then 1 ELSE 0 END ) passpay,
+			SUM(case when en.auditstatus=2 AND en.paystatus=0  then 1 ELSE 0 END ) passnopay,
+			SUM(case when en.auditstatus=2 AND en.inwhstatus=0  then 1 ELSE 0 END ) passinware					
+			FROM t_erp_purchase_form t 
+			LEFT JOIN t_erp_purchase_form_entry en ON en.formid=t.id
+			WHERE t.shopid=#{param.shopid,jdbcType=CHAR} 
+         AND (auditstatus=1 OR auditstatus=2)
+         GROUP BY t.id ) v
+		</if>
+		
+	   <if test="param.method == 2">
+	   		SELECT  
+			SUM(case when en.auditstatus=1 then 1 ELSE 0 END ) nopassentry,
+			SUM(case when en.auditstatus=2 AND en.paystatus=3  then 1 ELSE 0 END ) passpayentry,
+			SUM(case when en.auditstatus=2 AND en.paystatus=0  then 1 ELSE 0 END ) passnopayentry,
+			SUM(case when en.auditstatus=2 AND en.inwhstatus=0  then 1 ELSE 0 END ) passinwareentry					
+			 FROM t_erp_purchase_form t 
+			LEFT JOIN t_erp_purchase_form_entry en ON en.formid=t.id
+			WHERE t.shopid=#{param.shopid,jdbcType=CHAR} 
+         AND (en.auditstatus=1 OR en.auditstatus=2)
+		</if>
+	</select>
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.finance.mapper.FinAccountMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.finance.pojo.entity.FinAccount" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="balance" property="balance" jdbcType="DECIMAL" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, balance,createdate
+  </sql>
+  <select id="findAcBanlance" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select * from t_erp_fin_account t where t.shopid=#{shopid,jdbcType=CHAR} 
+  </select>
+  <select id="findAccountAll" resultType="com.wimoor.erp.finance.pojo.entity.FinAccount" parameterType="java.lang.String" >
+  	select t.*,m.name paymethName from t_erp_fin_account t 
+  	left join t_erp_purchase_form_payment_method m on m.id=t.paymeth
+  	where t.shopid=#{shopid,jdbcType=CHAR} and t.isdelete=0
+  	order by t.paymeth asc,t.isdefault desc
+  </select>
+  
+    <select id="findAccountArchiveAll" resultType="com.wimoor.erp.finance.pojo.entity.FinAccount" parameterType="java.lang.String" >
+  	select t.*,m.name paymethName from t_erp_fin_account t 
+  	left join t_erp_purchase_form_payment_method m on m.id=t.paymeth
+  	where t.shopid=#{shopid,jdbcType=CHAR} and t.isdelete=1
+  	order by t.paymeth asc,t.isdefault desc
+  </select>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_fin_account
+    where id = #{id,jdbcType=CHAR}
+  </select> -->
+<!--   <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_fin_account
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.FinAccount" >
+    insert into t_erp_fin_account (id, shopid, createdate
+      )
+    values (#{id,jdbcType=CHAR}, #{shopid,jdbcType=CHAR}, #{createdate,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.FinAccount" >
+    insert into t_erp_fin_account
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.FinAccount" >
+    update t_erp_fin_account
+    <set >
+      <if test="shopid != null" >
+        shopid = #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.FinAccount" >
+    update t_erp_fin_account
+    set shopid = #{shopid,jdbcType=CHAR},
+      createdate = #{createdate,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInOrder">
+        <id column="pid" property="pid" />
+        <result column="avgsales" property="avgsales" />
+        <result column="oldavgsales" property="oldavgsales" />
+        <result column="daynum" property="daynum" />
+        <result column="sales_week" property="salesWeek" />
+        <result column="price_week" property="priceWeek" />
+        <result column="sales_month" property="salesMonth" />
+        <result column="order_week" property="orderWeek" />
+        <result column="order_month" property="orderMonth" />
+        <result column="changeRate" property="changeRate" />
+        <result column="lastupdate" property="lastupdate" />
+        <result column="sales_seven" property="salesSeven" />
+        <result column="sales_fifteen" property="salesFifteen" />
+        <result column="rank" property="rank" />
+    </resultMap>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_product_in_order(
+			pid, avgsales, oldavgsales, daynum, sales_week, price_week, sales_month, order_week,
+			order_month, changeRate, lastupdate, sales_seven, sales_fifteen, `rank`)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.pid,jdbcType=BIGINT}, #{adv.avgsales,jdbcType=INTEGER},
+			#{adv.oldavgsales,jdbcType=INTEGER},
+			#{adv.daynum,jdbcType=INTEGER}, #{adv.salesWeek,jdbcType=INTEGER},
+			#{adv.priceWeek,jdbcType=DECIMAL},
+			#{adv.salesMonth,jdbcType=INTEGER},
+			#{adv.orderWeek,jdbcType=INTEGER},
+			#{adv.orderMonth,jdbcType=INTEGER},
+			#{adv.changeRate,jdbcType=DECIMAL},
+			#{adv.lastupdate,jdbcType=TIMESTAMP},
+			#{adv.salesSeven,jdbcType=INTEGER},
+			#{adv.salesFifteen,jdbcType=INTEGER}, #{adv.rank,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+
+	<select id="selectProductOrderWithProfitByPid" parameterType="java.lang.String" resultType="java.util.Map">
+		select porder.`*`, profit.profit_week,profit.margin_week,profit.shipmentfee,profit.othersfee,profit.costDetail
+		from t_product_in_order porder
+		left join t_product_in_profit profit on profit.pid = porder.pid
+		where porder.pid = #{pid,jdbcType=CHAR}
+	</select>
+
+	<select id="getProductOrderSales" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select sum(t.avgsales) sales
+		from t_product_in_order t
+		left join t_product_info info on t.pid = info.id
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
+		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		where  auth.disable = FALSE and (o.disable is null or o.disable=0) and info.invalid=0 and info.isparent=0
+		    AND  info.sku = #{sku,jdbcType=CHAR}
+			and (mk.marketplaceid = #{marketplaceid,jdbcType=CHAR} or mk.region = #{marketplaceid,jdbcType=CHAR})
+			and auth.groupid = #{groupid,jdbcType=CHAR}
+	</select>
+	
+   <select id="getProductCountrySales" parameterType="java.util.Map" resultType="java.util.Map">
+		select info.sku,
+		       info.marketplaceid,
+		       auth.groupid,
+		       ifnull(o.msku,info.sku) msku,
+		       t.sales_week sumweek,
+		       t.sales_seven sumseven,
+		       t.sales_month summonth,
+		       t.sales_fifteen sum15,
+		       info.openDate,
+		       t.avgsales
+		from t_product_info info
+		left join t_product_in_order t on t.pid = info.id
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
+		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		left join t_erp_material m on m.sku=ifnull(o.msku,info.sku) and m.shopid=auth.shop_id and m.isdelete=0
+		<if test="sku==null">
+		LEFT JOIN t_amz_product_sales_plan p ON p.amazonauthid=info.amazonAuthId and p.sku=info.sku and p.marketplaceid=info.marketplaceid
+		and  p.opttime>ifnull(t.lastupdate,CURRENT_DATE())   and p.groupid=auth.groupid AND p.msku=m.sku
+		</if>
+		where  
+		    auth.disable = FALSE 
+		    and m.id is not null
+		    and (o.disable is null or o.disable=0) 
+		    and info.invalid=0 
+		    <if test="sku==null">
+		    and p.id IS NULL 
+		    </if>
+		    and info.isparent=0
+			and mk.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and info.amazonauthid = #{amazonauthid,jdbcType=CHAR}
+			<if test="sku!=null">
+			   and info.sku = #{sku,jdbcType=CHAR}
+			</if>
+		order by t.sales_month asc
+	</select>
+	
+    <select id="getProductEUSales" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (select info.sku sku,
+				       max('EU') marketplaceid,
+				       max(auth.id) amazonauthid,
+				       max(auth.groupid) groupid,
+				       max(auth.shop_id) shopid,
+				       ifnull(max(o.msku),max(info.sku)) msku,
+				       sum(t.sales_week) sumweek,
+				       sum(t.sales_seven) sumseven,
+				       sum(t.sales_month) summonth,
+				       sum(t.sales_fifteen) sum15,
+				       min(info.openDate) openDate,
+				       sum(t.avgsales) avgsales,
+				       max(t.lastupdate) lastupdate
+		from t_product_info info
+		left join   t_product_in_order t on t.pid = info.id
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_marketplace mk on info.marketplaceid=mk.marketplaceid
+		left join t_amazon_auth auth on auth.id = info.amazonAuthId
+		where   auth.disable = FALSE 
+			    and (o.disable is null or o.disable=0) 
+			    and info.invalid=0 
+			    and info.isparent=0
+				and mk.region='EU'
+				and info.amazonauthid = #{amazonauthid,jdbcType=CHAR}
+			  <if test="sku!=null">
+			    and info.sku = #{sku,jdbcType=CHAR}
+			  </if>
+		group by sku) v
+		inner join t_erp_material m on m.sku=v.msku and m.shopid=v.shopid and m.isdelete=0
+		<if test="sku==null">
+		LEFT JOIN t_amz_product_sales_plan p ON p.amazonauthid=v.amazonauthid and p.sku=v.sku and p.marketplaceid=v.marketplaceid
+		and  p.opttime>ifnull(v.lastupdate,CURRENT_DATE())  and p.groupid=v.groupid
+		where p.id IS NULL 
+		</if>
+		order by v.summonth asc
+	</select>
+	
+	<select id="selectDetialById" resultType="java.util.Map" parameterType="java.lang.String">
+		select t.id, t.asin, t.sku,t.marketplaceid, m.point_name, t.name,
+		date_format( openDate,'%Y-%m-%d') opendate, fulfillchannel, binding,
+		(select MIN(`rank`)  
+		    from t_product_rank  
+		    where product_id = t.id  and byday &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d')) `rank`,
+		ifnull(pf.flownumber,t.totalOfferCount) totalOfferCount, manufacturer, pgroup, typename,ifnull(p.location,p.url) image, 
+		t.amazonAuthId,sy.avgsales averageSalesDay, sy.daynum averageSalesWeek, sy.oldavgsales averageSalesMonth , 
+		ifnull(op.buyprice,t.price) landed_amount,m.currency landed_currency,ir.afn_fulfillable_quantity,
+			(ifnull(afn_fulfillable_quantity,0)+
+		ifnull(afn_reserved_quantity,0)+
+		ifnull(afn_inbound_working_quantity,0)+
+		ifnull(afn_inbound_shipped_quantity,0)+
+		ifnull(afn_inbound_receiving_quantity,0)) allqty, 
+		case when m.region='EU' then
+		(ifnull(afn_fulfillable_quantity,0)+
+		ifnull(afn_reserved_quantity,0)+
+		ifnull(afn_inbound_working_quantity,0)+
+		ifnull(afn_inbound_shipped_quantity,0)+
+		ifnull(afn_inbound_receiving_quantity,0)) /ifnull(
+		( select sum(ttemp.avgsales)
+		from t_product_info tptemp
+		left join t_product_in_order ttemp on tptemp.id=ttemp.pid
+		left join t_marketplace mtemp on tptemp.marketplaceid=mtemp.marketplaceId
+		where sku=t.sku and mtemp.region='EU'
+		),ir.afn_total_quantity+1) else
+		(ifnull(afn_fulfillable_quantity,0)+
+		ifnull(afn_reserved_quantity,0)+
+		ifnull(afn_inbound_working_quantity,0)+
+		ifnull(afn_inbound_shipped_quantity,0)+
+		ifnull(afn_inbound_receiving_quantity,0))/ifnull(sy.avgsales,ir.afn_total_quantity+1) end as daynumber,
+		m.currency listing_currency, sy.sales_seven sumweek,sy.sales_month summonth,sy.order_week orderweek,
+		sy.order_month ordermonth, isparent,op.remark,op.disable,op.remark_analysis anysisremark,
+		pf.flownumber flownnumber,pf.id followid,pf.lastupdateTime,pf.isread,
+		ses.session_day7 sessions,ses.session_rate7 sessionrate,
+		adv.adv_impr7 advimpr,adv.adv_sales7 advsales,
+		adv.adv_cpc7 advcpc,adv.adv_clicks7 advclick,
+		adv.adv_spc7 advspc,adv.adv_spend7 advspend,
+		adv.adv_ctr7 advctr,adv.adv_acos7 advacos,
+		ses.buybox_rate7 buybox, profit.margin_week prorate, sy.price_week priceweek,
+		case when ifnull(sy.price_week,0) =0 then 0 else
+		ifnull(adv.adv_spend7,0)/sy.price_week end acoas,
+		profit.profit_week profits,
+		ifnull(profit.profit_week,0)-ifnull(adv.adv_spend7 ,0) profitall,
+		case when ifnull(sy.price_week,0)=0 then 0 else
+		(ifnull(profit.profit_week,0)-ifnull(adv.adv_spend7 ,0))/sy.price_week end proprate,
+		a.groupid,m.name marketplacename
+		from t_product_info t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		left join t_product_in_order sy on t.id=sy.pid
+		left join t_product_in_profit profit on t.id=profit.pid
+		left join t_product_in_opt op on t.id=op.pid
+		left join t_product_in_adv adv on t.id=adv.pid
+		left join t_product_in_ses ses on t.id=ses.pid
+		left join t_picture p on p.id=t.image
+		left join t_marketplace m on m.marketplaceId=t.marketplaceid
+		left join t_product_follow pf on t.marketplaceid=pf.MarketplaceId and pf.amazonAuthId=t.amazonAuthId  and t.asin=pf.asin and DATEDIFF(now(),pf.lastupdateTime) &lt;=1
+		left join t_inventory_report ir on ir.marketplaceid=case when m.region='EU' then 'EU' else 	t.marketplaceid end and t.sku=ir.sku and ir.amazonAuthId=t.amazonAuthId and (ir.pcondition!='Unknown' and ir.pcondition!='No Listing')
+		where a.shop_id=#{shopid,jdbcType=CHAR} and t.isparent=false
+			and t.id=#{pid,jdbcType=CHAR}
+	</select>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipInboundShipmentTemplateFileMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipInboundShipmentTemplateFile" >
+    <result column="id" property="id" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="filename" property="filename" jdbcType="VARCHAR" />
+    <result column="filepath" property="filepath" jdbcType="VARCHAR" />
+    <result column="creator" property="creator" jdbcType="BIGINT" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <select id="findCustomsByNameAndShopid" parameterType="java.lang.String"  resultMap="BaseResultMap">
+    select * from t_erp_ship_shipment_template_file t where t.shopid=#{shopid,jdbcType=CHAR} and t.filename=#{filename,jdbcType=CHAR}
+  </select>
+  
+  <select id="selectCustomsRecordByShop"  parameterType="java.lang.String"  resultType="java.util.Map">
+  	 select t.*,u.name username from t_erp_ship_shipment_template_file t
+     left join t_userinfo u on u.id=t.operator 
+     where t.shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  
+</mapper>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseFormReceiveMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseFormReceive">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="formentryid" property="formentryid" jdbcType="CHAR" />
+		<result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+		<result column="ftype" property="ftype" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="INTEGER" />
+		<result column="remark" property="remark" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, formentryid, warehouseid, ftype, amount, opttime, operator,remark
+	</sql>
+	
+	<select id="selectByEntryid" resultType="java.util.Map" parameterType="java.lang.String">
+		select r.id, r.formentryid, r.warehouseid, r.ftype, r.amount, r.opttime,u.name
+			operator,r.remark,w.name warehousename
+		from t_erp_purchase_form_receive r
+		left join t_erp_warehouse w on r.warehouseid=w.id
+		left join t_userinfo u on r.operator=u.id
+		where formentryid = #{formentryid,jdbcType=CHAR}
+		<if test="ftype=='in'">
+			and (r.ftype='in' or (r.ftype='clear' and r.amount>0))
+		</if>
+		<if test="ftype=='out'">
+			and (r.ftype='out' or  (r.ftype='clear' and r.amount&lt;0)) 
+		</if>
+		order by r.opttime desc
+	</select>
+	
+	<select id="refreshInbound" resultType="java.lang.Integer"  parameterType="java.lang.String">
+	      SELECT ifnull(SUM(e.amount-IFNULL(v.qty,0)),0) from t_erp_purchase_form_entry e
+			LEFT JOIN (SELECT formentryid,sum(case when r.ftype='in' then r.amount ELSE case when r.ftype='out' then r.`amount`*-1 ELSE 0 END END )qty
+			 FROM  t_erp_purchase_form_receive r
+			  GROUP BY r.formentryid
+			 ) v ON v.formentryid=e.id
+			LEFT JOIN t_erp_purchase_form f ON f.id=e.formid
+			WHERE e.auditstatus=2 AND e.inwhstatus=0
+			AND f.warehouseid=#{warehouseid,jdbcType=CHAR}
+			AND e.materialid=#{materialid,jdbcType=CHAR}
+	</select>
+	<select id="receiveReport" resultType="com.wimoor.erp.purchase.pojo.vo.PurchaseFormReceiveVo">
+			select rec.opttime,rec.amount,form.number,form.createdate,m.sku,
+			p.location image,m.name mname,entry.amount purchases,w.name wname,c.name cname,
+			entry.orderprice purchaseprice,
+				case when rec.ftype='in' then '入库'
+				ELSE case when rec.ftype='clear'
+				then '撤销入库' else '退货' END END ftype,rec.remark,
+				entry.amount-entry.totalin needin,u.name,entry.audittime,entry.deliverydate
+			from t_erp_purchase_form_receive rec
+			left join t_erp_purchase_form_entry entry on entry.id=rec.formentryid
+			left join t_erp_customer c on c.id=entry.supplier
+			left join t_userinfo u on u.id=rec.operator
+			left join t_erp_material m on m.id=entry.materialid
+			left join t_picture p on p.id=m.image
+			left join t_erp_purchase_form form on form.id=entry.formid
+			left join t_erp_warehouse w on w.id=form.warehouseid
+			where entry.auditstatus>1  
+				and form.shopid=#{param.shopid,jdbcType=CHAR}
+				and rec.opttime &gt;=#{param.fromDate,jdbcType=DATE}
+				and rec.opttime &lt;=#{param.endDate,jdbcType=DATE}
+				<if test="param.warehouseid!=null">
+					and rec.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+				</if>
+			<if test="param.search!=null">
+				<if test="param.searchtype!=null">
+					<if test="param.searchtype=='sku'">
+						and m.sku like #{param.search,jdbcType=CHAR}
+					</if>
+					<if test="param.searchtype=='number'">
+						and (form.number like #{param.search,jdbcType=CHAR})
+					</if>
+				</if>
+			</if>
+	</select>
+	<select id="receiveReportSummary" resultType="java.lang.Integer">
+	 
+			select 
+				 sum(case when rec.ftype='in' then rec.amount else 
+				     case when rec.ftype='re' then rec.amount*-1 else 0 
+				     end end ) totalamount
+			from t_erp_purchase_form_receive rec
+			left join t_erp_purchase_form_entry entry on entry.id=rec.formentryid
+			left join t_userinfo u on u.id=rec.operator
+			left join t_erp_material m on m.id=entry.materialid
+			left join t_picture p on p.id=m.image
+			left join t_erp_purchase_form form on form.id=entry.formid
+			where entry.auditstatus>1 
+				and form.shopid=#{param.shopid,jdbcType=CHAR}
+				and rec.opttime &gt;=#{param.fromDate,jdbcType=DATE}
+				and rec.opttime &lt;=#{param.endDate,jdbcType=DATE}
+				<if test="param.warehouseid!=null">
+					and rec.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+				</if>
+			<if test="param.search!=null">
+				<if test="param.searchtype!=null">
+					<if test="param.searchtype=='sku'">
+						and m.sku like #{param.search,jdbcType=CHAR}
+					</if>
+					<if test="param.searchtype=='number'">
+						and (form.number like #{param.search,jdbcType=CHAR})
+					</if>
+				</if>
+			</if>
+ 
+	</select>
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmazonSettlementOpenMapper">
+
+  
+<insert id="insertBatch"  parameterType="java.util.List">
+    insert ignore into  t_amz_settlement_open ( 
+    `id` ,
+	`amazonauthid`,
+	`group_id` ,
+	`settlement_id` ,
+	`posted_date`,
+	`amazon_order_id`,
+	`order_item_id`,
+	`marketplace_name`,
+	`account_type`,
+	`fulfillment`,
+	`event_type`,
+	`sku`,
+	`ftype`,
+	`currency`,
+	`amount`,
+	`quantity`,
+	`create_time`
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (
+      #{stm.id,jdbcType=CHAR}, 
+      #{stm.amazonauthid,jdbcType=CHAR}, 
+      #{stm.groupId,jdbcType=CHAR},
+      #{stm.settlementId,jdbcType=CHAR},
+      #{stm.postedDate,jdbcType=TIMESTAMP},  
+      #{stm.amazonOrderId,jdbcType=CHAR}, 
+      #{stm.orderItemId,jdbcType=CHAR}, 
+      #{stm.marketplaceName,jdbcType=CHAR},  
+      #{stm.accountType,jdbcType=CHAR},
+      #{stm.fulfillment,jdbcType=CHAR}, 
+      #{stm.eventType,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR}, 
+      #{stm.ftype,jdbcType=CHAR}, 
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.amount,jdbcType=DECIMAL}, 
+      #{stm.quantity,jdbcType=INTEGER}, 
+      #{stm.createTime,jdbcType=TIMESTAMP}
+      )
+      </foreach> 
+  </insert>
+
+</mapper>

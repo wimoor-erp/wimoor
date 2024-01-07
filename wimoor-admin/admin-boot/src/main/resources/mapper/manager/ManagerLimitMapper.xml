@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.ManagerLimitMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.ManagerLimit">
+        <id column="id" property="id" />
+        <result column="shopId" property="shopId" />
+        <result column="maxShopCount" property="maxShopCount" />
+        <result column="maxMarketCount" property="maxMarketCount" />
+        <result column="maxProductCount" property="maxProductCount" />
+        <result column="maxOrderCount" property="maxOrderCount" />
+        <result column="maxMember" property="maxMember" />
+        <result column="maxProfitPlanCount" property="maxProfitPlanCount" />
+        <result column="maxdayOpenAdvCount" property="maxdayOpenAdvCount" />
+        <result column="existShopCount" property="existShopCount" />
+        <result column="existMarketCount" property="existMarketCount" />
+        <result column="existProductCount" property="existProductCount" />
+        <result column="existOrderCount" property="existOrderCount" />
+        <result column="existMember" property="existMember" />
+        <result column="existProfitPlanCount" property="existProfitPlanCount" />
+        <result column="existdayOpenAdvCount" property="existdayOpenAdvCount" />
+        <result column="tariffpackage" property="tariffpackage" />
+        <result column="losingEffect" property="losingEffect" />
+        <result column="remark" property="remark" />
+        <result column="opratetime" property="opratetime" />
+        <result column="createtime" property="createtime" />
+        <result column="oprate" property="oprate" />
+        <result column="logicVersion" property="logicVersion" />
+        <result column="saleskey" property="saleskey" />
+        <result column="neverNoticeShop" property="neverNoticeShop" />
+        <result column="afterNnoticeTariff" property="afterNnoticeTariff" />
+    </resultMap>
+
+ <select id="getCompanyList" resultType="java.util.Map" parameterType="java.util.Map" >
+  select * from (
+  select u.id,
+         m.id mid,
+         s.id shopid,
+         u.account account,
+         ui.name userName,
+         ifnull(s.name,ui.company) shopName,
+         u.createDate,
+         m.losingEffect,
+		 m.remark,
+		 ui.tel telephone,
+		 ui.email email,
+		 tr.name tariffpackage,
+		 tr.id tfid,
+		 u.losingEffect userlocsingEffect,
+		 u.`disable` isdisable ,
+		 v2.subuser ,
+		 case when v2.lastlogintime is not null and u.lastlogintime &lt; v2.lastlogintime  
+		 then v2.lastlogintime  else  u.lastlogintime end  lastlogintime,
+		 ifnull((  vvlg.countnum ),0) logincount,
+		 (select group_concat(r.name) from t_user_role ur
+		   left join t_role r on r.id=ur.role_id
+		   where ur.user_id=u.id
+		    <if test="param.roleid != null" >
+		 	    AND  r.id=#{param.roleid,jdbcType=CHAR}
+		   </if>   )  roles
+		 from t_user u
+		left join t_userinfo ui on ui.id=u.id
+		left join t_user_shop us on us.user_id=u.id
+		left join t_shop s on s.id=us.shop_id
+		left join t_manager_limit m on m.shopId=s.id
+		left join t_sys_tariff_packages tr on tr.id=m.tariffpackage
+		left join (
+		  SELECT case when zu.leader_id=#{param.adminid,jdbcType=CHAR}  then zu.id else zu.leader_id end userid,  COUNT(zlg.id) countnum
+				  from t_sys_operationlog zlg
+				LEFT JOIN t_user zu ON zu.id=zlg.userid
+				WHERE   method='com.plum.frame.controller.LoginController.pageAction()'
+				AND  zlg.time>DATE_SUB(CURDATE(),INTERVAL 10 day)
+				group by case when zu.leader_id=#{param.adminid,jdbcType=CHAR} then zu.id else zu.leader_id end 
+		) vvlg on vvlg.userid=u.id
+		LEFT JOIN(
+		SELECT  u.leader_id, count(u.id) subuser,MAX(u.lastlogintime) lastlogintime
+		  <if test="param.name != null" >
+		 ,sum(case when  u.account like #{param.name,jdbcType=CHAR} then 1 else 0 end) hassubuser
+		  </if>
+		 FROM t_user u 
+		where u.logicDelete!=1 GROUP BY u.leader_id ) v2 ON v2.leader_id=u.id 
+  		where u.leader_id=#{param.adminid,jdbcType=CHAR} and m.id is not null
+  		and u.logicDelete !=1
+  	   <if test="param.name != null" >
+  		and (
+  		s.name like CONCAT('%',#{param.name,jdbcType=CHAR}) 
+  		or ui.company like CONCAT('%',#{param.name,jdbcType=CHAR})
+  		or u.account like #{param.name,jdbcType=CHAR} 
+  		or ui.tel like #{param.name,jdbcType=CHAR}  
+  		or ui.email like #{param.name,jdbcType=CHAR}
+  		or m.remark like CONCAT('%',#{param.name,jdbcType=CHAR}) 
+  		or ui.name like CONCAT('%',#{param.name,jdbcType=CHAR}) 
+  		or v2.hassubuser>0)
+  	   </if>
+  	   <if test="param.pkgid != null" >
+  		and tr.id= #{param.pkgid,jdbcType=CHAR}
+  	   </if>
+  	     ) vv
+  		where 1=1
+  	     <if test="param.roleid != null" >
+    	  and roles is not null
+  	   </if>
+  </select>
+</mapper>

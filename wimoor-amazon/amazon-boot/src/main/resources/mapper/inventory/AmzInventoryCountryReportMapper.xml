@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inventory.mapper.AmzInventoryCountryReportMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.AmzInventoryCountryReport">
+        <id column="id" property="id" />
+        <result column="sku" property="sku" />
+        <result column="fnsku" property="fnsku" />
+        <result column="asin" property="asin" />
+        <result column="condition" property="condition" />
+        <result column="country" property="country" />
+        <result column="quantity" property="quantity" />
+        <result column="authid" property="authid" />
+    </resultMap>
+    
+<select id="findFBACountry"  resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT 
+		  MAX(g.name) groupname,
+		  c.sku,
+		  MAX(i.name) NAME,
+		  MAX(IFNULL(p.location,p.url)) image,
+		  SUM(case when c.country ='GB' then c.quantity ELSE 0 END) 'GB',
+		  SUM(case when c.country ='IT' then c.quantity ELSE 0 END) 'IT',
+		  SUM(case when c.country ='FR' then c.quantity ELSE 0 END) 'FR',
+		  SUM(case when c.country ='DE' then c.quantity ELSE 0 END) 'DE',
+		  SUM(case when c.country ='PL' then c.quantity ELSE 0 END) 'PL',
+		  SUM(case when c.country ='ES' then c.quantity ELSE 0 END) 'ES'
+		 FROM  t_amz_rpt_inventory_country c
+		LEFT JOIN t_amazon_auth a ON a.id=c.authid
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		LEFT JOIN t_marketplace m ON m.market=c.country
+		LEFT JOIN t_product_info i ON i.marketplaceid=m.marketplaceId AND i.amazonAuthId=c.authid AND i.sku=c.sku
+		left join t_product_in_opt o on o.pid=i.id
+		LEFT JOIN t_picture p ON p.id=i.image
+		WHERE g.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test="param.groupid != null">
+			and a.groupid=#{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.search != null">
+			and c.sku like #{param.search,jdbcType=CHAR}
+		</if>
+	    <if test="param.myself != null">
+			and o.owner=#{param.myself,jdbcType=CHAR} 
+		</if>
+		GROUP BY c.authid,c.sku
+</select>
+ <insert id="insertBatch"  parameterType="java.util.List">
+    insert into t_amz_rpt_inventory_country (id, sku, fnsku, asin, 
+      fcondition, country, quantity,  authid,refreshtime
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (uuid_short(), #{stm.sku,jdbcType=CHAR}, #{stm.fnsku,jdbcType=CHAR}, #{stm.asin,jdbcType=CHAR}, 
+      #{stm.fcondition,jdbcType=CHAR}, #{stm.country,jdbcType=CHAR}, #{stm.quantity,jdbcType=INTEGER}, 
+      #{stm.authid,jdbcType=CHAR}, #{stm.refreshtime,jdbcType=TIMESTAMP}
+      )
+      </foreach> 
+  </insert>
+
+</mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInAftersaleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInAftersale">
+        <id column="id" property="id" />
+        <result column="groupid" property="groupid" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="sku" property="sku" />
+        <result column="date" property="date" />
+        <result column="quantity" property="quantity" />
+    </resultMap>
+    <insert id="insertBatch"  parameterType="java.util.List">
+      insert into t_product_in_aftersale (  id, groupid, amazonauthid, marketplaceid,sku, date, quantity)
+      values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (uuid_short(), #{stm.groupid,jdbcType=CHAR}, #{stm.amazonauthid,jdbcType=CHAR}, #{stm.marketplaceid,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR}, #{stm.date,jdbcType=TIMESTAMP}, #{stm.quantity,jdbcType=INTEGER})
+      </foreach> 
+  </insert>
+ 
+   <select id="getSummary" parameterType="java.lang.String" resultType="java.util.Map">
+         SELECT DATE_FORMAT(`date`, '%Y-%m') m,'needship' ftype,SUM(quantity) qty 
+			from t_product_in_aftersale a
+			LEFT JOIN t_amazon_group g ON g.id=a.groupid
+			WHERE `date` &gt;= CONCAT (DATE_FORMAT(CURDATE(), '%Y-%m'),'-01')   AND `date` &lt; CONCAT (DATE_FORMAT(DATE_ADD(CURDATE(),INTERVAL 4 MONTH), '%Y-%m'),'-01')  
+			AND g.shopid=#{shopid,jdbcType=CHAR}
+			and a.groupid=#{groupid,jdbcType=CHAR}
+			GROUP BY DATE_FORMAT(`date`, '%Y-%m') 
+			UNION all
+			SELECT DATE_FORMAT(s.status5date, '%Y-%m') m,'hasship' ftype,SUM(i.QuantityShipped) qty 
+			FROM  t_erp_ship_inbounditem i
+			LEFT JOIN t_erp_ship_inboundshipment s ON s.ShipmentId=i.ShipmentId
+			LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+			WHERE p.shopid=#{shopid,jdbcType=CHAR}
+			and p.amazongroupid=#{groupid,jdbcType=CHAR}
+			AND s.`status`&gt;=5 AND 
+			s.status5date&gt;=CONCAT (DATE_FORMAT(DATE_ADD(CURDATE(),INTERVAL -3 MONTH), '%Y-%m'),'-01')  
+			AND s.status5date &lt; CONCAT (DATE_FORMAT(DATE_ADD(CURDATE(),INTERVAL 1 MONTH), '%Y-%m'),'-01')  
+			GROUP BY DATE_FORMAT(s.status5date, '%Y-%m') 
+   </select>
+   
+   <select id="findList" parameterType="java.util.Map" resultType="java.util.Map">
+             	select * from ( SELECT 
+				       a.sku,
+				       m.name,
+				       g.name groupname,
+				       IFNULL(p.location,p.url) image,
+				       case when a.marketplaceid='EU' then '欧洲' ELSE mk.name END marketname
+				       <foreach collection="param.fieldlist" item="fieldmap" index="field_list" open="" separator="" close="">
+			               , SUM(case  when DATE_FORMAT(`date`, '%Y-%m') =#{fieldmap,jdbcType=CHAR} then quantity ELSE 0 END ) `${fieldmap}`
+		               </foreach>
+				from t_product_in_aftersale a
+				LEFT JOIN t_marketplace mk ON mk.marketplaceId=a.marketplaceid
+				LEFT JOIN t_product_info i ON i.sku=a.sku AND i.marketplaceid=case when a.marketplaceid='EU' then 'APJ6JRA9NG5V4' ELSE a.marketplaceid END 
+				 and i.amazonAuthId=a.amazonauthid
+				LEFT JOIN t_amazon_group g ON g.id=a.groupid
+				LEFT JOIN t_product_in_opt o ON o.pid=i.id
+				LEFT JOIN t_erp_material m ON m.sku=IFNULL(o.msku,i.sku) AND g.shopid=m.shopid AND m.isDelete=0
+				LEFT JOIN t_picture p ON p.id=i.image
+				WHERE `date`>=CONCAT (DATE_FORMAT(DATE_ADD(CURDATE(),INTERVAL -1 MONTH), '%Y-%m'),'-01')  
+				 AND `date`&lt;CONCAT (DATE_FORMAT(DATE_ADD(CURDATE(),INTERVAL 4 MONTH), '%Y-%m'),'-01')  
+				AND g.shopid=#{param.shopid,jdbcType=CHAR}
+				AND a.groupid=#{param.groupid,jdbcType=CHAR}
+				<if test="param.search!=null">
+				  and (a.sku like #{param.search,jdbcType=CHAR} or m.name like  #{param.search,jdbcType=CHAR} or i.name like #{param.search,jdbcType=CHAR})
+				</if>
+				GROUP BY a.amazonauthid,a.marketplaceid,a.sku
+             ) v
+   </select>
+   
+</mapper>

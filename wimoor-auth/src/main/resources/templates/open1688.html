@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--解决idea thymeleaf 表达式模板报红波浪线-->
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Wimoor</title>
+</head>
+<body>
+ <div class="text-center " style="padding-top:10%;">
+    <img src="https://erp.wimoor.com/images/shopImg/buycar.png"/><br/>
+    <div id="message" class='text-center' style="font-size:16px;">绑定中。。。
+    </div>
+ </div>
+
+ <script type="text/javascript">
+ function GetRequest() {  
+	    var url = decodeURIComponent(location.href);
+	    var object = {};
+	    if(url.indexOf("?") != -1)//url中存在问号，也就说有参数。  
+	    {   
+	      var str = url.split("?")[1];  //得到?后面的字符串
+	      var strs = str.split("&");  //将得到的参数分隔成数组[id="123456",Name="bicycle"];
+	      for(var i = 0; i < strs.length; i ++)  
+	        {   
+	　　　　　　　　object[strs[i].split("=")[0]]=strs[i].split("=")[1]
+	　　　　　　}
+	　　}
+	    return object;
+ }
+     var param=GetRequest();
+	 var code=param.code;
+	 var state=param.state;
+	 var callback=param.callback;
+	 if(code){
+		 var callback="https://app.wimoor.com/erp/open1688/bind";
+		 var mstate="";
+		 if(state&&state.indexOf("@")>-1){
+			 callback=state.split("@")[1];
+			 mstate=state.split("@")[0];
+		 } 
+		 if(mstate!=""){
+		     window.location.href=callback+"?code="+code+"&state="+mstate;
+		 }else{
+			 window.location.href=callback+"?code="+code; 
+		 }
+	 }else{
+		 document.getElementById("message").innerHTML="获取授权失败，请关闭此页面重新授权！";
+	 }
+   </script>
+</body>
+<style>
+.text-center{
+text-align:center;
+}
+.light-font{
+color:#dedede;
+}
+</style>
+</html>

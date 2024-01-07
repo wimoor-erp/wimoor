@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.AmzOrderReturns" >
+    <id column="sku" property="sku" jdbcType="CHAR" />
+    <id column="return_date" property="returnDate" jdbcType="TIMESTAMP" />
+    <id column="order_id" property="orderId" jdbcType="CHAR" />
+    <id column="sellerid" property="sellerid" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="quantity" property="quantity" jdbcType="CHAR" />
+    <result column="fulfillment_center_id" property="fulfillmentCenterId" jdbcType="CHAR" />
+    <result column="detailed_disposition" property="detailedDisposition" jdbcType="CHAR" />
+    <result column="reason" property="reason" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="license_plate_number" property="licensePlateNumber" jdbcType="CHAR" />
+    <result column="customer_comments" property="customerComments" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    sku, return_date, order_id,sellerid, asin, fnsku, quantity, fulfillment_center_id, detailed_disposition, 
+    reason, status, license_plate_number, customer_comments
+  </sql>
+  <select id="findByOrderIdSku" parameterType="java.util.Map" resultType="java.lang.Integer" >
+  	select ifnull(t.quantity,0) quantity  from t_amz_returns_report t where t.sku=#{sku,jdbcType=CHAR}
+	and t.order_id=#{orderid,jdbcType=CHAR}
+  </select>
+ <select id="returnsOrderSum" resultType="java.util.Map">
+		 select sum(t.quantity) quantity
+		from t_amz_returns_report t
+		<where>
+		 t.sellerid IN (SELECT a.sellerid FROM  t_amazon_auth a  WHERE  a.shop_id = #{shopid,jdbcType=CHAR}
+		   <if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+		   )
+			<if test="beginDate != null">
+				and t.return_date &gt;=#{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.return_date &lt;#{endDate,jdbcType=DATE}
+			</if>
+		</where>	 
+ </select>
+ <select id="returnsOrder" resultType="java.util.Map">
+		 select
+		<if test="bytime =='Daily'">
+			date_format(t.return_date,'%Y-%m-%d')  return_date,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(return_date, case when date_format(return_date,'%w')=0 then 0 else
+			date_format(return_date,'%w') -7 end),'%Y-%m-%d') return_date,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(t.return_date) ,'-' ,month(t.return_date)) return_date,
+		</if>
+			sum(t.quantity) quantity
+		from t_amz_returns_report t
+		<where>
+		   t.sellerid IN (SELECT a.sellerid FROM  t_amazon_auth a  WHERE  a.shop_id = #{shopid,jdbcType=CHAR}
+		   <if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+		   )
+			<if test="beginDate != null">
+				and t.return_date &gt;=#{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.return_date &lt;#{endDate,jdbcType=DATE}
+			</if>
+		</where>
+		<if test="bytime =='Daily'">
+			group by t.return_date
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(return_date, case when
+			date_format(return_date,'%w')=0 then 0 else
+			date_format(return_date,'%w') -7 end),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(return_date) ,'-' ,month(return_date))
+		</if>
+ </select>
+ 
+ <select id="selectReturnsList" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersReturnVo" parameterType="com.wimoor.amazon.orders.pojo.dto.AmazonOrdersReturnDTO">
+		 SELECT c.country marketname, t.*
+		 from t_amz_returns_report t
+		 left join t_amz_ship_fulfillment_center c on c.code=t.fulfillment_center_id
+		 <if test="param.owner!=null">
+		 left join t_amazon_auth a on a.sellerid=t.sellerid 
+		 left join t_product_info i on i.sku=t.sku and i.marketplaceid=t.marketplaceid and i.amazonauthid=a.id
+		 left join t_product_in_opt o on o.pid=i.id
+		 </if>
+		 WHERE 
+		 t.return_date >=#{param.startDate,jdbcType=TIMESTAMP}
+		 AND t.return_date &lt;=#{param.endDate,jdbcType=TIMESTAMP}
+         AND t.sellerid=#{param.sellerid,jdbcType=CHAR}
+         <if test="param.owner!=null">
+             and o.owner=#{param.owner,jdbcType=CHAR}
+		 </if>
+		 <if test="param.sku!=null">
+             and t.sku=#{param.sku,jdbcType=CHAR}
+		 </if>
+         <if test="param.search!=null and param.search!=''">
+	         <if test="param.searchtype=='sku'">
+				and t.sku=#{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype=='asin'">
+				and t.asin=#{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype=='number'">
+				and t.order_id=#{param.search,jdbcType=CHAR}
+			</if>
+		</if>
+	</select>
+</mapper>

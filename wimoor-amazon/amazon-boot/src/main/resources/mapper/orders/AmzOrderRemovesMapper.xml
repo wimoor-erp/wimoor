@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.AmzOrderRemovesMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.AmzOrderRemoves" >
+    <id column="order_id" property="orderId" jdbcType="VARCHAR" />
+    <id column="sku" property="sku" jdbcType="CHAR" />
+    <result column="amazonAuthId" property="amazonauthid" jdbcType="BIGINT" />
+    <result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+    <result column="last_updated_date" property="lastUpdatedDate" jdbcType="TIMESTAMP" />
+    <result column="order_type" property="orderType" jdbcType="CHAR" />
+    <result column="order_status" property="orderStatus" jdbcType="CHAR" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="disposition" property="disposition" jdbcType="CHAR" />
+    <result column="requested_quantity" property="requestedQuantity" jdbcType="INTEGER" />
+    <result column="cancelled_quantity" property="cancelledQuantity" jdbcType="INTEGER" />
+    <result column="disposed_quantity" property="disposedQuantity" jdbcType="INTEGER" />
+    <result column="shipped_quantity" property="shippedQuantity" jdbcType="INTEGER" />
+    <result column="in_process_quantity" property="inProcessQuantity" jdbcType="INTEGER" />
+    <result column="removal_fee" property="removalFee" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    order_id, amazonauthid,sku, purchase_date, last_updated_date, order_type, order_status, fnsku, 
+    disposition, requested_quantity, cancelled_quantity, disposed_quantity, shipped_quantity, 
+    in_process_quantity, removal_fee, currency
+  </sql>
+  
+  <select id="selectRemoveList" parameterType="java.util.Map" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersRemoveVo" >
+    SELECT t.`*`  FROM t_amz_order_remove_report t
+    where t.amazonAuthId = #{param.amazonauthid,jdbcType=CHAR}
+	<if test="param.startDate!=null">
+		and t.purchase_date >=#{param.startDate,jdbcType=CHAR}
+	</if>
+	<if test="param.endDate!=null">
+		and t.purchase_date &lt;=#{param.endDate,jdbcType=CHAR}
+	</if>
+	<if test="param.sku!=null">
+	 AND t.sku=#{param.sku,jdbcType=CHAR}
+	</if>
+	
+    <if test="param.search!=null">
+		<if test="param.searchtype=='sku'">
+		   AND t.sku like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.searchtype=='order'">
+		   AND t.order_id like #{param.search,jdbcType=CHAR}
+	    </if>
+	</if>
+	
+  </select>
+  
+  <select id="selectPInfoBySku" parameterType="java.util.Map" resultType="java.util.Map" >
+  	SELECT max(NAME) name ,max(IFNULL(p.location,p.url)) image,i.asin asin FROM t_product_info i
+ 	LEFT JOIN t_picture p ON p.id=i.image
+	WHERE i.amazonauthid=#{authid,jdbcType=CHAR} AND sku=#{sku,jdbcType=CHAR} limit 1
+  </select>
+  
+</mapper>
