@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementAccReportMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport">
+		<id column="settlement_id" property="settlementId" jdbcType="BIGINT" />
+		<id column="amazonauthid" property="amazonauthid" jdbcType="CHAR" />
+		<id column="marketplace_name" property="marketplaceName" jdbcType="CHAR" />
+		<result column="settlement_start_date" property="settlementStartDate" jdbcType="TIMESTAMP" />
+		<result column="settlement_end_date" property="settlementEndDate" jdbcType="TIMESTAMP" />
+		<result column="deposit_date" property="depositDate" jdbcType="TIMESTAMP" />
+		<result column="total_amount" property="totalAmount" jdbcType="DECIMAL" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		settlement_id, amazonauthid, marketplace_name, settlement_start_date,
+		settlement_end_date, deposit_date, total_amount, currency
+	</sql>
+
+<select id="findlist" parameterType="java.util.Map" resultType="com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport">
+		SELECT  acc.*
+		from t_amz_settlement_acc_report acc
+		left join t_marketplace m on acc.marketplace_name=m.point_name
+		left join t_amazon_auth a on a.id=acc.amazonauthid
+		left join t_amazon_group g on g.id=a.groupid
+		where a.shop_id=#{shopid,jdbcType=CHAR}
+		  <if test="groupid!=null">
+          and a.groupid = #{groupid,jdbcType=CHAR}
+          </if>
+          <if test="marketplace_name!=null">
+		  and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		  </if>
+          <if test="datetype==null">
+			<if test='fromDate!=null and endDate!=null'>
+				and (
+					(DATE_FORMAT(acc.settlement_start_date,'%Y-%m-%d') &gt;= #{fromDate,jdbcType=DATE}
+					and DATE_FORMAT(acc.settlement_start_date,'%Y-%m-%d') &lt;= #{endDate,jdbcType=DATE})
+					or (DATE_FORMAT(acc.settlement_end_date,'%Y-%m-%d') &gt;= #{fromDate,jdbcType=DATE}
+					and DATE_FORMAT(acc.settlement_end_date,'%Y-%m-%d') &lt;= #{endDate,jdbcType=DATE})
+				)
+			</if>
+		 </if>
+		 <if test="datetype!=null">
+			and DATE_FORMAT(acc.deposit_date,'%Y-%m-%d') &gt;= #{fromDate,jdbcType=DATE}
+			and DATE_FORMAT(acc.deposit_date,'%Y-%m-%d') &lt;= #{endDate,jdbcType=DATE}
+		 </if>
+	</select>
+	
+	
+	<select id="sumSettlementAcc" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT DATE_FORMAT(acc.deposit_date,'%y-%m') deposit_date,
+		sum(
+			case acc.currency
+			    <foreach collection="currencyrate.entrySet()" index="key" item="value">
+			        when #{key} then #{value}*ifnull(acc.total_amount,0)
+			      </foreach>
+            ELSE 0  END) accountconverted_total
+		from t_amz_settlement_acc_report acc
+		where 
+		exists(select id from t_amazon_auth where shop_id=#{shopid,jdbcType=CHAR} and acc.amazonauthid=id
+		<if test='groupid!=null'>
+			and groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		)
+		<if test="marketplace_name!=null">
+			and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+		<if test='fromDate!=null and endDate!=null'>
+			and deposit_date &gt;= #{fromDate,jdbcType=DATE}
+			and deposit_date &lt;= #{endDate,jdbcType=DATE}
+		</if>
+		group by DATE_FORMAT(acc.deposit_date,'%y-%m')
+	</select>
+	
+	<select id="findSettlementAcc" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT distinct CAST( acc.settlement_id AS CHAR) settlement_id,
+		CAST( acc.amazonauthid AS CHAR) amazonauthid,
+		acc.settlement_start_date startDate,acc.settlement_end_date endDate,acc.total_amount totalAmount,
+		acc.currency, acc.marketplace_name,m.name marketName ,g.name groupname,acc.deposit_date,'finsett' fatype,
+		c.processing_status pstatus,case when acc.invalid=1 then 'Failed' else ifnull(c.fund_transfer_status,'Succeeded') end  tstatus
+		from t_amz_settlement_acc_report acc
+		LEFT JOIN t_amz_fin_account c ON c.amazonAuthid=acc.amazonauthid AND c.financial_event_group_start=acc.settlement_start_date
+		AND c.financial_event_group_end=acc.settlement_end_date  AND c.currency=acc.currency
+		AND c.original_total=acc.total_amount
+		left join t_marketplace m on acc.marketplace_name=m.point_name
+		left join t_amazon_auth a on a.id=acc.amazonauthid
+		left join t_amazon_group g on g.id=a.groupid
+		where a.shop_id=#{param.shopid,jdbcType=CHAR}
+		<if test='param.groupid!=null'>
+			and a.groupid = #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplace_name!=null">
+			and acc.marketplace_name=#{param.marketplace_name,jdbcType=CHAR}
+		</if>
+        <if test="param.datetype==null">
+			<if test='param.fromDate!=null and param.endDate!=null'>
+				and (
+					(DATE_FORMAT(acc.settlement_start_date,'%Y-%m-%d') &gt;= #{param.fromDate,jdbcType=DATE}
+					and DATE_FORMAT(acc.settlement_start_date,'%Y-%m-%d') &lt;= #{param.endDate,jdbcType=DATE})
+					or (DATE_FORMAT(acc.settlement_end_date,'%Y-%m-%d') &gt;= #{param.fromDate,jdbcType=DATE}
+					and DATE_FORMAT(acc.settlement_end_date,'%Y-%m-%d') &lt;= #{param.endDate,jdbcType=DATE})
+				)
+			</if>
+		</if>
+		<if test="param.datetype!=null">
+			and DATE_FORMAT(acc.deposit_date,'%Y-%m-%d') &gt;= #{param.fromDate,jdbcType=DATE}
+			and DATE_FORMAT(acc.deposit_date,'%Y-%m-%d') &lt;= #{param.endDate,jdbcType=DATE}
+		</if>
+	</select>
+	
+	<select id="findSettlementAccSum" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT   acc.currency,  sum(acc.total_amount) totalAmount
+		from t_amz_settlement_acc_report acc
+		left join t_marketplace m on acc.marketplace_name=m.point_name
+		left join t_amazon_auth a on a.id=acc.amazonauthid
+		left join t_amazon_group g on g.id=a.groupid
+		where a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test='groupid!=null'>
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="marketplace_name!=null">
+			and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+        <if test="datetype==null">
+			<if test='fromDate!=null and endDate!=null'>
+				and (
+					(DATE_FORMAT(acc.settlement_start_date,'%Y-%m-%d') &gt;= #{fromDate,jdbcType=DATE}
+					and DATE_FORMAT(acc.settlement_start_date,'%Y-%m-%d') &lt;= #{endDate,jdbcType=DATE})
+					or (DATE_FORMAT(acc.settlement_end_date,'%Y-%m-%d') &gt;= #{fromDate,jdbcType=DATE}
+					and DATE_FORMAT(acc.settlement_end_date,'%Y-%m-%d') &lt;= #{endDate,jdbcType=DATE})
+				)
+			</if>
+		</if>
+		<if test="datetype!=null">
+			and DATE_FORMAT(acc.deposit_date,'%Y-%m-%d') &gt;= #{fromDate,jdbcType=DATE}
+			and DATE_FORMAT(acc.deposit_date,'%Y-%m-%d') &lt;= #{endDate,jdbcType=DATE}
+		</if>
+		group by acc.currency
+	</select>
+	
+	<select id="findDateByAuth" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT min(t.settlement_start_date) fromdate,MAX(t.settlement_end_date) enddate
+		 FROM t_amz_settlement_acc_report t
+		 left join t_amazon_auth au on au.id=t.amazonauthid
+		  WHERE 1=1
+		 <if test="amazonauthid!=null">
+		   and  t.amazonauthid=#{amazonauthid,jdbcType=CHAR}
+		 </if>
+		 <if test="shopid!=null">
+		 	and au.shop_id=#{shopid,jdbcType=CHAR}
+		 </if>
+		  <if test="groupid!=null">
+		 	and au.groupid=#{groupid,jdbcType=CHAR}
+		 </if>
+		 <if test="marketplace_name!=null">
+		   and  t.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		 </if>
+		 <if test="settlementId != null">
+			 and t.settlement_id=#{settlementId,jdbcType=CHAR} 
+		</if>  
+		AND t.deposit_date &gt;= #{fromDate,jdbcType=DATE} AND t.deposit_date &lt;= #{endDate,jdbcType=DATE}
+	</select>
+</mapper>

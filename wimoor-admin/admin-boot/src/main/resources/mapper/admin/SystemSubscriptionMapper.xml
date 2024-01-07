@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SystemSubscriptionMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SystemSubscription" >
+    <id column="target" property="target" jdbcType="CHAR" />
+    <id column="userid" property="userid" jdbcType="CHAR" />
+    <result column="action" property="action" jdbcType="CHAR" />
+    <result column="disable" property="disable" jdbcType="BIT" />
+    <result column="createdAt" property="createdat" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <select id="findByUser" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select * from t_sys_subscription t
+    where userid=#{userid,jdbcType=CHAR}
+    and t.disable=0
+  </select>
+  
+  <select id="myLongRunningRrxMonitor" resultType="java.lang.String" >
+	select concat('kill ',trx_mysql_thread_id,';')
+	from information_schema.innodb_trx
+	where timestampdiff(minute,trx_started,NOW()) >= 2 
+	and trx_query LIKE 'select%'
+  </select>
+  
+  <select id="executeLongRunningSQLKill" parameterType="java.util.Map">
+  		${paralist}
+  </select>
+  
+</mapper>

@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sb.dao.AmzAdvKeywordsHsaMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sb.pojo.AmzAdvKeywordsHsa">
+		<id column="keywordId" property="keywordid" jdbcType="BIGINT" />
+		<result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+		<result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+		<result column="campaignType" property="campaigntype" jdbcType="CHAR" />
+		<result column="profileid" property="profileid" jdbcType="BIGINT" />
+		<result column="keywordText" property="keywordtext" jdbcType="CHAR" />
+		<result column="matchType" property="matchtype" jdbcType="CHAR" />
+		<result column="bid" property="bid" jdbcType="DECIMAL" />
+		<result column="state" property="state" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		adGroupId, campaignId, keywordId, keywordText, matchType, bid, state, profileid,
+		campaignType, opttime
+	</sql>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_keywords_hsa (
+			campaignId, keywordId, adGroupId, keywordText, matchType, campaignType,bid, state, profileid, opttime)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.campaignid,jdbcType=BIGINT},#{adv.keywordid,jdbcType=BIGINT}, #{adv.adgroupid,jdbcType=BIGINT},
+			#{adv.keywordtext,jdbcType=CHAR}, #{adv.matchtype,jdbcType=CHAR},#{adv.campaigntype,jdbcType=CHAR},
+			#{adv.bid,jdbcType=DECIMAL}, #{adv.state,jdbcType=CHAR},#{adv.profileid,jdbcType=BIGINT}, 
+			#{adv.opttime,jdbcType=TIMESTAMP}
+			)
+		</foreach>
+	</insert>
+ 
+	
+	<select id="getKeywordsList" resultType="java.util.Map" parameterType="java.util.Map">
+		select 
+		    CAST(t.adGroupId AS CHAR) adGroupId, CAST(t.campaignId AS CHAR) campaignId,
+			CAST(t.keywordId AS CHAR) id, CAST(t.profileid AS CHAR) profileid, t.campaignType,
+			t.matchType,t.keywordText,t.bid bid,tr.cycle,tr.fcondition,
+			tr.subtrahend,tr.quota, t.state status,mk.name market,tk.remark,tr.iswarn iswarn,
+			p.marketplaceId marketplaceid,tr.amount, a.groupid groupid,tg.name groupname,v.*,
+			tc.name campaignName,tc.state campaignStatus, ifnull(tgp.name,tc.name) adGroupName, t.opttime 
+		from t_amz_adv_keywords_hsa t
+		left join(
+			select t.campaignId campaignId1, t.profileid profileid1,t.adGroupId adGroupId1,t.keywordId keywordId1,
+				sum(impressions) impressions,sum(clicks) clicks,sum(cost) cost,
+				ifnull((sum(cost) / sum(clicks)),0) avgcost,
+				ifnull((sum(clicks) / sum(impressions)),0) CTR,
+	
+				case when ifnull(sum(cost),0) > 0 and ifnull(sum(attributedSales14d),0) = 0
+				then 10000000000
+				else ifnull((sum(cost) / sum(attributedSales14d)),0)
+				end ACOS,
+				ifnull((sum(attributedSales14d) / sum(cost)),0) ROAS,
+				sum(attributedSales14d) sumSales,
+				sum(attributedConversions14d)sumUnits,
+				ifnull((sum(attributedConversions14d) / sum(clicks)),0) CSRT,
+				ifnull(sum(attributedConversions14d)-sum(attributedConversions14dSameSKU),0) attributedConversions,
+				sum(attributedConversions14dSameSKU) attributedConversionsSameSKU,
+				sum(attributedConversions14d) attributedUnitsOrdered,
+				sum(attributedSales14dSameSKU) attributedSalesSameSKU,
+				ifnull(sum(attributedSales14d)-sum(attributedSales14dSameSKU),0) attributedSales,
+		
+				null ACOS1d,
+				null ROAS1d,
+				null CSRT1d,
+				null sumSales1d,
+				null sumUnits1d,
+				null attributedConversions1d,
+				null attributedConversionsSameSKU1d,
+				null attributedUnitsOrdered1d,
+				null attributedSalesSameSKU1d,
+				null attributedSales1d,
+		
+				null ACOS7d,
+				null ROAS7d,
+				null CSRT7d,
+				null sumSales7d,
+				null sumUnits7d,
+				null attributedConversions7d,
+				null attributedConversionsSameSKU7d,
+				null attributedUnitsOrdered7d,
+				null attributedSalesSameSKU7d,
+				null attributedSales7d,
+		
+				case when ifnull(sum(cost),0) > 0 and
+				ifnull(sum(attributedSales14d),0) = 0
+				then 10000000000
+				else ifnull((sum(cost) / sum(attributedSales14d)),0)
+				end ACOS14d,
+				ifnull((sum(attributedSales14d) / sum(cost)),0) ROAS14d,
+				sum(attributedSales14d) sumSales14d,
+				sum(attributedConversions14d)sumUnits14d,
+				ifnull((sum(attributedConversions14d) / sum(clicks)),0) CSRT14d,
+				ifnull(sum(attributedConversions14d)-sum(attributedConversions14dSameSKU),0) attributedConversions14d,
+				sum(attributedConversions14dSameSKU) attributedConversionsSameSKU14d,
+				sum(attributedConversions14d) attributedUnitsOrdered14d,
+				sum(attributedSales14dSameSKU) attributedSalesSameSKU14d,
+				ifnull(sum(attributedSales14d)-sum(attributedSales14dSameSKU),0) attributedSales14d,
+		
+				null ACOS30d,
+				null ROAS30d,
+				null CSRT30d,
+				null sumSales30d,
+				null sumUnits30d,
+				null attributedConversions30d,
+				null attributedConversionsSameSKU30d,
+				null attributedUnitsOrdered30d,
+				null attributedSalesSameSKU30d,
+				null attributedSales30d
+			from t_amz_adv_rpt2_hsa_keywords t
+		    left join t_amz_adv_rpt2_hsa_keywords_attributed d on d.bydate=t.bydate and d.keywordId=t.keywordId
+		    left join t_amz_adv_adgroups ad on ad.adGroupId=t.adGroupId and ad.campaignId=t.campaignId and t.profileid=ad.profileid
+			where t.bydate &gt;= #{fromDate,jdbcType=DATE} and t.bydate &lt;= #{endDate,jdbcType=DATE}
+			<if test="profileid != null">
+				and t.profileid = #{profileid,jdbcType=BIGINT}
+			</if>
+			<if test="campaignid != null">
+				and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			</if>
+			<if test="adGroupid != null">
+				and t.adGroupId = #{adGroupid,jdbcType=BIGINT}
+			</if>
+			group by t.campaignId,t.adGroupId,t.keywordId,t.profileid
+		) v on t.keywordId = v.keywordId1 and t.adGroupId= v.adGroupId1 and t.campaignId = v.campaignId1 and t.profileid = v.profileid1
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		left join t_amz_adv_campaigns_hsa tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tgp on t.adGroupId = tgp.adGroupId and t.campaignId = tgp.campaignId and t.profileid = tgp.profileid
+		left join t_amz_adv_remind tr on tr.keywordid = t.keywordId and tr.adgroupid = t.adGroupId 
+				and t.campaignId = tr.campaignid and p.id = tr.profileid and tr.adid = 0 and tr.targetid = 0
+		left join t_amz_adv_remark tk on tk.keywordId = t.keywordId and tk.adgroupId = t.adGroupId 
+				and t.campaignId = tk.campaignId and p.id = tk.profileid and tk.adId = 0 and tk.targetId = 0
+		where a.shopid = #{shopid,jdbcType=CHAR}
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignid != null">
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupid != null">
+			and t.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+			and t.state = #{state,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state == 'runing'">
+			and t.state = 'enabled'
+		</if>
+		<if test="state != null and state == 'stoping'">
+			and (t.state = 'paused' or t.state = 'archived' )
+		</if>
+		<if test="state == null">
+	        and (t.state = 'paused' or t.state = 'enabled' or t.state = 'PAUSED' or t.state = 'ENABLED' or t.state is null
+	        or t.state = 'pending' 
+	        )  
+		</if>
+		<if test="matchType != null and matchType!='all'">
+			and t.matchType = #{matchType,jdbcType=CHAR}
+		</if>
+		<if test="name != null and name != ''">
+			and t.keywordText like #{name,jdbcType=CHAR}
+		</if>
+		<if test="nameList != null and nameList.size>0 ">
+			and t.keywordText in
+			<foreach collection="nameList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="campaignName != null and campaignName != '' ">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null ">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="paralist != null and paralist != ''">
+			and ${paralist}
+		</if>
+	</select>
+	  
+	<select id="getKeywordsHSAChart" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(v.bydate,'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(v.bydate) ,'-' ,month(v.bydate)) bydate,
+		</if>
+		<if test="HSAserchlist != null">
+			${HSAserchlist}
+		</if>
+		from t_amz_adv_rpt2_hsa_keywords v
+		left join t_amz_adv_rpt2_hsa_keywords_attributed d on d.keywordId=v.keywordId and d.bydate=v.bydate
+		left join t_amz_adv_keywords_hsa t on t.keywordId = v.keywordId and t.adGroupId= v.adGroupId 
+			and t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_campaigns_hsa tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and v.bydate &gt;= #{fromDate,jdbcType=DATE} and v.bydate &lt;= #{endDate,jdbcType=DATE}
+		<if test="profileid != null">
+			and v.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupid != null">
+			and v.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="campaignStatus != null">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+			and t.state = #{state,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state == 'runing'">
+			and t.state = 'enabled'
+			and tc.state = 'enabled'
+		</if>
+		<if test="state != null and state == 'stoping'">
+			and (t.state = 'paused' or t.state = 'archived' 
+			or tc.state = 'paused' or tc.state = 'archived'
+			or tc.state = 'PAUSED' or tc.state = 'ARCHIVED'  
+			or  t.state = 'PAUSED' or t.state = 'ARCHIVED')
+		</if>
+		<if test="state == null">
+			 and (t.state = 'paused' or t.state = 'enabled' or t.state = 'PAUSED' or t.state = 'ENABLED' or t.state is null)  
+		</if>
+		<if test="matchType != null ">
+			and t.matchType = #{matchType,jdbcType=CHAR}
+		</if>
+		<if test="name != null and name != ''">
+			and t.keywordText like #{name,jdbcType=CHAR}
+		</if>
+		<if test="nameList != null and nameList.size>0 ">
+			and t.keywordText in
+			<foreach collection="nameList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(v.bydate,'%y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(v.bydate) ,'-' ,month(v.bydate))
+		</if>
+	</select>
+
+	<select id="getKeywordQueryList" resultType="java.util.Map" parameterType="java.util.Map">
+	    select uuid() id,t.adGroupId,t.campaignId,t.campaignType,t.profileid,t.matchType,t.keywordText,
+			ifnull(t.bid,tgp.defaultBid) bid,t.keywordId, t.state status,mk.name market,p.marketplaceId marketplaceid,
+			a.groupid groupid,'' suggestedbid,'' rangeStart,'' rangeEnd, tg.name groupname,v.* ,tgp.defaultBid defaultBid,
+			tc.name campaignName,ifnull(tgp.name,tc.name) adGroupName
+		from t_amz_adv_keywords_hsa t
+		 left join (
+			select campaignId campaignId1,profileid profileid1,adGroupId adGroupId1,keywordId keywordId1,qr.query,
+				 sum(impressions) impressions,sum(clicks) clicks,sum(cost) cost,
+				ifnull((sum(cost) / sum(clicks)),0) avgcost,
+				ifnull((sum(clicks) / sum(impressions)),0) CTR,
+				sum(attributedConversions14d) attributedConversions,
+				'0' attributedConversionsSameSKU,
+				sum(attributedSales14d) attributedSales,
+				sum(attributedConversions14d) attributedUnitsOrdered,
+				'0' attributedSalesSameSKU,
+				sum(attributedSales14d) sumSales,
+				sum(attributedConversions14d) sumUnits,
+				ifnull((sum(cost) / sum(attributedSales14d)),0)  ACOS,
+				ifnull((sum(attributedSales14d) / sum(cost)),0) ROAS,
+				ifnull((sum(attributedConversions14d) / sum(clicks)),0) CSRT
+			from t_amz_adv_rpt2_hsa_keywords_query q	
+			left join  t_amz_adv_rpt_query qr on qr.id=q.queryid
+			where q.bydate &gt;= #{fromDate,jdbcType=DATE} and q.bydate &lt;= #{endDate,jdbcType=DATE}
+			<if test="keywordid != null">
+				and q.keywordId = #{keywordid,jdbcType=BIGINT}
+			</if>
+			<if test="campaignid != null">
+				and q.campaignId = #{campaignid,jdbcType=BIGINT}
+			</if>
+			<if test="adGroupid != null">
+				and q.adGroupId = #{adGroupid,jdbcType=BIGINT}
+			</if>
+			<if test="profileid != null">
+				and q.profileid = #{profileid,jdbcType=BIGINT}
+			</if>
+			group by campaignId1,adGroupId1,keywordId1,queryid,profileid1
+		) v on t.keywordId = v.keywordId1 and t.adGroupId= v.adGroupId1 and t.campaignId = v.campaignId1 and t.profileid = v.profileid1
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		left join t_amz_adv_campaigns_hsa tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tgp on t.adGroupId = tgp.adGroupId and t.campaignId = tgp.campaignId and t.profileid = tgp.profileid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and v.query is not null
+		<if test="keywordid != null">
+			and t.keywordId = #{keywordid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignid != null">
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupid != null">
+			and t.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+			and t.state = #{state,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state == 'runing'">
+			and t.state = 'enabled'
+			and ( tc.state = 'enabled')
+			<if test="campaignType == 'SP'">
+				and tgp.state = 'enabled'
+			</if>
+		</if>
+		<if test="state != null and state == 'stoping'">
+			and (t.state = 'paused' or t.state = 'archived' or tc.state = 'paused'
+			or tc.state = 'archived'  or tgp.state = 'paused' or tgp.state = 'archived')
+		</if>
+		<if test="state == null">
+			 and (t.state = 'paused' or t.state = 'enabled' or t.state = 'PAUSED' or t.state = 'ENABLED' or t.state is null)  
+		</if>
+		<if test="adGroupName != null and adGroupName != '' and campaignType != 'HSA'">
+			and tgp.name like #{adGroupName,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and (tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="campaignName != null and campaignName != '' ">
+			and (tc.name like #{campaignName,jdbcType=CHAR}   )
+		</if>
+		<if test="campaignStatus != null ">
+			and (tc.state = #{campaignStatus,jdbcType=CHAR} )
+		</if>
+		<if test="targetingType != null and campaignType != 'HSA'">
+			and tc.targetingType = #{targetingType,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="name != null and name != ''">
+			and v.query like #{name,jdbcType=CHAR}
+		</if>
+		<if test="nameList != null and nameList.size>0 ">
+			and v.query in
+			<foreach collection="nameList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="matchType != null ">
+			and t.matchType = #{matchType,jdbcType=CHAR}
+		</if>
+		<if test="paralist != null">
+			and ${paralist}
+		</if>
+	</select>
+ 
+
+	<select id="getKeywordQueryChart" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(v.bydate,'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(v.bydate) ,'-' ,month(v.bydate)) bydate,
+		</if>
+		<if test="HSAserchlist != null">
+			${HSAserchlist}
+		</if>
+		from t_amz_adv_rpt2_hsa_keywords_query v
+		left join t_amz_adv_keywords_hsa t on t.keywordId = v.keywordId and t.adGroupId= v.adGroupId 
+			and t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_campaigns_hsa tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and v.bydate &gt;= #{fromDate,jdbcType=DATE} and v.bydate &lt;= #{endDate,jdbcType=DATE}
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupid != null">
+			and v.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="profileid != null">
+			and v.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="name != null and name != ''">
+			and v.query like #{name,jdbcType=CHAR}
+		</if>
+		<if test="nameList != null and nameList.size>0 ">
+			and v.query in
+			<foreach collection="nameList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+			and t.state = #{state,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state == 'runing'">
+			and t.state = 'enabled'
+			and tc.state = 'enabled'
+		</if>
+		<if test="state != null and state == 'stoping'">
+			and (t.state = 'paused' or t.state = 'archived' or tc.state = 'paused'
+			or tc.state = 'archived' )
+		</if>
+		<if test="matchType != null ">
+			and t.matchType = #{matchType,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(v.bydate,'%y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(v.bydate) ,'-' ,month(v.bydate))
+		</if>
+	</select>
+  
+
+	<select id="getKeywordHSAByRemind" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="serchstr != null">
+			${serchstr}
+		</if>
+		from t_amz_adv_rpt2_hsa_keywords t
+		left join t_amz_adv_rpt2_hsa_keywords_attributed a on a.keywordId=t.keywordId and a.bydate=t.bydate
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			and t.adGroupId = #{adgroupid,jdbcType=BIGINT}
+			and t.keywordId = #{keywordid,jdbcType=BIGINT}
+		<if test="yesterDay != null">
+			and t.bydate = #{yesterDay,jdbcType=DATE}
+		</if>
+		<if test="severDayBegin != null and severDayEnd != null">
+			and t.bydate &gt;= #{severDayBegin,jdbcType=DATE} 
+			and t.bydate &lt;= #{severDayEnd,jdbcType=DATE}
+		</if>
+		group by t.campaignId,t.adGroupId,t.keywordId,t.profileid
+	</select>
+
+	<select id="getKeywordHSAByRemindlast" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="serchstr != null">
+			${serchstr}
+		</if>
+		from t_amz_adv_rpt2_hsa_keywords t
+		left join t_amz_adv_rpt2_hsa_keywords_attributed a on a.keywordId=t.keywordId and a.bydate=t.bydate
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			and t.adGroupId = #{adgroupid,jdbcType=BIGINT}
+			and t.keywordId = #{keywordid,jdbcType=BIGINT}
+		<if test="lastDay != null">
+			and t.bydate = #{lastDay,jdbcType=DATE}
+		</if>
+		<if test="lastSeverDayBegin != null and lastSeverDayEnd != null">
+			and t.bydate &gt;= #{lastSeverDayBegin,jdbcType=DATE} 
+			and t.bydate &lt;= #{lastSeverDayEnd,jdbcType=DATE}
+		</if>
+		group by t.campaignId,t.adGroupId,t.keywordId,t.profileid
+	</select>
+ 
+
+	<select id="getSumAdvKeywords" resultType="java.util.Map" parameterType="java.util.Map">
+		select sum(impressions) impressions, sum(clicks) clicks, sum(cost) cost,
+			ifnull((sum(cost) / sum(clicks)),0) avgcost,
+			ifnull((sum(clicks) / sum(impressions)),0) CTR,
+			case when ifnull(sum(cost),0)>0 and ifnull(sum(attributedSales14d),0)=0
+			then 10000000000
+			else ifnull((sum(cost) / sum(attributedSales14d)),0)
+			end ACOS,
+			ifnull((sum(attributedSales14d) / sum(cost)),0) ROAS,
+			ifnull(sum(attributedSales14d),0) sumSales,
+			ifnull(sum(attributedConversions14d),0) sumUnits,
+			ifnull((sum(attributedConversions14d) / sum(clicks)),0) CSRT,
+			ifnull(sum(attributedConversions14d) - sum(attributedConversions14dSameSKU),0) attributedConversions,
+			ifnull(sum(attributedConversions14dSameSKU),0) attributedConversionsSameSKU,
+			ifnull(sum(attributedConversions14d),0) attributedUnitsOrdered,
+			ifnull(sum(attributedSales14dSameSKU),0) attributedSalesSameSKU,
+			ifnull(sum(attributedSales14d) - sum(attributedSales14dSameSKU),0) attributedSales
+		from t_amz_adv_rpt2_hsa_keywords v
+		left join t_amz_adv_rpt2_hsa_keywords_attributed aa on aa.keywordId=v.keywordId and aa.bydate=v.bydate
+		left join t_amz_adv_keywords_hsa t on t.keywordId = v.keywordId and t.adGroupId= v.adGroupId 
+			and t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_campaigns_hsa tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and v.bydate &gt;= #{fromDate,jdbcType=DATE} and v.bydate &lt;= #{endDate,jdbcType=DATE}
+		<if test="profileid != null">
+			and v.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupid != null">
+			and v.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="campaignStatus != null">
+			and tc.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+			and t.state = #{state,jdbcType=CHAR}
+		</if>
+		<if test="state != null and state == 'runing'">
+			and t.state = 'enabled'
+			and tc.state = 'enabled'
+		</if>
+		<if test="state != null and state == 'stoping'">
+			and (t.state = 'paused' or t.state = 'archived' or
+			tc.state = 'paused' or tc.state = 'archived' )
+		</if>
+		<if test="state == null">
+			and (t.state = 'paused' or t.state = 'enabled')  
+		</if>
+		<if test="matchType != null ">
+			and t.matchType = #{matchType,jdbcType=CHAR}
+		</if>
+		<if test="name != null and name != ''">
+			and t.keywordText like #{name,jdbcType=CHAR}
+		</if>
+		<if test="nameList != null and nameList.size>0 ">
+			and t.keywordText in
+			<foreach collection="nameList" item="adv" index="index" open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="paralist != null">
+			and ${paralist}
+		</if>
+	</select>
+
+</mapper>

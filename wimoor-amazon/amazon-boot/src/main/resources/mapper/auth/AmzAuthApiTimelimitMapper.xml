@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.auth.mapper.AmzAuthApiTimelimitMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.AmzAuthApiTimelimit">
+        <id column="id" property="id" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="apiname" property="apiname" />
+        <result column="nexttoken" property="nexttoken" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="pages" property="pages" />
+        <result column="restore" property="restore" />
+        <result column="lastuptime" property="lastuptime" />
+        <result column="log" property="log" />
+    </resultMap>
+
+</mapper>

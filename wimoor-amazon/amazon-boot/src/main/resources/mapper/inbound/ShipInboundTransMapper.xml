@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipInboundTransMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="shipmentid" property="shipmentid" jdbcType="CHAR" />
+		<result column="company" property="company" jdbcType="CHAR" />
+		<result column="channel" property="channel" jdbcType="CHAR" />
+		<result column="singleprice" property="singleprice" jdbcType="DECIMAL" />
+		<result column="transweight" property="transweight" jdbcType="DECIMAL" />
+		<result column="wunit" property="wunit" jdbcType="CHAR" />
+		<result column="otherfee" property="otherfee" jdbcType="DECIMAL" />
+		<result column="ordernum" property="ordernum" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="outarrtime" property="outarrtime" jdbcType="TIMESTAMP" />
+		<result column="inarrtime" property="inarrtime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+	</resultMap>
+
+	<select id="transFeeShared" resultType="java.util.Map" parameterType="java.util.Map">
+	    select sellersku,qty,NAME,opttime,location,msku,ownername,skufee,round(skufee/qty,2) avgfee,groupid,marketplaceid 
+	    from
+	     (	SELECT i.sellersku,
+	               sum(i.QuantityShipped) qty, 
+	               max(info.name) NAME, 
+	               max(s.status5date) opttime,
+			       IFNULL(max(pp.location),max(pp.url)) location,
+			       max(m.sku)  msku, 
+			       max(u.name) ownername,
+			       max(g.id) groupid,
+			       max(p.marketplaceid) marketplaceid,
+			round(SUM(ifnull(i.totaltransfee,
+					(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+					   case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE d.length*d.width*d.height/ifnull(td.drate,5000)*i.QuantityShipped END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped END) 
+						      end) 
+						end
+						<!-- (case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/5000 END)*i.QuantityShipped -->
+						
+						/
+						(
+							SELECT SUM(
+							(case when cfg2.id is not null then 
+							  (case when cfg2.shipmentStyle='weight' then d2.weight
+					      		when cfg2.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     		 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      	end) 
+							else (case when cfg1.shipmentStyle='weight' then d2.weight
+					      			when cfg1.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     			 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      		end) 
+							end)
+							*i2.QuantityShipped
+							
+							) 
+							FROM t_erp_ship_inbounditem i2
+							LEFT JOIN t_erp_ship_inboundshipment s2 ON i2.ShipmentId=s2.ShipmentId AND s2.inboundplanid=i2.inboundplanid
+							LEFT JOIN t_erp_ship_inboundplan p2 ON p2.id=s2.inboundplanid
+							LEFT JOIN t_product_info info2 ON info2.sku=i2.SellerSKU AND info2.marketplaceid=p2.marketplaceid
+							LEFT JOIN t_amazon_auth a2 ON a2.id=info2.amazonAuthId
+							LEFT JOIN t_product_in_opt opt2 ON opt2.pid=info2.id
+							LEFT JOIN t_erp_material m2 ON m2.sku=ifnull(opt2.msku,info2.sku) AND m2.shopid=p2.shopid AND m2.isDelete=0
+							LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+							LEFT JOIN t_erp_ship_inboundtrans trans2 ON trans2.shipmentid =s2.ShipmentId
+		                    LEFT JOIN t_erp_ship_transdetail td2 ON td2.id=trans2.channel AND td2.company=trans2.company
+		                    left join t_amazon_group gp on gp.id=a2.groupid
+		                    left join t_profitcfg cfg1 on cfg1.id=gp.profitcfgid
+					        left join t_profitcfg cfg2 on cfg2.id=opt2.profitid
+							WHERE s2.ShipmentId=s.ShipmentId 
+								AND s2.inboundplanid=s.inboundplanid 
+								AND a2.groupid=p.amazongroupid
+							<if test="param.endDate!=null">
+								and s2.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+								and s2.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+							</if>
+						)
+			)),2) skufee
+		FROM t_erp_ship_inbounditem i
+		LEFT JOIN t_erp_ship_inboundshipment s ON i.ShipmentId=s.ShipmentId AND s.inboundplanid=i.inboundplanid
+		LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+		LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+		LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+		LEFT JOIN t_amazon_group g ON g.id=p.amazongroupid
+		LEFT JOIN t_product_info info ON info.sku=i.SellerSKU AND info.marketplaceid=p.marketplaceid
+		LEFT JOIN t_picture pp ON pp.id=info.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(opt.msku,info.sku) AND m.shopid=p.shopid AND m.isDelete=0
+		left join t_userinfo u on u.id=m.owner
+		LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		left join t_profitcfg cfg on cfg.id=g.profitcfgid
+		left join t_profitcfg cfg3 on cfg3.id=opt.profitid
+		WHERE s.`status`>=5 
+			AND p.shopid=#{param.shopid,jdbcType=CHAR} 
+			AND a.groupid=p.amazongroupid
+			AND trans.transweight>0
+		<if test="param.endDate!=null">
+			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+		</if>
+		<if test="param.groupid!=null">
+			and p.amazongroupid= #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid!=null">
+			and p.marketplaceid= #{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null">
+			and i.sellersku like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.company!=null">
+			and trans.company= #{param.company,jdbcType=CHAR}
+		</if>
+		<if test="param.channel!=null">
+			and trans.channel= #{param.channel,jdbcType=CHAR}
+		</if>
+		<if test="param.shipmentid!=null">
+			and i.shipmentid= #{param.shipmentid,jdbcType=CHAR}
+		</if>
+		GROUP BY i.sellersku) v
+	</select>
+	
+	<select id="findSku_FirstShipment" resultType="java.util.Map" parameterType="java.util.Map">
+			       SELECT i.sellersku,
+			round(SUM(ifnull(i.totaltransfee,
+					(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+					   case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE d.length*d.width*d.height/ifnull(td.drate,5000)*i.QuantityShipped END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped END) 
+						      end) 
+						end
+						/
+						(
+							SELECT SUM(
+							(case when cfg2.id is not null then 
+							  (case when cfg2.shipmentStyle='weight' then d2.weight
+					      		when cfg2.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     		 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      	end) 
+							else (case when cfg1.shipmentStyle='weight' then d2.weight
+					      			when cfg1.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     			 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      		end) 
+							end)
+							*i2.QuantityShipped
+							
+							) 
+							FROM t_erp_ship_inbounditem i2
+							LEFT JOIN t_erp_ship_inboundshipment s2 ON i2.ShipmentId=s2.ShipmentId AND s2.inboundplanid=i2.inboundplanid
+							LEFT JOIN t_erp_ship_inboundplan p2 ON p2.id=s2.inboundplanid
+							LEFT JOIN t_product_info info2 ON info2.sku=i2.SellerSKU AND info2.marketplaceid=p2.marketplaceid
+							LEFT JOIN t_amazon_auth a2 ON a2.id=info2.amazonAuthId
+							LEFT JOIN t_product_in_opt opt2 ON opt2.pid=info2.id
+							LEFT JOIN t_erp_material m2 ON m2.sku=ifnull(opt2.msku,info2.sku) AND m2.shopid=p2.shopid AND m2.isDelete=0
+							LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+							LEFT JOIN t_erp_ship_inboundtrans trans2 ON trans2.shipmentid =s2.ShipmentId
+		                    LEFT JOIN t_erp_ship_transdetail td2 ON td2.id=trans2.channel AND td2.company=trans2.company
+		                    left join t_amazon_group gp on gp.id=a2.groupid
+		                    left join t_profitcfg cfg1 on cfg1.id=gp.profitcfgid
+					        left join t_profitcfg cfg2 on cfg2.id=opt2.profitid
+							WHERE s2.ShipmentId=s.ShipmentId 
+								AND s2.inboundplanid=s.inboundplanid 
+								AND a2.groupid=p.amazongroupid
+								and s2.status5date>= #{param.fromDate,jdbcType=TIMESTAMP} 
+								and s2.status5date &lt;#{param.endDate,jdbcType=TIMESTAMP} 
+						)
+			)),2) skufee
+		FROM t_erp_ship_inbounditem i
+		LEFT JOIN t_erp_ship_inboundshipment s ON i.ShipmentId=s.ShipmentId AND s.inboundplanid=i.inboundplanid
+		LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+		LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+		LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+		LEFT JOIN t_amazon_group g ON g.id=p.amazongroupid
+		LEFT JOIN t_product_info info ON info.sku=i.SellerSKU AND info.marketplaceid=p.marketplaceid
+		LEFT JOIN t_picture pp ON pp.id=info.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(opt.msku,info.sku) AND m.shopid=p.shopid AND m.isDelete=0
+		left join t_userinfo u on u.id=m.owner
+		LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		left join t_profitcfg cfg on cfg.id=g.profitcfgid
+		left join t_profitcfg cfg3 on cfg3.id=opt.profitid
+		WHERE s.`status`>=5 
+			AND p.shopid=#{param.shopid,jdbcType=CHAR} 
+			AND a.groupid=p.amazongroupid
+			AND trans.transweight>0
+			and s.status5date >=  #{param.fromDate,jdbcType=TIMESTAMP}
+			and s.status5date &lt; #{param.endDate,jdbcType=TIMESTAMP}
+			and p.amazongroupid=#{param.groupid,jdbcType=CHAR}
+			and p.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+		GROUP BY i.sellersku 
+	</select>
+	
+	<select id="transFeeSharedWeek" resultType="java.util.Map" parameterType="java.util.Map">
+	select sellersku,qty,NAME,opttime,location,msku,ownername,opttime2,skufee,round(skufee/qty,2) avgfee from (	SELECT i.sellersku,sum(i.QuantityShipped) qty, max(info.name) NAME,
+	CONCAT(DATE_SUB(DATE_FORMAT(s.status5date,'%Y/%m/%d'),INTERVAL WEEKDAY(DATE_FORMAT(s.status5date,'%Y/%m/%d')) + 0 DAY),' - ',DATE_ADD(DATE_SUB(DATE_FORMAT(s.status5date,'%Y/%m/%d'),INTERVAL WEEKDAY(DATE_FORMAT(s.status5date,'%Y/%m/%d')) + 0 DAY),INTERVAL 6 DAY)) opttime
+	,DATE_SUB(s.status5date,INTERVAL WEEKDAY(s.status5date) + 0 DAY) opttime2,
+			IFNULL(max(pp.location),max(pp.url)) location, m.sku msku, u.name ownername,
+				ifnull(i.totaltransfee,round(SUM(
+					(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+					   case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE d.length*d.width*d.height/ifnull(td.drate,5000)*i.QuantityShipped END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped END) 
+						      end) 
+						end
+						<!-- (case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/5000 END)*i.QuantityShipped -->
+						
+						/
+						(
+							SELECT SUM(
+							(case when cfg2.id is not null then 
+							  (case when cfg2.shipmentStyle='weight' then d2.weight
+					      		when cfg2.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     		 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      	end) 
+							else (case when cfg1.shipmentStyle='weight' then d2.weight
+					      			when cfg1.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     			 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      		end) 
+							end)
+							*i2.QuantityShipped
+							
+							) 
+							FROM t_erp_ship_inbounditem i2
+							LEFT JOIN t_erp_ship_inboundshipment s2 ON i2.ShipmentId=s2.ShipmentId AND s2.inboundplanid=i2.inboundplanid
+							LEFT JOIN t_erp_ship_inboundplan p2 ON p2.id=s2.inboundplanid
+							LEFT JOIN t_product_info info2 ON info2.sku=i2.SellerSKU AND info2.marketplaceid=p2.marketplaceid
+							LEFT JOIN t_amazon_auth a2 ON a2.id=info2.amazonAuthId
+							LEFT JOIN t_product_in_opt opt2 ON opt2.pid=info2.id
+							LEFT JOIN t_erp_material m2 ON m2.sku=ifnull(opt2.msku,info2.sku) AND m2.shopid=p2.shopid AND m2.isDelete=0
+							LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+							LEFT JOIN t_erp_ship_inboundtrans trans2 ON trans2.shipmentid =s2.ShipmentId
+		                    LEFT JOIN t_erp_ship_transdetail td2 ON td2.id=trans2.channel AND td2.company=trans2.company
+		                    left join t_amazon_group gp on gp.id=a2.groupid
+		                    left join t_profitcfg cfg1 on cfg1.id=gp.profitcfgid
+					        left join t_profitcfg cfg2 on cfg2.id=opt2.profitid
+							WHERE s2.ShipmentId=s.ShipmentId 
+								AND s2.inboundplanid=s.inboundplanid 
+								AND a2.groupid=p.amazongroupid
+							<if test="param.endDate!=null">
+								and s2.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+								and s2.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+							</if>
+						)
+			),2)) skufee
+		FROM t_erp_ship_inbounditem i
+		LEFT JOIN t_erp_ship_inboundshipment s ON i.ShipmentId=s.ShipmentId AND s.inboundplanid=i.inboundplanid
+		LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+		LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+		LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+		LEFT JOIN t_amazon_group g ON g.id=p.amazongroupid
+		LEFT JOIN t_product_info info ON info.sku=i.SellerSKU AND info.marketplaceid=p.marketplaceid
+		LEFT JOIN t_picture pp ON pp.id=info.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(opt.msku,info.sku) AND m.shopid=p.shopid AND m.isDelete=0
+		left join t_userinfo u on u.id=m.owner
+		LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		left join t_profitcfg cfg on cfg.id=g.profitcfgid
+		left join t_profitcfg cfg3 on cfg3.id=opt.profitid
+		WHERE s.`status`>=5 
+			AND p.shopid=#{param.shopid,jdbcType=CHAR} 
+			AND a.groupid=p.amazongroupid
+			AND trans.transweight>0
+		<if test="param.endDate!=null">
+			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+		</if>
+		<if test="param.groupid!=null">
+			and p.amazongroupid= #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid!=null">
+			and p.marketplaceid= #{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null">
+			and i.sellersku like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.company!=null">
+			and trans.company= #{param.company,jdbcType=CHAR}
+		</if>
+		<if test="param.channel!=null">
+			and trans.channel= #{param.channel,jdbcType=CHAR}
+		</if>
+		GROUP BY i.sellersku,DATE_SUB(s.status5date,INTERVAL WEEKDAY(s.status5date) + 0 DAY) ) v
+	</select>
+
+	<!-- <select id="transSKUFeeShared" resultType="java.util.Map" parameterType="java.util.Map">
+	select sellersku,qty,NAME,opttime,location,msku,ownername,skufee,round(skufee/qty,2) avgfee from (	
+	       SELECT i.sellersku,sum(i.QuantityShipped) qty, max(info.name) NAME,max(s.status5date) opttime,
+			IFNULL(max(pp.location),max(pp.url)) location, m.sku msku, u.name ownername,
+			round(SUM(
+					(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+					   case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE d.length*d.width*d.height/ifnull(td.drate,5000)*i.QuantityShipped END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped END) 
+						      end) 
+						end
+						(case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/5000 END)*i.QuantityShipped
+						
+						/
+						(
+							SELECT SUM(
+							(case when cfg2.id is not null then 
+							  (case when cfg2.shipmentStyle='weight' then d2.weight
+					      		when cfg2.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     		 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      	end) 
+							else (case when cfg1.shipmentStyle='weight' then d2.weight
+					      			when cfg1.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(td2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(td2.drate,5000))  end) 
+					     			 else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(td2.drate,5000) END) 
+					      		end) 
+							end)
+							*i2.QuantityShipped
+							
+							) 
+							FROM t_erp_ship_inbounditem i2
+							LEFT JOIN t_erp_ship_inboundshipment s2 ON i2.ShipmentId=s2.ShipmentId AND s2.inboundplanid=i2.inboundplanid
+							LEFT JOIN t_erp_ship_inboundplan p2 ON p2.id=s2.inboundplanid
+							LEFT JOIN t_product_info info2 ON info2.sku=i2.SellerSKU AND info2.marketplaceid=p2.marketplaceid
+							LEFT JOIN t_amazon_auth a2 ON a2.id=info2.amazonAuthId
+							LEFT JOIN t_product_in_opt opt2 ON opt2.pid=info2.id
+							LEFT JOIN t_erp_material m2 ON m2.sku=ifnull(opt2.msku,info2.sku) AND m2.shopid=p2.shopid AND m2.isDelete=0
+							LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+							LEFT JOIN t_erp_ship_inboundtrans trans2 ON trans2.shipmentid =s2.ShipmentId
+		                    LEFT JOIN t_erp_ship_transdetail td2 ON td2.id=trans2.channel AND td2.company=trans2.company
+		                    left join t_amazon_group gp on gp.id=a2.groupid
+		                    left join t_profitcfg cfg1 on cfg1.id=gp.profitcfgid
+					        left join t_profitcfg cfg2 on cfg2.id=opt2.profitid
+							WHERE s2.ShipmentId=s.ShipmentId 
+								AND s2.inboundplanid=s.inboundplanid 
+								AND a2.groupid=p.amazongroupid
+							<if test="endDate!=null">
+								and s2.status5date &gt;= DATE_FORMAT(#{fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+								and s2.status5date &lt;= DATE_FORMAT(date_add(#{endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+							</if>
+						)
+			),2) skufee
+		FROM t_erp_ship_inbounditem i
+		LEFT JOIN t_erp_ship_inboundshipment s ON i.ShipmentId=s.ShipmentId AND s.inboundplanid=i.inboundplanid
+		LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+		LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+		LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+		LEFT JOIN t_amazon_group g ON g.id=p.amazongroupid
+		LEFT JOIN t_product_info info ON info.sku=i.SellerSKU AND info.marketplaceid=p.marketplaceid
+		LEFT JOIN t_picture pp ON pp.id=info.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(opt.msku,info.sku) AND m.shopid=p.shopid AND m.isDelete=0
+		left join t_userinfo u on u.id=m.owner
+		LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		left join t_profitcfg cfg on cfg.id=g.profitcfgid
+		left join t_profitcfg cfg3 on cfg3.id=opt.profitid
+		WHERE s.`status`>=5 
+			AND p.shopid=#{shopid,jdbcType=CHAR} 
+			AND a.groupid=p.amazongroupid
+			AND trans.transweight>0
+		<if test="endDate!=null">
+			and s.status5date &gt;= DATE_FORMAT(#{fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+			and s.status5date &lt;= DATE_FORMAT(date_add(#{endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+		</if>
+		<if test="groupid!=null">
+			and p.amazongroupid= #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!=null">
+			and p.marketplaceid= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="search!=null">
+			and i.sellersku like #{search,jdbcType=CHAR}
+		</if>
+		<if test="company!=null">
+			and trans.company= #{company,jdbcType=CHAR}
+		</if>
+		<if test="channel!=null">
+			and trans.channel= #{channel,jdbcType=CHAR}
+		</if>
+		GROUP BY i.sellersku,DATE_format(s.status5date,'%Y-%m-%d')) v
+	</select> -->
+	
+	<select id="calculateTransFeeSharedDetail" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT s.ShipmentId, p.number, i.sellersku psku,i.QuantityShipped qty, tc.name shipcompany, td.channame ,
+			mp.name marketplace, IFNULL(pp.location,pp.url) location, m.sku msku, m.color,
+			st.name statusname, u.name ownername, u2.name optname, w.name warehouse, info.name,
+			s.status5date opttime, g.name groupname, trans.transweight, 
+			d.length length,d.width width,d.height height,d.weight weight,
+			case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then 'kg' else 'cbm'  end) 
+						      else (case when trans.wtype=0 then 'kg' ELSE 'cbm' END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then 'kg'
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then 'kg' else 'cbm'  end) 
+						      else (case when trans.wtype=0 then 'kg' ELSE 'cbm' END) 
+						      end) 
+						end  fwunit,
+			round(
+					(
+						case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE d.length*d.width*d.height/ifnull(td.drate,5000)*i.QuantityShipped END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped END) 
+						      end) 
+						end
+					),2
+					<!-- case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE
+					d.length*d.width*d.height/5000*i.QuantityShipped
+					END,2 -->
+				 ) skuweight,
+			(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0)) shipmentfee,
+		round(
+				(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+				 (case when cfg3.id is not null then 
+					(case when cfg3.shipmentStyle='weight' then d.weight
+					      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight else (d.length*d.width*d.height/ifnull(td.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/ifnull(td.drate,5000) END) 
+					      end) 
+					else (case when cfg.shipmentStyle='weight' then d.weight
+					      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight else (d.length*d.width*d.height/ifnull(td.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/ifnull(td.drate,5000) END) 
+					      end) 
+					end)    
+					*i.QuantityShipped/
+				
+				(
+					SELECT SUM(
+					(case when cfg2.id is not null then 
+					(case when cfg2.shipmentStyle='weight' then d2.weight
+					      when cfg2.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(trans2.drate,5000) END) 
+					      end) 
+					else (case when cfg1.shipmentStyle='weight' then d2.weight
+					      when cfg1.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(trans2.drate,5000) END) 
+					      end) 
+					end)
+					*i2.QuantityShipped
+					)
+					FROM t_erp_ship_inbounditem i2
+					LEFT JOIN t_erp_ship_inboundshipment s2 ON i2.ShipmentId=s2.ShipmentId AND s2.inboundplanid=i2.inboundplanid
+					LEFT JOIN t_erp_ship_inboundplan p2 ON p2.id=s2.inboundplanid
+					LEFT JOIN t_product_info info2 ON info2.sku=i2.SellerSKU AND info2.marketplaceid=p2.marketplaceid
+					LEFT JOIN t_amazon_auth a2 ON a2.id=info2.amazonAuthId
+					LEFT JOIN t_product_in_opt opt2 ON opt2.pid=info2.id
+					LEFT JOIN t_erp_material m2 ON m2.sku=ifnull(opt2.msku,info2.sku) AND m2.shopid=p2.shopid AND m2.isDelete=0
+					LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+					left join t_amazon_group gp on gp.id=a2.groupid
+					left join t_profitcfg cfg1 on cfg1.id=gp.profitcfgid
+					left join t_profitcfg cfg2 on cfg2.id=opt2.profitid
+					left join t_erp_ship_inboundtrans trd  on trd.shipmentid=s2.ShipmentId
+					left join t_erp_ship_transdetail trans2 on trd.channel=trans2.id and trans2.company=trd.company
+					WHERE s2.ShipmentId=s.ShipmentId 
+						AND s2.inboundplanid=s.inboundplanid 
+						AND a2.groupid=p.amazongroupid
+						and p2.shopid=#{param.shopid,jdbcType=CHAR}
+					<if test="param.endDate!=null">
+						and s2.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+						and s2.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+					</if>
+				),2) skufee
+		FROM t_erp_ship_inbounditem i
+		LEFT JOIN t_erp_ship_inboundshipment s ON i.ShipmentId=s.ShipmentId AND s.inboundplanid=i.inboundplanid
+		left join t_erp_ship_status st on st.status=s.ShipmentStatus
+		LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+		LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+		LEFT JOIN t_erp_ship_transcompany tc ON tc.id=td.company
+		LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+		left join t_erp_warehouse w on w.id=p.warehouseid
+		LEFT JOIN t_marketplace mp ON mp.marketplaceId=p.marketplaceid
+		LEFT JOIN t_amazon_group g ON g.id=p.amazongroupid
+		LEFT JOIN t_product_info info ON info.sku=i.SellerSKU AND info.marketplaceid=p.marketplaceid
+		LEFT JOIN t_picture pp ON pp.id=info.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(opt.msku,info.sku) AND m.shopid=p.shopid AND m.isDelete=0
+		left join t_userinfo u on u.id=m.owner
+		left join t_userinfo u2 on u2.id=trans.operator
+		LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		left join t_profitcfg cfg on cfg.id=g.profitcfgid
+		left join t_profitcfg cfg3 on cfg3.id=opt.profitid
+		WHERE p.shopid=#{param.shopid,jdbcType=CHAR}
+			AND trans.transweight>0 
+			AND a.groupid=p.amazongroupid
+		<if test="param.endDate!=null">
+			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+		</if>
+		<if test="param.groupid!=null">
+			and p.amazongroupid= #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid!=null">
+			and p.marketplaceid= #{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null">
+			and (i.sellersku like #{param.search,jdbcType=CHAR} or i.ShipmentId like #{param.search,jdbcType=CHAR})
+		</if>
+		<if test="param.company!=null">
+			and trans.company= #{param.company,jdbcType=CHAR}
+		</if>
+		<if test="param.channel!=null">
+			and trans.channel= #{param.channel,jdbcType=CHAR}
+		</if>
+		<if test="param.shipmentid!=null">
+			and i.shipmentid= #{param.shipmentid,jdbcType=CHAR}
+		</if>
+		<if test="param.shipmentid==null">
+			and s.`status`>=5 
+		</if>
+		 
+	</select>
+	<select id="transFeeSharedDetail" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT s.ShipmentId, p.number, i.sellersku psku,i.QuantityShipped qty, tc.name shipcompany, td.channame ,
+			mp.name marketplace, IFNULL(pp.location,pp.url) location, m.sku msku, m.color,
+			st.name statusname, u.name ownername, u2.name optname, w.name warehouse, info.name,
+			s.status5date opttime, g.name groupname, trans.transweight, 
+			d.length length,d.width width,d.height height,d.weight weight,
+			case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then 'kg' else 'cbm'  end) 
+						      else (case when trans.wtype=0 then 'kg' ELSE 'cbm' END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then 'kg'
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then 'kg' else 'cbm'  end) 
+						      else (case when trans.wtype=0 then 'kg' ELSE 'cbm' END) 
+						      end) 
+						end  fwunit,
+			round(
+					(
+						case when cfg3.id is not null then 
+						(case when cfg3.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE d.length*d.width*d.height/ifnull(td.drate,5000)*i.QuantityShipped END) 
+						      end) 
+						else (case when cfg.shipmentStyle='weight' then d.weight*i.QuantityShipped
+						      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*i.QuantityShipped else (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped  end) 
+						      else (case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE (d.length*d.width*d.height/ifnull(td.drate,5000))*i.QuantityShipped END) 
+						      end) 
+						end
+					),2
+					<!-- case when trans.wtype=0 then d.weight*i.QuantityShipped ELSE
+					d.length*d.width*d.height/5000*i.QuantityShipped
+					END,2 -->
+				 ) skuweight,
+			(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0)) shipmentfee,
+		ifnull(i.totaltransfee,	round(
+				(trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+				 (case when cfg3.id is not null then 
+					(case when cfg3.shipmentStyle='weight' then d.weight
+					      when cfg3.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight else (d.length*d.width*d.height/ifnull(td.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/ifnull(td.drate,5000) END) 
+					      end) 
+					else (case when cfg.shipmentStyle='weight' then d.weight
+					      when cfg.shipmentStyle='dim_weight' then (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight else (d.length*d.width*d.height/ifnull(td.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d.weight ELSE d.length*d.width*d.height/ifnull(td.drate,5000) END) 
+					      end) 
+					end)    
+					*i.QuantityShipped/
+				
+				(
+					SELECT SUM(
+					(case when cfg2.id is not null then 
+					(case when cfg2.shipmentStyle='weight' then d2.weight
+					      when cfg2.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(trans2.drate,5000) END) 
+					      end) 
+					else (case when cfg1.shipmentStyle='weight' then d2.weight
+					      when cfg1.shipmentStyle='dim_weight' then (case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))  end) 
+					      else (case when trans.wtype=0 then d2.weight ELSE d2.length*d2.width*d2.height/ifnull(trans2.drate,5000) END) 
+					      end) 
+					end)
+					*i2.QuantityShipped
+					)
+					FROM t_erp_ship_inbounditem i2
+					LEFT JOIN t_erp_ship_inboundshipment s2 ON i2.ShipmentId=s2.ShipmentId AND s2.inboundplanid=i2.inboundplanid
+					LEFT JOIN t_erp_ship_inboundplan p2 ON p2.id=s2.inboundplanid
+					LEFT JOIN t_product_info info2 ON info2.sku=i2.SellerSKU AND info2.marketplaceid=p2.marketplaceid
+					LEFT JOIN t_amazon_auth a2 ON a2.id=info2.amazonAuthId
+					LEFT JOIN t_product_in_opt opt2 ON opt2.pid=info2.id
+					LEFT JOIN t_erp_material m2 ON m2.sku=ifnull(opt2.msku,info2.sku) AND m2.shopid=p2.shopid AND m2.isDelete=0
+					LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+					left join t_amazon_group gp on gp.id=a2.groupid
+					left join t_profitcfg cfg1 on cfg1.id=gp.profitcfgid
+					left join t_profitcfg cfg2 on cfg2.id=opt2.profitid
+					left join t_erp_ship_inboundtrans trd  on trd.shipmentid=s2.ShipmentId
+					left join t_erp_ship_transdetail trans2 on trd.channel=trans2.id and trans2.company=trd.company
+					WHERE s2.ShipmentId=s.ShipmentId 
+						AND s2.inboundplanid=s.inboundplanid 
+						AND a2.groupid=p.amazongroupid
+						and p2.shopid=#{param.shopid,jdbcType=CHAR}
+					<if test="param.endDate!=null">
+						and s2.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+						and s2.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+					</if>
+				),2
+			)) skufee
+		FROM t_erp_ship_inbounditem i
+		LEFT JOIN t_erp_ship_inboundshipment s ON i.ShipmentId=s.ShipmentId AND s.inboundplanid=i.inboundplanid
+		left join t_erp_ship_status st on st.status=s.ShipmentStatus
+		LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+		LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+		LEFT JOIN t_erp_ship_transcompany tc ON tc.id=td.company
+		LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+		left join t_erp_warehouse w on w.id=p.warehouseid
+		LEFT JOIN t_marketplace mp ON mp.marketplaceId=p.marketplaceid
+		LEFT JOIN t_amazon_group g ON g.id=p.amazongroupid
+		LEFT JOIN t_product_info info ON info.sku=i.SellerSKU AND info.marketplaceid=p.marketplaceid
+		LEFT JOIN t_picture pp ON pp.id=info.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		LEFT JOIN t_erp_material m ON m.sku=ifnull(opt.msku,info.sku) AND m.shopid=p.shopid AND m.isDelete=0
+		left join t_userinfo u on u.id=m.owner
+		left join t_userinfo u2 on u2.id=trans.operator
+		LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		left join t_profitcfg cfg on cfg.id=g.profitcfgid
+		left join t_profitcfg cfg3 on cfg3.id=opt.profitid
+		WHERE p.shopid=#{param.shopid,jdbcType=CHAR}
+			AND trans.transweight>0 
+			AND a.groupid=p.amazongroupid
+		<if test="param.endDate!=null">
+			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+		</if>
+		<if test="param.groupid!=null">
+			and p.amazongroupid= #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid!=null">
+			and p.marketplaceid= #{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null">
+			and (i.sellersku like #{param.search,jdbcType=CHAR} or i.ShipmentId like #{param.search,jdbcType=CHAR})
+		</if>
+		<if test="param.company!=null">
+			and trans.company= #{param.company,jdbcType=CHAR}
+		</if>
+		<if test="param.channel!=null">
+			and trans.channel= #{param.channel,jdbcType=CHAR}
+		</if>
+		<if test="param.shipmentid!=null">
+			and i.shipmentid= #{param.shipmentid,jdbcType=CHAR}
+		</if>
+		<if test="param.shipmentid==null">
+			and s.`status`>=5 
+		</if>
+		 
+	</select>
+	
+	<select id="localitem" resultType="java.util.Map" parameterType="java.util.Map">
+	SELECT sum(v.amount) amount,v.posted_date, '头程运费' name
+	from (
+			SELECT ((trans.singleprice * trans.transweight) + ifnull(trans.otherfee,0)) amount,
+				DATE_FORMAT(s.status5date, '%y-%m') posted_date 
+			FROM  t_erp_ship_inboundshipment s
+			LEFT JOIN t_erp_ship_inboundtrans trans ON trans.shipmentid =s.ShipmentId
+			LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+			WHERE s.`status` >= 5
+				AND p.shopid = #{shopid,jdbcType=CHAR}
+				AND trans.transweight > 0
+				<if test="datetype==null">
+				and s.status5date >= #{fromDate,jdbcType=CHAR}
+				and s.status5date &lt;= #{endDate,jdbcType=CHAR}
+				</if>
+				<if test="datetype!=null">
+				and s.status5date >= #{setfromDate,jdbcType=CHAR}
+				and s.status5date &lt;= #{setendDate,jdbcType=CHAR}
+				</if>
+				<if test="marketplaceid != null and marketplaceid != 'all'">
+					and p.marketplaceid= #{marketplaceid,jdbcType=CHAR}
+				</if>
+				<if test="groupid!=null">
+					and p.amazongroupid= #{groupid,jdbcType=CHAR}
+				</if>
+		)v
+	group by v.posted_date;
+	</select>
+	
+	<select id="getSelfTransDataView" resultType="java.util.Map" parameterType="java.lang.String">
+		 select tt.name transtyle,c.name company,ifnull(cn.name,'') channeltype,t.drate,ifnull(t.subarea,'') subarea,t.channame ,s.* from t_erp_ship_inboundtrans s 
+		 left join t_erp_ship_transdetail t ON t.id=s.channel
+		 LEFT JOIN t_erp_ship_transcompany c ON c.id=t.company
+		 LEFT JOIN t_erp_ship_transchannel cn ON cn.id=t.channel
+		 LEFT JOIN t_erp_transtype tt ON tt.id=t.transtype
+		 WHERE s.shipmentid= #{id,jdbcType=CHAR}
+         limit 1;
+	</select>
+</mapper>

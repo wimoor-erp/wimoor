@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipInboundBoxMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipInboundBox" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shipmentid" property="shipmentid" jdbcType="CHAR" />
+    <result column="boxnum" property="boxnum" jdbcType="INTEGER" />
+    <result column="length" property="length" jdbcType="DECIMAL" />
+    <result column="width" property="width" jdbcType="DECIMAL" />
+    <result column="height" property="height" jdbcType="DECIMAL" />
+    <result column="unit" property="unit" jdbcType="CHAR" />
+    <result column="weight" property="weight" jdbcType="DECIMAL" />
+    <result column="wunit" property="wunit" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <select id="findShipInboundBox" resultType="java.util.Map" parameterType="java.lang.String">
+     select max(box.shipmentid) shipmentid, box.boxnum ,sum(ca.quantity) qty,
+        max(box.weight) weight,
+		max(box.length) length,max(box.width) width,max(box.height) height ,
+		max(box.tracking_id) tracking_id,max(box.package_status) package_status
+	  from t_erp_ship_inboundbox box
+      left join t_erp_ship_inboundcase ca on ca.shipmentid=box.shipmentid and box.boxnum=ca.numberofcase
+      where box.shipmentid=#{id,jdbcType=CHAR}
+      group by box.shipmentid,box.boxnum
+  </select>
+  <!-- <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipInboundBox" >
+    insert into t_erp_ship_inboundbox (id, shipmentid, boxnum, 
+      length, width, height, 
+      unit, weight, wunit)
+    values (#{id,jdbcType=CHAR}, #{shipmentid,jdbcType=CHAR}, #{boxnum,jdbcType=INTEGER}, 
+      #{length,jdbcType=DECIMAL}, #{width,jdbcType=DECIMAL}, #{height,jdbcType=DECIMAL}, 
+      #{unit,jdbcType=CHAR}, #{weight,jdbcType=DECIMAL}, #{wunit,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipInboundBox" >
+    insert into t_erp_ship_inboundbox
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shipmentid != null" >
+        shipmentid,
+      </if>
+      <if test="boxnum != null" >
+        boxnum,
+      </if>
+      <if test="length != null" >
+        length,
+      </if>
+      <if test="width != null" >
+        width,
+      </if>
+      <if test="height != null" >
+        height,
+      </if>
+      <if test="unit != null" >
+        unit,
+      </if>
+      <if test="weight != null" >
+        weight,
+      </if>
+      <if test="wunit != null" >
+        wunit,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="shipmentid != null" >
+        #{shipmentid,jdbcType=CHAR},
+      </if>
+      <if test="boxnum != null" >
+        #{boxnum,jdbcType=INTEGER},
+      </if>
+      <if test="length != null" >
+        #{length,jdbcType=DECIMAL},
+      </if>
+      <if test="width != null" >
+        #{width,jdbcType=DECIMAL},
+      </if>
+      <if test="height != null" >
+        #{height,jdbcType=DECIMAL},
+      </if>
+      <if test="unit != null" >
+        #{unit,jdbcType=CHAR},
+      </if>
+      <if test="weight != null" >
+        #{weight,jdbcType=DECIMAL},
+      </if>
+      <if test="wunit != null" >
+        #{wunit,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

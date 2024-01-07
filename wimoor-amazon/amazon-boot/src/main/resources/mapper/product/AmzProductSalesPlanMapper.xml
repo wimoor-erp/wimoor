@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductSalesPlanMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductSalesPlan">
+        <result column="id" property="id" />
+        <result column="sku" property="sku" />
+        <result column="msku" property="msku" />
+        <result column="shopid" property="shopid" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="groupid" property="groupid" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="shipday" property="shipday" />
+        <result column="delivery_cycle" property="deliveryCycle" />
+        <result column="needship" property="needship" />
+        <result column="needpurchase" property="needpurchase" />
+        <result column="opttime" property="opttime" />
+        <result column="short_time" property="shortTime" />
+    </resultMap>
+    <select id="getPlanModel"  resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDTO">
+          select    
+	              0  amount,
+	            
+		          m.*
+		         <if test="dto.marketplaceids!=null   or dto.different=='avgsales'  or dto.status!=null or dto.pidlist!=null or dto.currentRank=='avgsales' or dto.currentRank=='sales_seven' or dto.currentRank=='sales_month'">
+		          ,v2.avgsales-m.marketsalesday differentsales,v2.*
+		         </if>
+		  from (
+		  	 select  msku,max(p.shopid) shopid,max(p.groupid) groupid,
+		  	         
+				  	 <if test="dto.plantype=='ship'">
+		               SUM(needship) needship,
+		  	           SUM(needshipfba) needshipfba,
+		              </if>
+		  	          <if test="dto.plantype=='purchase'">
+		  	           SUM(needpurchase) needpurchase,
+		              </if>
+		  	           DATE_FORMAT(MAX(p.opttime),'%Y-%m-%d')  opttime
+		  	         <if test=" dto.marketplaceids!=null">
+		  	           <if test="dto.plantype=='ship'">
+		                 ,SUM(case when p.marketplaceid in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		
+						   )
+		                 then needship else 0 end ) marketneedship
+		              </if>
+		              
+		             
+		  	          <if test="dto.plantype=='purchase'">
+		               ,SUM(case when p.marketplaceid in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		)
+						    then needpurchase else 0 end ) marketneedpurchase
+		              </if>
+		               ,MAX(case when ir.marketplaceid  in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		)
+		               then ir.afn_fulfillable_quantity else 0 end ) afn_fulfillable_quantity
+		  	           ,SUM(case when p.marketplaceid in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		)
+		  	           then salesday else 0 end ) marketsalesday
+		  	           ,SUM(case when p.marketplaceid in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		)
+		  	           then avgsales else 0 end ) marketavgsales
+		  	           ,MIN(case when p.marketplaceid in (
+		                    <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		)
+		  	           
+		  	           then short_time else '2399-01-01' end)  short_time
+		  	         </if>
+		  	         <if test=" dto.marketplaceids==null">
+		  	          <if test="dto.plantype=='ship'">
+		                 ,SUM(needship) marketneedship
+		              </if>
+		  	          <if test="dto.plantype=='purchase'">
+		  	           ,SUM(needpurchase) marketneedpurchase
+		              </if>
+		  	            ,SUM(salesday) marketsalesday
+		  	            ,MIN(short_time)  short_time
+		  	            ,SUM(avgsales) marketavgsales
+		  	         </if>
+		  	 from t_amz_product_sales_plan p
+		  	    <if test="dto.marketplaceids!=null">
+		  	        left join t_inventory_report ir on ir.amazonAuthId=p.amazonauthid and ir.sku=p.sku    and  ir.marketplaceid=p.marketplaceid 
+		  	    </if>
+		  	 where  p.shopid=#{dto.shopid,jdbcType=CHAR} 
+		  	   <if test="dto.groupid!=null">
+			    and p.groupid=#{dto.groupid,jdbcType=CHAR}
+			    </if>
+			     <if test="dto.groupids!=null">
+						     and p.groupid in (
+						    <foreach collection="dto.groupids" item="groupid" index="index" separator=",">
+										#{groupid,jdbcType=CHAR} 
+								    </foreach>		
+						   )
+				  </if>
+			    <if test="dto.searchtype=='sku' and dto.search!=null">
+		        and (p.msku like #{dto.search,jdbcType=CHAR} or p.sku like #{dto.search,jdbcType=CHAR} )
+	           </if> 
+	           <if test="dto.skulist!=null">
+				 and p.sku in (
+									<foreach collection="dto.skulist" item="sku" index="index" separator=",">
+										#{sku,jdbcType=CHAR} 
+								    </foreach>			
+				              )
+			  </if>
+			 GROUP BY  p.msku
+		  ) m 
+		    <if  test="dto.marketplaceids!=null 
+				    or dto.status!=null 
+				    or dto.pidlist!=null 
+				    or dto.small!=null 
+				    or dto.currentRank=='avgsales' 
+				    or dto.different=='avgsales' 
+				    or dto.currentRank=='sales_seven' 
+				    or dto.currentRank=='sales_month'
+				    or dto.pidlist!=null
+				    or (dto.search!=null and dto.searchtype=='sameasin')
+				    or (dto.search!=null and dto.searchtype=='samesku')">
+		      LEFT JOIN ( 
+			         select 
+					  ifnull(o.msku,i.sku) v2msku,count(i.id) vfield,
+					  sum(r.avgsales) avgsales,
+					  sum(r.sales_seven) sales_seven,
+					  sum(r.sales_month) sales_month
+					  from  t_product_info i 
+					  left join t_amazon_auth a on a.id=i.amazonauthid
+					  left join t_product_in_opt o on o.pid=i.id
+					  left join t_marketplace m on m.marketplaceid=i.marketplaceid
+					  left join t_product_in_order r on r.pid=i.id
+					  where  
+					      a.shop_id=#{dto.shopid,jdbcType=CHAR} 
+					      and  a.disable = FALSE  and (o.disable is null or o.disable=0) 
+			              and  i.invalid=0   and i.isparent=0
+					      <if test="dto.groupid!=null">
+						    and a.groupid=#{dto.groupid,jdbcType=CHAR}
+						 </if>
+						  <if test="dto.groupids!=null">
+						    and a.groupid in (
+						    <foreach collection="dto.groupids" item="groupid" index="index" separator=",">
+										#{groupid,jdbcType=CHAR} 
+								    </foreach>		
+						   )
+						 </if>
+						 <if test="dto.search!=null"> 
+							 <if test='dto.searchtype =="sameasin"'>
+								and i.parentasin in (SELECT t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=i.amazonAuthId
+								and  t1.asin like #{dto.search,jdbcType=CHAR} AND t1.invalid=0 )
+							</if>
+							<if test='dto.searchtype =="samesku"'>
+								and i.parentasin in  (select  t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=i.amazonAuthId
+								and  t1.sku like #{dto.search,jdbcType=CHAR} AND t1.invalid=0)
+							</if>
+						</if>
+					     <if test="dto.status!=null">
+					      and o.status=#{dto.status,jdbcType=CHAR}
+					     </if>
+					    <if test="dto.marketplaceids!=null">
+					      and  i.marketplaceid in ( 
+					        <foreach collection="dto.marketplaceids" item="market" index="index" separator=",">
+								 #{market,jdbcType=CHAR} 
+						   </foreach>		
+					       )
+					    </if>
+					    <if test="dto.small!=null">
+					       <if test="dto.small=='true'">
+					         and  ifnull(i.inSnl,false)=true
+					       </if>
+					        <if test="dto.small=='false'">
+					         and  ifnull(i.inSnl,false)=false
+					       </if>  
+					    </if>
+					    <if test="dto.pidlist!=null">
+							and i.id in (
+									   <if test="dto.pidlist.size()==0">
+									    '#'	
+									   </if>
+									<foreach collection="dto.pidlist" item="tags" index="index" separator=",">
+										#{tags,jdbcType=CHAR} 
+								    </foreach>	
+								   	
+							    )
+						</if>
+					      GROUP BY  ifnull(o.msku,i.sku) 
+						) v2 ON v2.v2msku=m.msku
+		   </if> 
+		   where  m.shopid=#{dto.shopid,jdbcType=CHAR}  
+		   <if test="dto.groupid!=null">
+			      and m.groupid=#{dto.groupid,jdbcType=CHAR}
+		    </if>
+            <if test="dto.marketplaceids!=null 
+                    or dto.status!=null 
+                    or dto.pidlist!=null 
+                    or dto.small!=null 
+                    or dto.pidlist!=null 
+                    or (dto.search!=null and dto.searchtype=='sameasin')
+				    or (dto.search!=null and dto.searchtype=='samesku')">
+			     and v2.vfield>0
+		    </if>
+		    <if test="dto.different=='avgsales'">
+		         and v2.avgsales>m.marketavgsales
+		    </if>
+		    <if test="dto.shortdays=='15'">
+		         and m.short_time &lt;=date_add(now(), interval 15 day)
+		    </if>
+		    <if test="dto.shortdays=='30'">
+		         and m.short_time&lt;=date_add(now(), interval 30 day)
+		    </if>
+		     <if test="dto.shortdays=='60'">
+		         and m.short_time&lt;=date_add(now(), interval 60 day)
+		    </if>
+    </select>
+    
+    
+  <select id="ExpandCountryDataByGroup" resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDetailDTO">
+      SELECT ifnull(afn_fulfillable_quantity,0)+ifnull(afn_inbound_working_quantity,0)+
+			 ifnull(afn_inbound_shipped_quantity,0)+ifnull(afn_inbound_receiving_quantity,0)+
+			 case when rr.id is null then ifnull(afn_reserved_quantity,0) 
+			 else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) end quantity,
+			 ifnull(afn_fulfillable_quantity,0)+ 
+			 case when rr.id is null then ifnull(afn_reserved_quantity,0) 
+			 else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) end localquantity,
+			 
+			 v.sku,v.marketname,v.marketplaceid,v.sysavgsales,v.amazonauthid,v.groupname,
+			 v.openDate,v.sum15,v.summonth,v.sumweek,v.msku,v.groupid,
+			 v.sumseven,v.statusname,v.statuscolor,v.country,v.shopid,v.asin,
+			 
+			 p.avgsales,p.needship,p.needshipfba,p.needpurchase,p.ship_min_cycle_sale,p.short_time,
+			 p.needpurchase,p.salesday,p.shipday,p.delivery_cycle,
+			 r.afn_fulfillable_quantity,    r.afn_inbound_working_quantity,  r.afn_unsellable_quantity,
+			 r.afn_inbound_shipped_quantity,r.afn_inbound_receiving_quantity,r.afn_reserved_quantity,
+			 r.afn_total_quantity,r.afn_researching_quantity,r.afn_reserved_future_supply,
+			 rr.reserved_fc_processing,rr.reserved_fc_transfers,rr.reserved_qty,rr.reserved_customerorders
+				 ,0 subnum,
+				 0 aftersalesday,
+				 ifnull(p.needship,0) amount
+				 ,0 reallyamount 
+			 FROM (
+		select  
+		       p.sku sku,
+		        <if test="mskus!=null">
+		         p.msku msku,
+		        </if>
+		       <if test="msku!=null">
+		         max(p.msku) msku,
+		        </if>
+		       max(info.asin) asin,
+               max(auth.id) amazonauthid,
+               max(auth.shop_id) shopid,
+               max(auth.groupid) groupid,
+               max(g.name)  groupname,
+	           p.marketplaceid  marketplaceid,
+		       max(case when mk.region='EU' then '欧洲' ELSE mk.name END ) marketname,
+		       max(case when mk.region='EU' then 'EU' ELSE mk.market END ) country,
+		       
+		       sum(t.sales_week) sumweek,
+		       sum(t.sales_seven) sumseven,
+		       sum(t.sales_month) summonth,
+		       sum(t.sales_fifteen) sum15,
+		       min(info.openDate) openDate,
+		       sum(t.avgsales) sysavgsales,
+		       max(d.name) statusname,
+		       max(d.color) statuscolor,
+		       max(mk.findex) findex
+		FROM  t_amz_product_sales_plan p
+		left join t_amazon_auth auth on auth.id = p.amazonAuthId
+		left join t_marketplace mk on mk.marketplaceid=p.marketplaceid or mk.region=p.marketplaceid
+		left join t_product_info info on p.amazonauthid=info.amazonauthid  and  info.sku=p.sku and info.marketplaceid=mk.marketplaceid 
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_product_info_status_define d on d.id=o.status
+		LEFT JOIN t_product_in_order t on t.pid = info.id
+		left join t_amazon_group g on g.id=auth.groupid
+		where   auth.disable = FALSE  and (o.disable is null or o.disable=0) 
+			    and info.invalid=0   and info.isparent=0
+			    and auth.shop_id=#{shopid,jdbcType=CHAR}
+			    <if test="groupid!=null">
+			      and auth.groupid=#{groupid,jdbcType=CHAR}
+			    </if>
+			    <if test="msku!=null">
+				AND p.msku=#{msku,jdbcType=CHAR}
+				</if>
+				 <if test="mskus!=null">
+				AND p.msku in (
+				     <foreach collection="mskus" item="mskuitem" index="index" separator=",">
+						  #{mskuitem,jdbcType=CHAR}
+					 </foreach>			
+				)
+				</if>
+				<if test="groupids!=null and plansimple==true">
+				  and auth.groupid in (
+				                   <foreach collection="groupids" item="group" index="index" separator=",">
+										   #{group,jdbcType=CHAR}
+								    </foreach>			
+				           )
+				</if>
+				<if test="marketplaceids!=null and plansimple==true">
+				  and p.marketplaceid in (
+				                   <foreach collection="marketplaceids" item="market" index="index" separator=",">
+										   #{market,jdbcType=CHAR}
+								    </foreach>			
+				           )
+				</if>
+	            group by 
+	             <if test="mskus!=null">
+				  p.msku, 
+				</if>
+	            p.sku,p.marketplaceId
+		) v
+	    LEFT JOIN t_amz_product_sales_plan p  ON p.sku=v.sku AND p.marketplaceid=v.marketplaceid AND p.amazonauthid=v.amazonauthid    and p.shopid=v.shopid and p.groupid=v.groupid and p.msku=v.msku
+        LEFT JOIN t_inventory_report r   ON r.sku=v.sku AND r.marketplaceid=v.marketplaceid AND r.amazonAuthId=v.amazonauthid
+        LEFT JOIN t_inventory_reserved_report rr on v.sku=rr.sku and v.marketplaceid=rr.marketplaceid and v.amazonAuthId=rr.amazonAuthId 
+        LEFT JOIN t_erp_market_priority pri on pri.marketplaceid=v.marketplaceid and pri.groupid=v.groupid
+        order by ifnull(pri.priority,v.findex)
+    </select>
+    
+      <select id="ExpandEUCountryDataByGroup" resultType="java.util.Map" parameterType="com.wimoor.amazon.product.pojo.dto.PlanDetailDTO">
+		select * from ( 
+		       select info.sku sku,
+		       info.asin,
+               auth.id amazonauthid,
+               auth.shop_id shopid,
+               auth.groupid,
+			   mk.marketplaceId    marketplaceid,
+			   mk.name marketname,
+			   'EU' country,
+		       ifnull(o.msku,info.sku) msku,
+		       t.sales_week sumweek,
+		       t.sales_seven sumseven,
+		       t.sales_month summonth,
+		       t.sales_fifteen sum15,
+		       info.openDate openDate,
+		       t.avgsales sysavgsales,
+		       d.name statusname,
+		       d.color statuscolor,
+		       ifnull(pri.priority,mk.findex) findex,
+		       g.name groupname,
+		       ic.quantity 
+		       ,0 amount
+			   ,0 reallyamount
+			   ,0 subnum
+		FROM  t_product_info info
+		left join t_amazon_auth auth on auth.id = info.amazonauthid
+		left join t_marketplace mk on  mk.marketplaceid=info.marketplaceid
+		left join t_amz_rpt_inventory_country ic on ic.sku=info.sku 
+		  and ic.authid=info.amazonauthid
+		 and  ic.country=mk.market
+		left join t_product_in_opt o on o.pid=info.id
+		left join t_product_info_status_define d on d.id=o.status
+		LEFT JOIN t_product_in_order t on t.pid = info.id
+		left join t_amazon_group g on g.id=auth.groupid
+		LEFT JOIN t_erp_market_priority pri on pri.marketplaceid=mk.marketplaceid and pri.groupid=auth.groupid
+		where   auth.disable = FALSE and ic.id is null 
+		        and info.invalid=0 and info.isparent=0 and ifnull(o.disable,0)=0
+			    and auth.shop_id=#{shopid,jdbcType=CHAR}
+			     <if test="groupid!=null">
+			      and auth.groupid=#{groupid,jdbcType=CHAR}
+			    </if>
+				AND info.sku=#{sku,jdbcType=CHAR}
+				<if test="groupids!=null and plansimple==true">
+				  and auth.groupid in (
+				                   <foreach collection="groupids" item="group" index="index" separator=",">
+										   #{group,jdbcType=CHAR}
+								    </foreach>			
+				           )
+				</if>
+				<if test="marketplaceids!=null and plansimple==true">
+				  and p.marketplaceid in (
+				                   <foreach collection="marketplaceids" item="market" index="index" separator=",">
+										   #{market,jdbcType=CHAR}
+								    </foreach>			
+				           )
+				</if>
+				and mk.marketplaceid in('A1PA6795UKMFR9','A13V1IB3VIYZZH','A33AVAJ2PDY3EV','A1RKKUPIHCS9HS','APJ6JRA9NG5V4','A1805IZSGTT6HS','A1C3SOZRARQ6R3','A2NODRKZP88ZB9')
+         union all
+         select ic.sku sku,
+                info.asin,
+               auth.id amazonauthid,
+               auth.shop_id shopid,
+               auth.groupid,
+			   mk.marketplaceId    marketplaceid,
+			   mk.name marketname,
+			   'EU' country,
+		       ifnull(o.msku,ic.sku) msku,
+		       t.sales_week sumweek,
+		       t.sales_seven sumseven,
+		       t.sales_month summonth,
+		       t.sales_fifteen sum15,
+		       info.openDate openDate,
+		       t.avgsales sysavgsales,
+		       d.name statusname,
+		       d.color statuscolor,
+		       ifnull(pri.priority,mk.findex) findex,
+		       g.name groupname,
+		       ic.quantity 
+		       ,0 amount
+			   ,0 reallyamount
+			   ,0 subnum
+			   
+		FROM  t_amz_rpt_inventory_country ic
+		left join t_amazon_auth auth on auth.id = ic.authid
+		left join t_marketplace mk on  mk.market=ic.country 
+		left join  t_product_info info  on info.sku=ic.sku 
+		and info.amazonauthid=ic.authid 
+		and info.marketplaceid=mk.marketplaceid
+		and info.invalid=0 and info.isparent=0 
+		left join t_product_in_opt o on o.pid=info.id 
+		left join t_product_info_status_define d on d.id=o.status
+		LEFT JOIN t_product_in_order t on t.pid = info.id
+		left join t_amazon_group g on g.id=auth.groupid
+		LEFT JOIN t_erp_market_priority pri on pri.marketplaceid=mk.marketplaceid and pri.groupid=auth.groupid
+		where   auth.disable = FALSE  
+			    and auth.shop_id=#{shopid,jdbcType=CHAR}
+			     <if test="groupid!=null">
+			      and auth.groupid=#{groupid,jdbcType=CHAR}
+			    </if>
+				AND ic.sku=#{sku,jdbcType=CHAR}
+				<if test="groupids!=null and plansimple==true">
+				  and auth.groupid in (
+				                   <foreach collection="groupids" item="group" index="index" separator=",">
+										   #{group,jdbcType=CHAR}
+								    </foreach>			
+				           )
+				</if>
+				<if test="marketplaceids!=null and plansimple==true">
+				  and p.marketplaceid in (
+				                   <foreach collection="marketplaceids" item="market" index="index" separator=",">
+										   #{market,jdbcType=CHAR}
+								    </foreach>			
+				           )
+				</if>
+				and mk.marketplaceid in('A1PA6795UKMFR9','A13V1IB3VIYZZH','A33AVAJ2PDY3EV','A1RKKUPIHCS9HS','APJ6JRA9NG5V4','A1805IZSGTT6HS','A1C3SOZRARQ6R3','A2NODRKZP88ZB9')
+				  ) v                      
+         order by findex
+    </select>
+      
+    
+</mapper>

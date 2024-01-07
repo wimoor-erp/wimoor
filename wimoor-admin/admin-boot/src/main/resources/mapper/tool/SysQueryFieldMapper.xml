@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.sys.tool.mapper.SysQueryFieldMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.sys.tool.pojo.entity.SysQueryField">
+        <id column="fquery" property="fquery" />
+        <result column="ffield" property="ffield" />
+        <result column="title" property="title" />
+        <result column="titleTooltip" property="titleTooltip" />
+        <result column="width" property="width" />
+        <result column="findex" property="findex" />
+        <result column="formatter" property="formatter" />
+        <result column="footerFormatter" property="footerFormatter" />
+        <result column="sortable" property="sortable" />
+        <result column="valign" property="valign" />
+        <result column="align" property="align" />
+        <result column="createdate" property="createdate" />
+    </resultMap>
+
+   <select id="findByUserUsed" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+     f.*
+    from t_sys_query_user_version uf 
+    left join t_sys_query_version_feild  vf on vf.fversionid=uf.id
+    left join t_sys_query_field f on f.fquery=uf.fquery and f.ffield=vf.ffield
+    where uf.userid = #{userid,jdbcType=CHAR}
+    and uf.fquery = #{fquery,jdbcType=CHAR}
+    and uf.isused=1
+    order by vf.findex asc
+  </select>
+  
+     <select id="findAllVersionByUser" resultType="java.util.Map" parameterType="java.lang.String" >
+    select 
+     uf.id fversionid,uf.isused,f.*
+    from t_sys_query_user_version uf 
+     left join t_sys_query_version_feild  vf on vf.fversionid=uf.id
+     left join t_sys_query_field f on f.fquery=uf.fquery and f.ffield=vf.ffield
+    where uf.userid = #{userid,jdbcType=CHAR}
+    and uf.fquery = #{fquery,jdbcType=CHAR}
+    order by vf.findex asc
+  </select>
+</mapper>

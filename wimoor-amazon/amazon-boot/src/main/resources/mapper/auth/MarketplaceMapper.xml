@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.auth.mapper.MarketplaceMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.Marketplace">
+		<id column="marketplaceId" property="marketplaceid" jdbcType="VARCHAR" />
+		<result column="market" property="market" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="region_name" property="regionName" jdbcType="VARCHAR" />
+		<result column="region" property="region" jdbcType="CHAR" />
+		<result column="end_point" property="endPoint" jdbcType="VARCHAR" />
+		<result column="point_name" property="pointName" jdbcType="VARCHAR" />
+		<result column="accessKey" property="accesskey" jdbcType="VARCHAR" />
+		<result column="secretKey" property="secretkey" jdbcType="VARCHAR" />
+		<result column="dim_units" property="dimUnits" jdbcType="CHAR" />
+		<result column="weight_units" property="weightUnits" jdbcType="CHAR" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="developer_url" property="developerUrl" jdbcType="VARCHAR" />
+		<result column="bytecode" property="bytecode" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		marketplaceId, market, name, region_name, region, end_point, point_name, accessKey,
+		secretKey, dim_units, weight_units, currency, developer_url,bytecode
+	</sql>
+	
+	<select id="findbyRegion" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_marketplace
+		where region = #{region,jdbcType=VARCHAR} and accessKey is not null
+	</select>
+	
+	<select id="selectMarketSupportBind" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_marketplace
+		where accessKey is not null
+	</select>
+
+	<select id="findbyauth" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct m.marketplaceId, m.market, m.name, m.region_name, m.region, m.end_point, m.point_name,
+			m.accessKey, m.secretKey, m.dim_units, m.weight_units, m.currency,m.findex,m.adv_end_point,m.aws_access_key,
+			m.aws_secret_key,m.associate_tag,m.developer_url,m.dev_account_num,m.bytecode
+		from t_marketplace m
+		left join t_amazonseller_market s on m.marketplaceId=s.marketplace_id
+		left join t_amazon_auth a on a.sellerid=s.sellerid
+		where a.id=#{id,jdbcType=CHAR} 
+			and accessKey is not null 
+			and s.`disable`=false
+		order by m.findex
+	</select>
+
+	<select id="findByRole" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct m.marketplaceId, m.market, m.name, m.region_name, m.region, m.end_point, m.point_name,
+			m.accessKey, m.secretKey, m.dim_units, m.weight_units, m.currency
+		from t_marketplace m
+		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
+		left join t_amazon_auth a on a.sellerid=s.sellerid
+		left join t_role_marketplace r on r.marketplaceid=m.marketplaceId
+		where a.shop_id=#{shopid,jdbcType=CHAR} 
+			and s.disable=false 
+			and a.disable=false
+		<if test="roleid != null">
+			and r.roleid=#{roleid,jdbcType=CHAR}
+		</if>
+		order by m.findex
+	</select>
+	
+	<select id="findByUser" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct m.marketplaceId, m.market, m.name, m.region_name, m.region, m.end_point, m.point_name,
+			m.accessKey, m.secretKey, m.dim_units, m.weight_units, m.currency
+		from t_marketplace m
+		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
+		left join t_amazon_auth a on a.sellerid=s.sellerid
+		where s.disable=false 
+			and a.disable=false
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		order by findex
+	</select>
+	
+	<select id="findByGroup" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from(
+		select distinct m.marketplaceId, m.market, m.name, m.region_name, m.region, m.end_point, m.point_name,
+			m.accessKey, m.secretKey, m.dim_units, m.weight_units, m.currency,m.findex
+		from t_marketplace m
+		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
+		left join t_amazon_auth a on a.sellerid=s.sellerid
+		where s.disable=false 
+			and a.disable=false
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		) v
+		order by v.findex
+	</select>
+
+	<select id="findEUPriorityByGroup" resultType="java.util.Map" parameterType="java.lang.String">
+		select distinct m.marketplaceId, m.market, m.name, m.region_name, m.region, m.end_point, m.point_name,
+			IFNULL(p.priority,m.findex) priority
+		from t_marketplace m
+		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
+		left join t_amazon_auth a on a.sellerid=s.sellerid
+		left join t_erp_market_priority p on p.marketplaceId = m.marketplaceId and p.groupid=a.groupid
+		where a.groupid=#{groupid,jdbcType=CHAR} 
+			and s.disable=false 
+			and a.disable=false
+			and m.region='EU'
+		order by IFNULL(p.priority,m.findex)
+	</select>
+
+	<select id="selectMarketByGroupid" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select distinct mk.marketplaceId id,mk.* 
+		from t_marketplace mk 
+		left join t_amazonseller_market m on m.marketplace_id=mk.marketplaceId
+		left join t_amazon_auth au on au.sellerid=m.sellerid
+		where au.`disable`=false 
+			and m.`disable`=false
+		<if test="groupid != null">
+			and au.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+			and au.shop_id=#{shopid,jdbcType=CHAR}
+		order by findex asc
+	</select>
+	
+	<select id="selectMarketBySellerid" parameterType="java.util.Map" resultMap="BaseResultMap">
+		select distinct mk.marketplaceId id,mk.* 
+		from t_marketplace mk
+		left join t_amazonseller_market m on m.marketplace_id=mk.marketplaceId
+		left join t_amazon_auth au on au.sellerid=m.sellerid
+		where au.shop_id=#{shopid,jdbcType=CHAR}
+			and au.`disable`= 0
+			and m.`disable`= 0
+		<if test="sellerid != null">
+			and au.sellerid=#{sellerid,jdbcType=CHAR}
+		</if>
+		order by findex asc
+	</select>
+	
+	<select id="selectGroupByRegion" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from t_marketplace t 
+		where t.findex!=10 
+		group by t.region 
+		order by t.findex
+	</select>
+	
+	<select id="findByShopid" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select distinct ti.*
+		from t_marketplace ti
+		left join t_amazonseller_market am on am.marketplace_id=ti.marketplaceId and `disable`=FALSE
+		left join t_amazon_auth au on au.sellerid=am.sellerid
+		where au.shop_id=#{shopid,jdbcType=CHAR} 
+		order by ti.findex asc
+	</select>
+
+	<select id="findCommMarketpaceByShopid" parameterType="java.lang.String" resultType="java.util.Map">
+		select distinct ifnull(mp.point_name,v.id) id,ifnull(mp.name,v.name) name,
+			ifnull(mp.marketplaceId,v.id) marketplaceid,mp.currency
+		from (
+			select distinct marketplace_name id,marketplace_name name
+			from t_amz_settlement_acc_report m
+			left join t_amazon_auth a on a.id=m.amazonAuthId
+			where a.shop_id=#{shopid,jdbcType=CHAR}
+			order by marketplace_name
+		) v
+		left join t_marketplace mp on mp.point_name=v.id or mp.end_point=v.id
+		order by ifnull(mp.findex,30)
+	</select>
+
+ 
+	<select id="getMarketPointBySkuGroup" parameterType="java.lang.String" resultMap="BaseResultMap">
+		SELECT m.* FROM t_product_info t
+		LEFT JOIN t_amazon_auth auth ON auth.id=t.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=auth.groupid 
+		LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
+		 WHERE t.sku=#{sku,jdbcType=CHAR} AND g.id=#{groupid,jdbcType=CHAR}  AND t.invalid=0
+		 GROUP BY t.marketplaceid ORDER BY m.findex asc
+	</select>
+	
+	<select id="getMarketPointByMSku" parameterType="java.lang.String" resultMap="BaseResultMap">
+		SELECT m.* FROM t_product_info t
+		left join t_product_in_opt o on o.pid=t.id
+		LEFT JOIN t_amazon_auth auth ON auth.id=t.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=auth.groupid 
+		LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
+		 WHERE ifnull(o.msku,t.sku)=#{sku,jdbcType=CHAR} 
+		 AND g.shopid=#{shopid,jdbcType=CHAR}  
+		 <if test="groupid != null">
+			and auth.groupid=#{groupid,jdbcType=CHAR}
+		 </if>
+		 AND t.invalid=0
+	     and ifnull(o.disable,false)=false
+		 GROUP BY t.marketplaceid ORDER BY m.findex asc
+	</select>
+
+</mapper>

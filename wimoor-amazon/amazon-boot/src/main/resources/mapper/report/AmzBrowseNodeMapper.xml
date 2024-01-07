@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.report.mapper.AmzBrowseNodeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.report.pojo.entity.AmzBrowseNode" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="parentid" property="parentid" jdbcType="BIGINT" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="level" property="level" jdbcType="INTEGER" />
+    <result column="is_category_root" property="isCategoryRoot" jdbcType="BIT" />
+    <result column="refreshtime" property="refreshtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, parentid, country, level, is_category_root, refreshtime
+  </sql>
+  
+   <insert id="insertBatch" parameterType="java.util.List" >
+    insert into t_amz_adv_browsenode (id, name, parentid, 
+      country, level, is_category_root, refreshtime
+      )
+    values
+     <foreach collection ="list" item="node" index= "index" separator =",">
+     (#{node.id,jdbcType=BIGINT}, #{node.name,jdbcType=CHAR}, #{node.parentid,jdbcType=BIGINT}, 
+      #{node.country,jdbcType=CHAR},#{node.level,jdbcType=INTEGER}, #{node.isCategoryRoot,jdbcType=BIT}, 
+      #{node.refreshtime,jdbcType=TIMESTAMP}
+      )
+      </foreach>
+  </insert>
+  
+  <select id="selcetByParentId" resultMap="BaseResultMap" parameterType="java.math.BigInteger" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_browsenode
+    where parentid = #{id,jdbcType=BIGINT}
+  </select>
+   
+</mapper>

@@ -1,0 +1,9 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.wimoor.common.mybatisplus.MybatisPlusConfig,\
+  com.wimoor.common.mybatisplus.MyMetaObjectHandler,\
+  com.wimoor.common.mvc.WebMvcConfig,\
+  com.wimoor.common.mvc.GlobalExceptionHandler,\
+  com.wimoor.common.mybatis.ReplaceTableInterceptor,\
+  com.wimoor.common.mybatis.MyDataSourceInterceptorConfig,\
+  com.wimoor.common.service.impl.SystemLogAspect
+

@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.ProductAdvertReportSummaryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummary" >
+    <id column="sellerid" property="sellerid" jdbcType="CHAR" />
+    <id column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <id column="sku" property="sku" jdbcType="CHAR" />
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="ctr" property="ctr" jdbcType="DOUBLE" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="spend" property="spend" jdbcType="DECIMAL" />
+    <result column="cpc" property="cpc" jdbcType="DECIMAL" />
+    <result column="acos" property="acos" jdbcType="DOUBLE" />
+    <result column="RoAS" property="roas" jdbcType="DOUBLE" />
+    <result column="orders" property="orders" jdbcType="INTEGER" />
+    <result column="units" property="units" jdbcType="INTEGER" />
+    <result column="spc" property="spc" jdbcType="DOUBLE" />
+    <result column="totalsales" property="totalsales" jdbcType="DECIMAL" />
+    <result column="ctype" property="ctype" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    sellerid, marketplaceid, sku, bydate, id, asin, clicks, impressions, ctr, currency, 
+    spend, cpc, acos, RoAS, orders, units, spc, totalsales,ctype
+  </sql>
+    <insert id="insertBatch" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummary" >
+    insert into t_amz_advert_report_summary 
+    (sellerid, marketplaceid, sku, 
+      bydate, id, asin, clicks, 
+      impressions, ctr, currency, 
+      spend, cpc, acos, RoAS, 
+      orders, units, spc, 
+      totalsales,ctype)
+    values  
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.sellerid,jdbcType=CHAR}, #{adv.marketplaceid,jdbcType=CHAR}, #{adv.sku,jdbcType=CHAR}, 
+      #{adv.bydate,jdbcType=DATE},uuid_short(), #{adv.asin,jdbcType=CHAR}, #{adv.clicks,jdbcType=INTEGER}, 
+      #{adv.impressions,jdbcType=INTEGER}, #{adv.ctr,jdbcType=DOUBLE}, #{adv.currency,jdbcType=CHAR}, 
+      #{adv.spend,jdbcType=DECIMAL}, #{adv.cpc,jdbcType=DECIMAL}, #{adv.acos,jdbcType=DOUBLE}, #{adv.roas,jdbcType=DOUBLE}, 
+      #{adv.orders,jdbcType=INTEGER}, #{adv.units,jdbcType=INTEGER}, #{adv.spc,jdbcType=DOUBLE}, 
+      #{adv.totalsales,jdbcType=DECIMAL}, 
+      #{adv.ctype,jdbcType=CHAR}
+    )
+    </foreach>
+  
+    </insert>
+   <select id="refreshSDByDay" parameterType="java.util.Map">
+		delete from t_amz_advert_report_summary where 
+		sellerid=#{sellerid,jdbcType=CHAR} 
+		and marketplaceid= #{marketplaceid,jdbcType=CHAR}
+		and bydate>=#{startdate,jdbcType=DATE}
+		and bydate&lt;=#{enddate,jdbcType=DATE} 
+		and ctype='sd';
+		
+        insert ignore into t_amz_advert_report_summary 
+		SELECT 
+		pf.sellerId,
+		UUID_SHORT(),
+		pf.marketplaceId,
+		'sd' ctype,
+		s.sku,
+		s.asin,
+		p.bydate,
+		sum(p.clicks) clicks,
+		SUM(p.impressions) impressions, 
+		sum(p.clicks)/SUM(p.impressions) ctr,
+		pf.currencyCode currency,
+		SUM(p.cost) spend,
+		SUM(p.cost)/sum(p.clicks) cpc,
+		sum(p.cost)/sum(a.attributedSales7d) ACOS,
+		sum(a.attributedSales7d)/sum(p.cost) roas,
+		SUM(a.attributedConversions7d) orders,
+		sum(a.attributedUnitsOrdered7d) units,
+		SUM(a.attributedSales7d)/sum(p.clicks) spc ,
+		SUM(a.attributedSales7d) totalsales
+		 from t_amz_adv_rpt2_sd_productads p
+		LEFT JOIN t_amz_adv_rpt2_sd_productads_attributed a ON a.adId=p.adId AND a.bydate=p.bydate
+		LEFT JOIN t_amz_adv_productads_sd s ON s.adId=p.adId 
+		LEFT JOIN t_amz_adv_profile pf ON pf.id=s.profileid
+		where p.profileid=#{profileid,jdbcType=CHAR} 
+		and p.bydate>=#{startdate,jdbcType=DATE}
+		and p.bydate&lt;=#{enddate,jdbcType=DATE} 
+		GROUP BY pf.sellerId,p.bydate,s.sku;
+   </select>
+   <select id="refreshSPByDay" parameterType="java.util.Map">
+		delete from t_amz_advert_report_summary 
+		where sellerid=#{sellerid,jdbcType=CHAR} 
+		and marketplaceid= #{marketplaceid,jdbcType=CHAR}
+		and bydate&gt;=#{startdate,jdbcType=CHAR}
+		and bydate&lt;=#{enddate,jdbcType=CHAR} 
+		and ctype='sp';
+		
+        insert ignore into t_amz_advert_report_summary 
+		SELECT 
+		pf.sellerId,
+		UUID_SHORT(),
+		pf.marketplaceId,
+		'sp' ctype,
+		s.sku,
+		s.asin,
+		p.bydate,
+		sum(p.clicks) clicks,
+		SUM(p.impressions) impressions, 
+		sum(p.clicks)/SUM(p.impressions) ctr,
+		pf.currencyCode currency,
+		SUM(p.cost) spend,
+		SUM(p.cost)/sum(p.clicks) cpc,
+		sum(p.cost)/sum(a.attributedSales7d) ACOS,
+		sum(a.attributedSales7d)/sum(p.cost) roas,
+		SUM(a.attributedConversions7d) orders,
+		sum(a.attributedUnitsOrdered7d) units,
+		SUM(a.attributedSales7d)/sum(p.clicks) spc ,
+		SUM(a.attributedSales7d) totalsales
+		from t_amz_adv_rpt2_sp_productads p
+		LEFT JOIN t_amz_adv_rpt2_sp_productads_attributed a ON a.adId=p.adId AND a.bydate=p.bydate
+		LEFT JOIN t_amz_adv_productads s ON s.adId=p.adId 
+		LEFT JOIN t_amz_adv_profile pf ON pf.id=s.profileid
+		where p.profileid=#{profileid,jdbcType=CHAR} 
+		and p.bydate&gt;=#{startdate,jdbcType=CHAR}
+		and p.bydate&lt;=#{enddate,jdbcType=CHAR} 
+		GROUP BY pf.sellerId,p.bydate,s.sku;
+   </select>
+  	<select id="refreshSummary" parameterType="java.util.Map">
+  	    delete from t_amz_advert_report_summary_week where
+        bydate &gt;=DATE_SUB(#{begin,jdbcType=CHAR} ,INTERVAL WEEKDAY(#{begin,jdbcType=CHAR}) + 0 DAY)
+        and sellerid=#{sellerid,jdbcType=CHAR} and marketplaceid=#{marketplaceid,jdbcType=CHAR} ;
+        
+		INSERT  ignore INTO t_amz_advert_report_summary_week
+		(id,sellerid,marketplaceid,ctype,bydate, asin, sku,  currency,
+		 impressions,clicks,ctr,spend,cpc,acos,
+         roas,orders,units,spc,totalsales)
+		 SELECT MAX(id) id,
+		  sellerid sellerid,
+		  marketplaceid marketplaceid,
+		  ctype,
+		  DATE_SUB(bydate ,INTERVAL WEEKDAY(bydate) + 0 DAY) bydate,
+		  asin asin, sku sku,currency,
+		  SUM(impressions) impressions,
+		  SUM(clicks) clicks,
+		  SUM(ctr)/count(0) ctr,
+		  SUM(spend) spend,
+		  SUM(cpc)/count(0) cpc,
+		  SUM(acos)/count(0) acos,
+		  sum(roas)/count(0) roas,
+		  sum(orders) orders,
+		  sum(units) units,
+		  sum(spc)/count(0) spc,
+		  sum(totalsales) totalsales
+		FROM t_amz_advert_report_summary
+		WHERE bydate &gt;= DATE_SUB(#{begin,jdbcType=CHAR} ,INTERVAL WEEKDAY(#{begin,jdbcType=CHAR}) + 0 DAY)  and marketplaceid=#{marketplaceid,jdbcType=CHAR}   and sellerid= #{sellerid,jdbcType=CHAR}
+		GROUP BY sellerid,marketplaceid,sku,ctype,DATE_SUB(bydate ,INTERVAL WEEKDAY(bydate) + 0 DAY) ,asin;
+
+	   delete from t_amz_advert_report_summary_month where
+       bydate &gt;=DATE_ADD(#{begin,jdbcType=CHAR},interval -day(#{begin,jdbcType=CHAR})+1 day)
+       and sellerid=#{sellerid,jdbcType=CHAR}  and marketplaceid=#{marketplaceid,jdbcType=CHAR} ;
+        
+       INSERT  ignore INTO t_amz_advert_report_summary_month
+		(id,sellerid,marketplaceid,ctype,bydate, asin, sku,  currency,
+		 impressions,clicks,ctr,spend,cpc,acos,
+         roas,orders,units,spc,totalsales)
+		 SELECT MAX(id) id,
+		  sellerid sellerid,
+		  marketplaceid marketplaceid,
+		  ctype,
+		  DATE_ADD(bydate,interval -day(bydate)+1 day) bydate,
+		  asin asin, sku sku,currency,
+		  SUM(impressions) impressions,
+		  SUM(clicks) clicks,
+		  SUM(ctr)/count(0) ctr,
+		  SUM(spend) spend,
+		  SUM(cpc)/count(0) cpc,
+		  SUM(acos)/count(0) acos,
+		  sum(roas)/count(0) roas,
+		  sum(orders) orders,
+		  sum(units) units,
+		  sum(spc)/count(0) spc,
+		  sum(totalsales) totalsales
+		FROM t_amz_advert_report_summary
+		WHERE bydate &gt;=DATE_ADD(#{begin,jdbcType=CHAR},interval -day(#{begin,jdbcType=CHAR})+1 day)
+		 and sellerid= #{sellerid,jdbcType=CHAR} and marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+		GROUP BY  sellerid,marketplaceid,sku,ctype,DATE_ADD(bydate,interval -day(bydate)+1 day),ASIN;
+  </select>
+  
+  <select id="findSummaryData"  parameterType="java.util.Map" resultMap="BaseResultMap">
+  	select * from t_amz_advert_report_summary t 
+  	where 
+  	t.sku=#{sku,jdbcType=CHAR} AND marketplaceid=#{marketplaceid,jdbcType=CHAR}  AND t.sellerid=#{sellerid,jdbcType=CHAR}
+    and t.bydate &gt; date_add(curdate(),INTERVAL -8 DAY)
+    and t.bydate &lt;= date_add(curdate(),INTERVAL -1 DAY) 
+  	and t.ctype=#{ctype,jdbcType=CHAR}
+  
+  </select>
+  
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummaryKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_advert_report_summary
+    where sellerid = #{sellerid,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and bydate = #{bydate,jdbcType=DATE}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummaryKey" >
+    delete from t_amz_advert_report_summary
+    where sellerid = #{sellerid,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and bydate = #{bydate,jdbcType=DATE}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummary" >
+    insert into t_amz_advert_report_summary (sellerid, marketplaceid, sku, 
+      bydate, id, asin, clicks, 
+      impressions, ctr, currency, 
+      spend, cpc, acos, RoAS, 
+      orders, units, spc, 
+      totalsales)
+    values (#{sellerid,jdbcType=CHAR}, #{marketplaceid,jdbcType=CHAR}, #{sku,jdbcType=CHAR}, 
+      #{bydate,jdbcType=DATE}, #{id,jdbcType=CHAR}, #{asin,jdbcType=CHAR}, #{clicks,jdbcType=INTEGER}, 
+      #{impressions,jdbcType=INTEGER}, #{ctr,jdbcType=DOUBLE}, #{currency,jdbcType=CHAR}, 
+      #{spend,jdbcType=DECIMAL}, #{cpc,jdbcType=DECIMAL}, #{acos,jdbcType=DOUBLE}, #{roas,jdbcType=DOUBLE}, 
+      #{orders,jdbcType=INTEGER}, #{units,jdbcType=INTEGER}, #{spc,jdbcType=DOUBLE}, 
+      #{totalsales,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummary" >
+    insert into t_amz_advert_report_summary
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="sellerid != null" >
+        sellerid,
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid,
+      </if>
+      <if test="sku != null" >
+        sku,
+      </if>
+      <if test="bydate != null" >
+        bydate,
+      </if>
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="asin != null" >
+        asin,
+      </if>
+      <if test="clicks != null" >
+        clicks,
+      </if>
+      <if test="impressions != null" >
+        impressions,
+      </if>
+      <if test="ctr != null" >
+        ctr,
+      </if>
+      <if test="currency != null" >
+        currency,
+      </if>
+      <if test="spend != null" >
+        spend,
+      </if>
+      <if test="cpc != null" >
+        cpc,
+      </if>
+      <if test="acos != null" >
+        acos,
+      </if>
+      <if test="roas != null" >
+        RoAS,
+      </if>
+      <if test="orders != null" >
+        orders,
+      </if>
+      <if test="units != null" >
+        units,
+      </if>
+      <if test="spc != null" >
+        spc,
+      </if>
+      <if test="totalsales != null" >
+        totalsales,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="sellerid != null" >
+        #{sellerid,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="sku != null" >
+        #{sku,jdbcType=CHAR},
+      </if>
+      <if test="bydate != null" >
+        #{bydate,jdbcType=DATE},
+      </if>
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="asin != null" >
+        #{asin,jdbcType=CHAR},
+      </if>
+      <if test="clicks != null" >
+        #{clicks,jdbcType=INTEGER},
+      </if>
+      <if test="impressions != null" >
+        #{impressions,jdbcType=INTEGER},
+      </if>
+      <if test="ctr != null" >
+        #{ctr,jdbcType=DOUBLE},
+      </if>
+      <if test="currency != null" >
+        #{currency,jdbcType=CHAR},
+      </if>
+      <if test="spend != null" >
+        #{spend,jdbcType=DECIMAL},
+      </if>
+      <if test="cpc != null" >
+        #{cpc,jdbcType=DECIMAL},
+      </if>
+      <if test="acos != null" >
+        #{acos,jdbcType=DOUBLE},
+      </if>
+      <if test="roas != null" >
+        #{roas,jdbcType=DOUBLE},
+      </if>
+      <if test="orders != null" >
+        #{orders,jdbcType=INTEGER},
+      </if>
+      <if test="units != null" >
+        #{units,jdbcType=INTEGER},
+      </if>
+      <if test="spc != null" >
+        #{spc,jdbcType=DOUBLE},
+      </if>
+      <if test="totalsales != null" >
+        #{totalsales,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummary" >
+    update t_amz_advert_report_summary
+    <set >
+      <if test="id != null" >
+        id = #{id,jdbcType=CHAR},
+      </if>
+      <if test="asin != null" >
+        asin = #{asin,jdbcType=CHAR},
+      </if>
+      <if test="clicks != null" >
+        clicks = #{clicks,jdbcType=INTEGER},
+      </if>
+      <if test="impressions != null" >
+        impressions = #{impressions,jdbcType=INTEGER},
+      </if>
+      <if test="ctr != null" >
+        ctr = #{ctr,jdbcType=DOUBLE},
+      </if>
+      <if test="currency != null" >
+        currency = #{currency,jdbcType=CHAR},
+      </if>
+      <if test="spend != null" >
+        spend = #{spend,jdbcType=DECIMAL},
+      </if>
+      <if test="cpc != null" >
+        cpc = #{cpc,jdbcType=DECIMAL},
+      </if>
+      <if test="acos != null" >
+        acos = #{acos,jdbcType=DOUBLE},
+      </if>
+      <if test="roas != null" >
+        RoAS = #{roas,jdbcType=DOUBLE},
+      </if>
+      <if test="orders != null" >
+        orders = #{orders,jdbcType=INTEGER},
+      </if>
+      <if test="units != null" >
+        units = #{units,jdbcType=INTEGER},
+      </if>
+      <if test="spc != null" >
+        spc = #{spc,jdbcType=DOUBLE},
+      </if>
+      <if test="totalsales != null" >
+        totalsales = #{totalsales,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where sellerid = #{sellerid,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and bydate = #{bydate,jdbcType=DATE}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.ProductAdvertReportSummary" >
+    update t_amz_advert_report_summary
+    set id = #{id,jdbcType=CHAR},
+      asin = #{asin,jdbcType=CHAR},
+      clicks = #{clicks,jdbcType=INTEGER},
+      impressions = #{impressions,jdbcType=INTEGER},
+      ctr = #{ctr,jdbcType=DOUBLE},
+      currency = #{currency,jdbcType=CHAR},
+      spend = #{spend,jdbcType=DECIMAL},
+      cpc = #{cpc,jdbcType=DECIMAL},
+      acos = #{acos,jdbcType=DOUBLE},
+      RoAS = #{roas,jdbcType=DOUBLE},
+      orders = #{orders,jdbcType=INTEGER},
+      units = #{units,jdbcType=INTEGER},
+      spc = #{spc,jdbcType=DOUBLE},
+      totalsales = #{totalsales,jdbcType=DECIMAL}
+    where sellerid = #{sellerid,jdbcType=CHAR}
+      and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+      and sku = #{sku,jdbcType=CHAR}
+      and bydate = #{bydate,jdbcType=DATE}
+  </update> -->
+</mapper>

@@ -1,0 +1,923 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.Material">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="upc" property="upc" jdbcType="CHAR" />
+		<result column="image" property="image" jdbcType="CHAR" />
+		<result column="brand" property="brand" jdbcType="CHAR" />
+		<result column="itemDimensions" property="itemdimensions" jdbcType="CHAR" />
+		<result column="pkgDimensions" property="pkgdimensions" jdbcType="CHAR" />
+		<result column="boxDimensions" property="boxdimensions" jdbcType="CHAR" />
+		<result column="boxnum" property="boxnum" jdbcType="INTEGER" />
+		<result column="supplier" property="supplier" jdbcType="CHAR" />
+		<result column="productCode" property="productCode" jdbcType="CHAR" />
+		<result column="delivery_cycle" property="deliveryCycle" jdbcType="INTEGER" />
+		<result column="assembly_time" property="assemblyTime" jdbcType="INTEGER" />
+		<result column="other_cost" property="otherCost" jdbcType="DECIMAL" />
+		<result column="price_wavg" property="priceWavg" jdbcType="DECIMAL" />
+		<result column="price_ship_wavg" property="priceShipWavg" jdbcType="DECIMAL" />
+		<result column="MOQ" property="MOQ" jdbcType="INTEGER" />
+		<result column="badrate" property="badrate" jdbcType="FLOAT" />
+		<result column="vatrate" property="vatrate" jdbcType="FLOAT" />
+		<result column="purchaseUrl" property="purchaseUrl" jdbcType="VARCHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="issfg" property="issfg" jdbcType="CHAR" />
+		<result column="color" property="color" jdbcType="CHAR" />
+		<result column="categoryid" property="categoryid" jdbcType="CHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="isSmlAndLight" property="isSmlAndLight" jdbcType="BIT" />
+		<result column="isDelete" property="isDelete" jdbcType="BIT" />
+	</resultMap>
+    <select id="getMaterailBySku" resultType="com.wimoor.erp.material.pojo.entity.Material" parameterType="java.lang.String">
+    select *  from t_erp_material where sku= #{sku,jdbcType=CHAR} and shopid= #{shopid,jdbcType=CHAR} and isdelete=0
+    </select>
+    
+	<select id="selectCommonImage" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT count(1) count,max(m.id) id,m.image,p.location 
+			from t_erp_material m
+			left join t_picture p on p.id=m.image 
+		where m.image is not null 
+		group by m.image HAVING count(1)>1 
+		order by m.opttime desc ;
+	</select>
+	
+	<select id="getRealityPrice" resultType="java.util.Map" parameterType="java.lang.String">
+           SELECT SUM(v.totalpay)/SUM(v.amount) totalamount,MIN(v.audittime) audittime  from
+		    (select e.* FROM t_erp_purchase_form f
+			LEFT JOIN t_erp_purchase_form_entry e ON e.formid=f.id
+			WHERE e.auditstatus>=2 AND  e.paystatus=1 and e.materialid=#{materialid,jdbcType=CHAR} 
+			ORDER BY f.createdate DESC
+			LIMIT 10 ) v
+			
+	</select>
+	
+	<select id="findInventoryByMsku" resultType="java.util.Map" parameterType="com.wimoor.erp.material.pojo.dto.PlanDTO">
+	    select 
+               m.id,
+		       m.name name, 
+		       m.issfg issfg,
+		       p1.location image,
+		       ifnull(m.boxnum,0) boxnum, 
+		       m.sku,
+		       mn.mark notice,
+		       mc.material material,
+		       mc.addfee addfee,
+		       case when mh.materialid is null then 0 else 1 end ishide,
+		       ifnull(inv.fulfillable,0) fulfillable,
+		       ifnull(inv.outbound,0) outbound,
+		       ifnull(inv.inbound,0) inbound,
+		       <if test="plantype=='ship'">
+		        v.amount canAssembly,
+		        v.inshelfamount canAssemblyShelf,
+		        ifnull(inv.fulfillable,0) quantity,
+		        ifnull(shelfinv.shelfqty,0) quantityShelf,
+		       </if>
+		       <if test="plantype=='purchase'">
+		         w.id warehouseid,
+		         w.name warehousename,
+		         item.groupid,
+		         item.amount reallyamount,
+		         item.amount,
+		         ifnull(inv.fulfillable,0)+ifnull(inv.inbound,0) quantity,
+		       </if>
+		       m.issfg,
+		       m.price,
+		       m.delivery_cycle,
+		       ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0) pkgcm3,
+		       ifnull(dd.weight,0) pkgweight,
+		       ifnull(bd.length,0)*ifnull(bd.width,0)*ifnull(bd.height,0) boxcm3,
+		       ifnull(bd.weight,0) boxweight
+        from  t_erp_material m 
+		left join t_picture p1 on p1.id=m.image
+		left join t_dimensions dd on dd.id=m.pkgDimensions
+		left join t_dimensions bd on bd.id=m.boxDimensions
+		left join t_erp_material_mark mn on mn.materialid=m.id and mn.ftype='notice'
+		left join t_erp_material_mark mh on mh.materialid=m.id and mh.ftype='phide'
+		left join t_userinfo usi on usi.id=mn.operator 
+		<if test="plantype=='ship'">
+			left join (SELECT  e.mainmid,  
+			                 min(FLOOR(case when canas>ifnull(inv.quantity,0)/(e.units)  then ifnull(inv.quantity,0)/(e.units) ELSE canas END)) amount,
+			                 min(FLOOR(case when canas>ifnull(case when ifnull(s.shelfqty,0)> ifnull(inv.quantity,0) then inv.quantity else  s.shelfqty end ,0)/(e.units) 
+			                 then ifnull(case when ifnull(s.shelfqty,0)> ifnull(inv.quantity,0) then inv.quantity else  s.shelfqty end,0)/(e.units) ELSE canas END)) inshelfamount
+			        FROM (
+					 SELECT f.mainmid,e.materialid,
+					      max(e.amount/f.amount) units,
+					      SUM(f.amount-f.amount_handle) canas
+					  from t_erp_assembly_form  f
+					  left join t_erp_assembly_form_entry e on f.id=e.formid
+					  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
+					       and f.ftype='ass'
+						   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
+					  GROUP BY  f.mainmid,e.materialid 
+					) e
+					left join t_erp_inventory inv on inv.materialid=e.materialid 	 and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+					left join (
+								   select sum(quantity) shelfqty,materialid  from  t_erp_warehouse_shelf_inventory
+								   where shopid=#{shopid,jdbcType=CHAR}  and  warehouseid=#{warehouseid,jdbcType=CHAR} 
+								   group by materialid
+								) s  on s.materialid=e.materialid
+					group by mainmid) v on v.mainmid=m.id
+			left join (
+			  SELECT  i.materialid,
+			          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+					  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+					  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+				from t_erp_inventory i
+				where i.shopid=#{shopid,jdbcType=CHAR} 
+	              and i.warehouseid=#{warehouseid,jdbcType=CHAR} 
+				  group by i.shopid,warehouseid,i.materialid
+			)  inv on inv.materialid=m.id 
+			left join (
+			   select sum(quantity) shelfqty,materialid
+			   from  t_erp_warehouse_shelf_inventory
+			   where shopid=#{shopid,jdbcType=CHAR} 
+			   and  warehouseid=#{warehouseid,jdbcType=CHAR} 
+			   group by materialid
+			) shelfinv  on shelfinv.materialid=m.id
+		</if>
+	   <if test="plantype=='purchase'">
+				left join (
+				  SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_warehouse w on w.warehouseid=i.warehouseid
+					where i.shopid=#{shopid,jdbcType=CHAR}  
+					        <if test="planid!=null">
+							 and w.planid=#{planid,jdbcType=CHAR} 
+							</if>
+					  group by i.shopid,i.materialid
+				)  inv on inv.materialid=m.id  
+				left join t_erp_v3_purchase_plan_warehouse_material pw on pw.materialid=m.id and pw.planid=#{planid,jdbcType=CHAR}  
+				left join t_erp_v3_purchase_plan_item item on item.materialid=m.id 
+															and item.planid=#{planid,jdbcType=CHAR} 
+															and item.shopid=#{shopid,jdbcType=CHAR}
+				left join t_erp_warehouse w on w.id=pw.warehouseid
+		</if>
+	  	left join t_erp_material_customs mc on mc.materialid=m.id
+	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
+	  	<if test="mskulist!=null">
+			and m.sku in
+			<foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		</if>
+	    <if test="selected==true and plantype=='purchase'">
+			        and item.amount>0
+	    </if>
+		<if test="mskulist==null">
+			and m.sku ='###'
+		</if>
+		<if test="owner!=null">
+			and m.owner = #{owner,jdbcType=CHAR}
+		</if>
+		  <if test="issfg==1">
+		    and m.issfg = '1'
+		  </if>
+		  <if test="issfg==0">
+		    and (m.issfg ='0' or m.issfg ='2')
+		  </if>
+		<if test="remark!=null">
+			and mn.mark like #{remark,jdbcType=CHAR}
+		</if>
+		<if test='status2 =="shownormal"'>
+			and mh.ftype is null
+		</if>
+		<if test='status2 =="showhid"'>
+			and mh.ftype='phide'
+		</if>
+		<if test="name!=null">
+			and m.name like #{name,jdbcType=CHAR}
+		</if>
+		<if test="categoryid!=null">
+		    and m.categoryid=#{categoryid,jdbcType=CHAR}
+		</if>
+		<if test="hasAddFee!=null">
+		   <if test="hasAddFee=='true'">
+		      and ifnull(mc.addfee,0)>0
+		   </if>
+		    <if test="hasAddFee=='false'">
+		      and ifnull(mc.addfee,0)=0
+		   </if>
+		</if>
+		
+	</select>
+	
+	<select id="selectByImage" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from t_erp_material t 
+		where t.image=#{image,jdbcType=CHAR} 
+	</select>
+	
+	<select id="getCountbyShopId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(id) 
+		from t_erp_material t 
+		where t.shopid=#{shopid,jdbcType=CHAR} and t.isDelete = 0
+	</select>
+
+	<select id="findConsumable" resultType="java.util.Map" parameterType="java.util.Map">
+	 select *,case when fulfillable>stockingCycle  then case when needsuggest&lt;=0 then 0 else  needsuggest end 
+	                                      else case when needsuggest>stockingCycle then needsuggest else
+	                                      case when needsuggest>=0 then stockingCycle-fulfillable+needsuggest else 0 end end 
+	                    end  suggest from (
+		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
+			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,m.brand brand,
+			m.price price, ifnull(i.fulfillable,0) fulfillable,ifnull(i.inbound,0) inbound,m.isDelete isDelete,
+			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
+			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
+			createdate,m.purchaseUrl, d.length,d.width,d.height ,d.weight,
+			ifnull(subi.needamount,0) needamount,
+			ifnull(subi.needinboundamount,0) needinboundamount,
+			(select   count(submaterialid)  from t_erp_material_consumable where submaterialid=m.id) mainsubnum,
+			case when ifnull(sc.stockingCycle,0) then ifnull(sc.stockingCycle,0) 
+			else CAST(ROUND((ifnull(subi.needamount,0)+ifnull(subi.needinboundamount,0))*ifnull(s.amount,0)/100, 0) AS SIGNED)  end stockingCycle,
+			ci.amount planamount,case when ifnull(ci.amount,0)>0 then 1 else 0 end isplan,w.id warehouseid,w.name warehousename,
+			ifnull(subi.needinboundamount,0)+ifnull(subi.needamount,0)-ifnull(i.inbound,0)-ifnull(i.fulfillable,0)  needsuggest
+		from t_erp_material m  
+		left join  (select  c.submaterialid materialid,
+					   sum( case when iv.status like 'inbound_%' then iv.quantity*c.amount else 0 end ) needinboundamount,
+					   sum( case when iv.status like 'outbound_%' or  iv.status='fulfillable' then iv.quantity*c.amount else 0 end ) needamount
+					from t_erp_material_consumable c 
+					left join t_erp_inventory iv on iv.materialid=c.materialid and iv.shopid=#{param.shopid,jdbcType=CHAR} 
+					                                  and iv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+					left join t_erp_material m  on m.id=c.materialid
+					where  m.shopid=#{param.shopid,jdbcType=CHAR} and m.isdelete=0
+					group by c.submaterialid 
+		) subi on subi.materialid=m.id
+		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
+		left join t_picture p on m.image=p.id
+		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
+		left join t_erp_warehouse w on w.id= #{param.warehouseid,jdbcType=CHAR}
+		left join t_erp_v3_purchase_plan_consumable_item ci on ci.warehouseid=w.id and ci.materialid=m.id and ci.shopid=m.shopid
+		left join t_erp_material_consumable_safety_stock s on s.shopid=m.shopid
+		left join t_erp_stockcycle sc on sc.warehouseid=w.id and sc.materialid=m.id
+		left join ( select 
+		            iv.materialid ,
+					sum( case when iv.status like 'inbound_%' then iv.quantity else 0 end ) inbound,
+					sum( case when iv.status like 'outbound_%' then iv.quantity else 0 end ) outbound,
+					sum( case when iv.status='fulfillable' then iv.quantity else 0 end ) fulfillable
+					from t_erp_inventory iv
+					where iv.shopid=#{param.shopid,jdbcType=CHAR}
+				    and iv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+					group by iv.materialid
+		) i on i.materialid=m.id
+		left join t_userinfo u on u.id=m.operator
+		where m.shopid=#{param.shopid,jdbcType=CHAR} and m.mtype=1 
+		<if test='param.isDelete == null or param.isDelete == "0"'>
+			and m.isDelete = 0
+		</if>
+		 <if test='param.taglist != null '>
+			 and  vt.mid=m.id
+		</if>
+	    <if test="param.materialid != null">
+			 and m.id = #{param.materialid,jdbcType=CHAR}
+		 </if>
+		<if test='param.isDelete == "1"'>
+			and m.isDelete = 1
+		</if>
+		<if test='param.isplan==true'>
+			and ci.amount>0
+		</if>
+		<if test="param.ftype == 'shipment'">
+			and i.fulfillable > 0
+		</if>
+		<if test="param.search != null">
+			<if test="param.searchtype=='sku'">
+				and (m.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='name'">
+				and (m.name like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='remark'">
+				and (m.remark like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='supplier'">
+				and (c.name like #{param.search,jdbcType=CHAR})
+			</if>
+		</if>
+		<if test="param.issfglist != null">
+			and
+			<foreach collection="param.issfglist" item="status" index="i" open="(" separator="or" close=" )">
+				m.issfg = #{status,jdbcType=INTEGER}
+			</foreach>
+		</if>
+		<if test="param.midlist!=null">
+			and
+			<foreach collection="param.midlist" item="mid" index="i" open="(" separator="or" close=" )">
+				m.id = #{mid,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="param.supplierid != null">
+			and (m.supplier = #{param.supplierid,jdbcType=CHAR}  or
+				m.id  in(select materialid from t_erp_material_supplier WHERE supplierid=#{param.supplierid,jdbcType=CHAR})
+			)
+		</if>
+		<if test="param.categoryid != null">
+			and m.categoryid = #{param.categoryid,jdbcType=CHAR}
+		</if>
+		<if test="param.name != null">
+			and m.name like #{param.name,jdbcType=CHAR}
+		</if>
+		<if test="param.owner != null">
+			and m.owner = #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.myself != null">
+			and m.owner = #{param.myself,jdbcType=CHAR}
+		</if>
+		<if test="param.remark != null">
+			and m.remark like #{param.remark,jdbcType=CHAR}
+		</if>
+		<if test="param.color != null">
+			and m.color like #{param.color,jdbcType=CHAR}
+		</if>
+		<if test="param.searchsku != null">
+			and
+			<foreach collection="param.searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+				m.sku like #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+		) v
+			<if test='param.iswarning ==  "true"'>
+			 where   fulfillable&lt;stockingCycle
+		</if>
+	</select>
+	<select id="findPackage" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
+			   m.upc upc,g.name category,m.brand brand,
+			   m.price price, ifnull(i.fulfillable,0) fulfillable,ifnull(i.inbound,0) inbound,m.isDelete isDelete,
+			  c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
+			  m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
+			  createdate,m.purchaseUrl, d.length,d.width,d.height ,d.weight,
+		      w.id warehouseid,w.name warehousename
+		from t_erp_material m  
+		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
+		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
+		left join t_erp_warehouse w on w.id= #{param.warehouseid,jdbcType=CHAR}
+		left join ( select 
+		            iv.materialid ,
+					sum( case when iv.status like 'inbound_%' then iv.quantity else 0 end ) inbound,
+					sum( case when iv.status like 'outbound_%' then iv.quantity else 0 end ) outbound,
+					sum( case when iv.status='fulfillable' then iv.quantity else 0 end ) fulfillable
+					from t_erp_inventory iv
+					where iv.shopid=#{param.shopid,jdbcType=CHAR}
+					<if test="param.warehouseid != null">
+				    and iv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+				    </if>
+					group by iv.materialid
+		) i on i.materialid=m.id
+		left join t_userinfo u on u.id=m.operator
+		where m.shopid=#{param.shopid,jdbcType=CHAR} and m.mtype=2
+		<if test='param.isDelete == null or param.isDelete == "0"'>
+			and m.isDelete = 0
+		</if>
+	    <if test="param.materialid != null">
+			 and m.id = #{param.materialid,jdbcType=CHAR}
+		 </if>
+		<if test='param.isDelete == "1"'>
+			and m.isDelete = 1
+		</if>
+		<if test="param.ftype == 'shipment'">
+			and i.fulfillable > 0
+		</if>
+		<if test="param.search != null">
+			<if test="param.searchtype=='sku'">
+				and (m.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='name'">
+				and (m.name like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='remark'">
+				and (m.remark like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='supplier'">
+				and (c.name like #{param.search,jdbcType=CHAR})
+			</if>
+		</if>
+		<if test="param.midlist!=null">
+			and
+			<foreach collection="param.midlist" item="mid" index="i" open="(" separator="or" close=" )">
+				m.id = #{mid,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="param.supplierid != null">
+			and (m.supplier = #{param.supplierid,jdbcType=CHAR}  or
+				m.id  in(select materialid from t_erp_material_supplier WHERE supplierid=#{param.supplierid,jdbcType=CHAR})
+			)
+		</if>
+		<if test="param.categoryid != null">
+			and m.categoryid = #{param.categoryid,jdbcType=CHAR}
+		</if>
+		<if test="param.name != null">
+			and m.name like #{param.name,jdbcType=CHAR}
+		</if>
+		<if test="param.owner != null">
+			and m.owner = #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.myself != null">
+			and m.owner = #{param.myself,jdbcType=CHAR}
+		</if>
+		<if test="param.remark != null">
+			and m.remark like #{param.remark,jdbcType=CHAR}
+		</if>
+		<if test="param.searchsku != null">
+			and
+			<foreach collection="param.searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+				m.sku like #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="findMaterial" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
+			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,ifnull(b.name,m.brand) brand,
+			m.price price, ifnull(i.fulfillable,0) fulfillable,m.isDelete isDelete,
+			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
+			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate createdate,m.other_cost,
+			m.purchaseUrl, d.length,d.width,d.height ,d.weight,oinfo.name ownername,
+			<if test='param.taglist != null '>
+			vt.tagids,
+			 </if>
+			 <if test='param.taglist == null '>
+			 (
+			     SELECT GROUP_CONCAT(t.tagid) tagids
+				  FROM t_erp_material_tags t
+				  where t.mid=m.id
+			 ) tagids,
+			 </if>
+			 <if test="param.isdownload!=null">
+			  di.length ilength,di.width iwidth,di.height iheight,di.weight iweight,
+			  db.length blength,db.width bwidth,db.height bheight,db.weight bweight,
+			 </if>
+			m.specification
+		from t_erp_material m
+		left join t_dimensions d on d.id=m.pkgDimensions
+		<if test="param.isdownload!=null">
+		left join t_dimensions di on di.id=m.itemDimensions
+		left join t_dimensions db on db.id=m.boxDimensions
+		</if>
+		left join t_erp_material_brand b on b.id=m.brand
+		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
+		left join t_picture p on m.image=p.id
+	    <if test='param.taglist != null '>
+		left join (SELECT t.mid,GROUP_CONCAT(t.tagid) tagids FROM   t_erp_material_tags t  
+					WHERE 
+						t.tagid IN (
+							<foreach collection="param.taglist" item="tagid" index="index" separator=",">
+								#{tagid,jdbcType=CHAR} 
+						    </foreach>			
+						)
+				   group by t.mid
+		      ) vt on vt.mid=m.id
+		  </if>
+		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
+		left join ( select MAX(iv.shopid) shopid,MAX(iv.warehouseid) warehouseid,iv.materialid ,
+					sum( case when iv.status like 'inbound_%' then iv.quantity else 0 end ) inbound,
+					sum( case when iv.status like 'outbound_%' then iv.quantity else 0 end ) outbound,
+					sum( case when iv.status='fulfillable' then iv.quantity else 0 end ) fulfillable
+					from t_erp_inventory iv
+					<if test="param.addressid!=null">
+					left join t_erp_warehouse w on w.id=iv.warehouseid
+					</if>
+					where iv.shopid=#{param.shopid,jdbcType=CHAR}
+							<if test="param.warehouseid != null">
+								and iv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+							</if>
+							<if test="param.materialid != null">
+								and iv.materialid = #{param.materialid,jdbcType=CHAR}
+							</if>
+							<if test="param.addressid!=null">
+								and w.addressid = #{param.addressid,jdbcType=CHAR}
+							</if>
+					group by iv.materialid
+		) i on i.materialid=m.id
+		left join t_userinfo oinfo on oinfo.id=m.owner
+		left join t_userinfo u on u.id=m.operator
+		where m.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test="param.mtype!=null">
+		   and  m.mtype = #{param.mtype,jdbcType=INTEGER}
+		</if>
+		<if test='param.isDelete == null or param.isDelete == "0"'>
+			and m.isDelete = 0
+		</if>
+		 <if test='param.taglist != null '>
+			 and  vt.mid=m.id
+		</if>
+	    <if test="param.materialid != null">
+			 and m.id = #{param.materialid,jdbcType=CHAR}
+		 </if>
+		<if test='param.isDelete == "1"'>
+			and m.isDelete = 1
+		</if>
+		<if test="param.ftype == 'shipment'">
+			and i.fulfillable > 0
+		</if>
+		<if test="param.search != null">
+			<if test="param.searchtype=='sku'">
+				and (m.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='name'">
+				and (m.name like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='remark'">
+				and (m.remark like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype=='supplier'">
+				and (c.name like #{param.search,jdbcType=CHAR})
+			</if>
+		</if>
+		<if test="param.issfglist != null">
+			and
+			<foreach collection="param.issfglist" item="status" index="i" open="(" separator="or" close=" )">
+				m.issfg = #{status,jdbcType=INTEGER}
+			</foreach>
+		</if>
+		<if test="param.midlist!=null">
+			and
+			<foreach collection="param.midlist" item="mid" index="i" open="(" separator="or" close=" )">
+				m.id = #{mid,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="param.supplierid != null">
+			and (m.supplier = #{param.supplierid,jdbcType=CHAR}  or
+				m.id  in(select materialid from t_erp_material_supplier WHERE supplierid=#{param.supplierid,jdbcType=CHAR})
+			)
+		</if>
+		<if test="param.categoryid != null">
+			and m.categoryid = #{param.categoryid,jdbcType=CHAR}
+		</if>
+		<if test="param.name != null">
+			and m.name like #{param.name,jdbcType=CHAR}
+		</if>
+		<if test="param.owner != null">
+			and m.owner = #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.myself != null">
+			and m.owner = #{param.myself,jdbcType=CHAR}
+		</if>
+		<if test="param.remark != null">
+			and m.remark like #{param.remark,jdbcType=CHAR}
+		</if>
+		<if test="param.color != null">
+			and m.color like #{param.color,jdbcType=CHAR}
+		</if>
+		<if test="param.searchsku != null">
+			and
+			<foreach collection="param.searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+				m.sku like #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+	</select>
+
+<select id="findAllByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
+			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,m.brand brand,
+			q.price price, ifnull(i.fulfillable,0) fulfillable,m.isDelete isDelete,
+			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
+			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
+			createdate,m.purchaseUrl, d.length,d.width,d.height ,d.weight
+		from t_erp_material m
+		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{shopid,jdbcType=CHAR}
+		left join t_picture p on m.image=p.id
+		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{shopid,jdbcType=CHAR}
+		left join ( select shopid,max(warehouseid) warehouseid,materialid ,
+					sum( case when status='inbound' then quantity else 0 end ) inbound,
+					sum( case when status='outbound' then quantity else 0 end ) outbound,
+					sum( case when status='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR}
+					 group by shopid, materialid
+		) i on i.materialid=m.id
+		left join ( SELECT material,max(price) price 
+					FROM t_erp_stepwise_quotn group by material
+		) q on m.id= q.material
+		left join t_userinfo u on u.id=m.operator
+		where m.shopid=#{shopid,jdbcType=CHAR}
+			and m.isDelete = 0
+		<if test="warehouseid != null">
+			and i.warehouseid = #{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="supplierid != null">
+			and m.supplier = #{supplierid,jdbcType=CHAR}
+		</if>
+		<if test="myself != null">
+			and m.owner = #{myself,jdbcType=CHAR}
+		</if>
+		<if test="searchsku != null">
+			and
+			<foreach collection="searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+				m.sku = #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+ 
+	</select>
+	
+	<select id="findMaterialMapBySku" resultType="java.util.Map" parameterType="java.lang.String">
+		select u.name ownername, 
+		       ifnull(p.location,p.url) image,
+			   m.name name,     
+			   m.sku msku,
+			   m.price
+		from t_erp_material m 
+		left join t_picture p on p.id=m.image
+		left join t_userinfo u on u.id=m.owner
+		where  m.shopid=#{param.shopid,jdbcType=CHAR} and m.isDelete = 0
+		<if test="param.skulist!=null">
+			and m.sku in
+			<foreach collection="param.skulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="findMaterialById" resultType="com.wimoor.erp.material.pojo.vo.MaterialVO" parameterType="java.lang.String">
+		select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image,
+		 m.id, m.sku,m.name,m.shopid,m.upc,bran.name brand,bran.id brandid,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
+		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
+	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
+	     m.createdate, m.creator,m.parentid,m.isSmlAndLight,m.assembly_time,m.isDelete,m.effectivedate,m.image imageid,
+	     m.price_ship_wavg priceShipWavg,m.price_wavg priceWavg,m.specification
+		from t_erp_material m
+		left join t_erp_material_category g on g.id=m.categoryid
+		left join t_picture p on m.image=p.id
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_userinfo u on u.id=m.owner
+		left join t_erp_material_brand bran on bran.id=m.brand
+		where m.id=#{id,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectAllSKUForSelect" resultType="java.util.Map" parameterType="java.lang.String">
+		select id,sku as name 
+		from t_erp_material 
+		where shopid=#{shopid,jdbcType=CHAR} and isDelete = 0
+		<if test="sku!=null">
+			and sku like #{sku,jdbcType=CHAR}
+		</if>
+		order by sku limit 0,10
+	</select>
+
+	<select id="selectAllSKUForLabel" resultType="java.util.Map" parameterType="java.lang.String">
+		select id,sku as label 
+		from t_erp_material 
+		where shopid=#{shopid,jdbcType=CHAR} and isDelete = 0
+		<if test="sku!=null">
+			and sku like #{sku,jdbcType=CHAR}
+		</if>
+		order by sku
+	</select>
+
+	<select id="findDimensionsInfoBySKU" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT m.price,d.length,d.width,d.height,d.weight 
+		from t_erp_material m
+		left join t_dimensions d on m.pkgDimensions=d.id
+		where shopid=#{shopid,jdbcType=CHAR} 
+			and sku=#{sku,jdbcType=CHAR} 
+			and isDelete = 0 limit 0,1;
+	</select>
+	
+	<select id="findDimAndAsinBymid" resultType="java.util.Map" parameterType="java.lang.String">
+		select tp.sku,tp.asin,dm.*
+		from t_product_info tp
+		left join t_product_in_opt opt on opt.pid = tp.id
+		left join t_amazon_auth a on a.id=tp.amazonAuthId
+		left join t_erp_material m on m.sku = ifnull(opt.msku,tp.sku) and m.shopid = a.shop_id
+		left join t_dimensions dm on dm.id=m.pkgDimensions
+		where tp.sku = #{sku,jdbcType=CHAR}
+			and m.isDelete = 0
+			and a.shop_id = #{shopid,jdbcType=CHAR}
+			and a.groupid = #{groupid,jdbcType=CHAR}
+			and tp.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+	</select>
+
+	<select id="getForSum" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.id,m.sku,m.id materialid
+		from t_erp_material m
+		where m.shopid=#{shopid,jdbcType=CHAR} 
+			and ifnull(m.isDelete,0) = 0 
+			and m.sku in (select IFNULL(o.msku,p.sku) 
+						  from t_product_info p
+						  LEFT JOIN t_product_in_opt o ON o.pid=p.id
+						  left join t_amazon_auth a on p.amazonAuthId =a.id
+						  where a.shop_id=#{shopid,jdbcType=CHAR} 
+						  	<if test="groupid != null">
+								 and a.groupid=#{groupid,jdbcType=CHAR} 
+							</if>
+						  and ifnull(o.disable,false)=false
+						  AND ifnull(p.invalid,FALSE)=false
+			)
+	</select>
+
+	<select id="getOwnerList" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT DISTINCT u.* 
+		from t_erp_material m
+		LEFT JOIN t_userinfo u on m.owner=u.id
+		where shopid=#{shopid,jdbcType=CHAR} and m.isDelete = 0;
+	</select>
+
+	<select id="findMarterialForColorOwner" resultType="java.lang.String" parameterType="java.util.Map">
+		select t.sku
+		from t_erp_material t 
+		where  t.shopid=#{shopid,jdbcType=CHAR}  and t.isDelete = 0 
+		<if test="color != null">
+			and t.color = #{color,jdbcType=CHAR}
+		</if>
+		<if test="owner != null">
+			and t.owner = #{owner,jdbcType=CHAR}
+		</if>
+	</select>
+
+	<select id="findSKUImageForProduct" resultType="java.util.Map" parameterType="java.util.Map">
+		select v.materialSKU,v.materialName,v.infoSKU,max(v.imageid) imageid,max(v.infoName) infoName,v.image
+		,max(v.dimid) dimid,ifnull(v.length,0) length,ifnull(v.lenunit,'cm') lenunit,ifnull(v.width,0) width,ifnull(v.wunit,'cm') wunit,
+		ifnull(v.height,0) height,ifnull(v.hunit,'cm') hunit,
+		ifnull(v.weight,0) weight,ifnull(v.weunit,'kg') weunit
+		from ( 
+			select mate.sku materialSKU,mate.name materialName,info.sku infoSKU,
+				max(info.image) imageid,max(info.name) infoName,ifnull(pic.location,pic.url) image,
+				MAX(info.pageDimensions) dimid,
+				dm.length,dm.length_units lenunit,
+				dm.width,dm.width_units wunit,
+				dm.height,dm.height_units hunit,
+				dm.weight,dm.weight_units weunit
+			from t_erp_material mate
+			left join t_product_in_opt opt on opt.msku = mate.sku
+			left join t_product_info info on (info.id = opt.pid or (opt.pid is null and info.sku=mate.sku)) and info.invalid = 0  
+			left join t_amazon_auth auth on auth.id=info.amazonauthid
+			left join t_picture pic on pic.id = info.image
+			LEFT JOIN t_dimensions dm ON dm.id=info.pageDimensions
+			where shopid = #{maps.shopid,jdbcType=CHAR} and auth.shop_id= #{maps.shopid,jdbcType=CHAR} 
+				and info.id is not null
+			<if test="maps.param != null and maps.param.size>0 ">
+				and mate.sku in
+				<foreach collection="maps.param" item="adv" index="index"
+					open="(" close=")" separator=",">
+					#{adv,jdbcType=CHAR}
+				</foreach>
+			</if>
+			group by mate.sku,info.sku
+			union
+			select mate.sku materialSKU,mate.name materialName,info.sku infoSKU,
+				max(info.image) imageid,max(info.name) infoName,pic.location image,
+				MAX(info.pageDimensions) dimid,
+				dm.length,dm.length_units lenunit,dm.width,dm.width_units wunit,dm.height,dm.height_units hunit,
+				dm.weight,dm.weight_units weunit
+			from t_erp_material mate
+			left join t_product_info info on info.sku = mate.sku and info.invalid = 0
+			left join t_picture pic on pic.id = info.image
+			LEFT JOIN t_dimensions dm ON dm.id=info.pageDimensions
+			where shopid = #{maps.shopid,jdbcType=CHAR}
+				and info.id is not null
+			<if test="maps.param != null and maps.param.size>0 ">
+				and mate.sku in
+				<foreach collection="maps.param" item="adv" index="index" open="(" close=")" separator=",">
+					#{adv,jdbcType=CHAR}
+				</foreach>
+			</if>
+			group by mate.sku,info.sku) v
+		group by v.materialSKU,v.infoSKU
+		order by v.materialSKU
+	</select>
+
+    <select id="selectAllMaterialByShop" parameterType="java.lang.String" resultType="java.util.Map">
+    	SELECT t.id,t.sku,t.name,case when t.isSmlAndLight=1 then '是' ELSE '否' end isSmallLight,t.price price,t.boxnum,
+			CONCAT(ifnull(d.length,0),'-',ifnull(d.width,0),'-',ifnull(d.height,0),'-',ifnull(d.weight,0)) pageDimensions,
+			CONCAT(IFNULL(d2.length,0),'-',IFNULL(d2.width,0),'-',IFNULL(d2.height,0),'-',IFNULL(d2.weight,0)) itemDimensions,
+			CONCAT(IFNULL(d3.length,0),'-',IFNULL(d3.width,0),'-',IFNULL(d3.height,0),'-',IFNULL(d3.weight,0)) boxDimensions,
+			case when t.issfg=2 then '半成品' when t.issfg=1 then '组装成品' ELSE '单独成品' end issfg,
+			v2.ass asslist,
+			v3.consumablelist,
+			t.badrate,t.vatrate,
+			t.brand,t.specification,cate.name category,ui.name,t.effectivedate,cust.name supplier,
+			t.delivery_cycle deliverycycle,t.other_cost othercost,t.productCode purchasecode,t.purchaseUrl purchaseurl,
+			t.color color,t.remark,sum(v.inbound) inbound,sum(v.qty) qty,ui.name owner, case when t.isDelete=1 then '是' else '否' end isDelete 
+		FROM t_erp_material t 
+		LEFT JOIN t_dimensions d ON t.pkgDimensions=d.id
+		LEFT JOIN t_dimensions d2 ON t.itemDimensions=d2.id
+		LEFT JOIN t_dimensions d3 ON t.boxDimensions=d3.id
+		LEFT JOIN t_erp_material_category cate ON cate.id=t.categoryid
+		LEFT JOIN t_userinfo ui ON ui.id=t.owner
+		LEFT JOIN t_erp_customer cust ON cust.id=t.supplier
+		LEFT JOIN (
+			SELECT mainmid, GROUP_CONCAT( CONCAT(tm.sku,'-',subnumber,'-',tm.assembly_time)) AS ass
+ 			FROM t_erp_assembly a
+			LEFT JOIN t_erp_material tm on tm.id=a.submid
+			WHERE shopid=#{shopid,jdbcType=CHAR}
+			GROUP BY mainmid
+		) v2 ON v2.mainmid=t.id
+		LEFT JOIN (
+		     SELECT warehouseid,materialid , 
+		     	 SUM(case when 'fulfillable'=STATUS OR STATUS LIKE 'outbound_%' then quantity ELSE 0 END  ) qty, 
+				 SUM(case when STATUS LIKE 'inbound_purchase' then quantity ELSE 0 END  ) inbound
+			 FROM t_erp_inventory 
+			 WHERE shopid=#{shopid,jdbcType=CHAR}
+			 GROUP BY shopid,warehouseid,materialid
+		) v ON v.materialid=t.id
+	   LEFT JOIN (
+		    SELECT materialid, GROUP_CONCAT( CONCAT(tm.sku,'-',a.amount)) AS consumablelist
+ 			FROM t_erp_material_consumable a
+			LEFT JOIN t_erp_material tm on tm.id=a.submaterialid
+			WHERE shopid=#{shopid,jdbcType=CHAR}
+			GROUP BY a.materialid
+		) v3 ON v3.materialid=t.id
+			WHERE t.shopid=#{shopid,jdbcType=CHAR} 
+		<if test='isDelete == null or isDelete == "0"'>
+			and t.isDelete = 0
+		</if>
+		<if test='isDelete == "1"'>
+			and t.isDelete = 1
+		</if>
+		<if test="search != null">
+			and (t.sku like #{search,jdbcType=CHAR} or t.name like #{search,jdbcType=CHAR} or t.remark like #{search,jdbcType=CHAR})
+		</if>
+		<if test="issfglist != null">
+			and
+			<foreach collection="issfglist" item="status" index="i" open="(" separator="or" close=" )">
+				t.issfg = #{status,jdbcType=INTEGER}
+			</foreach>
+		</if>
+		<if test="warehouseid != null">
+			and v.warehouseid = #{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="supplierid != null">
+			and t.supplier = #{supplierid,jdbcType=CHAR}
+		</if>
+		<if test="categoryid != null">
+			and t.categoryid = #{categoryid,jdbcType=CHAR}
+		</if>
+		<if test="name != null">
+			and t.name like #{name,jdbcType=CHAR}
+		</if>
+		<if test="owner != null">
+			and t.owner = #{owner,jdbcType=CHAR}
+		</if>
+		<if test="myself != null">
+			and t.owner = #{myself,jdbcType=CHAR}
+		</if>
+		<if test="remark != null">
+			and t.remark like #{remark,jdbcType=CHAR}
+		</if>
+		<if test="color != null">
+			and t.color like #{color,jdbcType=CHAR}
+		</if>
+		<if test="searchsku != null">
+			and
+			<foreach collection="searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+				t.sku like #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+		group by t.id
+    </select>
+    
+  <select id="getMaterialInfoBySkuList" resultType="com.wimoor.erp.material.pojo.vo.MaterialVO"  parameterType="java.util.Map">
+   select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image,
+		 m.id, m.sku,m.name,m.shopid,m.upc,bran.name brand,bran.id brandid,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
+		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
+	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
+	     m.createdate, m.creator,m.parentid,m.isSmlAndLight,m.assembly_time,m.isDelete,m.effectivedate,m.image imageid,
+	     i.inbound,i.outbound,i.fulfillable
+		from t_erp_material m
+		left join t_erp_material_category g on g.id=m.categoryid
+		left join t_picture p on m.image=p.id
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_userinfo u on u.id=m.owner
+		left join t_erp_material_brand bran on bran.id=m.brand
+		left join ( select shopid,materialid,max(warehouseid) warehouseid ,
+					sum( case when status like 'inbound_%' then quantity else 0 end ) inbound,
+					sum( case when status like 'outbound_%' then quantity else 0 end ) outbound,
+					sum( case when status='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR}
+					 group by shopid, materialid
+		) i on i.materialid=m.id
+	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
+	  	<if test="owner!=null">
+	  	    and m.owner=#{owner,jdbcType=CHAR}
+	  	</if>
+	  	<if test="mskulist!=null">
+			and m.sku in
+			<foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		</if>
+  </select>
+  
+  <select id="syncProductList">
+            INSERT INTO t_erp_material (id,sku,NAME,shopid,isDelete,mtype)
+			SELECT UUID_SHORT(),v.sku,v.name,v.shop_id,false,0 FROM (
+			SELECT  ifnull(o.msku,i.sku) sku,MAX(i.name) NAME,a.shop_id FROM t_product_info i
+			LEFT JOIN t_product_in_opt o ON o.pid=i.id
+			LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+			WHERE a.shop_id=#{shopid,jdbcType=CHAR} AND a.`disable`=FALSE AND i.invalid=FALSE 
+			AND IFNULL(o.`disable`,FALSE)=FALSE AND i.isparent=false
+			GROUP BY i.sku ) v
+			LEFT JOIN t_erp_material m ON m.sku=v.sku AND m.shopid=v.shop_id 
+			WHERE m.id IS null
+  </select>
+</mapper>

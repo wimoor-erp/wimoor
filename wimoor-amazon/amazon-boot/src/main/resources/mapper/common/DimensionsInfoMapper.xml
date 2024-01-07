@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.common.mapper.DimensionsInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.common.pojo.entity.DimensionsInfo" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="length" property="length" jdbcType="DECIMAL" />
+    <result column="length_units" property="lengthUnits" jdbcType="CHAR" />
+    <result column="width" property="width" jdbcType="DECIMAL" />
+    <result column="width_units" property="widthUnits" jdbcType="CHAR" />
+    <result column="height" property="height" jdbcType="DECIMAL" />
+    <result column="height_units" property="heightUnits" jdbcType="CHAR" />
+    <result column="weight" property="weight" jdbcType="DECIMAL" />
+    <result column="weight_units" property="weightUnits" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, length, length_units, width, width_units, height, height_units, weight, weight_units
+  </sql>
+    <sql id="Base_Column_List_D" >
+    d.id, d.length, d.length_units, d.width, d.width_units, d.height, d.height_units, d.weight, d.weight_units
+  </sql>
+  <select id="findByAuthAsinSKU" resultMap="BaseResultMap"   >
+    select 
+      <include refid="Base_Column_List_D" />
+	    from t_product_info p 
+	    left  join t_amazon_auth a on a.id=p.amazonAuthId
+	    left  join t_amz_dimensions d on d.id=p.itemDimensions
+	     where a.shop_id = #{shopId,jdbcType=CHAR}
+	         and (p.sku=#{asinsku,jdbcType=CHAR} or p.asin=#{asinsku,jdbcType=CHAR}  )
+	         and d.id is not null 
+	      LIMIT 0,1;
+  </select>
+  
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_dimensions
+    where id = #{id,jdbcType=CHAR}
+  </select>
+   
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_dimensions
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.plum.frame.pojo.DimensionsInfo" >
+    insert into t_dimensions (id, length, length_units, 
+      width, width_units, height, 
+      height_units, weight, weight_units
+      )
+    values (#{id,jdbcType=CHAR}, #{length,jdbcType=DECIMAL}, #{lengthUnits,jdbcType=CHAR}, 
+      #{width,jdbcType=DECIMAL}, #{widthUnits,jdbcType=CHAR}, #{height,jdbcType=DECIMAL}, 
+      #{heightUnits,jdbcType=CHAR}, #{weight,jdbcType=DECIMAL}, #{weightUnits,jdbcType=CHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.plum.frame.pojo.DimensionsInfo" >
+    insert into t_dimensions
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="length != null" >
+        length,
+      </if>
+      <if test="lengthUnits != null" >
+        length_units,
+      </if>
+      <if test="width != null" >
+        width,
+      </if>
+      <if test="widthUnits != null" >
+        width_units,
+      </if>
+      <if test="height != null" >
+        height,
+      </if>
+      <if test="heightUnits != null" >
+        height_units,
+      </if>
+      <if test="weight != null" >
+        weight,
+      </if>
+      <if test="weightUnits != null" >
+        weight_units,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="length != null" >
+        #{length,jdbcType=DECIMAL},
+      </if>
+      <if test="lengthUnits != null" >
+        #{lengthUnits,jdbcType=CHAR},
+      </if>
+      <if test="width != null" >
+        #{width,jdbcType=DECIMAL},
+      </if>
+      <if test="widthUnits != null" >
+        #{widthUnits,jdbcType=CHAR},
+      </if>
+      <if test="height != null" >
+        #{height,jdbcType=DECIMAL},
+      </if>
+      <if test="heightUnits != null" >
+        #{heightUnits,jdbcType=CHAR},
+      </if>
+      <if test="weight != null" >
+        #{weight,jdbcType=DECIMAL},
+      </if>
+      <if test="weightUnits != null" >
+        #{weightUnits,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.plum.frame.pojo.DimensionsInfo" >
+    update t_dimensions
+    <set >
+      <if test="length != null" >
+        length = #{length,jdbcType=DECIMAL},
+      </if>
+      <if test="lengthUnits != null" >
+        length_units = #{lengthUnits,jdbcType=CHAR},
+      </if>
+      <if test="width != null" >
+        width = #{width,jdbcType=DECIMAL},
+      </if>
+      <if test="widthUnits != null" >
+        width_units = #{widthUnits,jdbcType=CHAR},
+      </if>
+      <if test="height != null" >
+        height = #{height,jdbcType=DECIMAL},
+      </if>
+      <if test="heightUnits != null" >
+        height_units = #{heightUnits,jdbcType=CHAR},
+      </if>
+      <if test="weight != null" >
+        weight = #{weight,jdbcType=DECIMAL},
+      </if>
+      <if test="weightUnits != null" >
+        weight_units = #{weightUnits,jdbcType=CHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.plum.frame.pojo.DimensionsInfo" >
+    update t_dimensions
+    set length = #{length,jdbcType=DECIMAL},
+      length_units = #{lengthUnits,jdbcType=CHAR},
+      width = #{width,jdbcType=DECIMAL},
+      width_units = #{widthUnits,jdbcType=CHAR},
+      height = #{height,jdbcType=DECIMAL},
+      height_units = #{heightUnits,jdbcType=CHAR},
+      weight = #{weight,jdbcType=DECIMAL},
+      weight_units = #{weightUnits,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.PurchaseFormEntryLogisticsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseFormEntryLogistics" >
+    <id column="entryid" property="entryid" jdbcType="CHAR" />
+    <result column="logisticsId" property="logisticsid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    entryid, logisticsId
+  </sql>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_purchase_form_entry_logistics
+    where alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_erp_purchase_form_entry_logistics
+    where alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryLogistics" >
+    insert into t_erp_purchase_form_entry_logistics (alibaba_orderid, logisticsId)
+    values (#{alibabaOrderid,jdbcType=BIGINT}, #{logisticsid,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryLogistics" >
+    insert into t_erp_purchase_form_entry_logistics
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="alibabaOrderid != null" >
+        alibaba_orderid,
+      </if>
+      <if test="logisticsid != null" >
+        logisticsId,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="alibabaOrderid != null" >
+        #{alibabaOrderid,jdbcType=BIGINT},
+      </if>
+      <if test="logisticsid != null" >
+        #{logisticsid,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryLogistics" >
+    update t_erp_purchase_form_entry_logistics
+    <set >
+      <if test="logisticsid != null" >
+        logisticsId = #{logisticsid,jdbcType=CHAR},
+      </if>
+    </set>
+    where alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryLogistics" >
+    update t_erp_purchase_form_entry_logistics
+    set logisticsId = #{logisticsid,jdbcType=CHAR}
+    where alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT}
+  </update> -->
+</mapper>

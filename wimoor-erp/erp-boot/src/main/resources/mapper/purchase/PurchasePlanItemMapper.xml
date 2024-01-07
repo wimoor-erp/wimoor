@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchasePlanItemMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="planid" property="planid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+    <result column="itemprice" property="itemprice" jdbcType="DECIMAL" />
+    <result column="orderprice" property="orderprice" jdbcType="DECIMAL" />
+    <result column="supplier" property="supplier" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="isparent" property="isparent" jdbcType="BIT" />
+    <result column="parent" property="parent" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="sales" property="amount" jdbcType="INTEGER" />
+    
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, planid, materialid, warehouseid, status, amount, itemprice, orderprice, supplier, 
+    shopid, operator, isparent, parent, opttime,sales
+  </sql>
+  
+    <select id="getSummary" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT COUNT(0) skunum,SUM(amount) amount FROM  t_erp_v3_purchase_plan_item
+     WHERE planid=#{planid,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  <select id="planhis" resultType="java.util.Map" parameterType="java.lang.String">
+       SELECT h.batchnumber,max(h.opttime) opttime,sum(h.amount) amount 
+		from t_erp_v3_purchase_plan_item_history h
+		WHERE h.shopid=#{shopid,jdbcType=CHAR} AND h.warehouseid=#{warehouseid,jdbcType=CHAR} 
+		AND h.opttime &lt; DATE_ADD(NOW(),INTERVAL -3 MONTH )
+		GROUP BY h.planid,h.warehouseid,h.batchnumber
+		LIMIT 5
+  </select>
+  <select id="listConfirmInfo" resultType="java.util.Map" parameterType="java.util.Map">
+	 SELECT   p.location image,m.sku,m.name,c.name supplier,w.name warehousename,
+	          m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.delivery_cycle
+	 FROM  t_erp_v3_purchase_plan_item i
+	 left join t_erp_material m on m.id=i.materialid
+	 left join t_erp_customer c on c.id=m.supplier
+	 left join t_erp_v3_purchase_plan_warehouse_material mw on mw.materialid=i.materialid and mw.planid=#{planid,jdbcType=CHAR}
+	 left join t_erp_warehouse w on w.id=mw.warehouseid
+	 left join ( SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_item p on p.materialid=i.materialid and p.warehouseid=i.warehouseid
+					where p.planid=#{planid,jdbcType=CHAR} and p.shopid=#{shopid,jdbcType=CHAR}
+					and i.shopid=#{shopid,jdbcType=CHAR}
+					group by i.materialid
+					) v on v.materialid=mw.materialid
+	 left join t_picture p on p.id=m.image
+	 
+     WHERE i.planid=#{planid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
+     <if test="materialidList!=null">
+       and i.materialid in(
+       	        <foreach collection="materialidList" item="materialid" index="index" separator=",">
+					#{materialid,jdbcType=CHAR} 
+			    </foreach>			
+       )
+     </if>
+  </select>
+    <select id="listItem" resultType="java.util.Map" parameterType="java.util.Map">
+			  SELECT m.sku,w.name inwarehouse,amount,f.name,i.opttime 
+			  from t_erp_v3_purchase_plan_item i
+			LEFT JOIN t_erp_material m  ON m.id=i.materialid
+			LEFT JOIN t_erp_warehouse w ON w.id=i.warehouseid
+			LEFT JOIN t_userinfo f ON f.id=i.operator
+			WHERE i.planid=#{planid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
+     </select>
+    <select id="listBatchInfo" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT   p.location image,m.sku,m.name mname,c.name supplier,m.supplier supplierid,w.name warehousename,
+	          m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.id mid,
+	          DATE_ADD(now(), INTERVAL ifnull(m.delivery_cycle,0) day) deliverycycledate,i.amount num
+	 FROM  t_erp_v3_purchase_plan_item i
+	 left join t_erp_material m on m.id=i.materialid
+	 left join t_erp_customer c on c.id=m.supplier
+	 left join t_erp_warehouse w on w.id=i.warehouseid
+	 left join ( SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_item p on p.materialid=i.materialid and p.warehouseid=i.warehouseid
+					where p.planid=#{planid,jdbcType=CHAR} and p.shopid=#{shopid,jdbcType=CHAR}
+					and i.shopid=#{shopid,jdbcType=CHAR} and p.batchnumber=#{batchnumber,jdbcType=CHAR}
+					group by i.materialid
+					) v on v.materialid=i.materialid
+	 left join t_picture p on p.id=m.image
+     WHERE i.planid=#{planid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR} and i.batchnumber=#{batchnumber,jdbcType=CHAR}
+  </select>
+  
+  <delete id="moveBatch"  parameterType="java.lang.String">
+         insert into t_erp_v3_purchase_plan_item_history
+		 select* from t_erp_v3_purchase_plan_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
+		 delete from  t_erp_v3_purchase_plan_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
+</delete>
+
+  <select id="getPlanInventoryInbound" parameterType="java.lang.String" resultType="java.util.Map" >
+  	SELECT SUM(i.QuantityShipped-IFNULL(i.QuantityReceived,0)) inbound FROM  t_erp_ship_inboundshipment s
+LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+LEFT JOIN t_erp_ship_inbounditem i ON i.ShipmentId=s.ShipmentId
+LEFT JOIN t_marketplace m ON m.marketplaceId=p.marketplaceid
+WHERE i.SellerSKU=#{sku,jdbcType=CHAR} AND (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) AND  p.amazongroupid=#{groupid,jdbcType=CHAR}
+AND p.auditstatus=3 AND s.`status`&lt;=5 AND s.`status`>1
+  </select>
+  
+  <select id="getShipInventoryInbound" parameterType="java.lang.String" resultType="java.util.Map" >
+  	SELECT IFNULL(r.afn_inbound_working_quantity,0)+
+IFNULL(r.afn_inbound_shipped_quantity,0)+
+IFNULL(r.afn_inbound_receiving_quantity,0) inbound
+ FROM t_inventory_report r WHERE sku=#{sku,jdbcType=CHAR} AND r.marketplaceid=#{marketplaceid,jdbcType=CHAR} AND r.amazonAuthId=#{authid,jdbcType=CHAR}
+  </select>
+</mapper>

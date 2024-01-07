@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.FBAStorageFeeReportMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.FBAStorageFeeReport" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="fulfillment_center" property="fulfillmentCenter" jdbcType="CHAR" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="longest_side" property="longestSide" jdbcType="DECIMAL" />
+    <result column="median_side" property="medianSide" jdbcType="DECIMAL" />
+    <result column="shortest_side" property="shortestSide" jdbcType="DECIMAL" />
+    <result column="unit_of_dimension" property="unitOfDimension" jdbcType="CHAR" />
+    <result column="weight" property="weight" jdbcType="DECIMAL" />
+    <result column="unit_of_weight" property="unitOfWeight" jdbcType="CHAR" />
+    <result column="item_volume" property="itemVolume" jdbcType="DECIMAL" />
+    <result column="volume_units" property="volumeUnits" jdbcType="CHAR" />
+    <result column="product_size_tier" property="productSizeTier" jdbcType="CHAR" />
+    <result column="avg_quantity_on_hand" property="avgQuantityOnHand" jdbcType="DECIMAL" />
+    <result column="avg_quantity_pending_removal" property="avgQuantityPendingRemoval" jdbcType="DECIMAL" />
+    <result column="total_item_volume" property="totalItemVolume" jdbcType="DECIMAL" />
+    <result column="month" property="month" jdbcType="CHAR" />
+    <result column="storage_rate" property="storageRate" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="monthly_storage_fee" property="monthlyStorageFee" jdbcType="DECIMAL" />
+    <result column="category" property="category" jdbcType="CHAR" />
+    <result column="eligible_for_inv_discount" property="eligibleForInvDiscount" jdbcType="BIT" />
+    <result column="qualifies_for_inv_discount" property="qualifiesForInvDiscount" jdbcType="BIT" />
+    <result column="amazonauthid" property="amazonauthid" jdbcType="CHAR" />
+    <result column="lastupdate" property="lastupdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, asin, fnsku, fulfillment_center, country, longest_side, median_side, shortest_side, 
+    unit_of_dimension, weight, unit_of_weight, item_volume, volume_units, product_size_tier, 
+    avg_quantity_on_hand, avg_quantity_pending_removal, total_item_volume, month, storage_rate, 
+    currency, monthly_storage_fee, category, eligible_for_inv_discount, qualifies_for_inv_discount,
+    amazonauthid,lastupdate
+  </sql>
+  <insert id="insertBatch"  parameterType="java.util.List">
+    insert into t_fba_storage_fee_report (
+    id, 
+    asin, 
+	fnsku, 
+	fulfillment_center, 
+	country, 
+	longest_side, 
+	median_side, 
+	shortest_side, 
+	measurement_units, 
+	weight, 
+	weight_units, 
+	item_volume, 
+	volume_units, 
+	product_size_tier, 
+	average_quantity_on_hand, 
+	average_quantity_pending_removal, 
+	estimated_total_item_volume, 
+	`month`, 
+	storage_utilization_ratio, 
+	storage_utilization_ratio_units, 
+	base_rate	, 
+	utilization_surcharge_rate, 
+	currency	, 
+	monthly_storage_fee, 
+	dangerous_goods_storage_type, 
+	eligible_for_inventory_discount, 
+	qualifies_for_inventory_discount, 
+	total_incentive_fee_amount, 
+	breakdown_incentive_fee_amount, 
+	average_quantity_customer_orders, 
+    amazonauthid,
+    lastupdate
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (uuid_short(), 
+      #{stm.asin,jdbcType=CHAR}, 
+      #{stm.fnsku,jdbcType=CHAR}, 
+      #{stm.fulfillmentCenter,jdbcType=CHAR}, 
+      #{stm.countryCode,jdbcType=CHAR}, 
+      #{stm.longestSide,jdbcType=DECIMAL}, 
+      #{stm.medianSide,jdbcType=DECIMAL}, 
+      #{stm.shortestSide,jdbcType=DECIMAL}, 
+      #{stm.measurementUnits,jdbcType=CHAR}, 
+      #{stm.weight,jdbcType=DECIMAL}, 
+      #{stm.weightUnits,jdbcType=CHAR}, 
+      #{stm.itemVolume,jdbcType=DECIMAL},
+      #{stm.volumeUnits,jdbcType=CHAR}, 
+      #{stm.productSizeTier,jdbcType=CHAR},
+      #{stm.averageQuantityOnHand,jdbcType=DECIMAL},
+      #{stm.averageQuantityPendingRemoval,jdbcType=DECIMAL}, 
+      #{stm.estimatedTotalItemVolume,jdbcType=DECIMAL}, 
+      #{stm.monthOfCharge,jdbcType=CHAR}, 
+      #{stm.storageUtilizationRatio,jdbcType=DECIMAL}, 
+      #{stm.storageUtilizationRatioUnits,jdbcType=CHAR},
+      #{stm.baseRate,jdbcType=DECIMAL}, 
+      #{stm.utilizationSurchargeRate,jdbcType=DECIMAL}, 
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.estimatedMonthlyStorageFee,jdbcType=DECIMAL}, 
+      #{stm.dangerousGoodsStorageType,jdbcType=CHAR}, 
+      #{stm.eligibleForInventoryDiscount,jdbcType=BIT}, 
+      #{stm.qualifiesForInventoryDiscount,jdbcType=BIT}, 
+      #{stm.totalIncentiveFeeAmount,jdbcType=DECIMAL},
+      #{stm.breakdownIncentiveFeeAmount,jdbcType=DECIMAL},
+      #{stm.averageQuantityCustomerOrders,jdbcType=DECIMAL}, 
+      #{stm.amazonauthid,jdbcType=CHAR},  
+      #{stm.lastupdate,jdbcType=TIMESTAMP}
+      )
+      </foreach> 
+  </insert>
+  
+  <select id="findStorageFeeList" resultType="java.util.Map" parameterType="java.util.Map">
+  	SELECT 
+  	IFNULL(p.location,p.url) image,
+  	i.name name,
+  	i.sku sku,
+  	m.name marketname,
+  	g.name gname,
+    t.`asin`,
+	t.`fnsku`,
+	t.`fulfillment_center`,
+	t.`country`,
+	t.`longest_side`,
+	t.`median_side`,
+	t.`shortest_side`,
+	t.`measurement_units`,
+	t.`weight`,
+	t.`weight_units`,
+	t.`item_volume`,
+	t.`volume_units`,
+	t.`product_size_tier`,
+	t.`average_quantity_on_hand`,
+	t.`average_quantity_pending_removal`,
+	t.`estimated_total_item_volume`,
+	t.`month`,
+	t.`storage_utilization_ratio`,
+	t.`storage_utilization_ratio_units`,
+	t.`base_rate`,
+	t.`utilization_surcharge_rate`,
+	t.`currency`,
+	t.`monthly_storage_fee`,
+	t.`dangerous_goods_storage_type`,
+	t.`eligible_for_inventory_discount`,
+	t.`qualifies_for_inventory_discount`,
+	t.`total_incentive_fee_amount`,
+	t.`breakdown_incentive_fee_amount`,
+	t.`average_quantity_customer_orders` ,
+	t.`amazonauthid`,
+	t.`lastupdate` 
+	FROM t_fba_storage_fee_report t 
+	LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+	LEFT JOIN t_amazon_group g ON g.id=a.groupid
+	LEFT JOIN t_marketplace m ON m.market=t.country
+	LEFT JOIN t_product_info i ON i.asin=t.asin AND i.amazonAuthId=t.amazonauthid AND i.marketplaceid=m.marketplaceId 
+	LEFT JOIN t_picture p ON p.id=i.image
+	where t.`month`=#{param.searchDate,jdbcType=CHAR}  
+    <if test="param.amazonauthid==null">
+	 and exists(select id from t_amazon_auth ah left join t_marketplace mm on mm.aws_region=ah.aws_region where 
+			    ah.id=a.id and ah.shop_id = #{param.shopid,jdbcType=CHAR}  
+				 <if test="param.groupid!=null">
+			    	AND  ah.groupid=#{param.groupid,jdbcType=CHAR}
+			    </if>
+				 <if test="param.marketplaceid!=null">
+			    	AND  mm.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+			    </if>
+	 		  ) 
+     </if>  
+ 
+     <if test="param.country!=null">
+    	AND  t.country=#{param.country,jdbcType=CHAR}
+    </if>
+    <if test="param.amazonauthid!=null">
+    	AND  t.amazonauthid=#{param.amazonauthid,jdbcType=CHAR}
+    </if>
+     <if test="param.search!=null">
+    	AND  (t.sku like #{param.search,jdbcType=CHAR} or t.asin like #{param.search,jdbcType=CHAR})
+    </if>
+  </select>
+ 	<select id="findSku_StorageFee" parameterType="java.util.Map" resultType="java.util.Map">
+ 		    select fr.`asin`,max(fr.currency) currency,sum(fr.monthly_storage_fee) storagefee
+					from t_fba_storage_fee_report fr 
+					WHERE  fr.`month` = DATE_FORMAT(#{fromDate,jdbcType=DATE} ,'%Y-%m')
+			        and fr.amazonauthid=#{amazonAuthId,jdbcType=CHAR}
+			        and fr.country =#{country,jdbcType=CHAR}
+				    group BY `asin`
+	</select> 
+</mapper>

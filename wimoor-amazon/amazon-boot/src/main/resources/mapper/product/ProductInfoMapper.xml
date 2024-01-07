@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInfo">
+        <id column="id" property="id" />
+        <result column="asin" property="asin" />
+        <result column="sku" property="sku" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="name" property="name" />
+        <result column="openDate" property="openDate" />
+        <result column="itemDimensions" property="itemDimensions" />
+        <result column="pageDimensions" property="pageDimensions" />
+        <result column="fulfillChannel" property="fulfillChannel" />
+        <result column="binding" property="binding" />
+        <result column="totalOfferCount" property="totalOfferCount" />
+        <result column="brand" property="brand" />
+        <result column="manufacturer" property="manufacturer" />
+        <result column="pgroup" property="pgroup" />
+        <result column="typename" property="typename" />
+        <result column="price" property="price" />
+        <result column="image" property="image" />
+        <result column="parentMarketplace" property="parentMarketplace" />
+        <result column="parentAsin" property="parentAsin" />
+        <result column="isparent" property="isparent" />
+        <result column="lastupdate" property="lastupdate" />
+        <result column="amazonAuthId" property="amazonAuthId" />
+        <result column="invalid" property="invalid" />
+        <result column="inSnl" property="inSnl" />
+    </resultMap>
+
+	<!-- 以下内容为原amz_productmapper的 -->
+	
+	<select id="getInfoSimple" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT i.sku,i.`asin`,i.name,IFNULL(p.location,p.url) image,
+		       i.openDate,u.name ownername,i.price
+		from t_product_info i
+		left join t_product_in_opt o on o.pid=i.id
+		left join t_picture p on p.id=i.image
+		left join t_userinfo u on u.id=o.owner
+		where  i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			and i.amazonAuthId=#{amazonauthid,jdbcType=CHAR}
+			<if test="skulist!=null">
+				and i.sku in (
+					<foreach collection="skulist" item="sku" index="index" separator=",">
+						#{sku,jdbcType=CHAR} 
+				    </foreach>			
+				)
+			</if>
+			<if test="asinlist!=null">
+				and i.asin in (
+					<foreach collection="asinlist" item="asin" index="index" separator=",">
+						#{asin,jdbcType=CHAR} 
+				    </foreach>			
+				)
+			</if>
+	</select>
+	<select id="selectBySku" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select *
+		from t_product_info
+		where sku = #{sku,jdbcType=CHAR}
+			and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			and amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+	</select>
+	   <select id="selectByMSku" parameterType="java.lang.String" resultMap="BaseResultMap">
+	   SELECT  t.* FROM t_product_info t
+		LEFT JOIN t_product_in_opt o on o.pid=t.id
+		LEFT JOIN t_amazon_auth auth ON auth.id=t.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=auth.groupid 
+		LEFT JOIN t_marketplace m ON m.marketplaceId=t.marketplaceid
+		WHERE ifnull(o.msku,t.sku)=#{msku,jdbcType=CHAR} 
+		<if test="marketplaceid=='EU'">
+		 and  m.region=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!=null">
+				<if test="marketplaceid!='EU'">
+				 and  t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+				</if>
+		</if>
+		and ifnull(o.disable,false)=false
+		<if test="groupid!=null">
+		   AND g.id=#{groupid,jdbcType=CHAR} 
+		</if>
+		   AND g.shopid=#{shopid,jdbcType=CHAR}  AND t.invalid=0
+	</select>
+	<select id="findShopSku" resultType="java.util.Map" parameterType="java.lang.String">
+		select ifnull(p.location,p.url) location,t.*
+		from t_product_info t
+		left join t_picture p on p.id=t.image
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		where au.shop_id=#{shopid,jdbcType=CHAR}
+			and t.sku like #{sku,jdbcType=CHAR}
+	</select>
+	<select id="selectByAuth" resultType="java.util.Map"  parameterType="java.lang.String">
+		 SELECT amazonAuthId,marketplaceid,sku,SUM(quantity) sales30,SUM(ordersum) order30,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 15 DAY),'%Y-%m-%d')
+						and purchase_date &lt; now()) then quantity ELSE 0 END ) sales15,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d')
+						and purchase_date &lt; now()) then quantity ELSE 0 END ) sales7,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 8 DAY),'%Y-%m-%d')
+						and purchase_date &lt; DATE_FORMAT(DATE_SUB(now(),INTERVAL 1 DAY),'%Y-%m-%d')) then quantity ELSE 0 END ) salesWeek,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d') 
+						and purchase_date &lt; now()) then ordersum ELSE 0 END ) order7,
+						SUM(case when (purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d') 
+						and purchase_date &lt; now()) then orderprice ELSE 0 END ) orderprice7
+					FROM t_orders_summary orde
+					WHERE purchase_date &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 30 DAY),'%Y-%m-%d') AND purchase_date &lt; now()
+					<if test="amazonAuthId != null">
+					and orde.amazonAuthId = #{amazonAuthId,jdbcType=CHAR}
+					</if>
+					group by orde.sku,orde.marketplaceid,orde.amazonAuthId
+					having sales30 &gt; 0
+	</select>
+	<select id="selectByMapByParams" resultType="java.util.Map"  parameterType="java.util.Map">
+	  SELECT a.id,a.shop_id shopid,a.groupid, ifnull(opt.msku,t.sku) msku,t.id pid,
+			t.openDate,t.price,t.asin,t.inSnl,t.pgroup,t.pageDimensions,t.fulfillChannel,
+			price.landed_amount,price.landed_currency,price.ptype, ranks.`rank`,
+			ifnull(sys.avgsales,0),ifnull(sys.daynum,0),ifnull(sys.oldavgsales,0),now() nowdate,
+			td.length,td.width,td.height,td.weight,td.height_units,td.weight_units,
+			mark.market,mark.region 
+			FROM  t_product_info t 
+		left join t_amazon_auth a on a.id = t.amazonAuthId
+		left join t_amazonseller_market b on a.sellerid=b.sellerid and b.marketplace_id = t.marketplaceid
+		left join t_marketplace mark on mark.marketplaceId = t.marketplaceid
+		left join t_product_in_opt opt on opt.pid = t.id  
+		left join t_product_in_order sys on sys.pid = t.id
+		left join t_product_price price on price.SellerSKU = t.sku and price.MarketplaceId=t.marketplaceid and price.SellerId = a.sellerid and price.ptype='BUYP'
+		left join t_product_rank ranks on ranks.product_id = t.id and ranks.isMain=1 and ranks.isNewest=1
+		left join t_amz_dimensions td on td.id = t.pageDimensions
+	   WHERE 
+	   t.sku=#{params.sku,jdbcType=CHAR} and t.marketplaceid =#{params.marketplaceid,jdbcType=CHAR} and t.amazonAuthId =#{params.amazonAuthId,jdbcType=CHAR}
+	   </select>
+	<select id="getShopidByPid" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT a.shop_id from t_product_info p 
+		left join t_amazon_auth a on a.id=p.amazonAuthId
+		where p.id=#{pid,jdbcType=CHAR}
+	</select>
+	
+	<select id="findByCondition" resultType="com.wimoor.amazon.product.pojo.vo.ProductInfoListVo" parameterType="com.wimoor.amazon.product.pojo.dto.ProductListDTO">
+		select * from (select i.sku sku,i.asin asin,
+			IFNULL(p.location,p.url) image,i.price itemprice,
+			<if test="param.ftype == 'shipment'">
+			    ifnull(inv2.quantity,0) willfulfillable,
+			    m.MOQ,m.isDelete isDelete,c.name supplier, m.issfg issfg,
+			    m.remark remark,u.name operator,m.supplier supplierid,m.opttime opttime,
+			    m.delivery_cycle, m.effectivedate createdate,m.purchaseUrl,
+			    m.color color,m.name name,m.shopid shopid,m.sku msku ,m.upc upc,m.id,
+			    m.brand brand,m.price price,ifnull(m.boxnum,0) boxnum,	ifnull(inv.quantity,0) fulfillable,
+			 </if>
+		    i.id pid,
+			ifnull(i.fnsku,o.fnsku) fnsku,i.name pname,i.marketplaceid
+		from t_product_info i
+		Left join t_product_in_opt o on o.pid=i.id
+		left join t_picture p on p.id=i.image
+	   <if test="param.ftype == 'shipment'">
+	    Left join t_erp_material m on m.sku=ifnull(o.msku,i.sku) and m.shopid=#{param.shopid,jdbcType=CHAR} and m.isDelete = 0
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_erp_inventory inv on inv.materialid=m.id 
+										and inv.status='fulfillable' 
+										and inv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+										and inv.shopid=#{param.shopid,jdbcType=CHAR}
+	    left join ( select shopid,warehouseid,a.mainmid materialid , min(ifnull(inv.quantity,0)/a.subnumber)  quantity
+					from t_erp_assembly a
+		            left join t_erp_inventory inv on inv.materialid=a.submid and inv.warehouseid=#{param.warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+					where inv.shopid=#{param.shopid,jdbcType=CHAR}
+							<if test="param.warehouseid != null and param.warehouseid != ''">
+								and inv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+							</if>
+					group by shopid,a.mainmid
+		     ) inv2 on inv2.materialid=m.id and m.issfg=1
+		     	left join t_userinfo u on u.id=m.operator 
+		 </if>
+	
+		where i.amazonAuthId=#{param.amazonauthid,jdbcType=CHAR}
+		     and ifnull(o.disable,false)=false
+		     and i.invalid=0 and i.isparent=0
+			and i.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+		<if test="param.search != null">
+		   <if test="param.searchType=='sku'">
+		   and (i.sku like #{param.search,jdbcType=CHAR})
+		   </if>
+			 <if test="param.searchType=='name'">
+		   and (i.name like #{param.search,jdbcType=CHAR})
+		   </if>
+		    <if test="param.searchType=='asin'">
+		   and (i.asin like #{param.search,jdbcType=CHAR})
+		   </if>
+		   <if test="param.searchType==null">
+		   and (i.sku like #{param.search,jdbcType=CHAR})
+		   </if>
+		</if>
+		) v 
+	   <if test="param.ftype == 'shipment'">
+			where fulfillable > 0 or willfulfillable>0
+		</if>
+	</select>
+	
+			<select id="findNameAndPicture" resultType="java.util.Map" parameterType="java.lang.String">
+		select ap.sku,ap.name,ifnull(p.location,p.url) image
+		from t_product_info ap
+		left join t_amazon_auth a on a.id=ap.amazonAuthId
+		left join t_picture p on p.id=ap.image
+		where ap.sku = #{sku,jdbcType=CHAR}
+		<if test="marketplaceid!=null">
+			and (ap.marketplaceid=#{marketplaceid,jdbcType=CHAR} or a.region=#{marketplaceid,jdbcType=CHAR} )
+		</if>
+			and a.groupid=#{groupid,jdbcType=CHAR} limit 0,1
+	</select>
+	
+	<select id="selectDetialByAuth" resultType="com.wimoor.amazon.product.pojo.vo.AmzProductListVo" parameterType="java.util.Map">
+		<if test="param.paralist !=null and param.paralist!=''">
+		   select * from (
+		</if>
+		select t.id,ifnull(op.msku,t.sku) msku,t.invalid, em.id mid,t.asin, t.sku,t.marketplaceid, m.point_name, t.name,t.parentAsin,
+			em.color skucolor,date_format( openDate,'%Y-%m-%d') opendate, fulfillchannel, binding,a.region region,m.region mregion,
+			(select min(`rank`) `rank` from t_product_rank  where product_id = t.id 
+			and byday &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d')) `rank`,
+			ifnull(pf.flownumber,t.totalOfferCount) totalOfferCount,
+			ifnull(pf.flownumber,0) followcount,case when ifnull(pf.flownumber,0)>1 and ifnull(pf.isread,0)=0 then 1 else 0 end notread,manufacturer, pgroup, typename,ifnull(p.location,p.url) image,
+			ifnull(op.buyprice,t.price) landed_amount,
+			m.currency landed_currency,ir.afn_fulfillable_quantity, 
+			ifnull(op.buyprice,t.price) changeprice,
+			t.amazonAuthId,sy.avgsales averageSalesDay,sy.daynum averageSalesWeek, sy.oldavgsales averageSalesMonth,
+			
+			ifnull(ir.afn_fulfillable_quantity,0)+ifnull(irr.reserved_fc_transfers,0)
+			+ifnull(irr.reserved_fc_processing,0) fulfillquantity,
+			
+			case when m.region='EU' then
+			(ifnull(ir.afn_fulfillable_quantity,0)+ifnull(irr.reserved_fc_transfers,0)
+			+ifnull(irr.reserved_fc_processing,0)) /ifnull(
+			(
+			select sum(ttemp.avgsales)
+			from t_product_info tptemp
+			left join t_product_in_order ttemp on tptemp.id=ttemp.pid
+			left join t_marketplace mtemp on tptemp.marketplaceid=mtemp.marketplaceId
+			where sku=t.sku and mtemp.region='EU'
+			),ir.afn_total_quantity+1) 
+			else
+			(ifnull(ir.afn_fulfillable_quantity,0)+ifnull(irr.reserved_fc_transfers,0)
+			+ifnull(irr.reserved_fc_processing,0))/ifnull(sy.avgsales,ir.afn_total_quantity+1) end as dayfulfilla,
+			
+			case when m.region='EU' then
+			(ifnull(ir.afn_inbound_working_quantity,0)+ifnull(ir.afn_inbound_shipped_quantity,0)
+			+ifnull(ir.afn_inbound_receiving_quantity,0)) /ifnull(
+			(
+			select sum(ttemp.avgsales)
+			from t_product_info tptemp
+			left join t_product_in_order ttemp on tptemp.id=ttemp.pid
+			left join t_marketplace mtemp on tptemp.marketplaceid=mtemp.marketplaceId
+			where sku=t.sku and mtemp.region='EU'
+			),ir.afn_total_quantity+1) 
+			else
+			(ifnull(ir.afn_inbound_working_quantity,0)+ifnull(ir.afn_inbound_shipped_quantity,0)
+			+ifnull(ir.afn_inbound_receiving_quantity,0))/ifnull(sy.avgsales,ir.afn_total_quantity+1) end as dayinbound,
+			m.currency listing_currency, sy.sales_seven sumweek,sy.sales_month summonth,sy.order_week orderweek,sy.sales_fifteen sales15,
+			sy.order_month ordermonth, isparent,op.remark,op.disable, pf.flownumber flownnumber,pf.id followid,
+			pf.lastupdateTime,pf.isread, ses.session_day7 sessions,ses.session_rate7 sessionrate,ses.units_ordered7 unitsordered7,
+			adv.adv_impr7 advimpr,adv.adv_sales7 advsales,
+			adv.adv_cpc7 advcpc,adv.adv_clicks7 advclick,
+			adv.adv_spc7 advspc,adv.adv_spend7 advspend,
+			adv.adv_ctr7 advctr,adv.adv_acos7 advacos,
+			ses.buybox_rate7 buybox, profit.margin_week prorate, sy.price_week priceweek,
+			ifnull(profit.margin_week,0) profitrate,
+			case when ifnull(sy.price_week,0) =0 then 0 else
+			ifnull(adv.adv_spend7,0)/sy.price_week end acoas,
+			ifnull(profit.profit_week,0) profits,
+			ifnull(profit.profit_week,0)-ifnull(adv.adv_spend7 ,0) profitall,
+			case when ifnull(sy.price_week,0)=0 then 0 else
+			(ifnull(profit.profit_week,0)-ifnull(adv.adv_spend7 ,0))/sy.price_week end proprate,
+			a.groupid,m.name marketplacename,gro.name groupname,
+			ROUND(case when review2.reviewnum > 0 then ifnull(review2.starofrate,0) else ifnull(review1.starofrate,0) end,2) positive_feedback_rating,
+		    case when review2.reviewnum > 0 then review2.reviewnum else review1.reviewnum end feedback_count,
+			case when review2.reviewnum > 0 then review2.negative else review1.negative end negative,
+			case when review2.reviewnum > 0 then review2.id else review1.id end revid,
+			case when (review1.refreshtime is null and review2.refreshtime is null) then '--'
+			when  (review1.refreshtime is not null and review2.refreshtime is null) then review1.refreshtime
+			when  (review1.refreshtime is null and review2.refreshtime is not null) then review2.refreshtime
+			else  case when(review1.refreshtime > review2.refreshtime) then review1.refreshtime else review2.refreshtime end end revrefreshtime,
+			profit.margin newprorate,op.status optstatus,sd.name optstatusname,sd.color optstatuscolor,m.findex marketindex,op.priceremark
+			,lo.endtime lockedtime,case when NOW()&lt;lo.endtime then 1 ELSE 0 END haslocked,m.market country,
+			(SELECT GROUP_CONCAT(tagid) FROM t_product_in_tags WHERE  pid=t.id) tagids,
+			t.inSnl,
+			op.fulfillment_availability
+		from t_product_info t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		left join t_amazon_group gro on a.groupid=gro.id
+		left join t_product_in_opt op on t.id=op.pid
+		left join t_product_info_status_define sd on sd.id=op.status
+		left join t_product_in_adv adv on t.id=adv.pid
+		left join t_product_in_ses ses on t.id=ses.pid
+		left join t_product_in_order sy on t.id=sy.pid
+		left join t_product_in_profit profit on t.id=profit.pid
+		left join t_picture p on p.id=t.image
+		left join t_marketplace m on m.marketplaceId=t.marketplaceid
+		left join t_erp_material em on em.sku=ifnull(op.msku,t.sku) and em.shopid=a.shop_id and em.isdelete=false
+		left join t_inventory_report ir on ir.marketplaceid = case when m.region='EU' then 'EU' else t.marketplaceid end and t.sku=ir.sku and ir.amazonAuthId=t.amazonAuthId
+		left join t_inventory_reserved_report irr on irr.marketplaceid=case when m.region='EU' then 'EU' else t.marketplaceid end and t.sku=irr.sku and irr.amazonAuthId=t.amazonAuthId  
+		left join t_product_follow pf on t.marketplaceid=pf.MarketplaceId and pf.amazonAuthId=t.amazonAuthId and t.asin=pf.asin 
+		left join t_product_in_review review1 on review1.asin=t.asin and review1.marketplaceid=t.marketplaceid
+		left join t_product_in_review review2 on review2.asin=t.parentAsin and review2.marketplaceid=t.marketplaceid
+		left JOIN t_product_price_locked lo ON lo.pid=t.id AND lo.`disable`=1
+		where a.shop_id=#{param.shopid,jdbcType=CHAR}
+		<if test="param.sku != null">
+			and (t.sku like #{param.sku,jdbcType=CHAR})
+		</if>
+	    <if test="param.amazonAuthId != null">
+			and  t.amazonAuthId= #{param.amazonAuthId,jdbcType=CHAR}
+		</if>
+		
+		<if test="param.name !=null and param.name !=''">
+				and (t.name like #{param.name,jdbcType=CHAR})
+		 </if>
+		 <if test="param.category !=null">
+				and (em.categoryid = #{param.category,jdbcType=CHAR})
+		 </if>
+		 <if test="param.isbadreview !=null">
+				and (review1.negative=1 or review2.negative=1)
+		 </if>
+		 <if test="param.remark!=null and param.remark!=''">
+				and (op.remark like #{param.remark,jdbcType=CHAR})
+			</if>
+		<if test="param.marketplace != null and param.marketplace!='IEU'">
+			and (t.marketplaceid = #{param.marketplace,jdbcType=CHAR})
+		</if>
+	     <if test="param.marketplace == 'IEU'">
+		    and  m.region='EU'
+		</if>
+		<if test="param.pidlist!=null">
+			and t.id in (
+				<foreach collection="param.pidlist" item="tags" index="index" separator=",">
+					#{tags,jdbcType=CHAR} 
+			    </foreach>			
+			)
+		</if>
+		<if test="param.groupid !=null">
+			and (a.groupid=#{param.groupid,jdbcType=CHAR})
+		</if>
+		<if test="param.groupList !=null">
+			and a.groupid in(
+			<foreach collection="param.groupList" item="grop" index="index" separator=",">
+				#{grop,jdbcType=BIGINT} 
+			</foreach>
+			)
+		</if>
+		<if test="param.ownerid !=null">
+			and (em.owner=#{param.ownerid,jdbcType=CHAR})
+		</if>
+		<if test="param.myself !=null">
+			and (em.owner=#{param.myself,jdbcType=CHAR})
+		</if>
+		<if test="param.myself2 !=null">
+			and (op.owner=#{param.myself2,jdbcType=CHAR})
+		</if>
+		<if test="param.search != null">
+			<if test="param.searchtype =='itemsku'">
+				<if test="param.isparent != null">
+					and t.asin in (select t1.parentasin asin from
+					t_product_info t1
+					where t1.amazonAuthId=t.amazonAuthId and t1.invalid=0 and t1.sku like
+					#{param.search,jdbcType=CHAR})
+				</if>
+			</if>
+			<if test="param.searchtype =='itemasin'">
+				<if test="param.isparent != null">
+					and t.asin in (select t1.parentasin asin from
+					t_product_info t1
+					where t1.amazonAuthId=t.amazonAuthId and t1.invalid=0 and t1.asin like
+					#{param.search,jdbcType=CHAR})
+				</if>
+			</if>
+			<if test="param.searchtype =='parentasin'">
+				and t.parentasin like #{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype =='childasin'">
+				<if test="param.isparent == null">
+					and t.parentasin in (SELECT t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=t.amazonAuthId
+					 and  t1.asin like #{param.search,jdbcType=CHAR} AND t1.invalid=0 )
+				</if>
+			</if>
+			<if test="param.searchtype =='childsku'">
+				<if test="param.isparent == null">
+					and t.parentasin in  (select  t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=t.amazonAuthId
+					 and  t1.sku like #{param.search,jdbcType=CHAR} AND t1.invalid=0)
+				</if>
+			</if>
+			<if test="param.searchtype =='sku'">
+				and (t.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype =='asin'">
+				and (t.asin like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype =='msku'">
+				and (ifnull(op.msku,t.sku) like #{param.search,jdbcType=CHAR})
+			</if>
+		</if>
+		<if test="param.isfba != null">
+			and (t.fulfillchannel like #{param.isfba,jdbcType=CHAR})
+		</if>
+		<if test="param.changeRate != null">
+			<if test="param.changeRate == 3">
+				and (sy.changeRate &gt;=#{param.changeRate,jdbcType=INTEGER}
+				and sy.changeRate &lt; 25)
+			</if>
+			<if test="param.changeRate == 25">
+				and (sy.changeRate &gt;= #{param.changeRate,jdbcType=INTEGER})
+			</if>
+			<if test="param.changeRate == -3">
+				and (sy.changeRate &lt;=#{param.changeRate,jdbcType=INTEGER}
+				and sy.changeRate &gt; -25)
+			</if>
+			<if test="param.changeRate == -25">
+				and (sy.changeRate &lt; #{param.changeRate,jdbcType=INTEGER})
+			</if>
+		</if>
+		<if test="param.tag1 != null">
+			and (op.tag1 =#{param.tag1,jdbcType=CHAR})
+		</if>
+		<if test="param.tag2 != null">
+			and (op.tag2 =#{param.tag2,jdbcType=CHAR})
+		</if>
+		<if test="param.tag3 != null">
+			and (op.tag3 =#{param.tag3,jdbcType=CHAR})
+		</if>
+		<if test="param.disable == 'false'">
+			and (op.disable = 0 or op.disable is null) and (t.invalid = 0)
+		</if>
+		<if test="param.disable == 'true'">
+			and (op.disable = 1)
+		</if>
+		<if test="param.disable == 'invalid'">
+			and (t.invalid = 1)
+		</if>
+		 <if test="param.salestatus != null">
+		    <if test="param.salestatus!='none'">
+			  	and (op.status =#{param.salestatus,jdbcType=INTEGER} )
+			   </if>
+			 <if test="param.salestatus=='none'">
+		       and op.status is null
+		   </if>
+		
+		</if>
+		<if test="param.isparent != null">
+			and (t.isparent = 1 )
+		</if>
+		<if test="param.isparent == null">
+			and (t.isparent = 0)
+		</if>
+		<if test="param.parentasin != null">
+			and (t.parentAsin = #{param.parentasin,jdbcType=CHAR})
+		</if>
+		<if test="param.color != null">
+			   <if test="param.color!='none'">
+			   and em.color=#{param.color,jdbcType=CHAR}
+			   </if>
+			 <if test="param.color=='none'">
+		       and em.color is null
+		   </if>
+		</if>
+		<if test="param.paralist !=null ">
+			) v
+			where ${param.paralist}
+		</if>
+	</select>
+	
+	<select id="findMSKUBySKUMarket" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT IFNULL(max(o.msku) ,Max(p.sku)) msku from  t_product_info p 
+		left join t_product_in_opt o on p.id = o.pid
+		left join t_marketplace mk on mk.marketplaceid=p.marketplaceid
+		where p.sku=#{sku,jdbcType=CHAR}
+		and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or mk.region=#{marketplaceid,jdbcType=CHAR})
+		and p.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+	</select>
+	<select id="findAllByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.id,i.sku sku,m.color color,m.name name,m.shopid shopid,m.sku msku ,m.upc upc,
+			IFNULL(p.location,p.url) image,m.brand brand,m.price price,ifnull(m.boxnum,0) boxnum,
+			ifnull(inv.quantity,0) fulfillable,m.MOQ,m.isDelete isDelete,c.name supplier, m.issfg issfg,
+			m.remark remark,u.name operator,m.supplier supplierid,m.opttime
+			opttime,m.delivery_cycle, m.effectivedate createdate,m.purchaseUrl,i.asin asin
+		from t_product_info i
+		Left join t_product_in_opt o on o.pid=i.id
+		Left join t_erp_material m on m.sku=ifnull(o.msku,i.sku) and m.shopid=#{param.shopid,jdbcType=CHAR} and m.isDelete = 0
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_picture p on m.image=p.id
+		left join t_erp_inventory inv on inv.materialid=m.id 
+										and inv.status='fulfillable' 
+										and inv.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+										and inv.shopid=#{param.shopid,jdbcType=CHAR}
+		left join t_userinfo u on u.id=m.operator
+		where i.amazonAuthId=#{param.amazonauthid,jdbcType=CHAR}
+			and i.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+		<if test="param.searchsku != null">
+			and
+			<foreach collection="param.searchsku" item="sku" index="i" open="(" separator="or" close=" )">
+				i.sku = #{sku,jdbcType=CHAR}
+			</foreach>
+		</if>
+	</select>
+	<update id="clearInSnl" parameterType="java.lang.String">
+	  update t_product_info set inSnl=false where amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+			and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	</update>
+	
+	<select id="getProductInfoWithFnSKU" resultType="java.util.Map" parameterType="java.util.Map">
+	SELECT t.id pid,au.groupid,t.marketplaceid,g.name groupname,mk.name marketname,
+	       IFNULL(p.url,p.location) pimage,
+	       t.name pname,t.sku psku,t.asin,ifnull(r.afn_fulfillable_quantity,0) fbaquantity,
+	       ifnull(ifnull(r.fnsku,t.fnsku),o.fnsku) fnsku,
+	       ifnull(o.msku,t.sku) msku,
+	       o.msku omsku
+  		FROM t_product_info t
+  		left join t_marketplace mk on mk.marketplaceid=t.marketplaceid
+ 		LEFT JOIN t_picture p ON p.id=t.image
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_amazon_group g on g.id=au.groupid
+		left join t_product_in_opt o on o.pid=t.id
+		left join t_inventory_report r on r.sku=t.sku and r.amazonAuthId=t.amazonAuthId and  r.marketplaceid=case when mk.region='EU' then 'EU' else t.marketplaceid end
+		WHERE   t.amazonAuthId=#{param.authid,jdbcType=CHAR}
+		and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+		and t.invalid =false
+		and t.isparent=false
+		and ifnull(o.disable,false)=false
+		<if test="param.search != null">
+			and (t.asin like #{param.search,jdbcType=CHAR} or t.sku like #{param.search,jdbcType=CHAR})
+		</if>
+	</select>
+	
+	<select id="getAsinList" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.id,
+		      ifnull(op.msku,t.sku) msku,
+		      t.asin, 
+		      t.sku,
+		      t.marketplaceid, 
+		      m.point_name, 
+		      t.name,
+		      m.name marketname,
+		      g.name groupname,
+		      t.parentAsin
+		from t_product_info t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		left join t_amazon_group g on g.id=a.groupid
+		left join t_product_in_opt op on t.id=op.pid
+		left join t_marketplace m on m.marketplaceId=t.marketplaceid
+		where a.shop_id=#{param.shopid,jdbcType=CHAR}
+	    <if test="param.amazonAuthId != null">
+			and  t.amazonAuthId= #{param.amazonAuthId,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid != null ">
+			and (t.marketplaceid = #{param.marketplaceid,jdbcType=CHAR})
+		</if>
+		<if test="param.groupid !=null">
+			and (a.groupid=#{param.groupid,jdbcType=CHAR})
+		</if>
+		<if test="param.groupList !=null">
+			and a.groupid in(
+			<foreach collection="param.groupList" item="grop" index="index" separator=",">
+				#{grop,jdbcType=BIGINT} 
+			</foreach>
+			)
+		</if>
+		<if test="param.myself !=null">
+			and (op.owner=#{param.myself,jdbcType=CHAR})
+		</if>
+		<if test="param.search != null">
+			<if test="param.searchtype =='parentasin'">
+				 t.parentasin like #{param.search,jdbcType=CHAR}
+			</if>
+			<if test="param.searchtype =='childasin'">
+				<if test="param.isparent == null">
+					and t.parentasin in (SELECT t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=t.amazonAuthId
+					 and  t1.asin like #{param.search,jdbcType=CHAR} AND t1.invalid=0 )
+				</if>
+			</if>
+			<if test="param.searchtype =='childsku'">
+				<if test="param.isparent == null">
+					and t.parentasin in  (select  t1.parentAsin FROM t_product_info t1 WHERE t1.amazonAuthId=t.amazonAuthId
+					 and  t1.sku like #{param.search,jdbcType=CHAR} AND t1.invalid=0)
+				</if>
+			</if>
+			<if test="param.searchtype =='sku'">
+				and (t.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype =='asin'">
+				and (t.asin like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype =='msku'">
+				and (ifnull(op.msku,t.sku) like #{param.search,jdbcType=CHAR})
+			</if>
+			 <if test="param.searchtype =='name'">
+				and (t.name like #{param.search,jdbcType=CHAR})
+		     </if>
+		</if>
+			and (op.disable = 0 or op.disable is null) and (t.invalid = 0)
+			and (t.isparent = 0)
+	</select>
+	
+</mapper>

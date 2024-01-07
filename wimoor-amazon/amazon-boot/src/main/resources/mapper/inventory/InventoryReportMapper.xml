@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inventory.mapper.InventoryReportMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.InventoryReport">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="byday" property="byday" jdbcType="TIMESTAMP" />
+		<result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+		<result column="fnsku" property="fnsku" jdbcType="CHAR" />
+		<result column="asin" property="asin" jdbcType="CHAR" />
+		<result column="pcondition" property="pcondition" jdbcType="CHAR" />
+		<result column="your_price" property="yourPrice" jdbcType="DECIMAL" />
+		<result column="mfn_listing_exists" property="mfnListingExists" jdbcType="CHAR" />
+		<result column="mfn_fulfillable_quantity" property="mfnFulfillableQuantity" jdbcType="INTEGER" />
+		<result column="afn_listing_exists" property="afnListingExists" jdbcType="CHAR" />
+		<result column="afn_warehouse_quantity" property="afnWarehouseQuantity" jdbcType="INTEGER" />
+		<result column="afn_fulfillable_quantity" property="afnFulfillableQuantity" jdbcType="INTEGER" />
+		<result column="afn_unsellable_quantity" property="afnUnsellableQuantity" jdbcType="INTEGER" />
+		<result column="afn_reserved_quantity" property="afnReservedQuantity" jdbcType="INTEGER" />
+		<result column="afn_total_quantity" property="afnTotalQuantity" jdbcType="INTEGER" />
+		<result column="per_unit_volume" property="perUnitVolume" jdbcType="DECIMAL" />
+		<result column="afn_inbound_working_quantity" property="afnInboundWorkingQuantity" jdbcType="INTEGER" />
+		<result column="afn_inbound_shipped_quantity" property="afnInboundShippedQuantity" jdbcType="INTEGER" />
+		<result column="afn_inbound_receiving_quantity" property="afnInboundReceivingQuantity" jdbcType="INTEGER" />
+		<result column="afn_reserved_future_supply" property="afnReservedFutureSupply" jdbcType="INTEGER" />
+		<result column="afn_researching_quantity" property="afnResearchingQuantity" jdbcType="INTEGER" />
+		<result column="afn_future_supply_buyable" property="afnFutureSupplyBuyable" jdbcType="INTEGER" />
+		<result column="isnewest" property="isnewest" jdbcType="BIT" />
+		<result column="amazonAuthId" property="amazonAuthId" jdbcType="CHAR" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, sku, byday, marketplaceid, fnsku, asin, pcondition, your_price, mfn_listing_exists,
+		mfn_fulfillable_quantity, afn_listing_exists, afn_warehouse_quantity, afn_fulfillable_quantity,
+		afn_unsellable_quantity, afn_reserved_quantity, afn_total_quantity, per_unit_volume,
+		afn_inbound_working_quantity, afn_inbound_shipped_quantity, afn_inbound_receiving_quantity,
+		afn_reserved_future_supply,afn_researching_quantity,afn_future_supply_buyable,isnewest,amazonAuthId
+	</sql>
+
+	<select id="findInventoryCost" parameterType="java.lang.String" resultType="java.util.Map">
+		select iv.sku,max(m.price) price,max(m.remark) remark,
+			sum(ifnull(iv.afn_fulfillable_quantity,0) ) fulfillable,
+			sum(ifnull(iv.afn_reserved_quantity,0) ) reserved, 
+			sum(ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0)) inbound,
+			sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)
+				+ ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0))*m.price)  totalprice,
+			sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)
+				+ ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0))*m.other_cost) otherFeer,
+			sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)
+				+ ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0))
+				* p.shipmentfee) firstLegCharges
+		from t_inventory_report_his iv
+		left join
+		(
+			select max(a.shop_id) shopid,
+			       info.amazonauthid amazonauthid,
+			       ifnull(max(opt.msku),max(info.sku)) msku,
+			       max(a.groupid) groupid,
+				   info.sku psku,
+				   case when mp.region='EU' then 'EU' else info.marketplaceid end marketplaceid, 
+				   ifnull(max(pro.shipmentfee * ex.price/100),0) shipmentfee
+			from t_product_info info
+			left join t_amazon_auth a on a.id=info.amazonauthid
+			left join t_product_in_opt opt on opt.pid=info.id
+			left join t_product_in_profit pro on pro.pid=info.id
+			left join t_marketplace mp on mp.marketplaceId = info.marketplaceid
+			left join t_exchangerate ex on ex.name=mp.currency
+			where a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid !=null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="marketplaceid !=null">
+				and (info.marketplaceid=#{marketplaceid,jdbcType=CHAR} or
+				a.region=#{marketplaceid,jdbcType=CHAR})
+			</if>
+			<if test="sku !=null">
+				and info.sku like #{sku,jdbcType=CHAR}
+			</if>
+			group by info.amazonauthid,case when mp.region='EU' then 'EU' else info.marketplaceid end,info.sku
+		) p on p.psku=iv.sku and p.amazonauthid=iv.amazonauthid and p.marketplaceid=iv.marketplaceid
+		left join t_erp_material m on m.sku=p.msku and m.shopid=p.shopid and m.isDelete = 0
+		where p.shopid=#{shopid,jdbcType=CHAR}
+			and iv.byday=#{byday,jdbcType=CHAR}
+		<if test="marketplaceid !=null">
+			and iv.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		group by iv.sku
+	</select>
+
+	<select id="findInventoryCostTotal" parameterType="java.lang.String" resultType="java.util.Map">
+		select sum(ifnull(iv.afn_fulfillable_quantity,0) ) fulfillable,
+			sum(ifnull(iv.afn_reserved_quantity,0) ) reserved, 
+			sum(ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0)) inbound,
+			sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)
+				+ ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0))*m.price) totalprice,
+			sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)
+				+ ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0))*m.other_cost) otherFeer,
+			sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)
+				+ ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0))
+				* p.shipmentfee) firstLegCharges
+		from t_inventory_report_his iv
+		left join
+		(
+			select 
+			    max(a.shop_id) shopid,
+			    info.amazonauthid,
+			    ifnull(max(opt.msku),max(info.sku)) msku,a.groupid,
+				info.sku psku,case when mp.region='EU' then 'EU' else info.marketplaceid end marketplaceid,
+				ifnull(max(pro.shipmentfee * ex.price/100),0) shipmentfee
+			from t_product_info info
+			left join t_amazon_auth a on a.id=info.amazonauthid
+			left join t_product_in_opt opt on opt.pid=info.id
+			left join t_product_in_profit pro on pro.pid=info.id
+			left join t_marketplace mp on mp.marketplaceId = info.marketplaceid
+			left join t_exchangerate ex on ex.name=mp.currency
+			where a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid !=null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="marketplaceid !=null">
+				and (info.marketplaceid=#{marketplaceid,jdbcType=CHAR} or a.region=#{marketplaceid,jdbcType=CHAR})
+			</if>
+			<if test="sku !=null">
+				and info.sku like #{sku,jdbcType=CHAR}
+			</if>
+			group by info.amazonauthid,case when mp.region='EU' then 'EU' else info.marketplaceid end,info.sku
+		) p on p.psku=iv.sku and p.amazonauthid=iv.amazonauthid and p.marketplaceid=iv.marketplaceid
+		left join t_erp_material m on m.sku=p.msku and m.shopid=p.shopid and m.isDelete = 0
+		where p.shopid=#{shopid,jdbcType=CHAR}
+			and iv.byday=#{byday,jdbcType=CHAR}
+		<if test="marketplaceid !=null">
+			and iv.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+	</select>
+
+	<select id="findFBAInvCostByShopId" parameterType="java.lang.String" resultType="java.util.Map">
+       select p.groupid,iv.marketplaceid,
+			IFNULL(sum((ifnull(iv.afn_fulfillable_quantity,0)+ ifnull(iv.afn_reserved_quantity,0)+
+			ifnull(iv.afn_inbound_shipped_quantity,0)+ ifnull(iv.afn_inbound_receiving_quantity,0) )*m.price),0) totalprice,
+			p.currency
+		from t_inventory_report iv
+		left join
+		(
+			select max(a.shop_id) shopid,MAX(a.groupid) groupid,info.amazonauthid,ifnull(max(opt.msku),max(info.sku)) msku,
+				  case when mp.region='EU' then 'EU' else info.marketplaceid end marketplaceid,
+				  case when mp.region='EU' then 'EUR' else mp.currency end currency,
+				   info.sku psku 
+			from t_product_info info
+			left join t_amazon_auth a on a.id=info.amazonauthid
+			left join t_marketplace mp on mp.marketplaceid=info.marketplaceid
+			left join t_product_in_opt opt on opt.pid=info.id
+			where a.shop_id=#{shopid,jdbcType=CHAR}
+			group by info.amazonauthid,case when mp.region='EU' then 'EU' else info.marketplaceid end,info.sku
+		) p on p.psku=iv.sku and p.amazonauthid=iv.amazonauthid and p.marketplaceid=iv.marketplaceid
+		left join t_erp_material m on m.sku=p.msku and m.shopid=#{shopid,jdbcType=CHAR}
+		where p.shopid=#{shopid,jdbcType=CHAR}
+		group by p.groupid,iv.marketplaceid  
+	</select>
+
+	<select id="getUnionFinAndInvCost" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT IFNULL(f2.groupname,f1.groupname) groupname,f1.totalprice,f2.total_amount transfer_total,
+		IFNULL(f2.currency,f1.currency) currency ,f1.findex
+		from (
+			select max(p.groupname) groupname,p.findex,p.marketplaceid,p.currency,
+			sum(
+				(
+					ifnull(iv.afn_fulfillable_quantity,0)+
+					ifnull(iv.afn_reserved_quantity,0)+
+					ifnull(iv.afn_inbound_shipped_quantity,0)+
+					ifnull(iv.afn_inbound_receiving_quantity,0) 
+				)*m.price
+			) totalprice
+			from t_inventory_report_his iv
+			left join
+			(
+				select max(a.shop_id) shopid,info.amazonauthid,ifnull(max(opt.msku),max(info.sku)) msku,info.sku psku,
+					min(mk.findex) findex, case when mk.region='EU' then 'EUR' else mk.currency end currency,
+					case when mk.region='EU' then 'EU' else info.marketplaceid end marketplaceid, 
+					max(ap.`name`) groupname ,max(ap.id) gid
+				from t_product_info info
+				left join t_marketplace mk on info.marketplaceid=mk.marketplaceId
+				left join t_amazon_auth a on a.id=info.amazonauthid
+				left join t_amazon_group ap on ap.id=a.groupid
+				left join t_product_in_opt opt on opt.pid=info.id
+				where a.shop_id=#{shopid,jdbcType=CHAR}
+				group by info.amazonauthid,case when mk.region='EU' then 'EU' else info.marketplaceid end,info.sku
+			) p on p.psku=iv.sku and p.amazonauthid=iv.amazonauthid and p.marketplaceid=iv.marketplaceid
+			left join t_erp_material m on m.sku=p.msku and m.shopid=#{shopid,jdbcType=CHAR}
+			where p.shopid=#{shopid,jdbcType=CHAR}
+				and iv.byday=DATE_FORMAT(NOW(),'%Y-%m-%d')
+			group by p.gid,p.currency 
+		) f1
+		left join (
+			SELECT max(g.id) gid,max(g.name) groupname, SUM(total_amount) total_amount,t.currency
+			from t_amz_settlement_acc_report t
+			LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+			LEFT JOIN t_amazon_group g ON g.id=a.groupid
+			WHERE a.shop_id = #{shopid,jdbcType=CHAR} 
+				and a.`disable`=0 and (
+					(
+						t.settlement_start_date &gt;=#{beginDate,jdbcType=CHAR}
+						and t.settlement_start_date &lt;#{endDate,jdbcType=CHAR} 
+					) or
+					(
+						t.settlement_end_date &gt;=#{beginDate,jdbcType=CHAR}
+						and t.settlement_end_date &lt;#{endDate,jdbcType=CHAR}
+					) 
+				)
+			GROUP BY a.id,t.currency
+		)f2 on f1.groupname=f2.groupname and f1.currency= f2.currency
+		UNION 
+		SELECT IFNULL(f2.groupname,f1.groupname) groupname,f1.totalprice,f2.total_amount transfer_total,
+		IFNULL(f2.currency,f1.currency) currency ,f1.findex
+		from (
+			select max(p.groupname) groupname,p.findex,p.marketplaceid,p.currency,
+			sum(
+				(
+					ifnull(iv.afn_fulfillable_quantity,0)+
+					ifnull(iv.afn_reserved_quantity,0)+
+					ifnull(iv.afn_inbound_shipped_quantity,0)+
+					ifnull(iv.afn_inbound_receiving_quantity,0) 
+				)*m.price
+			) totalprice
+			from t_inventory_report_his iv
+			left join
+			(
+				select max(a.shop_id) shopid,info.amazonauthid,ifnull(max(opt.msku),max(info.sku)) msku,info.sku psku,
+					min(mk.findex) findex, case when mk.region='EU' then 'EUR' else mk.currency end currency,
+					case when mk.region='EU' then 'EU' else info.marketplaceid end marketplaceid, 
+					max(ap.`name`) groupname ,max(ap.id) gid
+				from t_product_info info
+				left join t_marketplace mk on info.marketplaceid=mk.marketplaceId
+				left join t_amazon_auth a on a.id=info.amazonauthid
+				left join t_amazon_group ap on ap.id=a.groupid
+				left join t_product_in_opt opt on opt.pid=info.id
+				where a.shop_id=#{shopid,jdbcType=CHAR}
+				group by info.amazonauthid,case when mk.region='EU' then 'EU' else info.marketplaceid end,info.sku
+			) p on p.psku=iv.sku and p.amazonauthid=iv.amazonauthid and p.marketplaceid=iv.marketplaceid
+			left join t_erp_material m on m.sku=p.msku and m.shopid=#{shopid,jdbcType=CHAR}
+			where p.shopid=#{shopid,jdbcType=CHAR}
+				and iv.byday=DATE_FORMAT(NOW(),'%Y-%m-%d')
+			group by p.gid,p.currency 
+		) f1
+		right join (
+			SELECT max(g.id) gid,max(g.name) groupname, SUM(total_amount) total_amount,t.currency
+			from t_amz_settlement_acc_report t
+			LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+			LEFT JOIN t_amazon_group g ON g.id=a.groupid
+			WHERE a.shop_id = #{shopid,jdbcType=CHAR} 
+				and a.`disable`=0 and (
+					(
+						t.settlement_start_date &gt;=#{beginDate,jdbcType=CHAR}
+						and t.settlement_start_date &lt;#{endDate,jdbcType=CHAR} 
+					) or
+					(
+						t.settlement_end_date &gt;=#{beginDate,jdbcType=CHAR}
+						and t.settlement_end_date &lt;#{endDate,jdbcType=CHAR}
+					) 
+				)
+			GROUP BY a.id,t.currency
+		)f2 on f1.groupname=f2.groupname and f1.currency= f2.currency
+		order by groupname,findex
+	</select>
+
+	<select id="findbyProductId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select inv.id, inv.sku,inv.byday, inv.marketplaceid, inv.fnsku, inv.asin,
+			inv.pcondition, inv.your_price, inv.mfn_listing_exists, inv.mfn_fulfillable_quantity,
+			inv.afn_listing_exists, inv.afn_warehouse_quantity, inv.afn_fulfillable_quantity, 
+			inv.afn_unsellable_quantity, inv.afn_reserved_quantity, inv.afn_total_quantity,
+			inv.per_unit_volume, inv.afn_inbound_working_quantity, inv.afn_inbound_shipped_quantity,
+			inv.afn_inbound_receiving_quantity,inv.afn_researching_quantity,inv.afn_future_supply_buyable,
+			inv.afn_reserved_future_supply,inv.amazonauthid
+		from t_inventory_report inv
+		left join t_product_info p on   p.sku=inv.sku and inv.amazonauthid=p.amazonauthid
+		left join t_marketplace m on p.marketplaceid=m.marketplaceid
+		where p.id = #{id,jdbcType=CHAR}
+			and inv.isnewest=true
+			and (inv.marketplaceid=m.marketplaceid or inv.marketplaceid=m.region)
+			limit 1;
+	</select>
+
+	<select id="findMinbyProduct" resultType="java.util.Date" parameterType="java.util.Map">
+		select min(byday)
+		from t_inventory_report_his inv
+		where sku=#{sku,jdbcType=CHAR}
+			and asin=#{asin,jdbcType=CHAR}
+			and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			and amazonAuthId=#{id,jdbcType=CHAR}
+	</select>
+    <insert id="newestInsertArchive" parameterType="java.lang.String">
+         insert into t_inventory_report_his 
+         select * from t_inventory_report_his_bkp20220815
+         where marketplaceid=#{marketplaceid,jdbcType=CHAR} and  amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+           and byday=#{byday,jdbcType=CHAR};
+         delete from t_inventory_report_his_bkp20220815
+         where marketplaceid=#{marketplaceid,jdbcType=CHAR} and  amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+           and byday=#{byday,jdbcType=CHAR};
+    </insert>
+	<insert id="newestInsert" parameterType="com.wimoor.amazon.inventory.pojo.entity.InventoryReport">
+		delete from t_inventory_report_his
+		where marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			and sku=#{sku,jdbcType=CHAR}
+			and amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+			and byday=#{byday,jdbcType=DATE};
+
+		insert into t_inventory_report_his (
+			id, sku, byday, marketplaceid, fnsku, `asin`, pcondition, your_price,
+			mfn_listing_exists,
+			mfn_fulfillable_quantity, afn_listing_exists, afn_warehouse_quantity, afn_fulfillable_quantity,
+			afn_unsellable_quantity, afn_reserved_quantity, afn_total_quantity,
+			per_unit_volume,
+			afn_inbound_working_quantity, afn_inbound_shipped_quantity, afn_inbound_receiving_quantity,
+			afn_reserved_future_supply,afn_researching_quantity,afn_future_supply_buyable,isnewest,amazonAuthId
+		)
+		values (
+			#{id,jdbcType=CHAR}, #{sku,jdbcType=CHAR}, #{byday,jdbcType=TIMESTAMP},
+			#{marketplaceid,jdbcType=CHAR},
+			#{fnsku,jdbcType=CHAR}, #{asin,jdbcType=CHAR}, #{pcondition,jdbcType=CHAR},
+			#{yourPrice,jdbcType=DECIMAL},
+			#{mfnListingExists,jdbcType=CHAR}, #{mfnFulfillableQuantity,jdbcType=INTEGER},
+			#{afnListingExists,jdbcType=CHAR},
+			#{afnWarehouseQuantity,jdbcType=INTEGER},
+			#{afnFulfillableQuantity,jdbcType=INTEGER},
+			#{afnUnsellableQuantity,jdbcType=INTEGER},
+			#{afnReservedQuantity,jdbcType=INTEGER},
+			#{afnTotalQuantity,jdbcType=INTEGER},
+			#{perUnitVolume,jdbcType=DECIMAL},
+			#{afnInboundWorkingQuantity,jdbcType=INTEGER},
+			#{afnInboundShippedQuantity,jdbcType=INTEGER},
+			#{afnInboundReceivingQuantity,jdbcType=INTEGER},#{afnReservedFutureSupply,jdbcType=INTEGER},
+			#{afnResearchingQuantity,jdbcType=INTEGER},#{afnFutureSupplyBuyable,jdbcType=INTEGER},0,#{amazonAuthId,jdbcType=CHAR}
+		)
+	</insert>
+
+	<!-- 某一天的FBA库存 -->
+	<select id="FbaInventoryByday" parameterType="java.util.Map" resultType="java.util.Map">
+		select marketplaceid,sum(ir.afn_fulfillable_quantity) qty
+		from t_inventory_report_his ir
+		left join t_amazon_auth auth on auth.id=ir.amazonAuthId
+		where auth.shop_id=#{shopid,jdbcType=CHAR}
+			and byday>=#{byday,jdbcType=DATE}
+			and byday &lt; DATE_ADD(#{byday,jdbcType=DATE},INTERVAL 1 DAY)
+		<if test="sku !=null">
+			and sku=#{sku,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid !=null">
+			and ir.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid !=null">
+			and auth.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		group by marketplaceid
+	</select>
+
+	<!-- 某一天的FBA库存groupby sku -->
+	<select id="FbaInventoryBydayBySku" parameterType="java.util.Map" resultType="java.util.Map">
+		select marketplaceid,sum(ir.afn_fulfillable_quantity) qty,ir.sku
+		from t_inventory_report_his ir
+		left join t_amazon_auth auth on auth.id=ir.amazonAuthId
+		where auth.shop_id=#{shopid,jdbcType=CHAR}
+			and byday>=#{byday,jdbcType=DATE}
+			and byday &lt; DATE_ADD(#{byday,jdbcType=DATE},INTERVAL 1 DAY)
+			and (ir.afn_fulfillable_quantity>0)
+			and auth.groupid=#{groupid,jdbcType=CHAR} and auth.`disable`=0
+		<if test="marketplaceid !=null">
+			and ir.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		group by marketplaceid,ir.sku
+	</select>
+
+	<!-- 某一天的FBA库存group by warehouse and sku -->
+	<select id="FbaInventoryBydayInsku" parameterType="java.util.Map" resultType="java.util.Map">
+		select marketplaceid,sum(ir.afn_fulfillable_quantity) qty,ir.sku
+		from t_inventory_report_his ir
+		left join t_amazon_auth auth on auth.id=ir.amazonAuthId
+		where auth.shop_id=#{shopid,jdbcType=CHAR}
+			and byday>=#{byday,jdbcType=DATE}
+			and byday &lt; DATE_ADD(#{byday,jdbcType=DATE},INTERVAL 1 DAY)
+		<if test="marketplaceid !=null">
+			and ir.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		group by marketplaceid,ir.sku
+	</select>
+
+	<!-- xx天FBA出库的数量 -->
+	<select id="FbaOutInventoryByRange" parameterType="java.util.Map" resultType="java.util.Map">
+		select case when m.region='EU' then 'EU' else s.marketplaceid end marketplaceid, sum(quantity) salesum 
+		from t_orders_summary s
+		left join t_marketplace m on m.marketplaceId=s.marketplaceid
+		left join t_amazon_auth auth on auth.id =s.amazonAuthId
+		where auth.shop_id=#{shopid,jdbcType=CHAR}
+			and purchase_date&gt;=#{fromDate,jdbcType=DATE}
+			and purchase_date&lt;=#{endDate,jdbcType=DATE}
+		<if test="groupid !=null">
+			and auth.groupid=#{groupid,jdbcType=CHAR} 
+		</if>
+		<if test="sku !=null">
+			and s.sku=#{sku,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid !=null">
+			and case when m.region='EU' then 'EU' else s.marketplaceid end=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		group by case when m.region='EU' then 'EU' else s.marketplaceid end
+	</select>
+
+	<!-- xx天FBA出库的数量by sku -->
+	<select id="FbaOutInventoryByRangeBySku" parameterType="java.util.Map" resultType="java.util.Map">
+		select case when m.region='EU' then 'EU' else s.marketplaceid end marketplaceid, s.sku sku, sum(quantity) salesum
+		from t_orders_summary s
+		left join t_marketplace m on m.marketplaceId=s.marketplaceid
+		left join t_amazon_auth auth on auth.id =s.amazonAuthId
+		where auth.shop_id=#{shopid,jdbcType=CHAR}
+			and purchase_date&gt;=#{fromDate,jdbcType=DATE}
+			and purchase_date&lt;=#{endDate,jdbcType=DATE}
+			and auth.groupid=#{groupid,jdbcType=CHAR} and auth.`disable`=0
+		<if test="marketplaceid !=null">
+			and case when m.region='EU' then 'EU' else s.marketplaceid end=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		group by case when m.region='EU' then 'EU' else s.marketplaceid end,s.sku
+	</select>
+
+	<select id="getFbaSnapDate" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.snapshot_date snapdate
+		from t_amz_inventory_health t
+		where t.authid=#{authid,jdbcType=BIGINT} limit 1
+	</select>
+
+	<select id="getDiffrentReservedData" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT r.*,i.afn_reserved_quantity,i.byday 
+		 from t_inventory_report i
+		 left join t_inventory_reserved_report r on i.sku=r.sku and i.marketplaceid=r.marketplaceid and i.amazonAuthId=r.amazonAuthId 
+		where i.afn_reserved_quantity!=r.reserved_qty and DATE_FORMAT(r.byday,'%Y-%m-%d')=DATE_FORMAT(i.byday,'%Y-%m-%d');
+	
+	</select>
+	
+	<select id="getDiffrentInboundData" parameterType="java.lang.String" resultType="java.util.Map">
+			SELECT * FROM (
+				SELECT v1.sku,v1.amazonAuthId,v1.marketplace,v1.marketplaceid, v1.qty-v1.inbound qty 
+				FROM (
+				SELECT  v.amazonAuthId,v.SellerSKU sku, v.marketplace, v.marketplaceid,
+				ifnull(r.afn_inbound_working_quantity,0)+IFNULL(r.afn_inbound_shipped_quantity,0)+IFNULL(r.afn_inbound_receiving_quantity,0) inbound,
+				v.qty
+				 FROM (
+				SELECT i.amazongroupid,a.id amazonauthid,
+				  case when m.region='EU' then 'EU' ELSE m.marketplaceid END marketplace,
+				  max(m.marketplaceId) marketplaceId, 
+				  it.SellerSKU,
+				  SUM(ifnull(it.QuantityShipped,0)-ifnull(it.QuantityReceived,0)) qty
+				 from t_erp_ship_inbounditem it 
+				LEFT JOIN  t_erp_ship_inboundshipment s  ON it.ShipmentId=s.ShipmentId
+				LEFT JOIN t_erp_ship_inboundplan i ON i.id=s.inboundplanid
+				LEFT JOIN t_marketplace m ON m.marketplaceId =i.marketplaceid
+				LEFT JOIN t_amazon_auth a ON a.region=case when m.region='UK' then 'EU' ELSE m.region END  AND i.amazongroupid=a.groupid AND a.shop_id=i.shopid
+				LEFT JOIN t_product_info p on p.sku=it.sellersku and p.marketplaceid=i.marketplaceid and p.amazonauthid=a.id
+				LEFT JOIN  t_product_in_order o on o.pid=p.id
+				WHERE s.`status`&gt;=2 AND s.`status` &lt;=5   AND a.`disable`=0 AND s.status2date &gt; date_sub(NOW(),INTERVAL 2 month) 
+				and (o.sales_month is null or o.sales_month=0)
+				GROUP BY i.amazongroupid,case when m.region='EU' then 'EU' ELSE m.marketplaceId END ,it.SellerSKU
+				) v
+				LEFT JOIN t_inventory_report r ON r.sku=v.SellerSKU  AND r.marketplaceid=v.marketplace AND r.amazonAuthId=v.amazonauthid
+				
+				) v1 WHERE ifnull(v1.inbound,0) &lt; qty
+				) v3
+				WHERE v3.qty &gt; 2
+				ORDER BY  amazonAuthId,marketplaceid DESC
+  
+	</select>
+	
+		<select id="findFBAInvDetailById" parameterType="java.lang.String" resultType="java.util.Map">
+		select i.sku, 
+			sum(i.afn_warehouse_quantity) afnWarehouseQuantity,
+			sum(i.afn_fulfillable_quantity) afnFulfillableQuantity,
+			sum(i.afn_reserved_quantity) afnReservedQuantity,
+			sum(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
+			sum(i.afn_inbound_shipped_quantity) afnInboundShippedQuantity ,
+			sum(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
+			sum(i.afn_unsellable_quantity) afnUnsellableQuantity,
+			sum(i.afn_researching_quantity) afnResearchingQuantity,
+			sum(r.reserved_customerorders) reservedCustomerorders,
+			sum(case when r.id is null then ifnull(i.afn_reserved_quantity,0) 
+			       else ifnull(r.reserved_fc_processing,i.afn_reserved_future_supply)  end) reservedFcProcessing,
+			sum(r.reserved_fc_transfers) reservedFcTransfers,
+      		sum(r.reserved_qty) reservedQty 
+		from t_inventory_report i 
+		left join t_inventory_reserved_report r on i.sku=r.sku and i.marketplaceid=r.marketplaceid and i.amazonAuthId=r.amazonAuthId 
+		left join t_amazon_auth a on i.amazonAuthId=a.id 
+		where a.shop_id=#{shopid,jdbcType=CHAR} 
+			and i.isnewest=true
+			and i.sku=#{sku,jdbcType=CHAR} 
+			and i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		   <if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		  </if>
+	</select>
+	
+	
+	 <select id="findFBAWithoutUnsellable" resultType="java.util.Map" parameterType="java.lang.String">
+		 SELECT
+		    ir.marketplaceid,ir.sku,
+			ifnull(afn_fulfillable_quantity,0)+ifnull(afn_inbound_working_quantity,0)+
+			ifnull(afn_inbound_shipped_quantity,0)+ifnull(afn_inbound_receiving_quantity,0)+
+			case when rr.id is null then ifnull(afn_reserved_quantity,0) 
+			else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) 
+			end quantity,
+			
+			ifnull(afn_fulfillable_quantity,0)+
+			case when rr.id is null then ifnull(afn_reserved_quantity,0) 
+			else ifnull(rr.reserved_fc_processing,0)+ifnull(rr.reserved_fc_transfers,0) 
+			end fulfillable
+		 FROM  t_inventory_report ir 
+		 left join t_inventory_reserved_report rr on ir.sku=rr.sku 
+		                                             and ir.marketplaceid=rr.marketplaceid 
+		                                             and ir.amazonAuthId=rr.amazonAuthId 
+		 WHERE   ir.amazonAuthId=#{amazonAuthId,jdbcType=CHAR} AND  ir.isnewest=true
+		 and ir.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		 <if test="sku!=null">
+		  and ir.sku=#{sku,jdbcType=CHAR}
+		 </if>
+	</select>
+	
+	
+	<select id="findFBA" resultType="com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo" parameterType="java.lang.String">
+		select 
+		    max(a.groupid) groupid,
+		    max(ag.name) groupname,
+		    max(a.shop_id) shopid, 
+		    max(i.marketplaceid) wid, 
+			max(CONCAT('FBA-',case when i.marketplaceid='EU' then '欧洲' else m.name end )) warehouse, 
+		  	max(i.sku) sku, 
+		  	max(p.`name`) pname,
+		  	max(pc.location) image,
+			max(i.afn_warehouse_quantity) afnWarehouseQuantity,
+			max(i.afn_fulfillable_quantity) afnFulfillableQuantity,
+			max(i.afn_reserved_quantity) afnReservedQuantity,
+			max(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
+			max(i.afn_inbound_shipped_quantity) afnInboundShippedQuantity ,
+			max(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
+			max(i.afn_unsellable_quantity) afnUnsellableQuantity,
+			max(i.afn_researching_quantity) afnResearchingQuantity
+		from t_inventory_report i
+		left join t_amazon_auth a on i.amazonAuthId=a.id
+		LEFT JOIN t_marketplace m ON (m.marketplaceId=i.marketplaceid OR m.region=i.marketplaceid)
+		left join t_amazon_group ag on ag.id=a.groupid 
+		left join t_product_info p on p.sku=i.sku and p.marketplaceid=m.marketplaceId and p.amazonAuthId=a.id 
+		left join t_product_in_opt opt on opt.pid=p.id
+		left join t_picture pc on pc.id=p.image 
+		where a.shop_id=#{param.shopid,jdbcType=CHAR} and a.disable=0 and i.isnewest=TRUE 
+		<if test="param.marketplaceid != null">
+			and i.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.groupid != null">
+			and a.groupid=#{param.groupid,jdbcType=CHAR}
+		</if>
+		 
+		<if test="param.sku != null">
+			and i.sku = #{param.sku,jdbcType=CHAR}
+		</if>
+		<if test="param.search != null">
+			and i.sku like #{param.search,jdbcType=CHAR}
+		</if>
+	    <if test="param.myself != null">
+			and opt.owner=#{param.myself,jdbcType=CHAR} 
+		</if>
+		group by i.id 
+	</select>
+	
+	<select id="findFBAWithStockCycle" resultType="java.util.Map" parameterType="java.lang.String">
+			select   max(g.name) gname,max(a.groupid) groupid,tp.amazonAuthId amazonauthid,tp.sku,
+			    max(case when tm.region='EU' then 'EU' else tm.marketplaceid end) marketplaceid,
+			    max(case when tm.region='EU' then '欧洲' else tm.name end) name,
+				max(ifnull(s.stockingCycle,w.stocking_cycle)) stockingCycle,
+				max(ifnull(s.min_cycle,w.min_cycle)) mincycle,
+				max(ifnull(s.first_leg_charges,0)) firstlegcharges,
+				max(i.afn_fulfillable_quantity) afnFulfillableQuantity,
+				max(i.afn_reserved_quantity) afnReservedQuantity,
+				max(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
+				max(i.afn_inbound_shipped_quantity ) afnInboundShippedQuantity ,
+				max(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
+				max(i.afn_unsellable_quantity) afnUnsellableQuantity
+			from t_product_info tp
+			left join t_product_in_opt opt on opt.pid = tp.id
+			left join t_marketplace tm on tm.marketplaceId = tp.marketplaceid
+			left join t_amazon_auth a on a.id = tp.amazonAuthId
+			left join t_amazon_group g on g.id=a.groupid
+			left join t_amz_inbound_fba_cycle w on 
+			(tm.marketplaceid = w.marketplaceid or w.marketplaceid = tm.region) and a.shop_id=w.shopid and w.isdefault=1
+			left join t_erp_shipcycle s on s.sku = tp.sku and (s.marketplaceid = tm.marketplaceid OR s.marketplaceid=tm.region) and s.groupid = a.groupid
+			left join t_inventory_report i on i.sku=tp.sku and i.amazonAuthId=a.id and i.isnewest=true 
+			AND (i.marketplaceid=tm.marketplaceid OR i.marketplaceid=tm.region)
+			where a.shop_id=#{shopid,jdbcType=CHAR}
+				and ifnull(opt.msku,tp.sku)=#{msku,jdbcType=CHAR}
+			GROUP BY 
+			tp.sku,tp.amazonAuthId,
+			case when tm.region='EU' then 'EU' else tm.marketplaceid end
+			ORDER BY tp.sku,tp.amazonAuthId;
+	</select>
+
+
+	<select id="findFBASum" resultType="java.util.Map" parameterType="java.util.Map">
+		select max('') sku,
+			sum(afnWarehouseQuantity) afnWarehouseQuantity,
+			sum(afnFulfillableQuantity) afnFulfillableQuantity,
+			sum(afnReservedQuantity) afnReservedQuantity,
+			sum(afnInboundWorkingQuantity) afnInboundWorkingQuantity ,
+			sum(afnInboundShippedQuantity) afnInboundShippedQuantity ,
+			sum(afnInboundReceivingQuantity) afnInboundReceivingQuantity,
+			sum(afnUnsellableQuantity) afnUnsellableQuantity,
+			sum(afnResearchingQuantity) afnResearchingQuantity 
+		from (
+			select  
+				max(i.afn_warehouse_quantity) afnWarehouseQuantity,
+				max(i.afn_fulfillable_quantity) afnFulfillableQuantity,
+				max(i.afn_reserved_quantity) afnReservedQuantity,
+				max(i.afn_inbound_working_quantity) afnInboundWorkingQuantity ,
+				max(i.afn_inbound_shipped_quantity) afnInboundShippedQuantity ,
+				max(i.afn_inbound_receiving_quantity) afnInboundReceivingQuantity,
+				max(i.afn_unsellable_quantity) afnUnsellableQuantity,
+				max(i.afn_researching_quantity) afnResearchingQuantity
+		from t_inventory_report i
+		left join t_amazon_auth a on i.amazonAuthId=a.id
+		LEFT JOIN t_marketplace m ON (m.marketplaceId=i.marketplaceid OR m.region=i.marketplaceid)
+		left join t_amazon_group ag on ag.id=a.groupid 
+		left join t_product_info p on p.sku=i.sku and p.marketplaceid=m.marketplaceId and p.amazonAuthId=a.id 
+		left join t_product_in_opt opt on opt.pid=p.id
+		left join t_erp_material mt on mt.sku=ifnull(opt.msku,p.sku) and mt.shopid=a.shop_id and mt.isDelete=0
+		left join t_picture pc on pc.id=p.image 
+		where a.shop_id=#{shopid,jdbcType=CHAR} and a.disable=0 and i.isnewest=TRUE 
+		<if test="marketplaceid != null">
+			and i.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="search != null">
+			and i.sku like #{search,jdbcType=CHAR}
+		</if>
+	    <if test="myself != null">
+			and mt.owner=#{myself,jdbcType=CHAR} 
+		</if>
+		group by i.id
+		) i
+	</select>
+</mapper>

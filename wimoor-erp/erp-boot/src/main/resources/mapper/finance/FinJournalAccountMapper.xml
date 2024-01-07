@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.finance.mapper.FinJournalAccountMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.finance.pojo.entity.FinJournalAccount" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="projectid" property="projectid" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <result column="balance" property="balance" jdbcType="DECIMAL" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="creator" property="creator" jdbcType="CHAR" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+     <result column="shopid" property="shopid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, ftype, projectid, amount,balance, remark, operator, opttime, creator, createtime,shopid
+  </sql>
+   <select id="getFaSummary" resultType="java.math.BigDecimal" parameterType="java.lang.String">
+    SELECT sum(case when ftype='in' then amount else amount*-1 end) from t_erp_fin_journalaccount 
+	where shopid=#{shopid,jdbcType=CHAR} and ftype in ('in','out')
+   </select>
+  <select id="getPaySummary" resultType="java.math.BigDecimal" parameterType="java.lang.String">
+        SELECT sum(p.payprice*-1)
+        from t_erp_purchase_form_payment p
+	    left join t_erp_purchase_form_entry e on e.id=p.formentryid
+	    left join t_erp_purchase_form form on form.id=e.formid
+	    where form.shopid=#{shopid,jdbcType=CHAR} and p.auditstatus=1
+   </select>
+  <select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+	select * from (
+	SELECT t.id,tp.name name,'' number ,'' sku,ftype,amount,remark,date_format(createtime, '%Y-%m-%d %H:%i') createtime,t.operator,1 isable  
+	from t_erp_fin_journalaccount t 
+	left join t_erp_fin_project tp on tp.id=t.projectid  
+	where t.shopid=#{shopid,jdbcType=CHAR} and
+		createtime&gt;=#{fromDate,jdbcType=DATE} and
+		createtime&lt;=#{endDate,jdbcType=DATE}
+		and t.ftype in ('in','out')
+		 <if test="projectid !=null">
+			and  tp.id = #{projectid,jdbcType=CHAR}
+		 </if>
+		  <if test="acc !=null">
+			and  t.acct = #{acc,jdbcType=CHAR}
+		 </if>
+	union 
+		   select p.id,tp2.name name,form.number,m.sku,case when p.payprice&gt;0 then 'out'
+			else 'in' end ftype,case when p.payprice&lt;0 then p.payprice*-1 else p.payprice end amount,p.remark, 
+			 date_format(p.createdate, '%Y-%m-%d %H:%i') createtime,p.operator,0 isable
+	    from t_erp_purchase_form_payment p
+	    left join t_erp_fin_project tp2 on tp2.id=p.projectid  
+	    left join t_erp_purchase_form_entry e on e.id=p.formentryid
+	    left join t_erp_material m on m.id=materialid
+	    left join t_erp_purchase_form form on form.id=e.formid
+	    where form.shopid=#{shopid,jdbcType=CHAR} and p.auditstatus=1 and
+		p.createdate&gt;=#{fromDate,jdbcType=DATE} and
+		p.createdate&lt;=#{endDate,jdbcType=DATE}
+		<if test="projectid !=null">
+			and  tp2.id = #{projectid,jdbcType=CHAR}
+		 </if>
+		  <if test="acc !=null">
+			and  p.acct = #{acc,jdbcType=CHAR}
+		 </if>
+	   ) V
+	 <if test="search!=null">
+		where  name like #{search,jdbcType=CHAR}
+	</if>
+
+	order by createtime desc
+  </select>
+  
+   <select id="findDetialByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+	select * from (
+	SELECT t.id,tp.id projectid,tp.name name,'' number,'' sku,ftype,amount,remark,
+	   date_format(createtime, '%H:%i') createtime,t.operator,1 isable,null postdate
+	from t_erp_fin_journalaccount t 
+	left join t_erp_fin_project tp on tp.id=t.projectid 
+	where t.shopid=#{param.shopid,jdbcType=CHAR} 
+		   and t.createtime >=#{param.createtime,jdbcType=DATE} 
+		   and t.createtime&lt; adddate(#{param.createtime,jdbcType=DATE}, interval 1 day)  
+		   and t.ftype in ('in','out')
+		  <if test="param.projectid !=null">
+			and  tp.id = #{param.projectid,jdbcType=CHAR}
+		 </if>
+		  <if test="param.acc !=null">
+			and  t.acct = #{param.acc,jdbcType=CHAR}
+		 </if>
+	union 
+		 select p.id,tp2.id projectid,tp2.name name,form.number number,m.sku sku,
+		 case when p.payprice&gt;0 then 'out'
+		     else 'in' end ftype,case when p.payprice&lt;0 then p.payprice*-1 else p.payprice end amount,p.remark, 
+			 date_format(p.createdate, '%H:%i') createtime,p.operator,0 isable,s.postdate
+	    from t_erp_purchase_form_payment p
+	    left join t_erp_fin_project tp2 on tp2.id=p.projectid
+	    left join t_erp_purchase_form_entry e on e.id=p.formentryid
+        left join t_erp_purchase_form_entry_alibabainfo_ext x on x.entryid=e.id
+        left join t_erp_purchase_alibaba_settlement_order o on o.orderid=x.alibaba_orderid
+        left join t_erp_purchase_alibaba_settlement s on s.id=o.settlementid
+	    left join t_erp_material m on m.id=materialid
+	    left join t_erp_purchase_form form on form.id=e.formid
+	    where form.shopid=#{param.shopid,jdbcType=CHAR} and p.auditstatus=1 
+		 and p.createdate>=#{param.createtime,jdbcType=DATE}  
+		 and p.createdate&lt;adddate(#{param.createtime,jdbcType=DATE}, interval 1 day)  
+		       <if test="param.search!=null">
+		           and ( tp2.name like #{param.search,jdbcType=CHAR}
+		                or m.sku like #{param.search,jdbcType=CHAR}
+		                or  form.number like #{param.search,jdbcType=CHAR})
+	            </if>
+		<if test="param.projectid !=null">
+			and  tp2.id = #{param.projectid,jdbcType=CHAR}
+		 </if>
+		  <if test="param.acc !=null">
+			and  p.acct = #{param.acc,jdbcType=CHAR}
+		 </if>
+	   ) V
+ 
+	
+	order by createtime asc
+  </select>
+   <select id="findSumDayByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+        select 
+		  v.createtime,
+		  SUM(v.insum) insum,
+		  SUM(v.outsum) outsum,
+    	  sum(balance) balance  
+		   FROM (   
+			   SELECT  createtime,
+						  sum(case when ftype='in' then amount else 0 end) insum,
+						  sum(case when ftype='out' then amount else 0 end) outsum,
+						  acct
+		          FROM ( 
+	           SELECT      tp.name  name,
+				           ftype,amount,
+				           date_format(createtime, '%Y-%m-%d') createtime  ,
+				           t.acct
+				    
+	           from t_erp_fin_journalaccount t 
+	            left join t_erp_fin_project tp on tp.id=t.projectid
+	            where t.shopid=#{param.shopid,jdbcType=CHAR} and
+			     createtime &gt;=#{param.fromDate,jdbcType=DATE} and
+			     createtime &lt;=#{param.endDate,jdbcType=DATE}
+			      and t.ftype in ('in','out')
+			   	 <if test="param.search!=null">
+		           and  tp.name like #{param.search,jdbcType=CHAR}
+	            </if>
+	            <if test="param.projectid !=null">
+		           and  tp.id = #{param.projectid,jdbcType=CHAR}
+	            </if>
+	            <if test="param.acc !=null">
+		           and  t.acct = #{param.acc,jdbcType=CHAR}
+	            </if>
+	           union  all
+		       select   
+				       concat(tp2.name,'(',m.sku,')[',form.number,']')  name,
+				       case when p.payprice&gt;0 then 'out' else 'in' end ftype,
+				       case when p.payprice&lt;0 then p.payprice*-1 else p.payprice end amount,
+					   date_format(p.createdate, '%Y-%m-%d') createtime,
+					   p.acct
+	           from t_erp_purchase_form_payment p
+	           left join t_erp_fin_project tp2 on tp2.id=p.projectid
+	   		   left join t_erp_purchase_form_entry e on e.id=p.formentryid
+	   		   left join t_erp_material m on m.id=materialid
+	           left join t_erp_purchase_form form on form.id=e.formid
+	           where form.shopid=#{param.shopid,jdbcType=CHAR} and p.auditstatus=1 and
+		       p.createdate &gt;=#{param.fromDate,jdbcType=DATE} and
+		       p.createdate &lt;=#{param.endDate,jdbcType=DATE}
+		        <if test="param.search!=null">
+		           and ( tp2.name like #{param.search,jdbcType=CHAR}
+		                or m.sku like #{param.search,jdbcType=CHAR}
+		                or  form.number like #{param.search,jdbcType=CHAR})
+	            </if>
+	             <if test="param.projectid !=null">
+		           and  tp2.id = #{param.projectid,jdbcType=CHAR}
+	            </if>
+	             <if test="param.acc !=null">
+		           and  p.acct = #{param.acc,jdbcType=CHAR}
+	            </if>
+		       ) v0 
+		      GROUP BY v0.acct,v0.createtime
+	   ) V 
+	   left join t_erp_fin_journaldaily d on d.byday=createtime  and V.acct = d.acct
+	   group BY   v.createtime
+	   order BY  v.createtime desc
+  </select>
+  
+    <select id="findSumByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+	select sum(case when ftype='in' then amount else 0 end) insum,sum(case when ftype='out' then amount else 0 end) outsum 
+	from (
+	SELECT t.id,tp.name name,ftype,amount,remark,date_format(createtime, '%Y-%m-%d %H:%i') createtime,t.operator,1 isable  
+	from t_erp_fin_journalaccount t 
+	left join t_erp_fin_project tp on tp.id=t.projectid
+	where t.shopid=#{shopid,jdbcType=CHAR} and
+	      t.ftype in ('in','out') and
+		 createtime &gt;=#{fromDate,jdbcType=DATE} and
+		 createtime &lt;=#{endDate,jdbcType=DATE}
+		  <if test="acc !=null">
+		           and  t.acct = #{acc,jdbcType=CHAR}
+	      </if>
+	union 
+		select p.id, tp2.name name,case when p.payprice&gt;0 then 'out'
+			else 'in' end ftype,case when p.payprice&lt;0 then p.payprice*-1 else p.payprice end amount,p.remark, 
+			 date_format(p.createdate, '%Y-%m-%d %H:%i') createtime,p.operator,0 isable
+	    from t_erp_purchase_form_payment p
+	    left join t_erp_fin_project tp2 on tp2.id=p.projectid
+	    left join t_erp_purchase_form_entry e on e.id=p.formentryid
+	    left join t_erp_purchase_form form on form.id=e.formid
+	    where form.shopid=#{shopid,jdbcType=CHAR} and p.auditstatus=1 and
+		 p.createdate &gt;=#{fromDate,jdbcType=DATE} and
+		 p.createdate &lt;=#{endDate,jdbcType=DATE}
+		  <if test="acc !=null">
+		     and  p.acct = #{acc,jdbcType=CHAR}
+	      </if>
+	   ) V
+  </select>
+  
+  <select id="paymentSumByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+	SELECT 
+	<if test="sumType=='daily'">
+		date_format(createtime, '%m-%d') date, 
+	</if>
+	<if test="sumType=='week'">
+		date_format(subdate(createtime,date_format(createtime,'%w')), '%m-%d') date, 
+	</if>
+	<if test="sumType=='month'">
+		date_format(createtime, '%Y-%m') date, 
+	</if>
+		sum(case when ftype='in' then amount else 0 end) amount_in,
+		sum(case when ftype='out' then amount else 0 end ) amount_out 
+		from  (
+	SELECT  t.id,tp.name  name,ftype,amount ,
+	    date_format(createtime, '%Y-%m-%d %H:%i') createtime
+	    from t_erp_fin_journalaccount t
+	    left join t_erp_fin_project tp on tp.id=t.projectid 
+	where t.shopid=#{shopid,jdbcType=CHAR} and
+		  createtime &gt;=#{fromDate,jdbcType=DATE} 
+		  and
+		  createtime &lt;=#{endDate,jdbcType=DATE}
+		  and t.ftype in ('in','out')
+	union 
+		select 
+		p.id,
+         tp2.name   name,
+		case when p.payprice&gt;0 then 'out' else 'in' end ftype,
+		case when p.payprice &lt; 0 then p.payprice*-1 else p.payprice end amount, 
+			 date_format(p.createdate, '%Y-%m-%d %H:%i') createtime 
+	    from t_erp_purchase_form_payment p
+	    left join t_erp_fin_project tp2 on tp2.id=p.projectid
+	    left join t_erp_purchase_form_entry e on e.id=p.formentryid
+	    left join t_erp_purchase_form form on form.id=e.formid
+	    where form.shopid=#{shopid,jdbcType=CHAR} and p.auditstatus=1 and
+		 p.createdate  &gt;=#{fromDate,jdbcType=DATE} and
+		 p.createdate  &lt;=#{endDate,jdbcType=DATE}
+	   ) V 
+	  <if test="search!=null">
+		where  V.name like #{search,jdbcType=CHAR}
+	</if>
+	<if test="sumType=='daily'">
+    	group by date_format(createtime, '%Y-%m-%d')
+	</if>
+	<if test="sumType=='week'">
+    	group by date_format(subdate(createtime,date_format(createtime,'%w')), '%m-%d') 
+	</if>
+	<if test="sumType=='month'">
+    	group by date_format(createtime, '%Y-%m')
+	</if>
+  </select>
+  
+  <select id="paymentSum" resultType="java.util.Map" parameterType="java.lang.String">
+	SELECT date_format(createtime, '%Y-%m-%d') date ,sum(case when ftype='in' then amount else 0 end) amount_in,
+		sum(case when ftype='out' then amount else 0 end ) amount_out ,
+		sum(case when ftype='in' then amount else 0 end)-sum(case when ftype='out' then amount else 0 end ) amount_rest 
+		from t_erp_fin_journalaccount where shopid=#{shopid,jdbcType=CHAR} 
+		 and ftype in ('in','out')
+	group by date_format(createtime, '%Y-%m-%d')
+  </select>
+  <select id="findAllAcountByType" resultType="java.util.Map" parameterType="java.lang.String" >
+  		select sum(ifnull(t.pay,0))  pay,ifnull(p.name,'已删除项目') name 
+  		from t_erp_fin_type_journalmonthly t 
+		left join t_erp_fin_project p on p.id=t.projectid
+		left join t_erp_fin_account a on a.id=t.acct
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		 and t.year=#{year,jdbcType=CHAR} 
+		 <if test="month != null">
+		 	and t.month=#{month,jdbcType=CHAR}
+		 </if>
+		 <if test="acc !=null">
+		     and  t.acct = #{acc,jdbcType=CHAR}
+	      </if>
+		 and t.pay !=0
+  		group by t.projectid order by pay desc
+  </select>
+  
+  <select id="findMonthCharts" resultType="java.util.Map" parameterType="java.lang.String" >
+  select t.month,ifnull(sum(t.pay),0) pay,ifnull(sum(t.rec),0) rec 
+  from t_erp_fin_type_journalmonthly t
+  left join t_erp_fin_account a on a.id=t.acct
+  	where a.shopid=#{shopid,jdbcType=CHAR} 
+  	and t.year=#{year,jdbcType=CHAR}  
+  	 <if test="acc !=null">
+		     and  t.acct = #{acc,jdbcType=CHAR}
+	      </if>
+	group by t.month,t.year order by t.month asc
+  </select>
+  
+  <select id="findMonthDetailCharts" resultType="java.util.Map" parameterType="java.lang.String" >
+  	select date_format(t.byday,'%e') month,sum(t.pay) pay,sum(t.rec) rec 
+  	from  t_erp_fin_journaldaily t
+  	left join t_erp_fin_account a on a.id=t.acct
+	where a.shopid=#{shopid,jdbcType=CHAR} 
+	and  DATE_FORMAT(t.byday,'%Y')=#{year,jdbcType=CHAR} 
+	and  DATE_FORMAT(t.byday,'%c')=#{month,jdbcType=CHAR}  
+	 <if test="acc !=null">
+		 and  t.acct = #{acc,jdbcType=CHAR}
+	 </if>
+	group by t.byday
+  </select>
+  
+</mapper>

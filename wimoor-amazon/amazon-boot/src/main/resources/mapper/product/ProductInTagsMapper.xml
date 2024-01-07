@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInTagsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInTags" >
+    <id column="pid" property="pid" jdbcType="CHAR" />
+    <id column="tagid" property="tagid" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  
+  <select id="getPidList" resultType="java.lang.String" parameterType="java.util.Map">
+    SELECT i.id FROM 
+ 	t_product_info i 
+	LEFT JOIN  t_product_in_tags t ON i.id=t.pid
+	LEFT JOIN t_amazon_auth a ON a.id=i.amazonauthid
+	LEFT JOIN t_product_in_opt o ON o.pid=i.id
+	WHERE  a.shop_id=#{param.shopid,jdbcType=CHAR}
+			AND ( 
+				t.tagid IN(
+					<foreach collection="param.taglist" item="tagid" index="index" separator=",">
+						#{tagid,jdbcType=CHAR} 
+				    </foreach>			
+				)
+				<if test="param.mskulist != null">
+				   OR IFNULL(o.msku,i.sku) IN ( 
+				 		<foreach collection="param.mskulist" item="msku" index="index" separator=",">
+							#{msku,jdbcType=CHAR} 
+					    </foreach>	
+					)
+				</if>
+			) 
+	     <if test="param.amazonAuthId != null">
+			and  i.amazonAuthId= #{param.amazonAuthId,jdbcType=CHAR}
+	     </if>
+	     <if test="param.groupid !=null">
+			and (a.groupid=#{param.groupid,jdbcType=CHAR})
+		</if>
+		<if test="param.groupList !=null">
+			and a.groupid in(
+			<foreach collection="param.groupList" item="grop" index="index" separator=",">
+				#{grop.id,jdbcType=BIGINT} 
+			</foreach>
+			)
+		</if>
+       
+	   
+ 
+  </select>
+  
+ 
+</mapper>

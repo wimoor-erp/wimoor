@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipInboundShipmentMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipInboundShipment">
+		<id column="ShipmentId" property="shipmentid" jdbcType="CHAR" />
+		<result column="DestinationFulfillmentCenterId" property="destinationfulfillmentcenterid" jdbcType="CHAR" />
+		<result column="ShipToAddressID" property="shiptoaddressid" jdbcType="CHAR" />
+		<result column="LabelPrepType" property="labelpreptype" jdbcType="CHAR" />
+		<result column="ShipmentStatus" property="shipmentstatus" jdbcType="CHAR" />
+		<result column="inboundplanid" property="inboundplanid" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="status" property="status" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ShipmentId, DestinationFulfillmentCenterId, ShipToAddressID, LabelPrepType,
+		ShipmentStatus, inboundplanid,name,status
+	</sql>
+	
+	<select id="findByTraceCondition" resultType="com.wimoor.amazon.inbound.pojo.vo.ShipInboundShipmenSummarytVo" parameterType="com.wimoor.amazon.inbound.pojo.dto.ShipInboundShipmenSummaryDTO">
+		select * 
+		from (
+			select inbound.shipmentId , 
+			    max(inbound.name) name , 
+			    max(form.id) planid,
+				max(form.marketplaceid) marketplaceid, 
+				max(mp.market) countryCode ,
+				count(item.SellerSKU) skuamount, 
+				sum(item.Quantity) sumQuantity,
+				max(case when (stat.`status`='WORKING' and inbound.status>=5)
+				or (stat.`status`!='WORKING' and inbound.status&lt;5 and inbound.status>0) 
+				or (stat.`status`!='CANCELLED' and stat.`status`!='DELETED' and inbound.status&lt;=0)
+				then '状态异常' else
+				stat.name end) shipmentstatus, 
+				max(inbound.DestinationFulfillmentCenterId) centerId,
+				sum(ifnull(item.QuantityShipped,0)) sumshipped, 
+				sum(ifnull(item.QuantityReceived,0)) sumrec,
+				max(detail.channame) channame, 
+				max(form.createdate) createdate, 
+				max(w.name) warehouse,
+				max(mp.name) country, 
+				max(mp.market) market,
+				max(ag.name) groupname,
+				max(inbound.transtyle) transtyle,
+				max(inbound.status) status,
+				max(inbound.remark) remark,
+				max(date_add(trans.arrivalTime,INTERVAL ifnull(rt.put_on_days,0) DAY)) shopdate,
+				max(trans.arrivalTime) arrivalTime, 
+				max(stat.`status`) shipstatus,
+				max(case when item.SellerSKU like ifnull(#{param.search,jdbcType=CHAR},'') then 1 else 0 end) hassku ,
+				max(status0date) status0date,
+				max(status1date) status1date,
+				max(status2date) status2date,
+				max(status3date) status3date,
+				max(status4date) status4date,
+				max(status5date) status5date,
+				max(status6date) status6date,
+				max(shiped_date) shiped_date,
+				max(start_receive_date) receivedate,
+				max(inbound.sync_inv) syncinv,
+				max(form.number) number,
+				max(c.name) company,
+				max(c.id) companyid,
+				max(ty.name) transtypename,
+				max(trans.ordernum) ordernum,
+				max(form.warehouseid) warehouseid,
+				max(form.amazongroupid) groupid,
+				max(tu.`status`) traceupstatus
+			from t_erp_ship_inboundshipment inbound
+			left join t_erp_ship_inboundtrans trans on trans.shipmentid=inbound.shipmentid
+			left join t_erp_ship_status stat on stat.`status`=inbound.ShipmentStatus
+			left join t_erp_ship_addressto ad on ad.id=inbound.ShipToAddressID
+			left join t_erp_ship_inbounditem item on item.ShipmentId=inbound.ShipmentId
+			left join t_erp_ship_inboundplan form on form.id=inbound.inboundplanid
+			left join t_erp_ship_transdetail detail on detail.id = trans.channel
+			left join t_erp_ship_transcompany c on c.id=detail.company
+			left join t_erp_ship_inboundshipment_traceupload tu on tu.shipmentid=inbound.shipmentid
+			left join t_marketplace mp on mp.marketplaceid=form.marketplaceid
+			left join t_erp_warehouse_fba rt on rt.shopid=form.shopid and (rt.marketplaceid=mp.region or rt.marketplaceid=mp.marketplaceId)
+			left join t_amazon_group ag on ag.id=form.amazongroupid
+			left join t_erp_warehouse w on form.warehouseid=w.id and w.shopid=form.shopid
+			left join t_erp_transtype ty on ty.id=detail.transtype
+			where form.shopid=#{param.shopid,jdbcType=CHAR} 
+				and inbound.`status` in (0,2,3,4,5,6)
+			<if test="param.groupList !=null">
+			and form.amazongroupid in(
+			<foreach collection="param.groupList" item="groupid" index="index" separator=",">
+				#{groupid,jdbcType=CHAR} 
+			</foreach>
+			)
+		</if> 
+			<if test="param.auditstatus == 0">
+				and inbound.status = 0
+			</if>
+			 <if test="param.auditstatus == 3">
+				and inbound.status = 3
+			</if>
+			<if test="param.shipmentid!=null">
+				and inbound.ShipmentId = #{param.shipmentid,jdbcType=CHAR}
+			</if>
+			<if test="param.auditstatus == 6">
+				and inbound.`status` = 6
+			</if>
+			<if test="param.auditstatus == 5">
+				and inbound.status = 5 and inbound.ShipmentStatus!='RECEIVING'
+			</if>
+			<if test='param.auditstatus == "55"'>
+				and inbound.status = 5 and inbound.ShipmentStatus ='RECEIVING'
+			</if>
+			<if test="param.auditstatus == 7">
+				and (inbound.status = 2 or inbound.status = 3 or inbound.status = 4)
+			</if>
+			<if test="param.enddate!=null">
+				and  form.createdate &gt;= #{param.fromdate,jdbcType=TIMESTAMP}
+				and  form.createdate &lt;= #{param.enddate,jdbcType=TIMESTAMP}
+			</if>
+			<if test="param.marketplaceid!=null and param.marketplaceid!=''">
+				and form.marketplaceid = #{param.marketplaceid,jdbcType=CHAR}
+			</if>
+			<if test="param.groupid!=null  and param.groupid!=''">
+				and form.amazongroupid= #{param.groupid,jdbcType=CHAR}
+			</if>
+			<if test="param.warehouseid!=null and param.warehouseid!=''">
+				and w.id= #{param.warehouseid,jdbcType=CHAR}
+			</if>
+			 <if test="param.company != null and param.company!=''">
+				and trans.company = #{param.company,jdbcType=CHAR}
+			</if>
+		    <if test="param.channel != null and param.channel!=''">
+				and trans.channel = #{param.channel,jdbcType=CHAR}
+			</if>
+			<if test="param.transtype!=null and param.transtype!=''">
+		   		and ty.id=#{param.transtype,jdbcType=CHAR}
+		   	</if>
+			 <if test="param.search != null and param.search!=''">
+			    <if test="param.searchtype == 'number'"> 
+			       and (inbound.ShipmentId like #{param.search,jdbcType=CHAR})
+			   	</if>
+		 	    <if test="param.searchtype == 'remark'">
+			         and inbound.remark like #{param.search,jdbcType=CHAR}
+			   	</if>
+			    <if test="param.searchtype == 'formnumber'">
+			         and form.number like #{param.search,jdbcType=CHAR}
+			   	</if>
+			   	 <if test="param.searchtype == 'name'">
+			         and inbound.name like #{param.search,jdbcType=CHAR}
+			   	</if>
+		    </if>
+		    <if test="param.hasexceptionnum != null">
+		         and ( (inbound.ignorerec=0 and inbound.status = 6 )
+		               or 
+		               (inbound.ignorerec=0 and stat.`status`='WORKING' and inbound.status>=5 )
+		               or 
+		               (inbound.ignorerec=0 and stat.`status`!='WORKING' and inbound.status&lt;5 and inbound.status>0)
+		             )
+		   </if>
+			group by inbound.ShipmentId
+		 <if test="param.hasexceptionnum != null">
+		   having  ((sum(ifnull(item.QuantityShipped,0))-sum(ifnull(item.QuantityReceived,0))>=10) or
+		   (sum(ifnull(item.QuantityReceived,0))-sum(ifnull(item.QuantityShipped,0))>=10))
+		  </if>
+			
+		) V where 1=1
+		<if test="param.search != null">
+		   
+		   	<if test="param.searchtype == 'sku'">
+		    and	hassku=1
+		   	</if>
+
+		</if>
+	</select>
+	
+	<select id="findCarrierByshipmentid" resultType="java.lang.String" parameterType="java.lang.String">
+		select name 
+		from t_erp_ship_config_carrier
+		where country =#{country,jdbcType=CHAR} 
+			and transtyle =#{transtyle,jdbcType=CHAR}
+	</select>
+
+    <select id="findProblemShip" resultType="java.util.Map" parameterType="java.lang.String">
+    SELECT p.shopid,s.ShipmentId , 0 isover,s.refreshtime
+    from t_erp_ship_inboundshipment s
+    LEFT JOIN t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+    WHERE   shipmentstatus IN ('IN_TRANSIT','RECEIVING','SHIPPED','WORKING') 
+        and STATUS&lt;5
+        and s.sync_inv in (1,2)
+        and ifnull(refreshtime,'1991-01-01') &lt; curdate()
+	 	and p.amazongroupid= #{amazongroupid,jdbcType=CHAR}
+		and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+    </select>
+	<select id="findAllShiped" resultType="java.util.Map" parameterType="java.lang.String">
+		select pl.shopid,sm.ShipmentId , 0 isover,sm.refreshtime
+		from t_erp_ship_inboundshipment sm
+		left join t_erp_ship_inboundplan pl on sm.inboundplanid=pl.id
+		where pl.id is not null 
+			and (ifnull(refreshtime,'1991-01-01') &lt; curdate() or pl.createdate>curdate())
+			and (sm.`status`=5 or (sm.`status`&lt;5 and sm.sync_inv=1))
+			and pl.amazongroupid= #{amazongroupid,jdbcType=CHAR}
+			and pl.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		union
+		select pl.shopid,ship.ShipmentId,1 isover,ship.refreshtime
+		from  t_erp_ship_inboundshipment ship
+		left join t_erp_ship_inbounditem item  on item.ShipmentId=ship.ShipmentId
+		left join t_erp_ship_inboundplan pl on ship.inboundplanid=pl.id
+		where ship.`status`=6 
+	        and (ship.refreshtime &lt; curdate() or pl.createdate>curdate())
+			and ship.shiped_date>DATE_ADD(CURDATE(), INTERVAL -60 DAY)
+			and pl.amazongroupid= #{amazongroupid,jdbcType=CHAR}
+			and pl.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		group by pl.amazongroupid,pl.marketplaceid,pl.shopid,ship.ShipmentId
+        having sum(ifnull(item.QuantityShipped,1)!=ifnull(item.QuantityReceived,0)) >0
+		order by isover,refreshtime limit 49
+	</select>
+
+	<select id="findLabelByshipmentid" resultType="java.util.Map" parameterType="java.lang.String">
+		select 
+		     item.SellerSKU sku, 
+		     item.FulfillmentNetworkSKU fnsku,
+			 item.QuantityShipped quantity, 
+			 pd.name title , 
+			 mp.market country,
+			 item.ShipmentId code
+		from t_erp_ship_inbounditem item
+		left join t_erp_ship_inboundplan p on p.id=item.inboundplanid
+		left join t_marketplace mp on mp.marketplaceId=p.marketplaceid
+		left join t_amazon_auth auth on auth.groupid=p.amazongroupid and auth.shop_id=p.shopid and auth.aws_region=mp.aws_region
+		left join t_product_info pd on pd.sku=item.SellerSKU and pd.marketplaceid=p.marketplaceid and pd.amazonauthid=auth.id
+		where p.shopid=#{shopid,jdbcType=CHAR} 
+			and item.ShipmentId= #{shipmentid,jdbcType=CHAR}
+			order by item.SellerSKU
+	</select>
+
+	<select id="findBoxDetailByShipmentId" resultType="java.util.LinkedHashMap" parameterType="java.lang.String">
+		select ca.merchantsku sku,ca.quantity skunum,ca.numberofcase boxnum,
+			box.length length,box.width width,box.height height,box.weight weight
+		from t_erp_ship_inboundcase ca
+		left join t_erp_ship_inboundbox box on ca.shipmentid=box.shipmentid and ca.numberofcase=box.boxnum
+		where ca.unitspercase != 0 
+			and ca.shipmentid=#{shipmentid,jdbcType=CHAR}
+		order by sku,boxnum
+	</select>
+	
+	
+	<select id="findToCountry"  resultType="java.util.Map" parameterType="java.lang.String">
+	        SELECT country,m.marketplaceId from t_amz_ship_fulfillment_center c 
+			LEFT JOIN t_marketplace m ON m.market=c.country
+			WHERE c.code=#{destinationFulfillmentCenterId,jdbcType=CHAR}
+			 <if test="region!=null">
+			     AND m.region=#{region,jdbcType=CHAR}
+			  </if>
+			limit 1;
+    </select>
+
+	<!-- 所有的authid都是kuuqa-us的。。8c8523f6-ab15-11e6-bab5-00e04c023f0e 本来是auth.id=pd.amazonAuthId -->
+	<select id="findLabelBySku" resultType="java.util.Map" parameterType="java.util.Map">
+		select pd.sku sku, ir.fnsku fnsku, 0 quantity, pd.name title ,mp.market country
+		from t_product_info pd
+		left join t_marketplace mp on mp.marketplaceId=pd.marketplaceid
+		left join t_amazon_auth auth on auth.id=pd.amazonAuthId and auth.shop_id=#{shopid,jdbcType=CHAR}
+		left join t_inventory_report ir on ir.sku=pd.sku and ir.amazonAuthId=auth.id 
+			and ir.marketplaceid=case when mp.region='EU' then 'EU' else pd.marketplaceid end
+		where auth.id is not null
+			and pd.marketplaceid=#{marketplace,jdbcType=CHAR}
+			and auth.groupid=#{groupid,jdbcType=CHAR}
+		<if test="skuList!=null">
+			and(
+			<foreach collection="skuList" item="sku" index="sku_list" open="(" separator="or" close=")">
+				pd.sku=#{sku,jdbcType=CHAR}
+			</foreach>
+			)
+		</if>
+	</select>
+
+	<select id="selectBySellerSku" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT s.* from t_erp_ship_inboundplan p
+		left join t_erp_ship_inbounditem i on i.inboundplanid=p.id
+		left join t_erp_ship_inboundshipment s on p.id=s.inboundplanid
+		where p.shopid=#{shopid,jdbcType=CHAR} 
+			and i.SellerSKU=#{sku,jdbcType=CHAR}
+			
+	</select>
+	<select id="selectBySellerSkuMarket" resultMap="BaseResultMap" parameterType="java.lang.String">
+			SELECT s.* from t_erp_ship_inboundplan p
+		    left join t_erp_ship_inbounditem i on i.inboundplanid=p.id
+		    left join t_erp_ship_inboundshipment s on p.id=s.inboundplanid
+		    where p.shopid=#{shopid,jdbcType=CHAR} 
+			and i.SellerSKU=#{sku,jdbcType=CHAR}
+			and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	</select>
+
+</mapper>

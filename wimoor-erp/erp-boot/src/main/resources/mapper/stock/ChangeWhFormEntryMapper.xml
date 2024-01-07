@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.ChangeWhFormEntryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.ChangeWhFormEntry" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="material_from" property="materialFrom" jdbcType="CHAR" />
+    <result column="material_to" property="materialTo" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+  </resultMap>
+  
+  <select id="selectByFormid" resultMap="BaseResultMap" parameterType="java.lang.String" >
+	    SELECT * from t_erp_changewh_form_entry 
+	    where formid = #{formid,jdbcType=CHAR}
+  </select>
+  
+  <select id="findFormDetailByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
+	    select m.id materialid, m.sku sku,m.name name,IFNULL(p.location,p.url) image,i.fulfillable fulfillable, 
+       		m2.id fromid, m2.sku fromsku, i2.fulfillable fromfulfillable, a.amount,m2.name fromname,
+       		IFNULL(p2.location,p2.url) location 
+		    from t_erp_changewh_form_entry a 
+			left join t_erp_material m on a.material_to = m.id 
+			left join t_erp_material m2 on a.material_from = m2.id 
+		    left join t_picture p on m.image=p.id
+		    left join t_picture p2 on m2.image=p2.id
+            left join t_erp_changewh_form f on f.id=a.formid 
+		    left join ( select shopid,warehouseid,materialid , 
+			      sum( case when  status='inbound' then quantity else 0 end ) inbound,
+			      sum( case when  status='outbound' then quantity else 0 end ) outbound,
+			      sum( case when  status='fulfillable' then quantity else 0 end ) fulfillable
+					 from t_erp_inventory group by shopid,warehouseid,materialid
+					) i  on i.materialid=m.id and i.warehouseid=f.warehouseid 
+			 left join ( select shopid,warehouseid,materialid , 
+			      sum( case when  status='inbound' then quantity else 0 end ) inbound,
+			      sum( case when  status='outbound' then quantity else 0 end ) outbound,
+			      sum( case when  status='fulfillable' then quantity else 0 end ) fulfillable
+					 from t_erp_inventory group by shopid,warehouseid,materialid
+					) i2  on i2.materialid=m2.id and i2.warehouseid=f.warehouseid 
+	    where a.formid = #{formid,jdbcType=CHAR}
+  </select>
+ 
+</mapper>

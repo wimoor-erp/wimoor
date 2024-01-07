@@ -1,0 +1,1559 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.OrdersReportMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.OrdersReport">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="amazon_order_id" property="amazonOrderId" jdbcType="VARCHAR" />
+		<result column="merchant_order_id" property="merchantOrderId" jdbcType="VARCHAR" />
+		<result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+		<result column="last_updated_date" property="lastUpdatedDate" jdbcType="TIMESTAMP" />
+		<result column="order_status" property="orderStatus" jdbcType="CHAR" />
+		<result column="fulfillment_channel" property="fulfillmentChannel" jdbcType="CHAR" />
+		<result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+		<result column="order_channel" property="orderChannel" jdbcType="CHAR" />
+		<result column="url" property="url" jdbcType="VARCHAR" />
+		<result column="ship_service_level" property="shipServiceLevel" jdbcType="VARCHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="asin" property="asin" jdbcType="CHAR" />
+		<result column="item_status" property="itemStatus" jdbcType="CHAR" />
+		<result column="quantity" property="quantity" jdbcType="INTEGER" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="item_price" property="itemPrice" jdbcType="DECIMAL" />
+		<result column="item_tax" property="itemTax" jdbcType="DECIMAL" />
+		<result column="shipping_price" property="shippingPrice" jdbcType="DECIMAL" />
+		<result column="shipping_tax" property="shippingTax" jdbcType="DECIMAL" />
+		<result column="gift_wrap_price" property="giftWrapPrice" jdbcType="DECIMAL" />
+		<result column="gift_wrap_tax" property="giftWrapTax" jdbcType="DECIMAL" />
+		<result column="item_promotion_discount" property="itemPromotionDiscount" jdbcType="DECIMAL" />
+		<result column="ship_promotion_discount" property="shipPromotionDiscount" jdbcType="DECIMAL" />
+		<result column="ship_city" property="shipCity" jdbcType="VARCHAR" />
+		<result column="ship_state" property="shipState" jdbcType="CHAR" />
+		<result column="ship_postal_code" property="shipPostalCode" jdbcType="CHAR" />
+		<result column="ship_country" property="shipCountry" jdbcType="CHAR" />
+		<result column="promotion_ids" property="promotionIds" jdbcType="CHAR" />
+		<result column="is_business_order" property="isBusinessOrder" jdbcType="CHAR" />
+		<result column="purchase_order_number" property="purchaseOrderNumber" jdbcType="CHAR" />
+		<result column="price_designation" property="priceDesignation" jdbcType="CHAR" />
+		<result column="marketplaceId" property="marketplaceId" jdbcType="CHAR" />
+		<result column="amazonAuthId" property="amazonauthid" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, amazon_order_id, merchant_order_id, purchase_date, last_updated_date, order_status,
+		fulfillment_channel, sales_channel, order_channel, url, ship_service_level , sku, asin,
+		item_status, quantity, currency, item_price, item_tax, shipping_price, shipping_tax,
+		gift_wrap_price, gift_wrap_tax, item_promotion_discount, ship_promotion_discount,
+		ship_city, ship_state, ship_postal_code, ship_country, promotion_ids, is_business_order,
+		purchase_order_number, price_designation, amazonAuthId, marketplaceId
+	</sql>
+
+	<select id="selectCountByMonth" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select ifnull(sum(s.ordernumber),0) 
+		from t_summaryall s
+		left join t_amazon_auth a on a.id=s.amazonauthid
+		where a.shop_id=#{shop_id,jdbcType=CHAR}
+			and date_format(str_to_date(purchase_date,'%Y-%m'),'%Y-%m')=date_format(now(),'%Y-%m')
+	</select>
+	<select id="selectBySkuOrder" resultType="com.wimoor.amazon.orders.pojo.entity.OrdersReport" parameterType="java.lang.String">
+	  select *from (  select  
+	   	   <include refid="Base_Column_List" />
+	   from t_orders_report where sku=#{sku,jdbcType=CHAR} and  amazon_order_id=#{orderid,jdbcType=CHAR} 
+	   union
+	   select  
+	   <include refid="Base_Column_List" />
+	   from t_orders_report_archive where sku=#{sku,jdbcType=CHAR} and  amazon_order_id=#{orderid,jdbcType=CHAR}
+	   ) v limit 1;
+	</select>
+	<select id="findAllSaleChannel" resultType="java.util.Map" parameterType="java.lang.String">
+	 select * from 	
+	    (SELECT distinct sales_channel,country,domain,m.name,case when m2.marketplaceId IS NULL then 1 ELSE 0 END isdifferent,m.findex FROM 
+			 (		
+			  select distinct sales_channel 
+					from t_orders_report 
+					where sales_channel is not NULL ) v
+			LEFT JOIN t_amazonseller_market s ON s.name=v.sales_channel  
+			LEFT JOIN t_amazon_auth a ON s.sellerid=a.sellerid
+			LEFT JOIN t_marketplace m ON m.market=case when s.country='GB' then 'UK' ELSE s.country END 
+			LEFT JOIN t_marketplace m2 ON m2.point_name=v.sales_channel
+			WHERE a.shop_id= #{shopid,jdbcType=CHAR}) v2
+			ORDER BY v2.findex
+	</select>
+
+	
+		<select id="selectLastOrderSumByMutilParameter" resultType="java.util.Map">
+		select sum(t.quantity) quantity,count(t.amazon_order_id) ordernumber
+		from t_orders_report t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			t.sku=#{sku,jdbcType=CHAR} 
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid !=null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="lastBeginDate != null">
+				and t.purchase_date &gt;=#{lastBeginDate,jdbcType=DATE}
+			</if>
+			<if test="lastEndDate != null">
+				and t.purchase_date &lt;#{lastEndDate,jdbcType=DATE}
+			</if>
+			<if test="orderStatus !=null">
+				and (
+				<foreach collection="orderStatus" item="orderStatusItem" index="orderStatus_list" open="(" separator="or" close=")">
+					t.order_status = #{orderStatusItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+			<choose>
+				<when test="salechannel !=null">
+					and (
+					<foreach collection="salechannel" item="sales_channel" index="salesChannel_list" open="(" separator="or" close=")">
+						t.sales_channel = #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+				</when>
+				<otherwise>
+					and t.sales_channel =null
+				</otherwise>
+			</choose>
+			<if test="fulfillmentChannel !=null">
+				and (
+				<foreach collection="fulfillmentChannel" item="fulfillChannelItem" index="fulfillChannel_list" open="(" separator="or" close=")">
+					t.fulfillment_channel = #{fulfillChannelItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+			<if test="discountfrom !=null">
+				and IFNULL(t.item_promotion_discount,0)/IFNULL(t.item_price,1) &gt;= #{discountfrom,jdbcType=DECIMAL}
+			</if>
+			<if test="discountto !=null">
+				and IFNULL(t.item_promotion_discount,0)/IFNULL(t.item_price,1) &lt;= #{discountto,jdbcType=DECIMAL}
+			</if>
+			<if test="is_business_order !=null">
+				and (
+				<foreach collection="is_business_order" item="busorderitem" index="isBusinessOrder_list" open="(" separator="or" close=")">
+					IFNULL(t.is_business_order,'false') = #{busorderitem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+	</select>
+	
+	<select id="selectOrderSumByMutilParameter" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(t.purchase_date,'%Y-%m-%d') purchase_date,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(purchase_date,date_format(purchase_date,'%w')-7),'%Y-%m-%d') purchase_date,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(t.purchase_date) ,'-' ,month(t.purchase_date)) purchase_date,
+		</if>
+			sum(t.quantity) quantity,count(t.amazon_order_id) ordernumber
+		from t_orders_report t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			t.sku=#{sku,jdbcType=CHAR} and a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;= #{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt; #{endDate,jdbcType=DATE}
+			</if>
+			<if test="orderStatus !=null">
+				and (
+				<foreach collection="orderStatus" item="orderStatusItem" index="orderStatus_list" open="(" separator="or" close=")">
+					t.order_status = #{orderStatusItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+			<choose>
+				<when test="salechannel !=null">
+					and (
+					<foreach collection="salechannel" item="sales_channel" index="salesChannel_list" open="(" separator="or" close=")">
+						t.sales_channel = #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+				</when>
+				<otherwise>
+					and t.sales_channel =null
+				</otherwise>
+			</choose>
+			<if test="fulfillmentChannel !=null">
+				and (
+				<foreach collection="fulfillmentChannel" item="fulfillChannelItem" index="fulfillChannel_list" open="(" separator="or" close=")">
+					t.fulfillment_channel = #{fulfillChannelItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="discountfrom !=null">
+				and IFNULL(t.item_promotion_discount,0)/IFNULL(t.item_price,1) &gt;= #{discountfrom,jdbcType=DECIMAL}
+			</if>
+			<if test="discountto !=null">
+				and IFNULL(t.item_promotion_discount,0)/IFNULL(t.item_price,1) &lt;= #{discountto,jdbcType=DECIMAL}
+			</if>
+			<if test="is_business_order !=null">
+				and (
+				<foreach collection="is_business_order" item="busorderitem" index="isBusinessOrder_list" open="(" separator="or" close=")">
+					IFNULL(t.is_business_order,'false') = #{busorderitem,jdbcType=CHAR}
+				</foreach>
+				or t.is_business_order is null
+				)
+			</if>
+		</where>
+		<if test="bytime =='Daily'">
+			group by date_format(t.purchase_date,'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(purchase_date,date_format(purchase_date,'%w')-7),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(t.purchase_date) ,'-' ,month(t.purchase_date))
+		</if>
+	</select>
+	
+		
+	<select id="selectLastByMutilParameter" resultType="java.util.Map">
+		select	sum(t.quantity) quantity,count(t.ordersum) ordernumber
+		from t_orders_summary t
+		left join t_marketplace m on m.marketplaceid=t.marketplaceid
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			t.sku=#{sku,jdbcType=CHAR} 
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid !=null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="lastBeginDate != null">
+				and t.purchase_date &gt;=#{lastBeginDate,jdbcType=DATE}
+			</if>
+			<if test="lastEndDate != null">
+				and t.purchase_date &lt;#{lastEndDate,jdbcType=DATE}
+			</if>
+				<if test="salechannel !=null">
+					and (
+					<foreach collection="salechannel" item="sales_channel" index="salesChannel_list" open="(" separator="or" close=")">
+						m.point_name= #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+				</if>
+		</where>
+	  </select>
+	
+		<select id="selectByMutilParameter" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(t.purchase_date,'%Y-%m-%d') purchase_date,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(purchase_date,date_format(purchase_date,'%w')-7),'%Y-%m-%d') purchase_date,
+		</if>
+		<if test="bytime =='Monthly'">
+			date_format(purchase_date,'%Y-%m') purchase_date,
+		</if>			
+			sum(t.quantity) quantity,count(t.ordersum) ordernumber
+		from t_orders_summary t
+		left join t_marketplace m on m.marketplaceid=t.marketplaceid
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			t.sku=#{sku,jdbcType=CHAR} and a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;= #{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt; #{endDate,jdbcType=DATE}
+			</if>
+			<if test="salechannel !=null">
+					and (
+					<foreach collection="salechannel" item="sales_channel" index="salesChannel_list" open="(" separator="or" close=")">
+						m.point_name = #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+			 </if>
+ 
+
+
+	
+		</where>
+		<if test="bytime =='Daily'">
+			group by date_format(t.purchase_date,'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(purchase_date,date_format(purchase_date,'%w')-7),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by date_format(purchase_date,'%Y-%m')
+		</if>
+	</select>
+	
+	<select id="selectByOrderIDSKU" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select
+		<include refid="Base_Column_List" />
+		from t_orders_report
+		where purchase_date =#{purchaseDate,jdbcType=TIMESTAMP}
+			and amazonAuthId = #{amazonauthid,jdbcType=CHAR}
+			and sku=#{sku,jdbcType=CHAR}
+			and sales_channel=#{salesChannel,jdbcType=CHAR}
+			and amazon_order_id = #{amazonOrderId,jdbcType=CHAR}
+	</select>
+
+	<select id="selectByAuth" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select
+		<include refid="Base_Column_List" />
+		from t_orders_report
+		where amazonAuthId= #{amazonAuthId,jdbcType=CHAR}
+			and purchase_date &gt;=#{begin,jdbcType=TIMESTAMP}
+			and purchase_date &lt; #{end,jdbcType=TIMESTAMP}
+	</select>
+
+       <select id="selectProductOrdersTodayOne" resultType="java.lang.Integer" parameterType="java.util.Map">
+			SELECT SUM(t.QuantityOrdered) QuantityOrdered
+			FROM t_amz_order_item t
+			left join t_amz_order_main mm on mm.amazon_order_id=t.amazon_order_id
+			left join t_marketplace m on m.marketplaceid=t.marketplaceid
+			left join t_amazon_auth au on au.id=t.amazonAuthId
+			where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+				and t.purchase_date &lt;#{endDate,jdbcType=TIMESTAMP}
+				and au.shop_id=#{shopid,jdbcType=BIGINT}
+			   <if test="marketplaceid!=null">
+				 and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+				</if>
+				<if test="region!=null">
+				 and m.region=#{region,jdbcType=CHAR}
+				</if>
+			    <if test="groupid!=null">
+			      and au.groupid=#{groupid,jdbcType=BIGINT}
+			    </if>
+		        and t.sku=#{sku,jdbcType=CHAR}
+		        and (mm.order_status='Shipped' or mm.order_status='Pending' or mm.order_status='Unshipped') 
+     </select>
+     
+     
+     <select id="selectProductOrdersTodayList_SalesOfYesterday" resultType="java.util.Map" parameterType="java.util.Map">
+     	SELECT SUM(t1.QuantityOrdered) QuantityOrdered_yy,
+					sum(ifnull(t1.item_price-ifnull(t.item_promotion_discount,0),t1.QuantityOrdered*info1.price)) totalprice_yy,
+					sum(ifnull(t1.item_price-ifnull(t.item_promotion_discount,0),t1.QuantityOrdered*info1.price))/sum(t1.QuantityOrdered) price_yy  
+				FROM t_amz_order_item t1
+				left join t_amz_order_main ma1 on 
+													ma1.amazon_order_id=t1.amazon_order_id 
+													and t1.marketplaceid=ma1.marketplaceid 
+													AND ma1.amazonAuthId=t1.amazonAuthId
+				left join t_product_info info1 on info1.sku=t1.sku and t1.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t1.marketplaceId
+				where t1.purchase_date >=#{yystartDate,jdbcType=TIMESTAMP} 
+					and t1.purchase_date &lt;#{yyendDate,jdbcType=TIMESTAMP}
+					and ma1.amazonAuthId=#{amazonAuthId,jdbcType=BIGINT}
+					and t1.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+			        and t1.sku=#{sku,jdbcType=CHAR}
+     </select>
+     <select id="selectProductOrdersTodayList_SalesOfLast" resultType="java.util.Map" parameterType="java.util.Map">
+                SELECT   
+     			 	SUM(t1.quantity) QuantityOrdered_lw,
+					sum(t1.orderprice) totalprice_lw,
+					sum(t1.orderprice)/sum(t1.quantity) price_lw  
+     			from t_orders_summary t1
+     			where   t1.purchase_date =#{lwsDate,jdbcType=CHAR} 
+			    and t1.amazonAuthId=#{amazonAuthId,jdbcType=BIGINT}
+			    and t1.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			    and t1.sku=#{sku,jdbcType=CHAR}
+     </select>
+	<select id="selectProductOrdersTodayList" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT today.*, yy.* , lw.*,ifnull(p.location,p.url) image, 
+		maininfo.sku,m.color,maininfo.name,g.name groupname,maininfo.asin,
+		ifnull(ifnull(market0,market1),market2) market
+		from t_product_info maininfo
+		left join t_product_in_opt opt on opt.pid=maininfo.id
+		left join t_amazon_auth au on au.id=maininfo.amazonAuthId
+		left join 
+		 (
+			SELECT t.sku sku0,max(ma.sales_channel) market0,max(t.currency) currency,
+				 SUM(t.QuantityOrdered) QuantityOrdered,
+				SUM(case when ma.order_status='Shipped' then t.QuantityOrdered ELSE 0 END ) Shipped,
+				SUM(case when ma.order_status='Pending' then t.QuantityOrdered ELSE 0 END ) Pending,
+				SUM(case when ma.order_status='Canceled' then t.QuantityOrdered ELSE 0 END ) Canceled,
+				SUM(case when ma.order_status='Unshipped' then t.QuantityOrdered ELSE 0 END ) Unshipped,
+				SUM(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),IFNULL(t.QuantityOrdered,0)*info.price)) total_price ,
+				sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.QuantityOrdered*info.price))/sum(t.QuantityOrdered) price 
+			FROM t_amz_order_item t
+			left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id 
+			left join t_product_info info on info.amazonAuthId=t.amazonAuthId and info.marketplaceid=t.marketplaceId and  info.sku=t.sku 
+			where t.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
+			   	and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+			    and t.purchase_date >=#{param.startDate,jdbcType=TIMESTAMP}
+				and t.purchase_date &lt;=#{param.endDate,jdbcType=TIMESTAMP}
+				and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+				<if test="param.status!=null">
+					and ma.order_status=#{param.status,jdbcType=CHAR}
+				</if>
+				<if test="param.channel!=null">
+					<if test="param.channel=='Amazon'">
+						and ma.fulfillment_channel='AFN'
+					</if>
+					<if test="param.channel=='Merchant'">
+						and ma.fulfillment_channel='MFN'
+					</if>
+				</if>
+				<if test="param.isbusiness!=null">
+					and IFNULL(ma.isBusinessOrder,false) =#{param.isbusiness,jdbcType=CHAR}
+				</if>
+				<if test="param.sku!=null">
+					and t.sku like #{param.sku,jdbcType=CHAR}
+				</if>
+				<if test="param.asin!=null">
+					and t.asin=#{param.asin,jdbcType=CHAR}
+				</if>
+				<if test="param.orderid!=null">
+					and t.amazon_order_id=#{param.orderid,jdbcType=CHAR}
+				</if>
+			GROUP BY t.sku
+		) today on  maininfo.sku=today.sku0
+		left join (
+			SELECT t1.sku sku1,max(ma1.sales_channel) market1,
+					SUM(t1.QuantityOrdered) QuantityOrdered_yy,
+					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price)) totalprice_yy,
+					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price))/sum(t1.QuantityOrdered) price_yy  
+				FROM t_amz_order_item t1
+				left join t_amz_order_main ma1 on ma1.amazon_order_id=t1.amazon_order_id 
+				left join t_amazon_auth au1 on au1.id=t1.amazonAuthId
+				left join t_product_info info1 on info1.sku=t1.sku and t1.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t1.marketplaceId
+				where 
+				    t1.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
+				    and t1.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+				    and t1.purchase_date >=#{param.yystartDate,jdbcType=TIMESTAMP} 
+					and t1.purchase_date &lt;#{param.yyendDate,jdbcType=TIMESTAMP}
+					and (t1.QuantityOrdered>0 or (ifnull(t1.QuantityOrdered,0)=0 and ma1.order_status='Canceled'))
+					<if test="param.status!=null">
+						and ma1.order_status=#{param.status,jdbcType=CHAR}
+					</if>
+					<if test="param.channel!=null">
+						<if test="param.channel=='Amazon'">
+							and ma1.fulfillment_channel='AFN'
+						</if>
+						<if test="param.channel=='Merchant'">
+							and ma1.fulfillment_channel='MFN'
+						</if>
+					</if>
+					<if test="param.isbusiness!=null">
+						and IFNULL(ma1.isBusinessOrder,false) =#{param.isbusiness,jdbcType=CHAR}
+					</if>
+					<if test="param.sku!=null">
+						and t1.sku like #{param.sku,jdbcType=CHAR}
+					</if>
+					<if test="param.asin!=null">
+						and t1.asin=#{param.asin,jdbcType=CHAR}
+					</if>
+					<if test="param.orderid!=null">
+						and t1.amazon_order_id=#{param.orderid,jdbcType=CHAR}
+					</if>
+				GROUP BY t1.sku
+		) yy on  yy.sku1=maininfo.sku 
+		left join (
+			SELECT t1.sku sku2,max(ma1.sales_channel) market2,
+					SUM(t1.QuantityOrdered) QuantityOrdered_lw,
+					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price)) totalprice_lw,
+					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price))/sum(t1.QuantityOrdered) price_lw  
+				FROM t_amz_order_item t1
+				left join t_amz_order_main ma1 on ma1.amazon_order_id=t1.amazon_order_id and t1.marketplaceid=ma1.marketplaceid 
+				AND ma1.amazonAuthId=t1.amazonAuthId
+				left join t_amazon_auth au1 on au1.id=t1.amazonAuthId
+				left join t_product_info info1 on info1.sku=t1.sku and t1.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t1.marketplaceId
+				where 
+				    t1.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
+				    and t1.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+				    and t1.purchase_date >=#{param.lwstartDate,jdbcType=TIMESTAMP} 
+					and t1.purchase_date &lt;#{param.lwendDate,jdbcType=TIMESTAMP}
+					and (t1.QuantityOrdered>0 or (ifnull(t1.QuantityOrdered,0)=0 and ma1.order_status='Canceled'))
+					and t1.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+					and au1.groupid=#{param.groupid,jdbcType=BIGINT} 
+					<if test="param.status!=null">
+						and ma1.order_status=#{param.status,jdbcType=CHAR}
+					</if>
+					<if test="param.channel!=null">
+						<if test="param.channel=='Amazon'">
+							and ma1.fulfillment_channel='AFN'
+						</if>
+						<if test="param.channel=='Merchant'">
+							and ma1.fulfillment_channel='MFN'
+						</if>
+					</if>
+					<if test="param.isbusiness!=null">
+						and IFNULL(ma1.isBusinessOrder,false) =#{param.isbusiness,jdbcType=CHAR}
+					</if>
+					<if test="param.sku!=null">
+						and t1.sku like #{param.sku,jdbcType=CHAR}
+					</if>
+					<if test="param.asin!=null">
+						and t1.asin=#{param.asin,jdbcType=CHAR}
+					</if>
+					<if test="param.orderid!=null">
+						and t1.amazon_order_id=#{param.orderid,jdbcType=CHAR}
+					</if>
+				GROUP BY  t1.sku
+		) lw on  lw.sku2=maininfo.sku 
+	    left join t_picture p on p.id=maininfo.image
+		left join t_amazon_group g on au.groupid=g.id
+	    left join t_erp_material m on m.sku=ifnull(opt.msku,maininfo.sku) and m.shopid=au.shop_id and m.isDelete = 0 
+	    where  
+	     maininfo.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
+	     and maininfo.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+	     and (lw.sku2 is not null or  yy.sku1  is not null or  today.sku0 is not null )
+	    <if test="param.owner!=null">
+			 and opt.owner=#{param.owner,jdbcType=CHAR}
+	    </if>
+	    <if test="param.color!=null">
+			 and m.color=#{param.color,jdbcType=CHAR}
+	    </if>
+	</select>
+
+	<select id="selectOrderTodayList" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.purchase_date buydate,ma.order_status itemstatus,ma.order_status orderstatus,t.amazon_order_id orderid,g.id groupid,
+			ma.fulfillment_channel channel,ma.order_total orderprice,t.item_price itemprice,
+			t.QuantityOrdered quantity,ifnull(p.location,p.url) image,t.sku,t.asin,g.name groupname,m.color,info.name,
+			CONCAT(t.sku,'_',t.amazon_order_id) id,ma.sales_channel market,t.currency,ma.ship_service_level shipservice,
+			t.shipping_price shipfee,t.ship_promotion_discount shipdiscount,au.id authid,ma.buyer_email buyeremail,
+			ma.buyer_name buyername,ord.remark remark,ma.isBusinessOrder isbusiness,t.item_promotion_discount itemdiscount
+		FROM t_amz_order_item t
+		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.marketplaceid=ma.marketplaceid AND ma.amazonAuthId=t.amazonAuthId
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_amazon_group g on au.groupid=g.id
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and info.marketplaceid=t.marketplaceId
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		left join t_picture p on p.id=info.image
+		left join t_erp_material m on m.sku=ifnull(opt.msku,info.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		left join t_orders_remark ord on ord.amazon_order_id=t.amazon_order_id
+		where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+			and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 
+			and ma.order_status='Canceled'))
+		<if test="color!=null">
+			and m.color=#{color,jdbcType=CHAR}
+		</if>
+		<if test="status!=null">
+			and ma.order_status=#{status,jdbcType=CHAR}
+		</if>
+		<if test="channel!=null">
+			<if test="channel=='Amazon'">
+				and ma.fulfillment_channel='AFN'
+			</if>
+			<if test="channel=='Merchant'">
+				and ma.fulfillment_channel='MFN'
+			</if>
+		</if>
+		<if test="marketplaceid!=null">
+			and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid!=null">
+			and au.groupid=#{groupid,jdbcType=BIGINT}
+		</if>
+		<if test="groupList !=null">
+			and au.groupid in(
+			<foreach collection="groupList" item="grop" index="index" separator=",">
+				#{grop.id,jdbcType=BIGINT} 
+			</foreach>
+			)
+		</if>
+		<if test="isbusiness!=null">
+			and IFNULL(ma.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+		</if>
+		<if test="sku!=null">
+			and t.sku=#{sku,jdbcType=CHAR}
+		</if>
+		<if test="asin!=null">
+			and t.asin=#{asin,jdbcType=CHAR}
+		</if>
+		<if test="orderid!=null">
+			and t.amazon_order_id=#{orderid,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectOrderTodaySummary" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT max(t2.skucount) total_skucount,max(t3.ordercount) total_order,
+			SUM(ifnull(t.QuantityOrdered,0)) total_quantity,max(t.currency) currency,
+			SUM(case when ma.order_status='Shipped' then t.QuantityOrdered ELSE 0 END ) total_Shipped,
+			SUM(case when ma.order_status='Pending' then t.QuantityOrdered ELSE 0 END ) total_Pending,
+			SUM(case when ma.order_status='Canceled' then case when t.QuantityOrdered=0 then 1 else t.QuantityOrdered end ELSE 0 END ) total_Canceled,
+			SUM(case when ma.order_status='Unshipped' then t.QuantityOrdered ELSE 0 END ) total_Unshipped,
+			SUM(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),IFNULL(t.QuantityOrdered,0)*info.price)) total_price ,
+	    	SUM(ifnull(t.item_tax,0)) total_tax,
+			SUM(ifnull(t.item_promotion_discount,0)) total_item_promotion_discount,
+			SUM(ifnull(t.shipping_price,0)) total_shipping_price 
+		FROM t_amz_order_item t
+		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.marketplaceid=ma.marketplaceid AND ma.amazonAuthId=t.amazonAuthId
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and info.marketplaceid=t.marketplaceId 
+		left join t_product_in_opt opt ON opt.pid=info.id
+		left join t_erp_material m on m.sku=ifnull(opt.msku,info.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		cross join (SELECT count(1) skucount from (
+			SELECT max(it.sku) sku
+				from t_amz_order_item it 
+				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
+				and main.amazonAuthId=it.amazonAuthId
+				left join t_amazon_auth a on a.id=it.amazonAuthId 
+				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
+				left join t_product_in_opt pt ON pt.pid=p.id
+				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
+				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
+				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
+				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
+				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
+				<if test="color!=null">
+				and ml.color=#{color,jdbcType=CHAR}
+				</if>
+				<if test="status!=null">
+					and main.order_status=#{status,jdbcType=CHAR}
+				</if>
+				<if test="channel!=null">
+					<if test="channel=='Amazon'">
+						and main.fulfillment_channel='AFN'
+					</if>
+					<if test="channel=='Merchant'">
+						and main.fulfillment_channel='MFN'
+					</if>
+				</if>
+				<if test="isbusiness!=null">
+					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+				</if>
+				<if test="sku!=null">
+						and it.sku like #{sku,jdbcType=CHAR}
+				</if>
+				<if test="asin!=null">
+					and it.asin=#{asin,jdbcType=CHAR}
+				</if>
+				<if test="orderid!=null">
+					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
+				</if>
+			group by it.sku
+		) t1) t2 
+		cross join (SELECT  SUM(t1.ordernum) ordercount from (
+	            SELECT max(case when main.order_status='Canceled' then 0 ELSE 1 end )  ordernum
+				from t_amz_order_item it 
+				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
+				and main.amazonAuthId=it.amazonAuthId
+				left join t_amazon_auth a on a.id=it.amazonAuthId 
+				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
+				left join t_product_in_opt pt ON pt.pid=p.id
+				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
+				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
+				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
+				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
+				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
+				<if test="color!=null">
+				and ml.color=#{color,jdbcType=CHAR}
+				</if>
+				<if test="status!=null">
+					and main.order_status=#{status,jdbcType=CHAR}
+				</if>
+				<if test="channel!=null">
+					<if test="channel=='Amazon'">
+						and main.fulfillment_channel='AFN'
+					</if>
+					<if test="channel=='Merchant'">
+						and main.fulfillment_channel='MFN'
+					</if>
+				</if>
+				<if test="isbusiness!=null">
+					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+				</if>
+				<if test="sku!=null">
+					and it.sku like #{sku,jdbcType=CHAR}
+				</if>
+				<if test="asin!=null">
+					and it.asin=#{asin,jdbcType=CHAR}
+				</if>
+				<if test="orderid!=null">
+					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
+				</if>
+			group by it.amazon_order_id
+		) t1) t3 
+		where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+			and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+      		<if test="groupid!=null">
+				and au.groupid=#{groupid,jdbcType=BIGINT}
+			</if>
+			<if test="groupList !=null">
+				and au.groupid in(
+				<foreach collection="groupList" item="grop" index="index" separator=",">
+					#{grop.id,jdbcType=BIGINT} 
+				</foreach>
+				)
+			</if>
+		    <if test="owner!=null">
+			    and opt.owner=#{owner,jdbcType=CHAR}
+			</if>
+      		<if test="marketplaceid!=null">
+				and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			</if>
+			<if test="color!=null">
+				and m.color=#{color,jdbcType=CHAR}
+			</if>
+			<if test="status!=null">
+				and ma.order_status=#{status,jdbcType=CHAR}
+			</if>
+			<if test="channel!=null">
+				<if test="channel=='Amazon'">
+					and ma.fulfillment_channel='AFN'
+				</if>
+				<if test="channel=='Merchant'">
+					and ma.fulfillment_channel='MFN'
+				</if>
+			</if>
+			<if test="isbusiness!=null">
+				and IFNULL(ma.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+			</if>
+			<if test="sku!=null">
+				and t.sku like #{sku,jdbcType=CHAR}
+			</if>
+			<if test="asin!=null">
+				and t.asin=#{asin,jdbcType=CHAR}
+			</if>
+			<if test="orderid!=null">
+				and t.amazon_order_id=#{orderid,jdbcType=CHAR}
+			</if>
+	</select>
+	
+	<select id="selectOrderYesDaySummary" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT max(t2.skucount) total_skucount,max(t3.ordercount) total_order,
+			SUM(ifnull(t.QuantityOrdered,0)) total_quantity,max(t.currency) currency,
+			SUM(case when ma.order_status='Shipped' then t.QuantityOrdered ELSE 0 END ) total_Shipped,
+			SUM(case when ma.order_status='Pending' then t.QuantityOrdered ELSE 0 END ) total_Pending,
+		    SUM(case when ma.order_status='Canceled' then case when t.QuantityOrdered=0 then 1 else t.QuantityOrdered end ELSE 0 END ) total_Canceled,
+			SUM(case when ma.order_status='Unshipped' then t.QuantityOrdered ELSE 0 END ) total_Unshipped,
+			sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.QuantityOrdered*info.price)) total_price ,
+	    	SUM(ifnull(t.item_tax,0)) total_tax,
+			SUM(ifnull(t.item_promotion_discount,0)) total_item_promotion_discount,
+			SUM(ifnull(t.shipping_price,0)) total_shipping_price 
+		FROM t_amz_order_item t
+		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.marketplaceid=ma.marketplaceid AND ma.amazonAuthId=t.amazonAuthId
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and info.marketplaceid=t.marketplaceId 
+		left join t_product_in_opt opt ON opt.pid=info.id
+		left join t_erp_material m on m.sku=ifnull(opt.msku,info.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		cross join (SELECT count(1) skucount from (
+			SELECT max(it.sku) sku
+				from t_amz_order_item it 
+				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
+				and main.amazonAuthId=it.amazonAuthId
+				left join t_amazon_auth a on a.id=it.amazonAuthId 
+				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
+				left join t_product_in_opt pt ON pt.pid=p.id
+				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
+				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
+				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
+				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
+				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
+				<if test="color!=null">
+				     and ml.color=#{color,jdbcType=CHAR}
+				</if>
+				<if test="status!=null">
+					and main.order_status=#{status,jdbcType=CHAR}
+				</if>
+				<if test="channel!=null">
+					<if test="channel=='Amazon'">
+						and main.fulfillment_channel='AFN'
+					</if>
+					<if test="channel=='Merchant'">
+						and main.fulfillment_channel='MFN'
+					</if>
+				</if>
+				<if test="isbusiness!=null">
+					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+				</if>
+				<if test="sku!=null">
+					and it.sku like #{sku,jdbcType=CHAR}
+				</if>
+				<if test="asin!=null">
+					and it.asin=#{asin,jdbcType=CHAR}
+				</if>
+				<if test="orderid!=null">
+					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
+				</if>
+			group by it.sku
+		) t1) t2 
+		cross join (SELECT SUM(t1.ordernum)  ordercount from (
+			SELECT max(case when main.order_status='Canceled' then 0 ELSE 1 end )  ordernum
+				from t_amz_order_item it 
+				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
+				and main.amazonAuthId=it.amazonAuthId
+				left join t_amazon_auth a on a.id=it.amazonAuthId 
+				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
+				left join t_product_in_opt pt ON pt.pid=p.id
+				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
+				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
+				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
+				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
+				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
+				<if test="color!=null">
+				and ml.color=#{color,jdbcType=CHAR}
+				</if>
+				<if test="status!=null">
+					and main.order_status=#{status,jdbcType=CHAR}
+				</if>
+				<if test="channel!=null">
+					<if test="channel=='Amazon'">
+						and main.fulfillment_channel='AFN'
+					</if>
+					<if test="channel=='Merchant'">
+						and main.fulfillment_channel='MFN'
+					</if>
+				</if>
+				<if test="isbusiness!=null">
+					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+				</if>
+				<if test="sku!=null">
+					and it.sku like #{sku,jdbcType=CHAR}
+				</if>
+				<if test="asin!=null">
+					and it.asin=#{asin,jdbcType=CHAR}
+				</if>
+				<if test="orderid!=null">
+					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
+				</if>
+			group by it.amazon_order_id
+		) t1) t3 
+		where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+			and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+      		<if test="groupid!=null">
+				and au.groupid=#{groupid,jdbcType=BIGINT}
+			</if>
+			<if test="groupList !=null">
+				and au.groupid in(
+				<foreach collection="groupList" item="grop" index="index" separator=",">
+					#{grop.id,jdbcType=BIGINT} 
+				</foreach>
+				)
+			</if>
+      		<if test="marketplaceid!=null">
+				and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+			</if>
+			 <if test="owner!=null">
+			    and opt.owner=#{owner,jdbcType=CHAR}
+			</if>
+			<if test="color!=null">
+				and m.color=#{color,jdbcType=CHAR}
+			</if>
+			<if test="status!=null">
+				and ma.order_status=#{status,jdbcType=CHAR}
+			</if>
+			<if test="channel!=null">
+				<if test="channel=='Amazon'">
+					and ma.fulfillment_channel='AFN'
+				</if>
+				<if test="channel=='Merchant'">
+					and ma.fulfillment_channel='MFN'
+				</if>
+			</if>
+			<if test="isbusiness!=null">
+				and IFNULL(ma.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+			</if>
+			<if test="sku!=null">
+				and t.sku like #{sku,jdbcType=CHAR}
+			</if>
+			<if test="asin!=null">
+				and t.asin=#{asin,jdbcType=CHAR}
+			</if>
+			<if test="orderid!=null">
+				and t.amazon_order_id=#{orderid,jdbcType=CHAR}
+			</if>
+	</select>
+	
+  <select id="selectOrderList" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersVo" parameterType="com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO">
+		select 
+		    t.purchase_date buydate,
+		    t.item_status itemstatus,
+		    t.order_status orderstatus,
+		    t.amazon_order_id orderid,
+		    g.id groupid,
+			t.fulfillment_channel channel,
+			t.item_price orderprice,
+			ifnull((t.item_price)/(t.quantity),0) itemprice,
+			t.quantity,
+			ifnull(p.location,p.url) image,
+			t.sku,
+			t.asin,
+			g.name groupname,
+			m.color,
+			info.name,
+			CONCAT(t.sku,'_',t.amazon_order_id) id,
+			t.sales_channel market,
+			t.currency,
+			t.ship_service_level shipservice,
+			t.ship_city city,
+			t.shipping_price shipfee, 
+			t.ship_promotion_discount shipdiscount,
+			au.id authid,
+			ord.remark remark,
+			t.is_business_order isbusiness,
+			t.item_promotion_discount itemdiscount, 
+			mt.marketplaceId,
+			mt.name marketname,
+			mt.region region,
+			case when q.submitfeedid is null and ord.feed_queueid is not null then '排队中' 
+			else case when ord.feed_queueid is null then '未上传' else '已上传' end end  feedstatus,
+			case when ord.review_send_time is not null then 'ok' else null end reviewstatus,
+			ord.review_send_time reviewSendTime,
+			ord.feed_queueid feedid
+		<if test="dto.isarchive=='true'">
+			from t_orders_report_archive t
+		</if>
+		<if test="dto.isarchive!='true'">
+			from t_orders_report t
+		</if>
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_amazon_group g on au.groupid=g.id
+		left join t_marketplace mt on mt.point_name=t.sales_channel
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin and info.marketplaceid=mt.marketplaceId
+		left join t_picture p on p.id=info.image
+		left join t_product_in_opt opt on opt.pid=info.id
+		left join t_erp_material m on m.sku=ifnull(opt.msku,t.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		left join t_orders_remark ord on ord.amazon_order_id=t.amazon_order_id
+		left join t_amz_submitfeed_queue q on q.id=ord.feed_queueid
+	 
+		where 1=1
+			<if test="dto.orderid==null">
+			  and t.purchase_date >=#{dto.startDate,jdbcType=TIMESTAMP}
+			  and t.purchase_date &lt;=#{dto.endDate,jdbcType=TIMESTAMP}
+			  and (t.quantity>0 or (t.quantity=0 and t.item_status='Cancelled'))
+		   </if>
+		 <if test="dto.amazonAuthId!=null">
+			and t.amazonAuthId=#{dto.amazonAuthId,jdbcType=CHAR}
+		</if>
+		<if test="dto.color!=null  and dto.color!='all'">
+			and m.color=#{dto.color,jdbcType=CHAR}
+		</if>
+		<if test="dto.status!=null  and dto.status!='all'">
+			and t.order_status=#{dto.status,jdbcType=CHAR}
+		</if>
+		<if test="dto.owner!=null">
+		    and opt.owner=#{dto.owner,jdbcType=CHAR}
+		</if>
+		<if test="dto.channel!=null and dto.channel!='all'">
+			and t.fulfillment_channel=#{dto.channel,jdbcType=CHAR}
+		</if>
+		<if test="dto.pointname!=null and dto.pointname!='all'">
+			and t.sales_channel=#{dto.pointname,jdbcType=CHAR}
+		</if>
+		<if test="dto.groupid!=null">
+			and au.groupid=#{dto.groupid,jdbcType=BIGINT}
+		</if>
+		<if test="dto.isbusiness!=null and dto.isbusiness!='all'">
+			and IFNULL(t.is_business_order,'false') =#{dto.isbusiness,jdbcType=CHAR}
+		</if>
+		<if test="dto.sku!=null">
+			and t.sku=#{dto.sku,jdbcType=CHAR}
+		</if>
+		<if test="dto.asin!=null">
+			and t.asin=#{dto.asin,jdbcType=CHAR}
+		</if>
+		<if test="dto.orderid!=null">
+			and t.amazon_order_id=#{dto.orderid,jdbcType=CHAR}
+		</if>
+	</select> 
+	
+	 
+	
+	
+	<select id="selectOrderMainList" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersVo" parameterType="com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO">
+	 select t.purchase_date buydate,
+		    ma.order_status itemstatus,
+		    ma.order_status orderstatus,
+		    t.amazon_order_id orderid,
+		    g.id groupid,
+		    ma.fulfillment_channel  channel,
+			ifnull(t.item_price,t.QuantityOrdered*info.price) orderprice,
+			ifnull(t.item_price/t.QuantityOrdered,info.price) itemprice,
+			t.QuantityOrdered quantity,
+			ifnull(p.location,p.url) image,
+			t.sku,
+			t.asin,
+			g.name groupname,
+			m.color,
+			info.name,
+			CONCAT(t.sku,'_',t.amazon_order_id) id,
+			ma.sales_channel market,
+			t.currency,
+			ma.ship_service_level shipservice,
+			addr.city city,
+			t.shipping_price shipfee,
+			t.ship_promotion_discount shipdiscount,
+			au.id authid,
+			ord.remark remark,
+			case when ord.review_send_time is not null then 'ok' else null end reviewstatus,
+			ord.review_send_time reviewSendTime,
+			ma.isBusinessOrder isbusiness,
+			t.item_promotion_discount itemdiscount,
+			mt.marketplaceId,
+			mt.name marketname,
+			mt.region region,
+			case when q.submitfeedid is null and ord.feed_queueid is not null then '排队中' 
+			else case when ord.feed_queueid is null then '未上传' else '已上传' end end  feedstatus,
+			ord.feed_queueid feedid
+		FROM t_amz_order_item t
+		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.marketplaceid=ma.marketplaceid AND ma.amazonAuthId=t.amazonAuthId
+		left join t_marketplace mt on mt.marketplaceId=ma.marketplaceId
+		left join t_amz_orders_address addr on addr.amazon_order_id=ma.amazon_order_id
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_amazon_group g on au.groupid=g.id
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and info.marketplaceid=t.marketplaceId
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		left join t_picture p on p.id=info.image
+		left join t_erp_material m on m.sku=ifnull(opt.msku,info.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		left join t_orders_remark ord on ord.amazon_order_id=t.amazon_order_id
+		left join t_amz_submitfeed_queue q on q.id=ord.feed_queueid
+		where t.amazonAuthId=#{dto.amazonAuthId,jdbcType=CHAR}
+			<if test="dto.orderid==null">
+		    and t.purchase_date >=#{dto.startDate,jdbcType=TIMESTAMP}
+			and t.purchase_date &lt;=#{dto.endDate,jdbcType=TIMESTAMP}
+			and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+			</if>
+		<if test="dto.color!=null  and dto.color!='all'">
+			and m.color=#{dto.color,jdbcType=CHAR}
+		</if>
+		<if test="dto.status!=null and dto.status!='all'">
+			and ma.order_status=#{dto.status,jdbcType=CHAR}
+		</if>
+		<if test="dto.channel!=null and dto.channel!='all'">
+			<if test="dto.channel=='Amazon'">
+				and ma.fulfillment_channel='AFN'
+			</if>
+			<if test="dto.channel=='Merchant'">
+				and ma.fulfillment_channel='MFN'
+			</if>
+		</if>
+	   <if test="dto.owner!=null">
+		    and opt.owner=#{dto.owner,jdbcType=CHAR}
+		</if>
+		<if test="dto.marketplaceid!=null">
+			and t.marketplaceid=#{dto.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="dto.groupid!=null">
+			and au.groupid=#{dto.groupid,jdbcType=BIGINT}
+		</if>
+		<if test="dto.isbusiness!=null and dto.isbusiness!='all'">
+			and IFNULL(ma.isBusinessOrder,false) =#{dto.isbusiness,jdbcType=CHAR}
+		</if>
+		<if test="dto.sku!=null">
+			and t.sku=#{dto.sku,jdbcType=CHAR}
+		</if>
+		<if test="dto.asin!=null">
+			and t.asin=#{dto.asin,jdbcType=CHAR}
+		</if>
+		<if test="dto.orderid!=null">
+			and t.amazon_order_id=#{dto.orderid,jdbcType=CHAR}
+		</if> 
+	</select>
+	
+	<select id="selectReviewOrderList" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.purchase_date buydate,t.item_status
+			itemstatus,t.amazon_order_id orderid,g.id groupid,
+			t.fulfillment_channel channel,t.item_price
+			orderprice,ifnull((t.item_price)/(t.quantity),0) itemprice,
+			t.quantity,ifnull(p.location,p.url) image,t.sku,t.asin,g.name groupname,m.color,info.name,
+			CONCAT(t.sku,'_',t.amazon_order_id) id,t.sales_channel market,t.currency,t.ship_service_level shipservice,
+			t.ship_city city,t.shipping_price shipfee, au.id authid,ma.buyer_email buyeremail,
+			ma.buyer_name buyername,ord.remark remark,t.is_business_order isbusiness,t.item_promotion_discount itemdiscount,
+			t.ship_promotion_discount shipdiscount,rc.picture reviewpicture
+		from t_orders_report t
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_orders_reviews_customer rc on rc.amazon_order_id=t.amazon_order_id and rc.shopid=au.shop_id
+		left join t_amazon_group g on au.groupid=g.id
+		left join t_marketplace mt on mt.point_name=t.sales_channel
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin and info.marketplaceid=mt.marketplaceId
+		left join t_picture p on p.id=info.image
+		left join t_erp_material m on m.sku=t.sku and m.shopid=au.shop_id and m.isDelete = 0
+		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.purchase_date=ma.purchase_date
+		left join t_orders_remark ord on ord.amazon_order_id=t.amazon_order_id
+		where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+			and rc.amazon_order_id is not null
+			and (t.quantity>0 or (t.quantity=0 and t.item_status='Cancelled'))
+		<if test="color!=null">
+			and m.color=#{color,jdbcType=CHAR}
+		</if>
+		<if test="status!=null">
+			and t.item_status=#{status,jdbcType=CHAR}
+		</if>
+		<if test="channel!=null">
+			and t.fulfillment_channel=#{channel,jdbcType=CHAR}
+		</if>
+		<if test="pointname!=null">
+			and t.sales_channel=#{pointname,jdbcType=CHAR}
+		</if>
+		<if test="groupid!=null">
+			and au.groupid=#{groupid,jdbcType=BIGINT}
+		</if>
+		<if test="isbusiness!=null">
+			and IFNULL(t.is_business_order,'false') =#{isbusiness,jdbcType=CHAR}
+		</if>
+		<if test="sku!=null">
+			and t.sku=#{sku,jdbcType=CHAR}
+		</if>
+		<if test="asin!=null">
+			and t.asin=#{asin,jdbcType=CHAR}
+		</if>
+		<if test="orderid!=null">
+			and t.amazon_order_id=#{orderid,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectOrderSummary" resultType="java.util.Map" parameterType="java.util.Map">
+		select max(total_buydate) total_buydate,count(total_order) total_order ,
+			sum(total_quantity) total_quantity
+		from (
+			select max(t.purchase_date) total_buydate, max(t.amazon_order_id) total_order,
+				sum(t.quantity) total_quantity
+			from t_orders_report t
+			left join t_amazon_auth au on au.id=t.amazonAuthId
+			left join t_amazon_group g on au.groupid=g.id
+			<if test="color!=null">
+			left join t_marketplace mt on mt.point_name=t.sales_channel
+			left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin and info.marketplaceid=mt.marketplaceId
+			left join t_product_in_opt opt on opt.pid=info.id
+			left join t_erp_material m on m.sku=ifnull(opt.msku,t.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		    </if>
+	 
+			where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+				and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+				and (t.quantity>0 or (t.quantity=0 and t.item_status='Cancelled'))
+			<if test="color!=null">
+				and m.color=#{color,jdbcType=CHAR}
+			</if>
+			<if test="status!=null">
+				and t.item_status=#{status,jdbcType=CHAR}
+			</if>
+			<if test="channel!=null">
+				and t.fulfillment_channel=#{channel,jdbcType=CHAR}
+			</if>
+			<if test="pointname!=null">
+				and t.sales_channel=#{pointname,jdbcType=CHAR}
+			</if>
+			<if test="groupid!=null">
+				and au.groupid=#{groupid,jdbcType=BIGINT}
+			</if>
+			<if test="groupList !=null">
+				and au.groupid in(
+				<foreach collection="groupList" item="grop" index="index" separator=",">
+					#{grop.id,jdbcType=BIGINT} 
+				</foreach>
+				)
+			</if>
+			<if test="isbusiness!=null">
+				and IFNULL(t.is_business_order,'false') =#{isbusiness,jdbcType=CHAR}
+			</if>
+			<if test="sku!=null">
+				and t.sku=#{sku,jdbcType=CHAR}
+			</if>
+			<if test="asin!=null">
+				and t.asin=#{asin,jdbcType=CHAR}
+			</if>
+			<if test="orderid!=null">
+				and t.amazon_order_id=#{orderid,jdbcType=CHAR}
+			</if>
+			group by t.amazon_order_id 
+		) V
+	</select>
+	
+	<select id="selectOrderDetail" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo" parameterType="java.util.Map">
+		select t.item_status itemstatus,t.amazonAuthId,t.marketplaceId,mt.region,
+			ifnull((t.item_price)/(t.quantity),0) itemprice,
+			ifnull(t.quantity,0) quantity,ifnull(p.location,p.url)
+			image,t.sku,t.asin,m.color,info.name,
+			ifnull(t.item_promotion_discount,0)
+			itemdiscount,ifnull(t.currency,mt.currency) currency,ifnull(t.shipping_price,0) shipprice,
+			ifnull(t.ship_promotion_discount,0) shipdiscount,ifnull(t.item_tax,0)
+			itemtax ,ifnull(ov.vat_rate,0) vat_rate,t.item_price totalprice
+		<if test="param.isarchive=='true'">
+			from t_orders_report_archive t
+		    left join t_amazon_auth a on a.id=t.amazonAuthId
+		</if>
+		<if test="param.isarchive!='true'">
+			from t_orders_report t
+		    left join t_amazon_auth a on a.id=t.amazonAuthId
+		</if>
+		left join t_marketplace mt on mt.point_name=t.sales_channel
+		left join t_order_invoice_vat ov on ov.groupid=a.groupid and mt.market=UPPER(ov.country)
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin and info.marketplaceid=mt.marketplaceId
+		left join t_picture p on p.id=info.image
+		left join t_product_in_opt po on info.id=po.pid
+		left join t_erp_material m on m.sku=IFNULL(po.msku,t.sku) and m.shopid=#{param.shopid,jdbcType=BIGINT} and m.isDelete = 0
+		where t.purchase_date =#{param.purchaseDate,jdbcType=TIMESTAMP}
+			and t.amazon_order_id=#{param.orderid,jdbcType=CHAR} 
+			and a.groupid=#{param.groupid,jdbcType=CHAR}
+			and (t.quantity>0 or (t.quantity=0 and t.item_status='Cancelled'))
+	</select>
+	 
+	
+	<select id="selectOrderItemDetail" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo" parameterType="java.util.Map">
+		SELECT mo.order_status itemstatus,
+		    t.amazonAuthId,t.marketplaceId,mt.region,
+			IFNULL((t.item_price)/(t.QuantityOrdered),0) itemprice,
+			IFNULL(t.QuantityOrdered,0) quantity,ifnull(p.location,p.url)
+			image,t.sku,t.asin,m.color,info.name,
+			ifnull(t.item_promotion_discount,0)
+			itemdiscount,ifnull(t.currency,mt.currency) currency,ifnull(t.shipping_price,0) shipprice,
+			ifnull(t.ship_promotion_discount,0) shipdiscount,ifnull(t.item_tax,0)
+			itemtax ,ifnull(ov.vat_rate,0) vat_rate,t.item_price totalprice
+		 <if test="param.isarchive=='true'">
+			from t_amz_order_item_archive t
+		    LEFT JOIN t_amz_order_main_archive mo ON mo.amazon_order_id=t.amazon_order_id
+		</if>
+		<if test="param.isarchive!='true'">
+			from t_amz_order_item t
+		    LEFT JOIN t_amz_order_main mo ON mo.amazon_order_id=t.amazon_order_id
+		</if>
+		
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		left join t_marketplace mt on mt.marketplaceId=t.marketplaceId
+		left join t_order_invoice_vat ov on ov.groupid=a.groupid and mt.market=UPPER(ov.country)
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin and info.marketplaceid=mt.marketplaceId
+		left join t_picture p on p.id=info.image
+		left join t_product_in_opt po on info.id=po.pid
+		left join t_erp_material m on m.sku=IFNULL(po.msku,t.sku) and m.shopid=#{param.shopid,jdbcType=BIGINT} and m.isDelete = 0
+		where  t.amazon_order_id=#{param.orderid,jdbcType=CHAR} 
+			and a.groupid=#{param.groupid,jdbcType=CHAR}
+	</select>
+	 
+	
+	<select id="getOrdersReportByOrderid" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select
+		<include refid="Base_Column_List" />
+		from t_orders_report
+		where purchase_date =#{purchaseDate,jdbcType=TIMESTAMP} 
+			and amazon_order_id = #{orderid,jdbcType=CHAR}
+		limit 1
+	</select>
+	
+	<select id="getAccRptByAuth" parameterType="java.util.Map" resultType="java.util.Map" >
+		SELECT t.* FROM t_amz_settlement_acc_report t 
+		LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+		LEFT JOIN t_marketplace m ON t.marketplace_name=m.point_name
+		WHERE  a.groupid=#{groupid,jdbcType=CHAR} AND a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test="marketplaceid!=null">
+			AND m.marketplaceId=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		order by t.deposit_date desc limit 200
+	</select>
+	
+	<select id="selectDataByDay" parameterType="java.lang.String"  resultType="java.util.Map" >
+		select * from  t_orders_report t where t.amazonauthid=#{amazonAuthId,jdbcType=CHAR} AND purchase_date>=#{startDate,jdbcType=CHAR} 
+		AND purchase_date &lt;#{endDate,jdbcType=CHAR} 
+	</select>
+	
+	<select id="getOrderAddressList"  resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersShipVo" parameterType="java.util.Map">
+		SELECT  IFNULL(p.location,p.url) image,IFNULL(m.name,f.name) name, g.name groupname,mk.name marketname,
+		m.color,f.asin,i.quantity,
+		r.*,c.address_name centername,c.city centercity,c.state centerstate from t_orders_fulfilled_shipments_report r
+		LEFT JOIN t_orders_report i ON   i.amazon_order_id=r.amazon_order_id  AND i.sales_channel=r.sales_channel AND i.sku=r.sku
+		left join t_product_info f on f.sku=i.sku and f.marketplaceid=i.marketplaceid AND f.amazonAuthId=i.amazonAuthId
+		LEFT JOIN t_amazon_auth a ON a.id=f.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		LEFT JOIN t_marketplace mk ON mk.point_name=r.sales_channel
+		LEFT JOIN t_picture p ON p.id=f.image
+		LEFT JOIN t_amz_ship_fulfillment_center c ON c.code=r.fulfillment_center_id
+		LEFT JOIN t_product_in_opt o ON o.pid=f.id
+		LEFT JOIN t_erp_material m ON m.shopid=#{shopid,jdbcType=CHAR} AND m.sku=IFNULL(o.msku,f.sku) AND m.isDelete=0
+		WHERE a.shop_id= #{shopid,jdbcType=CHAR} 
+		    <if test="groupid!=null">
+	        and a.groupid=#{groupid,jdbcType=CHAR}
+	        </if>
+	        <if test="marketplaceid!=null">
+	        AND   mk.marketplaceId=#{marketplaceid,jdbcType=CHAR}
+	        </if>
+	          <if test="amazonauthid!=null">
+	        AND i.amazonAuthId=#{amazonauthid,jdbcType=CHAR} 
+	        </if>	
+          <if test="color!=null">
+			and m.color=#{color,jdbcType=CHAR}
+		</if>
+	 
+			<if test="sku!=null">
+				and r.sku=#{sku,jdbcType=CHAR}
+			</if>
+			<if test="asin!=null">
+				and f.asin=#{asin,jdbcType=CHAR}
+			</if>
+			<if test="orderid!=null">
+				and r.order_id=#{orderid,jdbcType=CHAR}
+			</if>
+		 AND i.purchase_date>=#{startDate,jdbcType=CHAR} AND i.purchase_date&lt;= #{endDate,jdbcType=CHAR}
+	</select>
+	
+	<select id="getOrderAddressListDownload"  resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT  IFNULL(p.location,p.url) image,IFNULL(m.name,f.name) name, g.name groupname,mk.name marketname,
+		m.color,f.asin,i.quantity,
+		r.*,c.address_name centername,c.city centercity,c.state centerstate from t_orders_fulfilled_shipments_report r
+		LEFT JOIN t_orders_report i ON   i.amazon_order_id=r.amazon_order_id  AND i.sales_channel=r.sales_channel AND i.sku=r.sku
+		left join t_product_info f on f.sku=i.sku and f.marketplaceid=i.marketplaceid AND f.amazonAuthId=i.amazonAuthId
+		LEFT JOIN t_amazon_auth a ON a.id=f.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		LEFT JOIN t_marketplace mk ON mk.point_name=r.sales_channel
+		LEFT JOIN t_picture p ON p.id=f.image
+		LEFT JOIN t_amz_ship_fulfillment_center c ON c.code=r.fulfillment_center_id
+		LEFT JOIN t_product_in_opt o ON o.pid=f.id
+		LEFT JOIN t_erp_material m ON m.shopid=#{shopid,jdbcType=CHAR} AND m.sku=IFNULL(o.msku,f.sku) AND m.isDelete=0
+		WHERE a.shop_id= #{shopid,jdbcType=CHAR} 
+		    <if test="groupid!=null">
+	        and a.groupid=#{groupid,jdbcType=CHAR}
+	        </if>
+	        <if test="marketplaceid!=null">
+	        AND   mk.marketplaceId=#{marketplaceid,jdbcType=CHAR}
+	        </if>
+	          <if test="amazonauthid!=null">
+	        AND i.amazonAuthId=#{amazonauthid,jdbcType=CHAR} 
+	        </if>	
+          <if test="color!=null">
+			and m.color=#{color,jdbcType=CHAR}
+		</if>
+	 
+			<if test="sku!=null">
+				and r.sku=#{sku,jdbcType=CHAR}
+			</if>
+			<if test="asin!=null">
+				and f.asin=#{asin,jdbcType=CHAR}
+			</if>
+			<if test="orderid!=null">
+				and r.order_id=#{orderid,jdbcType=CHAR}
+			</if>
+		 AND i.purchase_date>=#{startDate,jdbcType=CHAR} AND i.purchase_date&lt;= #{endDate,jdbcType=CHAR}
+	</select>
+	
+	<select id="getOrderReportById" resultType="java.util.Map" parameterType="java.util.Map">
+		select group_concat(sku) sku,
+		       group_concat(asin) ASIN, 
+		       COUNT(0) skunum,
+		       SUM(quantity) quantity ,
+		       sum(item_price ) item_price,	
+		       max(purchase_date) purchase_date
+         from t_orders_report WHERE amazonauthid=#{authid,jdbcType=CHAR} AND amazon_order_id=#{amazon_order_id,jdbcType=CHAR};
+	</select>
+
+	<select id="getOrderItemById" resultType="java.util.Map" parameterType="java.util.Map">
+		select group_concat(sku) sku,
+		group_concat(asin) ASIN, 
+		COUNT(0) skunum,
+		SUM(QuantityShipped) quantity ,
+		sum(item_price ) item_price,
+		max(purchase_date) purchase_date
+		from t_amz_order_item WHERE amazonauthid=#{authid,jdbcType=CHAR} AND amazon_order_id=#{amazon_order_id,jdbcType=CHAR}
+	</select>
+
+	<select id="getLastShippedOrder" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT r.amazon_order_id from t_orders_report r WHERE  r.sales_channel=#{pointname,jdbcType=CHAR} AND r.sku=#{sku,jdbcType=CHAR} 
+		AND r.amazonAuthId=#{authid,jdbcType=CHAR} AND r.order_status='Shipped' AND item_status='Shipped' AND r.quantity=1
+		ORDER BY purchase_date DESC LIMIT 1
+	</select>
+	 
+
+	<delete id="deleRptByAuth"  parameterType="java.lang.String">
+		delete  from t_orders_report  where amazonauthid=#{amazonAuthId,jdbcType=CHAR} AND purchase_date>=#{startDate,jdbcType=CHAR} 
+		AND purchase_date &lt;#{endDate,jdbcType=CHAR} 
+	</delete>
+	<insert id="moveData"  parameterType="java.lang.String">
+	   insert ignore into t_orders_report_temp
+	   select *,now()  from t_orders_report  where amazonauthid=#{amazonAuthId,jdbcType=CHAR} AND purchase_date>=#{startDate,jdbcType=CHAR} 
+	</insert>
+	<delete id="deleteItem" parameterType="java.util.Map">
+		delete from t_orders_report_download
+		where purchase_date=#{purchaseDate,jdbcType=CHAR}
+			and amazonAuthId = #{amazonAuthId,jdbcType=VARCHAR}
+			and amazon_order_id=#{amazonOrderId,jdbcType=VARCHAR}
+			and sku=#{sku,jdbcType=CHAR}
+	</delete>
+	
+	<insert id="insertBatch" parameterType="java.util.List">
+		insert into t_orders_report_download (
+			id, amazon_order_id, merchant_order_id,
+			purchase_date, last_updated_date, order_status,
+			fulfillment_channel, sales_channel, order_channel, url, ship_service_level,
+			sku, asin, item_status, quantity, currency, item_price, item_tax,
+			shipping_price, shipping_tax, gift_wrap_price,
+			gift_wrap_tax, item_promotion_discount, ship_promotion_discount,
+			ship_city, ship_state, ship_postal_code,
+			ship_country, promotion_ids, is_business_order,
+			purchase_order_number, price_designation, amazonAuthId,marketplaceId
+		)
+		values
+		<foreach collection="list" item="rpt" index="index" separator=",">
+			(
+			#{rpt.id,jdbcType=CHAR}, #{rpt.amazonOrderId,jdbcType=VARCHAR},
+			#{rpt.merchantOrderId,jdbcType=VARCHAR},
+			#{rpt.purchaseDate,jdbcType=TIMESTAMP},
+			#{rpt.lastUpdatedDate,jdbcType=TIMESTAMP},
+			#{rpt.orderStatus,jdbcType=CHAR},
+			#{rpt.fulfillmentChannel,jdbcType=CHAR},
+			#{rpt.salesChannel,jdbcType=CHAR}, #{rpt.orderChannel,jdbcType=CHAR},
+			#{rpt.url,jdbcType=VARCHAR},
+			#{rpt.shipServiceLevel,jdbcType=VARCHAR},
+			#{rpt.sku,jdbcType=CHAR}, #{rpt.asin,jdbcType=CHAR}, #{rpt.itemStatus,jdbcType=CHAR},
+			#{rpt.quantity,jdbcType=INTEGER},
+			#{rpt.currency,jdbcType=CHAR}, #{rpt.itemPrice,jdbcType=DECIMAL}, #{rpt.itemTax,jdbcType=DECIMAL},
+			#{rpt.shippingPrice,jdbcType=DECIMAL},
+			#{rpt.shippingTax,jdbcType=DECIMAL},
+			#{rpt.giftWrapPrice,jdbcType=DECIMAL},
+			#{rpt.giftWrapTax,jdbcType=DECIMAL},
+			#{rpt.itemPromotionDiscount,jdbcType=DECIMAL},
+			#{rpt.shipPromotionDiscount,jdbcType=DECIMAL},
+			#{rpt.shipCity,jdbcType=VARCHAR}, #{rpt.shipState,jdbcType=CHAR},
+			#{rpt.shipPostalCode,jdbcType=CHAR},
+			#{rpt.shipCountry,jdbcType=CHAR}, #{rpt.promotionIds,jdbcType=CHAR},
+			#{rpt.isBusinessOrder,jdbcType=CHAR},
+			#{rpt.purchaseOrderNumber,jdbcType=CHAR},
+			#{rpt.priceDesignation,jdbcType=CHAR},
+			#{rpt.amazonauthid,jdbcType=CHAR} , #{rpt.marketplaceId,jdbcType=CHAR}
+			)
+		</foreach>
+	</insert>
+	
+	<delete id="deleteBeforeDownload" parameterType="java.util.Map">
+		delete r FROM t_orders_report_download d
+		LEFT JOIN t_orders_report r ON r.purchase_date=d.purchase_date 
+		AND r.amazon_order_id=d.amazon_order_id and r.amazonAuthId=d.amazonAuthId
+		WHERE  r.sku=d.sku and d.amazonAuthId=#{amazonAuthId,jdbcType=VARCHAR} 
+        and d.purchase_date>=#{purchaseDate,jdbcType=TIMESTAMP};
+
+		insert ignore into t_orders_report
+		select * from t_orders_report_download where amazonAuthId = #{amazonAuthId,jdbcType=VARCHAR};
+		
+		delete from t_orders_report_download where amazonAuthId = #{amazonAuthId,jdbcType=VARCHAR};
+	</delete>
+
+	<delete id="clearOrderReportDownload" parameterType="java.lang.String">
+		delete from t_orders_report_download;
+	</delete>
+
+	<select id="hasDownload" resultType="java.util.Date" parameterType="java.lang.String">
+		select min(purchase_date) 
+		from  t_orders_report_download 
+		where amazonAuthId = #{amazonAuthId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="allDownloadAuth" resultType="java.util.Map">
+		select amazonAuthId,min(purchase_date) purchase_date 
+		from t_orders_report_download
+		group by amazonAuthId
+	</select>
+
+	<insert id="insertIntoDownload" parameterType="com.wimoor.amazon.orders.pojo.entity.OrdersReport">
+	    delete from t_orders_report_download
+		where purchase_date=#{purchaseDate,jdbcType=TIMESTAMP}
+			and amazonAuthId = #{amazonauthid,jdbcType=CHAR}
+			and amazon_order_id=#{amazonOrderId,jdbcType=VARCHAR}
+			and sku=#{sku,jdbcType=CHAR};
+			
+		insert ignore into t_orders_report_download 
+		(
+			id, amazon_order_id,
+			merchant_order_id,
+			purchase_date, last_updated_date, order_status,
+			fulfillment_channel, sales_channel, order_channel,
+			url, ship_service_level,
+			sku, asin, item_status, quantity,
+			currency, item_price, item_tax,
+			shipping_price, shipping_tax, gift_wrap_price,
+			gift_wrap_tax, item_promotion_discount, ship_promotion_discount,
+			ship_city, ship_state, ship_postal_code,
+			ship_country, promotion_ids, is_business_order,
+			purchase_order_number, price_designation, amazonAuthId,marketplaceId
+		)
+		values (
+			#{id,jdbcType=CHAR}, #{amazonOrderId,jdbcType=VARCHAR},
+			#{merchantOrderId,jdbcType=VARCHAR},
+			#{purchaseDate,jdbcType=TIMESTAMP},
+			#{lastUpdatedDate,jdbcType=TIMESTAMP}, #{orderStatus,jdbcType=CHAR},
+			#{fulfillmentChannel,jdbcType=CHAR}, #{salesChannel,jdbcType=CHAR},
+			#{orderChannel,jdbcType=CHAR},
+			#{url,jdbcType=VARCHAR}, #{shipServiceLevel,jdbcType=VARCHAR},
+			#{sku,jdbcType=CHAR}, #{asin,jdbcType=CHAR}, #{itemStatus,jdbcType=CHAR},
+			#{quantity,jdbcType=INTEGER},
+			#{currency,jdbcType=CHAR}, #{itemPrice,jdbcType=DECIMAL}, #{itemTax,jdbcType=DECIMAL},
+			#{shippingPrice,jdbcType=DECIMAL}, #{shippingTax,jdbcType=DECIMAL},
+			#{giftWrapPrice,jdbcType=DECIMAL},
+			#{giftWrapTax,jdbcType=DECIMAL}, #{itemPromotionDiscount,jdbcType=DECIMAL},
+			#{shipPromotionDiscount,jdbcType=DECIMAL},
+			#{shipCity,jdbcType=VARCHAR}, #{shipState,jdbcType=CHAR},
+			#{shipPostalCode,jdbcType=CHAR},
+			#{shipCountry,jdbcType=CHAR}, #{promotionIds,jdbcType=CHAR}, #{isBusinessOrder,jdbcType=CHAR},
+			#{purchaseOrderNumber,jdbcType=CHAR},
+			#{priceDesignation,jdbcType=CHAR}, #{amazonauthid,jdbcType=CHAR} , #{marketplaceId,jdbcType=CHAR}
+		);
+	</insert>
+ 
+	<insert id="insertNewDataToOldItem" parameterType="java.util.Map">
+	 REPLACE INTO t_amz_order_item_history
+	 SELECT * FROM  t_amz_order_item t WHERE t.purchase_date &gt;= #{startDate,jdbcType=CHAR}
+	 AND t.purchase_date &lt; #{endDate,jdbcType=CHAR}
+	 and t.amazonAuthId=#{authid,jdbcType=CHAR};
+	 delete from  t_amz_order_item  WHERE purchase_date  &gt;= #{startDate,jdbcType=CHAR}
+	 AND purchase_date &lt; #{endDate,jdbcType=CHAR}
+	 and amazonAuthId=#{authid,jdbcType=CHAR};
+	</insert>
+	<insert id="insertNewDataToOldMain" parameterType="java.util.Map">
+	  REPLACE INTO t_amz_order_main_history  
+	  SELECT * FROM  t_amz_order_main t WHERE t.purchase_date &gt;= #{startDate,jdbcType=CHAR}
+	  AND t.purchase_date &lt; #{endDate,jdbcType=CHAR}
+	  and t.amazonAuthId=#{authid,jdbcType=CHAR};
+	  delete from  t_amz_order_main  WHERE purchase_date &gt;= #{startDate,jdbcType=CHAR}
+	  AND purchase_date &lt; #{endDate,jdbcType=CHAR}
+	  and amazonAuthId=#{authid,jdbcType=CHAR};
+	</insert>
+ 
+  <insert id="insertReplaceBatch"   parameterType="java.util.List">
+      replace into t_orders_report (id,amazon_order_id,merchant_order_id,purchase_date,
+		last_updated_date,order_status,fulfillment_channel,
+		sales_channel,order_channel,
+		url,ship_service_level,
+		sku,asin,item_status,
+		quantity,currency,
+		item_price,item_tax,
+		shipping_price,shipping_tax,
+		gift_wrap_price,gift_wrap_tax,item_promotion_discount,
+		ship_promotion_discount,ship_city,ship_state,ship_postal_code,
+		ship_country,promotion_ids,is_business_order,purchase_order_number,
+		price_designation,amazonAuthId,marketplaceId)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+	(#{adv.id,jdbcType=BIGINT},
+	#{adv.amazon_order_id,jdbcType=VARCHAR},
+	#{adv.merchant_order_id,jdbcType=VARCHAR},
+	#{adv.purchase_date,jdbcType=TIMESTAMP},
+	#{adv.last_updated_date,jdbcType=TIMESTAMP},
+	#{adv.order_status,jdbcType=CHAR},
+	#{adv.fulfillment_channel,jdbcType=CHAR},
+	#{adv.sales_channel,jdbcType=CHAR},
+	#{adv.order_channel,jdbcType=CHAR},
+	#{adv.url,jdbcType=VARCHAR},
+	#{adv.ship_service_level,jdbcType=VARCHAR},
+	#{adv.sku,jdbcType=CHAR},
+	#{adv.asin,jdbcType=CHAR},
+	#{adv.item_status,jdbcType=CHAR},
+	#{adv.quantity,jdbcType=INTEGER},
+	#{adv.currency,jdbcType=CHAR},
+	#{adv.item_price,jdbcType=DECIMAL},
+	#{adv.item_tax,jdbcType=DECIMAL},
+	#{adv.shipping_price,jdbcType=DECIMAL},
+	#{adv.shipping_tax,jdbcType=DECIMAL},
+	#{adv.gift_wrap_price,jdbcType=DECIMAL},
+	#{adv.gift_wrap_tax,jdbcType=DECIMAL},
+	#{adv.item_promotion_discount,jdbcType=DECIMAL},
+	#{adv.ship_promotion_discount,jdbcType=DECIMAL},
+	#{adv.ship_city,jdbcType=VARCHAR},
+	#{adv.ship_state,jdbcType=CHAR},
+	#{adv.ship_postal_code,jdbcType=CHAR},
+	#{adv.ship_country,jdbcType=CHAR},
+	#{adv.promotion_ids,jdbcType=VARCHAR},
+	#{adv.is_business_order,jdbcType=CHAR},
+	#{adv.purchase_order_number,jdbcType=CHAR},
+	#{adv.price_designation,jdbcType=CHAR},
+	#{adv.amazonAuthId,jdbcType=BIGINT},
+	#{adv.marketplaceId,jdbcType=CHAR}
+	)
+    </foreach> 
+    </insert>
+
+</mapper>

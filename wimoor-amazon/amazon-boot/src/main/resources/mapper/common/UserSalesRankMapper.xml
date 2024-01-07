@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.common.mapper.UserSalesRankMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.common.pojo.entity.UserSalesRank" >
+    <id column="userid" property="userid" jdbcType="CHAR" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="orderprice" property="orderprice" jdbcType="DECIMAL" />
+    <result column="daytype" property="daytype" jdbcType="INTEGER" />
+    <result column="oldorderprice" property="oldorderprice" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    userid, quantity, orderprice, daytype, oldorderprice
+  </sql>
+  <select  id="findRankByShop" resultType="java.util.Map" parameterType="java.lang.String" >
+  select u.name,p.location,r.*
+    from t_erp_usersales_rank r
+	left join t_userinfo u on r.userid=u.id
+	left join t_picture p on p.id=u.picture
+	where r.daytype= #{daytype,jdbcType=CHAR} and r.shopid=#{shopid,jdbcType=CHAR}
+	order by orderprice desc 
+  </select>
+  <select id="summaryLastDate" resultType="java.util.Date">   select max(createdate) createdate from t_erp_usersales_rank </select>
+  <select  id="summaryAllUserSales" resultType="java.util.Map"  parameterType="java.util.Map">
+      delete from t_erp_usersales_rank ;
+      insert into t_erp_usersales_rank
+	  select v1.owner,v1.shop_id,7 daytype,v1.quantity,v1.orderprice,v2.orderprice,NOW()
+	  from
+		  (select  a.shop_id,ifnull(m.owner,0) owner,SUM(vs.quantity) quantity,SUM(vs.orderprice) orderprice
+			FROM (
+			SELECT  
+			s.amazonAuthId,s.marketplaceid,s.sku,
+			sum(s.quantity) quantity,
+			sum(
+				case mk.currency
+				    <foreach  collection="currencyrate.entrySet()"  index="key" item="value">
+				        when #{key} then #{value}*ifnull(s.orderprice,0)
+				      </foreach>
+	            ELSE 0  END
+			) orderprice
+		    from t_orders_summary  s
+		    left join t_marketplace mk on mk.marketplaceid=s.marketplaceid
+		    where s.purchase_date >=date_add(curdate(), interval -7 day) 
+		    GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		    ) vs
+		    LEFT  join t_amazon_auth a on a.id=vs.amazonAuthId
+		    left join t_product_info i on i.sku=vs.sku and i.amazonauthid=vs.amazonauthid  and i.marketplaceid=vs.marketplaceid
+		    left join t_product_in_opt o on o.pid=i.id
+		    left join t_erp_material m on  m.sku=ifnull(o.msku,i.sku) and a.shop_id=m.shopid and m.isDelete = 0
+		    group by  a.shop_id,ifnull(m.owner,0)) v1
+	  left join (	 
+	       select  a.shop_id,ifnull(m.owner,0) owner,SUM(vs.quantity) quantity,SUM(vs.orderprice) orderprice
+			FROM (
+			SELECT  
+			s.amazonAuthId,s.marketplaceid,s.sku,
+			sum(s.quantity) quantity,
+			sum(
+				case mk.currency
+				    <foreach  collection="currencyrate.entrySet()"  index="key" item="value">
+				        when #{key} then #{value}*ifnull(s.orderprice,0)
+				      </foreach>
+	            ELSE 0  END
+			) orderprice
+		    from t_orders_summary  s
+		    left join t_marketplace mk on mk.marketplaceid=s.marketplaceid
+	  	    where s.purchase_date &gt;=date_add(curdate(), interval -14 day) 
+			 and s.purchase_date &lt;date_add(curdate(), interval -7 day)
+		    GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		    ) vs
+		    LEFT  join t_amazon_auth a on a.id=vs.amazonAuthId
+		    left join t_product_info i on i.sku=vs.sku and i.amazonauthid=vs.amazonauthid  and i.marketplaceid=vs.marketplaceid
+		    left join t_product_in_opt o on o.pid=i.id
+		    left join t_erp_material m on  m.sku=ifnull(o.msku,i.sku) and a.shop_id=m.shopid and m.isDelete = 0
+		    group by  a.shop_id,ifnull(m.owner,0) )v2 
+	    on v1.shop_id=v2.shop_id and v1.owner=v2.owner
+		union
+		select v1.owner,v1.shop_id,15 daytype,v1.quantity,v1.orderprice,v2.orderprice,NOW()
+		from (
+		    select  a.shop_id,ifnull(m.owner,0) owner,SUM(vs.quantity) quantity,SUM(vs.orderprice) orderprice
+			FROM (
+			SELECT  
+			s.amazonAuthId,s.marketplaceid,s.sku,
+			sum(s.quantity) quantity,
+			sum(
+				case mk.currency
+				    <foreach  collection="currencyrate.entrySet()"  index="key" item="value">
+				        when #{key} then #{value}*ifnull(s.orderprice,0)
+				      </foreach>
+	            ELSE 0  END
+			) orderprice
+		    from t_orders_summary  s
+		    left join t_marketplace mk on mk.marketplaceid=s.marketplaceid
+		    where s.purchase_date >=date_add(curdate(), interval -15 day)
+		    GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		    ) vs
+		    LEFT  join t_amazon_auth a on a.id=vs.amazonAuthId
+		    left join t_product_info i on i.sku=vs.sku and i.amazonauthid=vs.amazonauthid  and i.marketplaceid=vs.marketplaceid
+		    left join t_product_in_opt o on o.pid=i.id
+		    left join t_erp_material m on  m.sku=ifnull(o.msku,i.sku) and a.shop_id=m.shopid and m.isDelete = 0
+		    group by  a.shop_id,ifnull(m.owner,0) ) v1 
+      left join (   
+         select  a.shop_id,ifnull(m.owner,0) owner,SUM(vs.quantity) quantity,SUM(vs.orderprice) orderprice
+			FROM (
+			SELECT  
+			s.amazonAuthId,s.marketplaceid,s.sku,
+			sum(s.quantity) quantity,
+			sum(
+				case mk.currency
+				    <foreach  collection="currencyrate.entrySet()"  index="key" item="value">
+				        when #{key} then #{value}*ifnull(s.orderprice,0)
+				      </foreach>
+	            ELSE 0  END
+			) orderprice
+		    from t_orders_summary  s
+		    left join t_marketplace mk on mk.marketplaceid=s.marketplaceid
+		     where s.purchase_date &lt; date_add(curdate(), interval -15 day) 
+			 and s.purchase_date &gt;=date_add(curdate(), interval -30 day) 
+		    GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		    ) vs
+		    LEFT  join t_amazon_auth a on a.id=vs.amazonAuthId
+		    left join t_product_info i on i.sku=vs.sku and i.amazonauthid=vs.amazonauthid  and i.marketplaceid=vs.marketplaceid
+		    left join t_product_in_opt o on o.pid=i.id
+		    left join t_erp_material m on  m.sku=ifnull(o.msku,i.sku) and a.shop_id=m.shopid and m.isDelete = 0
+		    group by  a.shop_id,ifnull(m.owner,0) 
+		      ) v2 
+      on v1.shop_id=v2.shop_id and v1.owner=v2.owner
+      union
+      select v1.owner,v1.shop_id,30 daytype,v1.quantity,v1.orderprice,v2.orderprice,NOW()
+      from (
+           select  a.shop_id,ifnull(m.owner,0) owner,SUM(vs.quantity) quantity,SUM(vs.orderprice) orderprice
+			FROM (
+			SELECT  
+			s.amazonAuthId,s.marketplaceid,s.sku,
+			sum(s.quantity) quantity,
+			sum(
+				case mk.currency
+				    <foreach  collection="currencyrate.entrySet()"  index="key" item="value">
+				        when #{key} then #{value}*ifnull(s.orderprice,0)
+				      </foreach>
+	            ELSE 0  END
+			) orderprice
+		    from t_orders_summary  s
+		    left join t_marketplace mk on mk.marketplaceid=s.marketplaceid
+		    where s.purchase_date >=date_add(curdate(), interval -30 day)
+		    GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		    ) vs
+		    LEFT  join t_amazon_auth a on a.id=vs.amazonAuthId
+		    left join t_product_info i on i.sku=vs.sku and i.amazonauthid=vs.amazonauthid  and i.marketplaceid=vs.marketplaceid
+		    left join t_product_in_opt o on o.pid=i.id
+		    left join t_erp_material m on  m.sku=ifnull(o.msku,i.sku) and a.shop_id=m.shopid and m.isDelete = 0
+		    group by  a.shop_id,ifnull(m.owner,0) 
+		) v1
+     left join (
+          select a.shop_id,ifnull(m.owner,0) owner,SUM(vs.quantity) quantity,SUM(vs.orderprice) orderprice
+			FROM (
+			SELECT  
+			s.amazonAuthId,s.marketplaceid,s.sku,
+			sum(s.quantity) quantity,
+			sum(
+				case mk.currency
+				    <foreach  collection="currencyrate.entrySet()"  index="key" item="value">
+				        when #{key} then #{value}*ifnull(s.orderprice,0)
+				      </foreach>
+	            ELSE 0  END
+			) orderprice
+		    from t_orders_summary  s
+		    left join t_marketplace mk on mk.marketplaceid=s.marketplaceid
+		    where s.purchase_date &lt; date_add(curdate(), interval -30 day) 
+			 and s.purchase_date &gt;=date_add(curdate(), interval -60 day) 
+		    GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		    ) vs
+		    LEFT  join t_amazon_auth a on a.id=vs.amazonAuthId
+		    left join t_product_info i on i.sku=vs.sku and i.amazonauthid=vs.amazonauthid  and i.marketplaceid=vs.marketplaceid
+		    left join t_product_in_opt o on o.pid=i.id
+		    left join t_erp_material m on  m.sku=ifnull(o.msku,i.sku) and a.shop_id=m.shopid and m.isDelete = 0
+		    group by  a.shop_id,ifnull(m.owner,0) 
+       ) v2
+    on v1.shop_id=v2.shop_id and v1.owner=v2.owner
+  </select>
+  
+  <delete id="deleteAll">
+   delete r from  t_erp_usersales_rank r where r.shopid=#{shopid,jdbcType=CHAR}; 
+  </delete>
+ 
+</mapper>

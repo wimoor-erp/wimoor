@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.assembly.mapper.AssemblyMapper">
+	<resultMap id="BaseResultMap"
+		type="com.wimoor.erp.assembly.pojo.entity.Assembly">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="mainmid" property="mainmid" jdbcType="CHAR" />
+		<result column="submid" property="submid" jdbcType="CHAR" />
+		<result column="subnumber" property="subnumber" jdbcType="CHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, mainmid, submid, subnumber, remark, operator, opttime
+	</sql>
+
+	<select id="findCanAssembly" resultType="java.lang.Integer" parameterType="java.lang.String">
+			SELECT     min(FLOOR(case when canas>ifnull(inv.quantity,0)/(e.units)  then ifnull(inv.quantity,0)/(e.units) ELSE canas END)) amount
+		        FROM (
+				 SELECT e.materialid,
+				      max(e.amount/f.amount) units,
+				      SUM(f.amount-f.amount_handle) canas
+				  from t_erp_assembly_form  f
+				  left join t_erp_assembly_form_entry e on f.id=e.formid
+				  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} and f.shopid=#{shopid,jdbcType=CHAR}
+					   and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))  
+					   and f.ftype='ass'
+					   and f.mainmid=#{materialid,jdbcType=CHAR} 
+				  GROUP BY e.materialid 
+				) e
+				left join t_erp_inventory inv on inv.materialid=e.materialid 	
+				and inv.warehouseid=#{warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+	</select>
+	<select id="selectMainsDetailBySku" resultType="java.util.Map" parameterType="java.lang.String">
+		select distinct a.submid,a.mainmid,a.subnumber,
+		    IFNULL(mp.location,mp.url) mimage,
+		    IFNULL(sp.location,sp.url) simage,
+		    mm.name mname,
+		    mm.sku msku,
+		    sm.name sname,
+			sm.sku ssku ,
+			ifnull(sinv.quantity,0) squantity,
+			ifnull(minv.quantity,0) mquantity
+		from t_erp_assembly a
+		left join t_erp_material mm on mm.id=a.mainmid
+		left join t_erp_material sm on sm.id=a.submid
+		left join t_picture mp on mp.id=mm.image
+		left join t_picture sp on sp.id=mm.image
+		left join t_erp_inventory minv on minv.materialid=a.mainmid  and minv.warehouseid=#{warehouseid,jdbcType=CHAR} 	and minv.status='fulfillable'
+		left join t_erp_inventory sinv on sinv.materialid=a.submid  and sinv.warehouseid=#{warehouseid,jdbcType=CHAR} 	and sinv.status='fulfillable'
+		where mm.sku in 
+            <foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
+				 #{msku,jdbcType=CHAR}
+			</foreach>
+		 and mm.isdelete=0
+		 and mm.shopid= #{shopid,jdbcType=CHAR}
+	</select>	
+	<select id="findCanAssemblyByInventory" resultType="java.lang.Integer" parameterType="java.lang.String">
+		 SELECT 
+	        min(
+	           IFNULL(
+	             (
+			  	  SELECT  SUM(inv.quantity)  
+	              FROM  t_erp_inventory inv 
+	         	  left join t_erp_warehouse w on w.id=inv.warehouseid
+			      WHERE  (w.id=#{warehouseid,jdbcType=CHAR}  or w.parentid=#{warehouseid,jdbcType=CHAR} ) 
+	              AND w.shopid=#{shopid,jdbcType=CHAR}
+	              AND inv.materialid=a.submid  and inv.status='fulfillable'
+			     )
+			  ,0)/a.subnumber
+			  )
+		from t_erp_assembly a
+		left join t_erp_material m on m.id=a.mainmid
+		where mainmid = #{materialid,jdbcType=CHAR}
+		and m.shopid = #{shopid,jdbcType=CHAR}
+		and a.ftype='ass'
+	</select>
+
+	<select id="selectMainBySubid" resultType="java.util.Map" parameterType="java.lang.String">
+		select IFNULL(pic.location,pic.url) image,m.name name, m.color color,ifnull(m.boxnum,0) boxnum,
+			m.sku sku ,m.price price ,c.name supplier,m.delivery_cycle,a.subnumber MOQ,i2.inbound,
+			i2.outbound,i2.fulfillable,a.mainmid 
+		from t_erp_assembly a
+		left join t_erp_material m on a.mainmid = m.id
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_picture pic on m.image=pic.id
+		left join ( select max(shopid) shopid,max(warehouseid) warehouseid,materialid , 
+				      sum( case when  status like 'inbound_%' then quantity else 0 end )  inbound,
+				      sum( case when  status like 'outbound_%' then quantity else 0 end ) outbound,
+				      sum( case when  status='fulfillable' then quantity else 0 end ) fulfillable
+					 from t_erp_inventory 
+					 where shopid=#{shopid,jdbcType=CHAR}
+					 group by materialid
+		 ) i2  on i2.materialid=a.submid  
+		
+		where submid = #{submid,jdbcType=CHAR}
+		and m.isDelete =0
+		ORDER BY m.sku desc
+	</select>
+
+
+	<select id="selectByMainmid" resultType="com.wimoor.erp.assembly.pojo.vo.AssemblyVO" parameterType="java.lang.String">
+		select a.*,IFNULL(pic.location,pic.url) image,m.name mname, m.color mcolor,ifnull(m.boxnum,0) boxnum,
+			m.sku sku ,m.price subprice , m.supplier supplierid,c.name supplier,m.delivery_cycle deliverycycle
+		from t_erp_assembly a
+		left join t_erp_material m on a.submid = m.id
+		left join t_erp_customer c on c.id=m.supplier
+		left join t_picture pic on m.image=pic.id
+		where mainmid = #{mainmid,jdbcType=CHAR} ORDER BY m.sku desc
+	</select>
+	
+	<select id="selectByMainDetailmid" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.submid,a.subnumber,IFNULL(pic.location,pic.url) image,m.name mname,
+			m.sku sku ,ifnull(inv.quantity,0) inventoryqty
+		from t_erp_assembly a
+		left join t_erp_material m on a.submid = m.id
+		left join t_picture pic on m.image=pic.id
+		left join t_erp_inventory inv on inv.materialid=m.id and inv.warehouseid=#{warehouseid,jdbcType=CHAR}
+		and inv.status='fulfillable'
+		where mainmid = #{mainmid,jdbcType=CHAR}
+		 ORDER BY m.sku desc
+	</select>
+
+	<delete id="deleteByMainmid">
+		delete from t_erp_assembly where mainmid = #{mainmid,jdbcType=CHAR}
+	</delete>
+
+	<delete id="deleteIsNull">
+		delete from t_erp_assembly where mainmid is null
+	</delete>
+
+	<select id="selectAssemblySub" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * 
+		from t_erp_assembly t 
+		where t.mainmid=#{mainmid,jdbcType=CHAR} 
+			and t.submid is not null;
+	</select>
+
+</mapper>

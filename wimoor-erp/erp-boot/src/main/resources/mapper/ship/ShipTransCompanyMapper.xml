@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipTransCompanyMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipTransCompany" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="simplename" property="simplename" jdbcType="VARCHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="access_token" property="accessToken" jdbcType="CHAR" />
+    <result column="api" property="api" jdbcType="INTEGER" />
+  </resultMap>
+  <select id="findByCondition" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  		 select tt.id,tt.name,tt.simplename,tt.shopid,u.name operator,tt.opttime ,tt.access_token,tt.api,tt.uploadpath
+  		    from t_erp_ship_transcompany tt 
+ 			left join t_userinfo u on u.id=tt.operator
+ 			where tt.shopid=#{shopid,jdbcType=CHAR} and tt.isdelete=#{isdelete,jdbcType=CHAR}
+  			<if test="search!=null">
+  				and (tt.name like #{search,jdbcType=CHAR} or tt.simplename like #{search,jdbcType=CHAR})
+  			</if>
+   </select>
+   
+   <select id="findAllByCondition" resultType="java.util.Map" parameterType="java.lang.String" >
+          		select tt.id,tt.name,tt.simplename,tt.shopid,u.name operator,td.opttime, td.channame,td.pretime,td.price,m.`name` marketname,td.subarea,
+		  		td.priceunits,td.drate,td.cbmrate,tp.name transtype,td.remark,c.name channeltype
+					from 
+					 <if test="mydate==null">
+		 			  t_erp_ship_transdetail td 
+		 			 </if>
+					 <if test="mydate!=null">
+		 			  (select h.* from t_erp_ship_transdetail_his h
+		 			           inner join (select id,max(opttime) opttime from 
+		 			           t_erp_ship_transdetail_his 
+		 			           where opttime&lt;#{mydate,jdbcType=CHAR}
+		 			           group by id ) v on v.opttime=h.opttime and v.id=h.id
+		 			 ) td  
+		 			 </if>
+					left join t_erp_ship_transcompany tt on tt.id=td.company 
+		 			left join t_userinfo u on u.id=td.operator 
+					left join t_marketplace m on td.marketplaceid=m.marketplaceId 
+					left join t_erp_transtype tp on tp.id=td.transtype
+					left join t_erp_ship_transchannel c on c.id=td.channel
+		 			where tt.shopid=#{shopid,jdbcType=CHAR}
+		 			<if test="mydate==null">
+		 			   and td.disabled=0
+		 			 </if>
+		  			<if test="search!=null">
+		  				and (tt.name like #{search,jdbcType=CHAR} or tt.simplename like #{search,jdbcType=CHAR})
+		  			</if>
+   </select>
+   
+    <select id="findBylimit" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  		 select tt.id,tt.name,tt.simplename,tt.shopid,u.name operator,tt.opttime from t_erp_ship_transcompany tt 
+ 			left join t_userinfo u on u.id=tt.operator
+ 			where tt.shopid=#{shopid,jdbcType=CHAR}
+  			limit 4
+   </select>
+   
+   <select id="findByCompanyId" resultType="com.wimoor.erp.ship.pojo.entity.ShipTransDetail" parameterType="java.lang.String">
+   select s.*,m.name mname,c.name cname,ty.name tname,
+          case when s.priceunits='volume' then '体积(m3)' else '重量(kg)' end priceu,c.name channeltype
+    from  t_erp_ship_transcompany  t 
+	left join t_erp_ship_transdetail s on s.company=t.id
+	left join t_marketplace m on m.marketplaceId=s.marketplaceid
+	left join t_erp_ship_transchannel c on c.id=s.channel
+	left join t_erp_transtype ty on ty.id=s.transtype
+	where t.id=#{comid,jdbcType=CHAR} and s.disabled=0
+	order by m.findex
+   </select>
+  <select id="findDisabledByCompanyId" resultType="com.wimoor.erp.ship.pojo.entity.ShipTransDetail" parameterType="java.lang.String">
+   select s.*,m.name mname,c.name cname,ty.name tname,
+          case when s.priceunits='volume' then '体积(m3)' else '重量(kg)' end priceu,c.name channeltype
+    from  t_erp_ship_transcompany  t 
+	left join t_erp_ship_transdetail s on s.company=t.id
+	left join t_marketplace m on m.marketplaceId=s.marketplaceid
+	left join t_erp_ship_transchannel c on c.id=s.channel
+	left join t_erp_transtype ty on ty.id=s.transtype
+	where t.id=#{comid,jdbcType=CHAR} and s.disabled=1
+	order by m.findex
+   </select>
+   <select id="selectBycom" parameterType="java.lang.String" resultType="java.util.Map">
+   select s.id,concat(case when s.subarea is null or s.subarea=''  then '' else concat(s.subarea,'-') end,
+                      case when ts.name is null  then '' else concat(ts.name,'-') end ,
+                      case when c.name is null then '' else concat(c.name,'-') end ,s.channame) channame ,
+                   s.price,
+                   s.drate,
+                   s.pretime,
+                   s.priceunits
+    from t_erp_ship_transcompany t 
+	left join t_erp_ship_transdetail s on s.company=t.id
+	left join t_erp_ship_transchannel c on c.id=s.channel
+	left join t_erp_transtype ts on ts.id=s.transtype
+	where t.id=#{company,jdbcType=CHAR} 
+	and t.shopid=#{shopid,jdbcType=CHAR} 
+	and s.disabled=0
+	<if test="marketplaceid != null">
+		and s.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	</if>
+	<if test="transtype != null">
+		and s.transtype=#{transtype,jdbcType=CHAR}
+	</if>
+   </select>
+   <select id="selectBychannel" parameterType="java.lang.String" resultType="java.util.Map">
+   		 select s.id,s.company,s.channame,s.price,sum(s.pretime) needday,s.priceunits 
+    from t_erp_ship_transcompany t 
+	left join t_erp_ship_transdetail s on s.company=t.id
+	where t.id=#{company,jdbcType=CHAR} and s.id=#{channel,jdbcType=CHAR} and s.disabled=0
+	<if test="marketplaceid != null">
+	and s.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	</if>
+	<if test="transtype != null">
+	and s.transtype=#{transtype,jdbcType=CHAR}
+	</if>	
+   </select>
+   
+   <select id="findListItem"  resultType="com.wimoor.erp.ship.pojo.entity.ShipTransDetail" parameterType="java.util.Map">
+   		select t.*,co.name cname,ty.name tname,tk.name market,info.name optname ,tst.name channeltype
+   		from t_erp_ship_transdetail t
+   		left join t_erp_ship_transcompany co on co.id=t.company
+   		left join t_erp_transtype ty on ty.id=t.transtype
+   		left join t_marketplace tk on tk.marketplaceid=t.marketplaceid
+   		left join t_erp_ship_transchannel tst on tst.id=t.channel
+   		left join t_userinfo info on info.id=t.operator
+   		where co.shopid=#{shopid,jdbcType=CHAR}	and t.disabled=0
+   		and t.price>0
+   		<if test="marketplaceid!=null">
+			 and t.marketplaceid =#{marketplaceid,jdbcType=CHAR}		
+   		</if>
+   		<if test="transtype!=null">
+			 and t.transtype =#{transtype,jdbcType=CHAR}	   		
+   		</if>
+   		<if test="priceunits!=null">
+			 and t.priceunits =#{priceunits,jdbcType=CHAR}		
+   		</if>
+   		<if test="company!=null">
+			 and t.company =#{company,jdbcType=CHAR}		
+   		</if>
+   		<if test="search!=null">
+			 and (t.channame  like #{search,jdbcType=CHAR} or t.remark like #{search,jdbcType=CHAR})		
+   		</if>
+   </select>
+   <select id="getCompanyTranstypeList"  resultMap="BaseResultMap" parameterType="java.util.Map" >
+	   	SELECT  t.* FROM t_erp_ship_transcompany t
+		LEFT JOIN t_erp_ship_transdetail s ON t.id=s.company 
+		WHERE t.isdelete=0 AND s.transtype=#{transtype,jdbcType=CHAR}
+		and s.marketplaceid =#{marketplaceid,jdbcType=CHAR}
+		AND t.shopid=#{shopid,jdbcType=CHAR} and s.disabled=0
+		GROUP BY t.id
+   </select>
+ <!--  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipTransCompany" >
+    insert into t_erp_ship_transcompany (id, name, simplename, 
+      shopid, operator, opttime
+      )
+    values (#{id,jdbcType=CHAR}, #{name,jdbcType=VARCHAR}, #{simplename,jdbcType=VARCHAR}, 
+      #{shopid,jdbcType=CHAR}, #{operator,jdbcType=CHAR}, #{opttime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipTransCompany" >
+    insert into t_erp_ship_transcompany
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="simplename != null" >
+        simplename,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="simplename != null" >
+        #{simplename,jdbcType=VARCHAR},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

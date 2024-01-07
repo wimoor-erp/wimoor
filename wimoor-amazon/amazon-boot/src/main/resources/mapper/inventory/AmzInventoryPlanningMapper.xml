@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inventory.mapper.AmzInventoryPlanningMapper">
+
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.AmzInventoryPlanning">
+        <result column="snapshot_date" property="snapshotDate" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="sku" property="sku" />
+        <result column="fnsku" property="fnsku" />
+        <result column="asin" property="asin" />
+        <result column="condition" property="condition" />
+        <result column="available" property="available" />
+        <result column="pending_removal_quantity" property="pendingRemovalQuantity" />
+        <result column="currency" property="currency" />
+        <result column="inv_age_0_to_90_days" property="invAge0To90Days" />
+        <result column="inv_age_91_to_180_days" property="invAge91To180Days" />
+        <result column="inv_age_181_to_270_days" property="invAge181To270Days" />
+        <result column="inv_age_271_to_365_days" property="invAge271To365Days" />
+        <result column="inv_age_365_plus_days" property="invAge365PlusDays" />
+        <result column="qty_to_be_charged_ltsf_11_mo" property="qtyToBeChargedLtsf11Mo" />
+        <result column="projected_ltsf_11_mo" property="projectedLtsf11Mo" />
+        <result column="qty_to_be_charged_ltsf_12_mo" property="qtyToBeChargedLtsf12Mo" />
+        <result column="estimated_ltsf_next_charge" property="estimatedLtsfNextCharge" />
+        <result column="units_shipped_t7" property="unitsShippedT7" />
+        <result column="units_shipped_t30" property="unitsShippedT30" />
+        <result column="units_shipped_t60" property="unitsShippedT60" />
+        <result column="units_shipped_t90" property="unitsShippedT90" />
+        <result column="alert" property="alert" />
+        <result column="your_price" property="yourPrice" />
+        <result column="sales_price" property="salesPrice" />
+        <result column="lowest_price_new_plus_shipping" property="lowestPriceNewPlusShipping" />
+        <result column="lowest_price_used" property="lowestPriceUsed" />
+        <result column="recommended_action" property="recommendedAction" />
+        <result column="healthy_inventory_level" property="healthyInventoryLevel" />
+        <result column="recommended_sales_price" property="recommendedSalesPrice" />
+        <result column="recommended_sale_duration_days" property="recommendedSaleDurationDays" />
+        <result column="recommended_removal_quantity" property="recommendedRemovalQuantity" />
+        <result column="estimated_cost_savings_of_recommended_actions" property="estimatedCostSavingsOfRecommendedActions" />
+        <result column="sell_through" property="sellThrough" />
+        <result column="item_volume" property="itemVolume" />
+        <result column="volume_unit_measurement" property="volumeUnitMeasurement" />
+        <result column="storage_type" property="storageType" />
+        <result column="storage_volume" property="storageVolume" />
+        <result column="countrycode" property="countrycode" />
+        <result column="product_group" property="productGroup" />
+        <result column="sales_rank" property="salesRank" />
+        <result column="days_of_supply" property="daysOfSupply" />
+        <result column="estimated_excess_quantity" property="estimatedExcessQuantity" />
+        <result column="weeks_of_cover_t30" property="weeksOfCoverT30" />
+        <result column="weeks_of_cover_t90" property="weeksOfCoverT90" />
+        <result column="featuredoffer_price" property="featuredofferPrice" />
+        <result column="sales_shipped_last_7_days" property="salesShippedLast7Days" />
+        <result column="sales_shipped_last_30_days" property="salesShippedLast30Days" />
+        <result column="sales_shipped_last_60_days" property="salesShippedLast60Days" />
+        <result column="sales_shipped_last_90_days" property="salesShippedLast90Days" />
+        <result column="inv_age_0_to_30_days" property="invAge0To30Days" />
+        <result column="inv_age_31_to_60_days" property="invAge31To60Days" />
+        <result column="inv_age_61_to_90_days" property="invAge61To90Days" />
+        <result column="inv_age_181_to_330_days" property="invAge181To330Days" />
+        <result column="inv_age_331_to_365_days" property="invAge331To365Days" />
+        <result column="estimated_storage_cost_next_month" property="estimatedStorageCostNextMonth" />
+        <result column="inbound_quantity" property="inboundQuantity" />
+        <result column="inbound_working" property="inboundWorking" />
+        <result column="inbound_shipped" property="inboundShipped" />
+        <result column="inbound_received" property="inboundReceived" />
+        <result column="no_sale_last_6_months" property="noSaleLast6Months" />
+        <result column="reserved_quantity" property="reservedQuantity" />
+        <result column="unfulfillable_quantity" property="unfulfillableQuantity" />
+    </resultMap>
+
+    <select id="selectPageList"  parameterType="com.wimoor.amazon.inventory.pojo.dto.InventoryPlanningDTO" resultType="com.wimoor.amazon.inventory.pojo.vo.AmzInventoryPlanningVo">
+   		SELECT 
+		       t.snapshot_date snapshotDate,
+		       t.amazonauthid amazonauthid ,
+		       ifnull(opt.msku,t.sku) msku,
+		       t.sku sku ,
+		       t.fnsku fnsku ,
+		       t.`asin` `asin` ,
+		       t.`condition` `condition` ,
+		       t.available available ,
+		       pending_removal_quantity pendingRemovalQuantity ,
+		       t.currency currency ,
+		       inv_age_0_to_90_days invAge0To90Days ,
+		       inv_age_91_to_180_days invAge91To180Days ,
+		       inv_age_181_to_270_days invAge181To270Days ,
+		       inv_age_271_to_365_days invAge271To365Days ,
+		       inv_age_365_plus_days invAge365PlusDays ,
+		       qty_to_be_charged_ltsf_11_mo qtyToBeChargedLtsf11Mo ,
+		       projected_ltsf_11_mo projectedLtsf11Mo ,
+		       qty_to_be_charged_ltsf_12_mo qtyToBeChargedLtsf12Mo ,
+		       case when countrycode='US' then
+		               ifnull(estimated_ais_181_210_days,0)+ 
+					   ifnull(estimated_ais_211_240_days,0)+ 
+					   ifnull(estimated_ais_241_270_days,0)+ 
+					   ifnull(estimated_ais_271_300_days,0)+ 
+					   ifnull(estimated_ais_301_330_days,0)+ 
+					   ifnull(estimated_ais_331_365_days,0)+ 
+					   ifnull(estimated_ais_365_plus_days,0)
+		       else estimated_ltsf_next_charge end  estimatedLtsfNextCharge ,
+		       units_shipped_t7 unitsShippedT7 ,
+		       units_shipped_t30 unitsShippedT30 ,
+		       units_shipped_t60 unitsShippedT60 ,
+		       units_shipped_t90 unitsShippedT90 ,
+		       alert alert ,
+		       your_price yourPrice ,
+		       sales_price salesPrice ,
+		       lowest_price_new_plus_shipping lowestPriceNewPlusShipping ,
+		       lowest_price_used lowestPriceUsed ,
+		       recommended_action recommendedAction ,
+		       healthy_inventory_level healthyInventoryLevel ,
+		       recommended_sales_price recommendedSalesPrice ,
+		       recommended_sale_duration_days recommendedSaleDurationDays ,
+		       recommended_removal_quantity recommendedRemovalQuantity ,
+		       estimated_cost_savings_of_recommended_actions estimatedCostSavingsOfRecommendedActions ,
+		       sell_through sellThrough ,
+		       item_volume itemVolume ,
+		       volume_unit_measurement volumeUnitMeasurement ,
+		       storage_type storageType ,
+		       storage_volume storageVolume ,
+		       countrycode countrycode ,
+		       product_group productGroup ,
+		       sales_rank salesRank ,
+		       days_of_supply daysOfSupply ,
+		       estimated_excess_quantity estimatedExcessQuantity ,
+		       weeks_of_cover_t30 weeksOfCoverT30 ,
+		       weeks_of_cover_t90 weeksOfCoverT90 ,
+		       featuredoffer_price featuredofferPrice ,
+		       sales_shipped_last_7_days salesShippedLast7Days ,
+		       sales_shipped_last_30_days salesShippedLast30Days ,
+		       sales_shipped_last_60_days salesShippedLast60Days ,
+		       sales_shipped_last_90_days salesShippedLast90Days ,
+		       inv_age_0_to_30_days invAge0To30Days ,
+		       inv_age_31_to_60_days invAge31To60Days ,
+		       inv_age_61_to_90_days invAge61To90Days ,
+		       inv_age_181_to_330_days invAge181To330Days ,
+		       inv_age_331_to_365_days invAge331To365Days ,
+		       
+		       quantity_to_be_charged_ais_181_210_days quantityToBeChargedAis181T210Days,
+			   quantity_to_be_charged_ais_211_240_days quantityToBeChargedAis211T240Days, 
+			   quantity_to_be_charged_ais_241_270_days quantityToBeChargedAis241T270Days, 
+			   quantity_to_be_charged_ais_271_300_days quantityToBeChargedAis271T300Days,
+			   quantity_to_be_charged_ais_301_330_days quantityToBeChargedAis301T330Days,
+			   quantity_to_be_charged_ais_331_365_days quantityToBeChargedAis331T365Days, 
+			   quantity_to_be_charged_ais_365_plus_days quantityToBeChargedAis365PlusDays,
+			
+			   estimated_ais_181_210_days estimatedAis181T210Days,
+			   estimated_ais_211_240_days estimatedAis211T240Days,
+			   estimated_ais_241_270_days estimatedAis241T270Days,
+			   estimated_ais_271_300_days estimatedAis271T300Days, 
+			   estimated_ais_301_330_days estimatedAis301T330Days,
+			   estimated_ais_331_365_days estimatedAis331T365Days,
+			   estimated_ais_365_plus_days estimatedAis365PlusDays,
+
+		       estimated_storage_cost_next_month estimatedStorageCostNextMonth ,
+		       inbound_quantity inboundQuantity ,
+		       inbound_working inboundWorking ,
+		       inbound_shipped inboundShipped ,
+		       inbound_received inboundReceived ,
+		       no_sale_last_6_months noSaleLast6Months ,
+		       reserved_quantity reservedQuantity ,
+		       unfulfillable_quantity unfulfillableQuantity ,
+               g.name gname,m.name market,i.name pname,
+               i.price price,ifnull(p.location,p.url) image,
+               ma.name skuname, u.name owner
+        FROM t_amz_inventory_planning t
+		LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		left join t_marketplace m on m.market=t.countrycode
+		left join t_product_info i on i.amazonAuthId=a.id and i.marketplaceid=m.marketplaceId and i.sku=t.sku
+		left join t_picture p on p.id=i.image
+		left join t_product_in_opt opt on opt.pid=i.id 
+		left join t_erp_material ma on ma.sku=ifnull(opt.msku,i.sku)  and ma.shopid=a.shop_id
+		left join t_userinfo u on u.id=ma.owner
+		WHERE a.shop_id=#{param.shopid,jdbcType=CHAR}
+		<if test="param.groupid!=null and param.groupid!=''">
+		  AND  g.id=#{param.groupid,jdbcType=CHAR} 
+		</if>
+		<if test="param.marketplaceid!=null and param.marketplaceid!=''">
+		   AND m.marketplaceId=#{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null and param.search!=''">
+		   and t.sku like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.owner!=null and param.owner!=''">
+		   and opt.owner = #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.field !=null and param.field !=''">
+		   and ${param.field}>0
+		</if>
+    </select> 
+    
+    
+
+			
+    <select id="selectPageListSummary"  parameterType="com.wimoor.amazon.inventory.pojo.dto.InventoryPlanningDTO" resultType="com.wimoor.amazon.inventory.pojo.vo.AmzInventoryPlanningVo">
+   		SELECT max(t.currency) currency, 
+		       sum(t.available) available ,
+		       sum(pending_removal_quantity) pendingRemovalQuantity ,
+		       sum(inv_age_0_to_90_days) invAge0To90Days ,
+		       sum(inv_age_91_to_180_days) invAge91To180Days ,
+		       sum(inv_age_181_to_270_days) invAge181To270Days ,
+		       sum(inv_age_271_to_365_days) invAge271To365Days ,
+		       sum(inv_age_365_plus_days) invAge365PlusDays ,
+		       sum(qty_to_be_charged_ltsf_11_mo) qtyToBeChargedLtsf11Mo ,
+		       sum(projected_ltsf_11_mo) projectedLtsf11Mo ,
+		       sum(qty_to_be_charged_ltsf_12_mo) qtyToBeChargedLtsf12Mo ,
+		       sum( case when countrycode='US' then
+		               ifnull(estimated_ais_181_210_days,0)+ 
+					   ifnull(estimated_ais_211_240_days,0)+ 
+					   ifnull(estimated_ais_241_270_days,0)+ 
+					   ifnull(estimated_ais_271_300_days,0)+ 
+					   ifnull(estimated_ais_301_330_days,0)+ 
+					   ifnull(estimated_ais_331_365_days,0)+ 
+					   ifnull(estimated_ais_365_plus_days,0)
+		            else estimated_ltsf_next_charge end
+		       ) estimatedLtsfNextCharge ,
+		       sum(units_shipped_t7) unitsShippedT7 ,
+		       sum(units_shipped_t30) unitsShippedT30 ,
+		       sum(units_shipped_t60) unitsShippedT60 ,
+		       sum(units_shipped_t90) unitsShippedT90 ,
+		       sum(estimated_excess_quantity) estimatedExcessQuantity ,
+		       sum(weeks_of_cover_t30) weeksOfCoverT30 ,
+		       sum(weeks_of_cover_t90) weeksOfCoverT90 ,
+		       sum(sales_shipped_last_7_days)  salesShippedLast7Days ,
+		       sum(sales_shipped_last_30_days) salesShippedLast30Days ,
+		       sum(sales_shipped_last_60_days) salesShippedLast60Days ,
+		       sum(sales_shipped_last_90_days) salesShippedLast90Days ,
+		       sum(inv_age_0_to_30_days) invAge0To30Days ,
+		       sum(inv_age_31_to_60_days) invAge31To60Days ,
+		       sum(inv_age_61_to_90_days) invAge61To90Days ,
+		       sum(inv_age_181_to_330_days) invAge181To330Days ,
+		       sum(inv_age_331_to_365_days) invAge331To365Days ,
+		       sum(estimated_storage_cost_next_month) estimatedStorageCostNextMonth ,
+		       sum(inbound_quantity) inboundQuantity ,
+		       sum(inbound_working) inboundWorking ,
+		       sum(inbound_shipped) inboundShipped ,
+		       sum(inbound_received) inboundReceived ,
+		       sum(no_sale_last_6_months) noSaleLast6Months ,
+		       sum(reserved_quantity) reservedQuantity ,
+		       sum(unfulfillable_quantity) unfulfillableQuantity ,
+		       sum(quantity_to_be_charged_ais_181_210_days) quantityToBeChargedAis181T210Days,
+			   sum(quantity_to_be_charged_ais_211_240_days) quantityToBeChargedAis211T240Days, 
+			   sum(quantity_to_be_charged_ais_241_270_days) quantityToBeChargedAis241T270Days, 
+			   sum(quantity_to_be_charged_ais_271_300_days) quantityToBeChargedAis271T300Days,
+			   sum(quantity_to_be_charged_ais_301_330_days) quantityToBeChargedAis301T330Days,
+			   sum(quantity_to_be_charged_ais_331_365_days) quantityToBeChargedAis331T365Days, 
+			   sum(quantity_to_be_charged_ais_365_plus_days) quantityToBeChargedAis365PlusDays,
+			
+			   sum(estimated_ais_181_210_days) estimatedAis181T210Days,
+			   sum(estimated_ais_211_240_days) estimatedAis211T240Days,
+			   sum(estimated_ais_241_270_days) estimatedAis241T270Days,
+			   sum(estimated_ais_271_300_days) estimatedAis271T300Days, 
+			   sum(estimated_ais_301_330_days) estimatedAis301T330Days,
+			   sum(estimated_ais_331_365_days) estimatedAis331T365Days,
+			   sum(estimated_ais_365_plus_days) estimatedAis365PlusDays
+        FROM t_amz_inventory_planning t
+		LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		left join t_marketplace m on m.market=t.countrycode
+		left join t_product_info i on i.amazonAuthId=a.id and i.marketplaceid=m.marketplaceId and i.sku=t.sku
+		left join t_picture p on p.id=i.image
+		left join t_product_in_opt opt on opt.pid=i.id 
+		left join t_erp_material ma on ma.sku=ifnull(opt.msku,i.sku)  and ma.shopid=a.shop_id
+		left join t_userinfo u on u.id=ma.owner
+		WHERE a.shop_id=#{param.shopid,jdbcType=CHAR}
+		<if test="param.groupid!=null and param.groupid!=''">
+		  AND  g.id=#{param.groupid,jdbcType=CHAR} 
+		</if>
+		<if test="param.marketplaceid!=null and param.marketplaceid!=''">
+		   AND m.marketplaceId=#{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null and param.search!=''">
+		   and t.sku like #{param.search,jdbcType=CHAR}
+		</if>
+		<if test="param.owner!=null and param.owner!=''">
+		   and opt.owner = #{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.field !=null and param.field !=''">
+		   and ${param.field}>0
+		</if>
+    </select> 
+</mapper>

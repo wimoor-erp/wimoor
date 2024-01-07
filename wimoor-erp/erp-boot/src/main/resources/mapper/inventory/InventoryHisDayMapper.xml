@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.inventory.mapper.InventoryHisDayMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.inventory.pojo.entity.InventoryHisDay" >
+    <id column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <id column="shopid" property="shopid" jdbcType="CHAR" />
+    <id column="materialid" property="materialid" jdbcType="CHAR" />
+    <id column="status" property="status" jdbcType="CHAR" />
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="modifyday" property="modifyday" jdbcType="DATE" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  
+	<select id="getInvDayDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select 
+             max(m.sku) sku, 
+             max(m.name) mname, 
+			 max(p.location) image,
+			 max(w.name) warehouse
+			 <if test="param.fieldlist != null">
+				,
+				<foreach collection="param.fieldlist" item="str" index="i" open=" " separator="," close=" ">
+					<if test="str != null">
+						sum(case when h.byday =#{str,jdbcType=CHAR} then ifnull(h.fulfillable,0) else 0 end ) #{str,jdbcType=CHAR}
+					</if>
+				</foreach>
+			</if>
+        from  t_erp_material m
+		left join t_erp_inventory_his_day h on m.id=h.materialid and m.shopid=h.shopid
+		left join t_erp_warehouse w on w.id=h.warehouseid  and w.shopid=h.shopid
+		left join t_picture p on p.id=m.image
+		WHERE   m.isDelete=0 and h.shopid=#{param.shopid,jdbcType=CHAR} 
+		    <if test="param.warehouse != null">
+			   and h.warehouseid=#{param.warehouse,jdbcType=CHAR}
+		    </if>
+		    and h.byday >=#{param.beginDate,jdbcType=CHAR}
+			and h.byday &lt;=#{param.endDate,jdbcType=CHAR}
+		<if test="param.myself != null">
+			and m.owner = #{param.myself,jdbcType=CHAR}
+		</if>
+		 <if test="param.sku != null">
+			and m.sku like #{param.sku,jdbcType=CHAR}
+		</if>
+		group by h.shopid,h.materialid,h.warehouseid
+	</select>
+
+	<select id="getInvDayTotal" parameterType="java.util.Map" resultType="java.util.Map">
+		select count(h.materialid) skunum,
+			 <if test="fieldlist != null">
+				<foreach collection="fieldlist" item="str" index="i" open=" " separator="," close=" ">
+					<if test="str != null">
+						sum(case when h.byday =#{str,jdbcType=CHAR} then ifnull(h.fulfillable,0) else 0 end ) #{str,jdbcType=CHAR}
+					</if>
+				</foreach>
+			</if>
+        from  t_erp_inventory_his_day h
+		left join t_erp_warehouse w on w.id=h.warehouseid  and w.shopid=h.shopid
+		left join t_erp_material m on m.id=h.materialid and m.shopid=h.shopid
+		left join t_picture p on p.id=m.image
+		WHERE   m.isDelete=0 and h.shopid=#{shopid,jdbcType=CHAR} 
+		    <if test="warehouse != null">
+			   and h.warehouseid=#{warehouse,jdbcType=CHAR}
+		    </if>
+		    and h.byday >=#{beginDate,jdbcType=CHAR}
+			and h.byday &lt;=#{endDate,jdbcType=CHAR}
+		<if test="myself != null">
+			and m.owner = #{myself,jdbcType=CHAR}
+		</if>
+		 <if test="sku != null">
+			and m.sku like #{sku,jdbcType=CHAR}
+		</if>
+	</select>
+	
+  <select id="findInvDayList" resultType="java.util.Map" parameterType="java.util.Map">
+  	SELECT 
+  	DATE_FORMAT (t.byday, '%Y-%m-%d')  byday,
+  	SUM(t.inbound) inbound,
+  	SUM(t.fulfillable) fulfillable,
+  	SUM(t.outbound) outbound 
+  	FROM t_erp_inventory_his_day t 
+	WHERE t.materialid=#{materialid,jdbcType=CHAR}
+	and t.shopid=#{shopid,jdbcType=CHAR}
+	<if test="warehouseid!=null and warehouseid!=''">
+		and t.warehouseid=#{warehouseid,jdbcType=CHAR}
+	</if>
+	AND t.byday=#{fromDate,jdbcType=CHAR}   
+	union all
+	SELECT 
+  	DATE_FORMAT (t.byday, '%Y-%m-%d')  byday,
+  	SUM(t.inbound) inbound,
+  	SUM(t.fulfillable) fulfillable,
+  	SUM(t.outbound) outbound 
+  	FROM t_erp_inventory_his_day t 
+	WHERE t.materialid=#{materialid,jdbcType=CHAR}
+	and t.shopid=#{shopid,jdbcType=CHAR}
+	<if test="warehouseid!=null and warehouseid!=''">
+		and t.warehouseid=#{warehouseid,jdbcType=CHAR}
+	</if>
+	AND  t.byday =#{toDate,jdbcType=CHAR} 
+  </select>
+ 
+	<insert id="summaryInvEveryDay" parameterType="java.lang.String">
+	  replace into t_erp_inventory_his_day(shopid,warehouseid,materialid,byday,inbound,fulfillable,outbound,operator,opttime)
+		SELECT* FROM (
+		select iv.shopid,iv.warehouseid,iv.materialid,#{byday,jdbcType=CHAR} `byday` ,
+		      	sum(case when   POSITION('inbound' IN iv.`status` )
+					then iv.quantity else 0 end ) inbound,
+					sum(case when (iv.`status`='fulfillable') 
+					then iv.quantity else 0 end) fulfillable,
+					sum(case when POSITION('outbound' IN iv.`status`)
+					then iv.quantity else 0 end) outbound,
+				   MAX(iv.operator) operator,
+				   MAX(iv.opttime) opttime
+					FROM ( 
+						SELECT his.* 
+						FROM t_erp_inventory_his his
+						INNER JOIN
+						(
+							SELECT h.shopid,h.warehouseid,h.materialid,h.`status`,max(modifyday) modifyday 
+							FROM t_erp_inventory_his h 
+							WHERE h.modifyday&lt;=#{endday,jdbcType=CHAR}
+							 	and h.modifyday>date_sub(now(),interval 2 year)
+							GROUP BY h.shopid,h.warehouseid,h.materialid,h.`status`
+						) v on v.shopid=his.shopid and v.warehouseid=his.warehouseid AND
+							v.materialid=his.materialid and v.`status`=his.`status` AND v.modifyday=his.modifyday
+					) iv
+				group by iv.shopid,iv.warehouseid,iv.materialid
+				) hisv
+				WHERE hisv.inbound>0 or hisv.fulfillable>0 or hisv.outbound>0
+	</insert>
+</mapper>

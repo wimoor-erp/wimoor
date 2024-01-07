@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sb.dao.AmzAdvCampaignsHsaMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sb.pojo.AmzAdvCampaignsHsa">
+		<id column="campaignId" property="campaignid" jdbcType="BIGINT" />
+		<result column="profileid" property="profileid" jdbcType="BIGINT" />
+		<result column="portfolioid" property="portfolioid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="CHAR" />
+		<result column="budgetType" property="budgettype" jdbcType="CHAR" />
+		<result column="budget" property="budget" jdbcType="DECIMAL" />
+		<result column="startDate" property="startdate" jdbcType="DATE" />
+		<result column="endDate" property="enddate" jdbcType="DATE" />
+		<result column="servingStatus" property="servingstatus" jdbcType="CHAR" />
+		<result column="state" property="state" jdbcType="CHAR" />
+		<result column="spendingPolicy" property="spendingpolicy" jdbcType="CHAR" />
+		<result column="bidOptimization" property="bidoptimization" jdbcType="CHAR" />
+		<result column="bidMultiplier" property="bidMultiplier" jdbcType="DECIMAL" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		campaignId, portfolioid, name, budgetType, budget, startDate, endDate, servingStatus, state,
+		spendingPolicy, bidOptimization, bidMultiplier, profileid, opttime
+	</sql>
+	<select id="getIdsByProfile" resultType="java.lang.String"  parameterType="java.math.BigInteger">
+	   select campaignId from t_amz_adv_campaigns_hsa where profileid=#{profileid,jdbcType=BIGINT}
+	</select>
+    <select id="getOldDateSBCampaigns" resultType="java.util.Date"  parameterType="java.math.BigInteger">
+       select min(opttime) from t_amz_adv_campaigns_hsa 
+       where profileid=#{profileid,jdbcType=BIGINT} AND adformat='video' 
+    
+    </select>
+ 
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_campaigns_hsa
+			(campaignId,
+			 profileid,
+			 portfolioid,
+			 name,
+			 budgetType,
+			 budget,
+			 startDate,
+			 endDate,
+			 state,
+			 bidding,
+			 brandEntityId,
+			 goal,
+			 productLocation,
+			 tags,
+			 costType,
+			 smartDefault,
+			 opttime
+			 )
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.campaignid,jdbcType=BIGINT},
+			#{adv.profileid,jdbcType=BIGINT},
+			#{adv.portfolioid,jdbcType=BIGINT},
+			#{adv.name,jdbcType=CHAR},
+			#{adv.budgetType,jdbcType=CHAR},
+			#{adv.budget,jdbcType=DECIMAL},
+			#{adv.startDate,jdbcType=DATE},
+			#{adv.endDate,jdbcType=DATE},
+			#{adv.state,jdbcType=CHAR},
+			#{adv.bidding,jdbcType=CHAR},
+			#{adv.brandEntityId,jdbcType=CHAR},
+			#{adv.goal,jdbcType=CHAR},
+			#{adv.productLocation,jdbcType=CHAR},
+			#{adv.tags,jdbcType=CHAR},
+			#{adv.costType,jdbcType=CHAR},
+		    #{adv.smartDefault,jdbcType=CHAR},
+			#{adv.opttime,jdbcType=TIMESTAMP}
+			)
+		</foreach>
+	</insert>
+
+	<select id="getCampaignBrandDetail" resultType="java.util.Map" parameterType="java.util.Map">
+			select r.campaignId campaignId1,
+				   sum(attributedDetailPageViewsClicks14d) attributedDetailPageViewsClicks14d,
+				   sum(attributedOrdersNewToBrand14d) attributedOrdersNewToBrand14d,
+				   sum(attributedOrdersNewToBrandPercentage14d) attributedOrdersNewToBrandPercentage14d,
+				   sum(attributedOrderRateNewToBrand14d) attributedOrderRateNewToBrand14d,
+				   sum(attributedSalesNewToBrand14d) attributedSalesNewToBrand14d,
+				   sum(attributedSalesNewToBrandPercentage14d) attributedSalesNewToBrandPercentage14d,
+				   sum(attributedUnitsOrderedNewToBrand14d) attributedUnitsOrderedNewToBrand14d,
+				   sum(attributedUnitsOrderedNewToBrandPercentage14d) attributedUnitsOrderedNewToBrandPercentage14d,
+				   sum(unitsSold14d) unitsSold14d,
+				   sum(dpv14d) dpv14d
+			from t_amz_adv_rpt2_hsa_campaigns_brand r
+			where r.bydate &gt;= #{fromDate,jdbcType=DATE} and r.bydate &lt;= #{endDate,jdbcType=DATE}
+             and r.campaignId = #{campaignid,jdbcType=BIGINT}
+			group by r.campaignId
+	</select>
+	
+		<select id="getCampaignVideoDetail" resultType="java.util.Map" parameterType="java.util.Map">
+			select r.campaignId campaignId1,
+		  	        sum(viewableImpressions) viewableImpressions,
+					sum(videoFirstQuartileViews) videoFirstQuartileViews,
+					sum(videoMidpointViews) videoMidpointViews,
+					sum(videoThirdQuartileViews) videoThirdQuartileViews,
+					sum(videoCompleteViews) videoCompleteViews,
+					sum(video5SecondViews) video5SecondViews,
+					sum(video5SecondViewRate) video5SecondViewRate,
+					sum(videoUnmutes)  videoUnmutes,
+					sum(vtr) vtr,
+					sum(vctr) vctr
+			from t_amz_adv_rpt2_hsa_campaigns_video r
+			where r.bydate &gt;= #{fromDate,jdbcType=DATE} and r.bydate &lt;= #{endDate,jdbcType=DATE}
+				and r.campaignId = #{campaignid,jdbcType=BIGINT}
+			group by r.campaignId
+	</select>
+	
+	  <select id="getCampaignPlaceDetail" resultType="java.util.Map" parameterType="java.util.Map">
+			select r.campaignId campaignId1,
+			       r.profileid profileid1,
+			       p.name placement,
+				   sum(r.impressions) impressions,
+				   sum(r.clicks) clicks,
+				   sum(r.cost) cost,
+				   ifnull((sum(r.clicks) / sum(r.impressions)),0) CTR,
+				   ifnull((sum(r.cost) / sum(r.clicks)),0) avgcost,
+				   ifnull(sum(a.attributedSales14d) - sum(a.attributedSales14dSameSKU),0) attributedSales,
+				   sum(a.attributedSales14dSameSKU) attributedSalesSameSKU,
+				   ifnull(sum(a.attributedConversions14d)-sum(a.attributedConversions14dSameSKU),0) attributedConversions,
+				   sum(a.attributedConversions14dSameSKU) attributedConversionsSameSKU,
+				   sum(a.attributedConversions14d) attributedUnitsOrdered,
+				   sum(a.attributedSales14d) sumSales,
+				   sum(a.attributedConversions14d) sumUnits,
+				   ifnull((sum(a.attributedConversions14d) / sum(r.clicks)),0) CSRT,
+				   case when ifnull(sum(r.cost),0)>0 and ifnull(sum(a.attributedSales14d),0)=0 then 10000000000  else ifnull((sum(r.cost) / sum(a.attributedSales14d)),0) end ACOS,
+				   ifnull((sum(a.attributedSales14d) / sum(r.cost)),0) ROAS,
+				   ifnull(sum(a.attributedSales14d) - sum(a.attributedSales14dSameSKU),0) attributedSales14d,
+				   sum(a.attributedSales14dSameSKU) attributedSalesSameSKU14d,
+				   ifnull(sum(a.attributedConversions14d)-sum(a.attributedConversions14dSameSKU),0) attributedConversions14d,
+				   sum(a.attributedConversions14dSameSKU) attributedUnitsOrderedSameSKU14d,
+				   sum(a.attributedConversions14d) attributedUnitsOrdered14d,
+				   sum(a.attributedSales14d) sumSales14d,
+				   sum(a.attributedConversions14d) sumUnits14d,
+				   ifnull((sum(a.attributedConversions14d) / sum(r.clicks)),0) CSRT14d,
+				   case when ifnull(sum(r.cost),0)>0 and ifnull(sum(a.attributedSales14d),0)=0 then 10000000000 else ifnull((sum(r.cost) / sum(a.attributedSales14d)),0) end ACOS14d,
+				   ifnull((sum(a.attributedSales14d) / sum(r.cost)),0) ROAS14d,
+			       sum(attributedDetailPageViewsClicks14d) attributedDetailPageViewsClicks14d,
+				   sum(attributedOrdersNewToBrand14d) attributedOrdersNewToBrand14d,
+				   sum(attributedOrdersNewToBrandPercentage14d) attributedOrdersNewToBrandPercentage14d,
+				   sum(attributedOrderRateNewToBrand14d) attributedOrderRateNewToBrand14d,
+				   sum(attributedSalesNewToBrand14d) attributedSalesNewToBrand14d,
+				   sum(attributedSalesNewToBrandPercentage14d) attributedSalesNewToBrandPercentage14d,
+				   sum(attributedUnitsOrderedNewToBrand14d) attributedUnitsOrderedNewToBrand14d,
+				   sum(attributedUnitsOrderedNewToBrandPercentage14d) attributedUnitsOrderedNewToBrandPercentage14d,
+				   sum(unitsSold14d) unitsSold14d,
+				   sum(dpv14d) dpv14d,
+				   sum(viewableImpressions) viewableImpressions,
+				   sum(videoFirstQuartileViews) videoFirstQuartileViews,
+				   sum(videoMidpointViews) videoMidpointViews,
+				   sum(videoThirdQuartileViews) videoThirdQuartileViews,
+				   sum(videoCompleteViews) videoCompleteViews,
+				   sum(video5SecondViews) video5SecondViews,
+				   sum(video5SecondViewRate) video5SecondViewRate,
+				   sum(videoUnmutes)  videoUnmutes,
+				   sum(vtr) vtr,
+				   sum(vctr) vctr
+			from t_amz_adv_rpt2_hsa_campaigns_place r
+			left join t_amz_adv_rpt2_hsa_campaigns_place_attributed a on a.bydate=r.bydate and a.campaignId=r.campaignId and a.placementid =r.placementid
+			left join t_amz_adv_rpt2_hsa_campaigns_place_brand  b on  b.bydate=r.bydate and b.campaignId=r.campaignId and b.placementid =r.placementid
+			left join t_amz_adv_rpt2_hsa_campaigns_place_video  v on  v.bydate=r.bydate and v.campaignId=r.campaignId and v.placementid =r.placementid
+			left join t_amz_adv_rpt_placement p on p.id=r.placementid
+			where r.bydate &gt;= #{fromDate,jdbcType=DATE} and r.bydate &lt;= #{endDate,jdbcType=DATE}
+			<if test="profileid != null ">
+				and r.profileid = #{profileid,jdbcType=BIGINT}
+			</if>
+			<if test="campaignid != null">
+				and r.campaignId = #{campaignid,jdbcType=BIGINT}
+			</if>
+			group by r.profileid,r.campaignId,r.placementid
+	</select>
+	
+	<select id="getCampaignList" resultType="java.util.Map" parameterType="java.util.Map">
+		select CAST(t.campaignId AS CHAR) campaignId, CAST(t.profileid AS CHAR) profileid,
+			CAST(t.campaignId AS CHAR) id, tg.name groupname,mk.name market,t.name,t.budgetType budgetType,
+			t.budget budget,t.servingStatus servingStatus, t.spendingPolicy spendingPolicy,t.bidOptimization bidOptimization,
+			t.state status,t.startDate startDate,t.endDate endDate, 'HSA' campaignType,t.opttime opttime,tr.iswarn iswarn,
+			a.groupid groupid,tk.remark,p.marketplaceId marketplaceid,v.* , t.bidMultiplier,tr.cycle,tr.fcondition,tr.subtrahend,
+			tr.quota,tr.amount,tps.id portfolioid,tps.name portfoliosName,t.adFormat,t.creative,t.landingPage
+		from t_amz_adv_campaigns_hsa t
+		left join(
+			select r.campaignId campaignId1,r.profileid profileid1,
+				sum(r.impressions) impressions,sum(r.clicks) clicks,sum(r.cost) cost,
+				ifnull((sum(r.clicks) / sum(r.impressions)),0) CTR,
+				ifnull((sum(r.cost) / sum(r.clicks)),0) avgcost,
+		
+				ifnull(sum(a.attributedSales14d) - sum(a.attributedSales14dSameSKU),0) attributedSales,
+				sum(a.attributedSales14dSameSKU) attributedSalesSameSKU,
+				ifnull(sum(a.attributedConversions14d)-sum(a.attributedConversions14dSameSKU),0) attributedConversions,
+				sum(a.attributedConversions14dSameSKU) attributedConversionsSameSKU,
+				sum(a.attributedConversions14d) attributedUnitsOrdered,
+				sum(a.attributedSales14d) sumSales,
+				sum(a.attributedConversions14d) sumUnits,
+				ifnull((sum(a.attributedConversions14d) / sum(r.clicks)),0) CSRT,
+				case when ifnull(sum(r.cost),0)>0 and ifnull(sum(a.attributedSales14d),0)=0
+				then 10000000000
+				else ifnull((sum(r.cost) / sum(a.attributedSales14d)),0)
+				end ACOS,
+				ifnull((sum(a.attributedSales14d) / sum(r.cost)),0) ROAS,
+		
+				ifnull(sum(a.attributedSales14d) - sum(a.attributedSales14dSameSKU),0) attributedSales14d,
+				sum(a.attributedSales14dSameSKU) attributedSalesSameSKU14d,
+				ifnull(sum(a.attributedConversions14d)-sum(a.attributedConversions14dSameSKU),0) attributedConversions14d,
+				sum(a.attributedConversions14dSameSKU) attributedUnitsOrderedSameSKU14d,
+				sum(a.attributedConversions14d) attributedUnitsOrdered14d,
+				sum(a.attributedSales14d) sumSales14d,
+				sum(a.attributedConversions14d) sumUnits14d,
+				ifnull((sum(a.attributedConversions14d) / sum(r.clicks)),0) CSRT14d,
+				case when ifnull(sum(r.cost),0)>0 and ifnull(sum(a.attributedSales14d),0)=0
+				then 10000000000
+				else ifnull((sum(r.cost) / sum(a.attributedSales14d)),0)
+				end ACOS14d,
+				ifnull((sum(a.attributedSales14d) / sum(r.cost)),0) ROAS14d
+			from t_amz_adv_rpt2_hsa_campaigns r
+			left join t_amz_adv_rpt2_hsa_campaigns_attributed a on a.campaignId=r.campaignId and a.bydate=r.bydate
+			where r.bydate &gt;= #{fromDate,jdbcType=DATE} and r.bydate &lt;= #{endDate,jdbcType=DATE}
+			<if test="profileid != null ">
+				and r.profileid = #{profileid,jdbcType=BIGINT}
+			</if>
+			<if test="campaignid != null">
+				and r.campaignId = #{campaignid,jdbcType=BIGINT}
+			</if>
+			group by r.campaignId,r.profileid
+		) v on t.campaignId = v.campaignId1 and t.profileid = v.profileid1
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		left join t_amz_adv_portfolios tps on tps.id = t.portfolioid and tps.profileid = t.profileid
+		left join t_amz_adv_remind tr on t.campaignId = tr.campaignid and p.id = tr.profileid and tr.adgroupid = 0 
+				and tr.keywordid = 0 and tr.adid = 0 and tr.targetid = 0
+		left join t_amz_adv_remark tk on t.campaignId = tk.campaignId and p.id = tk.profileid and tk.adgroupId = 0 
+				and tk.keywordId = 0 and tk.adId = 0 and tk.targetId = 0
+		where a.shopid = #{shopid,jdbcType=CHAR} 
+		<if test="campaignid != null">
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="profileid != null ">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="portfolios != null ">
+			and t.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null ">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null ">
+			and t.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and t.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="paralist != null ">
+			and ${paralist}
+		</if>
+	</select>
+
+	<select id="getCampaignChart" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(v.bydate,'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%m-%d') bydate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(v.bydate) ,'-' ,month(v.bydate)) bydate,
+		</if>
+		<if test="HSAserchlist != null">
+			${HSAserchlist}
+		</if>
+		from t_amz_adv_rpt2_hsa_campaigns v
+		left join t_amz_adv_rpt2_hsa_campaigns_attributed d on d.campaignId=v.campaignId and d.bydate=v.bydate
+		left join t_amz_adv_campaigns_hsa t on t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and v.bydate &gt;= #{fromDate,jdbcType=DATE} and v.bydate &lt;= #{endDate,jdbcType=DATE}
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="portfolios != null ">
+			and t.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and t.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and t.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(v.bydate,'%y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(v.bydate,date_format(v.bydate,'%w')-7),'%y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(v.bydate) ,'-' ,month(v.bydate))
+		</if>
+	</select>
+
+	<select id="getCampaignPlacement" resultType="java.util.Map" parameterType="java.util.Map">
+		select CAST(t.campaignId AS CHAR) campaignId, CAST(t.profileid AS CHAR) profileid,p.name name,
+			sum(t.impressions) impressionsPlacement,sum(t.clicks) clicksPlacement,sum(t.cost) costPlacement,
+			ifnull((sum(t.cost) / sum(t.clicks)),0) avgcostPlacement,
+			case when ifnull(sum(cost),0)>0 and ifnull(sum(attributedSales14d),0)=0
+			then 10000000000
+			else ifnull((sum(cost) / sum(attributedSales14d)),0)
+			end ACOSPlacement,
+			ifnull((sum(attributedSales14d) / sum(t.cost)),0) ROASPlacement,
+			ifnull(sum(attributedSales14d) - sum(attributedSales14dSameSKU),0) attributedSalesPlacement,
+			sum(attributedSales14dSameSKU) attributedSalesSameSKUPlacement,
+			ifnull(sum(attributedConversions14d),0) attributedConversionsPlacement,
+			sum(attributedConversions14dSameSKU) attributedConversionsSameSKUPlacement,
+			sum(attributedConversions14d) attributedUnitsOrderedPlacement,
+			sum(attributedSales14d) sumSalesPlacement,
+			sum(attributedConversions14d) sumUnitsPlacement,
+			ifnull((sum(attributedConversions14d) / sum(clicks)),0) CSRTPlacement
+		from t_amz_adv_rpt2_hsa_campaigns_place t
+		left join t_amz_adv_rpt2_hsa_campaigns_place_attributed a on a.campaignId=t.campaignId and a.bydate=t.bydate
+		left join t_amz_adv_rpt_placement p on p.id=t.placementid
+		where t.bydate &gt;= #{fromDate,jdbcType=DATE} and t.bydate &lt;= #{endDate,jdbcType=DATE}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		group by t.placementid,t.campaignId,t.profileid
+	</select>
+
+	<select id="getCampaignByRemind" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="serchstr != null">
+			${serchstr}
+		</if>
+		from t_amz_adv_rpt2_hsa_campaigns t
+		left join t_amz_adv_rpt2_hsa_campaigns_attributed a on a.campaignId=t.campaignId and a.bydate=t.bydate
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		<if test="yesterDay != null">
+			and t.bydate = #{yesterDay,jdbcType=DATE}
+		</if>
+		<if test="severDayBegin != null and severDayEnd != null">
+			and t.bydate &gt;= #{severDayBegin,jdbcType=DATE} and t.bydate &lt;= #{severDayEnd,jdbcType=DATE}
+		</if>
+		group by t.campaignId,t.profileid
+	</select>
+
+	<select id="getCampaignByRemindlast" resultType="java.util.Map" parameterType="java.util.Map">
+		select
+		<if test="serchstr != null">
+			${serchstr}
+		</if>
+		from t_amz_adv_rpt2_hsa_campaigns t
+		left join t_amz_adv_rpt2_hsa_campaigns_attributed a on a.campaignId=t.campaignId and a.bydate=t.bydate
+		where t.profileid = #{profileid,jdbcType=BIGINT}
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		<if test="lastDay != null">
+			and t.bydate = #{lastDay,jdbcType=DATE}
+		</if>
+		<if test="lastSeverDayBegin != null and lastSeverDayEnd != null">
+			and t.bydate &gt;= #{lastSeverDayBegin,jdbcType=DATE} 
+			and t.bydate &lt;= #{lastSeverDayEnd,jdbcType=DATE}
+		</if>
+		group by t.campaignId,t.profileid
+	</select>
+	
+	<select id="getSumCampaigns" resultType="java.util.Map" parameterType="java.util.Map">
+		select sum(v.impressions) impressions,
+		       sum(v.clicks) clicks,
+		       sum(v.cost) cost,
+			ifnull((sum(v.clicks) / sum(v.impressions)),0) CTR,
+			ifnull((sum(v.cost) / sum(v.clicks)),0) avgcost,
+			ifnull(sum(tt.attributedSales14d) - sum(tt.attributedSales14dSameSKU),0) attributedSales,
+			sum(tt.attributedSales14dSameSKU) attributedSalesSameSKU,
+			ifnull(sum(tt.attributedConversions14d)-sum(tt.attributedConversions14dSameSKU),0) attributedConversions,
+			sum(tt.attributedConversions14dSameSKU) attributedConversionsSameSKU,
+			sum(tt.attributedConversions14d) attributedUnitsOrdered,
+			sum(tt.attributedSales14d) sumSales,
+			sum(tt.attributedConversions14d) sumUnits,
+			ifnull((sum(tt.attributedConversions14d) / sum(v.clicks)),0) CSRT,
+			case when ifnull(sum(v.cost),0)>0 and ifnull(sum(tt.attributedSales14d),0)=0
+			then 10000000000
+			else ifnull((sum(v.cost) / sum(tt.attributedSales14d)),0)
+			end ACOS,
+			ifnull((sum(tt.attributedSales14d) / sum(v.cost)),0) ROAS,
+			sum(viewableImpressions) viewableImpressions,
+			sum(videoFirstQuartileViews) videoFirstQuartileViews,
+			sum(videoMidpointViews) videoMidpointViews,
+			sum(videoThirdQuartileViews) videoThirdQuartileViews,
+			sum(videoCompleteViews) videoCompleteViews,
+			sum(video5SecondViews) video5SecondViews,
+			sum(video5SecondViewRate) video5SecondViewRate,
+			sum(videoUnmutes) videoUnmutes,
+			sum(vtr) vtr,
+			sum(vctr) vctr
+		from t_amz_adv_rpt2_hsa_campaigns v
+		left join t_amz_adv_rpt2_hsa_campaigns_attributed tt on tt.campaignId=v.campaignId and tt.bydate=v.bydate
+		left join t_amz_adv_campaigns_hsa t on t.campaignId = v.campaignId and t.profileid = v.profileid
+		left join t_amz_adv_rpt2_hsa_campaigns_video vd on vd.campaignId = v.campaignId  and vd.bydate=v.bydate
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		where v.bydate &gt;= #{fromDate,jdbcType=DATE} and v.bydate &lt;= #{endDate,jdbcType=DATE}
+			and a.shopid = #{shopid,jdbcType=CHAR}
+		<if test="campaignid != null">
+			and v.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="profileid != null ">
+			and v.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="portfolios != null ">
+			and t.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null ">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null ">
+			and t.state = #{campaignStatus,jdbcType=CHAR}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and t.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="paralist != null ">
+			and ${paralist}
+		</if>
+	</select>
+    <select id="getCampaignsNotArchived" parameterType="java.util.Map" resultType="com.wimoor.amazon.adv.sb.pojo.AmzAdvCampaignsHsa" >
+    	select t.* from t_amz_adv_campaigns_hsa t
+    	where t.profileid=#{profileid,jdbcType=CHAR}
+    	 <if test="name!=null">
+    	  and t.name like #{name,jdbcType=CHAR}
+    	 </if>
+    	 <if test="campaignStatus!=null">
+    	  and t.state =#{campaignStatus,jdbcType=CHAR}
+    	</if>
+        <if test="campaignStatus==null">
+    	  and t.state!='archived'
+        </if>
+        order by t.name asc
+    </select>
+    <select id="getSBCampaignVideo"  parameterType="java.lang.String" resultType="java.util.Map">
+    	select t.* from t_amz_adv_rpt2_hsa_campaigns_video t 
+    	where t.campaignId=#{campaignId,jdbcType=CHAR}
+    	and t.bydate=#{bydate,jdbcType=CHAR}
+    </select>
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.orders.mapper.AmzOrderItemMapper">
+
+    <!-- 通用查询映射结果 -->
+   <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.AmzOrderItem" >
+    <id column="amazon_orderid" property="amazonOrderid" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="groupid" property="groupid" jdbcType="BIGINT" />
+    <result column="displayable_shipping_label" property="displayableShippingLabel" jdbcType="CHAR" />
+    <result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+    <result column="earliest_delivery_date" property="earliestDeliveryDate" jdbcType="TIMESTAMP" />
+    <result column="earliest_ship_date" property="earliestShipDate" jdbcType="TIMESTAMP" />
+    <result column="fulfillment_channel" property="fulfillmentChannel" jdbcType="CHAR" />
+    <result column="fulfillment_supply_sourceid" property="fulfillmentSupplySourceid" jdbcType="CHAR" />
+    <result column="lastupdate_date" property="lastupdateDate" jdbcType="TIMESTAMP" />
+    <result column="latest_delivery_date" property="latestDeliveryDate" jdbcType="TIMESTAMP" />
+    <result column="latest_ship_date" property="latestShipDate" jdbcType="TIMESTAMP" />
+    <result column="promise_response_duedate" property="promiseResponseDuedate" jdbcType="TIMESTAMP" />
+    <result column="number_of_items_shipped" property="numberOfItemsShipped" jdbcType="INTEGER" />
+    <result column="number_of_items_unshipped" property="numberOfItemsUnshipped" jdbcType="INTEGER" />
+    <result column="order_channel" property="orderChannel" jdbcType="CHAR" />
+    <result column="order_status" property="orderStatus" jdbcType="CHAR" />
+    <result column="order_total" property="orderTotal" jdbcType="CHAR" />
+    <result column="order_type" property="orderType" jdbcType="CHAR" />
+    <result column="payment_method" property="paymentMethod" jdbcType="CHAR" />
+    <result column="replaced_orderid" property="replacedOrderid" jdbcType="CHAR" />
+    <result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+    <result column="seller_orderid" property="sellerOrderid" jdbcType="CHAR" />
+    <result column="ship_service_level" property="shipServiceLevel" jdbcType="CHAR" />
+    <result column="shipment_service_level_category" property="shipmentServiceLevelCategory" jdbcType="CHAR" />
+    <result column="amazonAuthid" property="amazonauthid" jdbcType="BIGINT" />
+  </resultMap>
+  
+   <select id="selectOrderDetail" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo" parameterType="java.util.Map">
+  	select main.order_status itemstatus,t.amazonAuthId,t.marketplaceId,mt.region,ifnull((t.item_price)/(t.QuantityOrdered),0) itemprice,
+	ifnull(t.QuantityOrdered,0) quantity,ifnull(p.location,p.url) image,t.sku,t.asin, ifnull(info.name,t.title) name,
+	ifnull(t.item_promotion_discount,0) itemdiscount,ifnull(t.currency,mt.currency) currency,ifnull(t.shipping_price,0) shipprice,
+	ifnull(t.ship_promotion_discount,0) shipdiscount,ifnull(t.item_tax,0) itemtax ,ifnull(ov.vat_rate,0) vat_rate ,t.item_price totalprice    
+	 from  t_amz_order_item t 
+	 left join t_amz_order_main main on t.amazon_order_id=main.amazon_order_id and t.marketplaceId=main.marketplaceId  
+     and t.amazonAuthId=main.amazonAuthId 
+     left join t_amazon_auth a on a.id=t.amazonAuthId  
+     left join t_marketplace mt on mt.marketplaceId=t.marketplaceId 
+     left join t_order_invoice_vat ov on ov.groupid=a.groupid and mt.market=UPPER(ov.country) 
+	 left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin 
+	 and main.marketplaceId=info.marketplaceid 
+	 left join t_picture p on p.id=info.image 
+	 where t.amazon_order_id=#{param.orderid,jdbcType=CHAR} 
+     <if test="param.purchaseDate !=null">
+ 	 and t.purchase_date =#{param.purchaseDate,jdbcType=TIMESTAMP} 
+ 	</if>
+      <if test="param.amazonAuthId!=null">
+	 	and t.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR} 
+	 </if>
+      and (t.QuantityOrdered>0 or (t.QuantityOrdered=0 and main.order_status='Cancelled'))  
+  </select>
+    
+    <insert id="removeDataArchive" parameterType="java.lang.String" >
+     replace into t_amz_order_item_archive
+     select * from  t_amz_order_item where purchase_date&lt; DATE_SUB(now(),INTERVAL 9 DAY) and amazonAuthId = #{amazonAuthId,jdbcType=CHAR};
+     DELETE FROM t_amz_order_item where purchase_date&lt; DATE_SUB(now(),INTERVAL 9 DAY) and amazonAuthId = #{amazonAuthId,jdbcType=CHAR};
+  </insert>
+</mapper>

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.report.dao.AmzAdvRequestMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.report.pojo.AmzAdvRequest" >
+    <id column="reportId" property="reportid" jdbcType="CHAR" />
+    <id column="profileId" property="profileid" jdbcType="BIGINT" />
+    <result column="recordType" property="recordtype" jdbcType="CHAR" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="statusDetails" property="statusdetails" jdbcType="CHAR" />
+    <result column="campaignType" property="campaigntype" jdbcType="CHAR" />
+    <result column="segment" property="segment" jdbcType="CHAR" />
+    <result column="creativeType" property="creativeType" jdbcType="CHAR" />
+    <result column="byday" property="byday" jdbcType="TIMESTAMP" />
+    <result column="fileSize" property="filesize" jdbcType="INTEGER" />
+    <result column="location" property="location" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="requesttime" property="requesttime" jdbcType="TIMESTAMP" />
+    <result column="treat_number" property="treatNumber" jdbcType="INTEGER" />
+    <result column="treat_status" property="treatStatus" jdbcType="VARCHAR" />
+    <result column="log" property="log" jdbcType="VARCHAR" />
+    <result column="isrun" property="isrun" jdbcType="BIT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    reportId, profileId, recordType, status, statusDetails,campaignType,segment,creativeType,byday,fileSize,location,opttime,requesttime,treat_number,treat_status,log,isrun
+  </sql>
+  
+  <select id="getNeedTreatReport" resultMap="BaseResultMap" parameterType="java.lang.String" >
+	SELECT r.* from t_amz_adv_report_request r INNER JOIN   (
+	SELECT MAX(api.reportId) reportId 
+	FROM  t_amz_adv_report_request api
+		where treat_number &lt; 10 
+		and (treat_status is null or treat_status='error' or treat_status='')
+		and requesttime  &gt;= DATE_ADD(now(),INTERVAL -72 HOUR)
+		AND api.profileId= #{profileid,jdbcType=CHAR} 
+		and isrun=0
+	GROUP BY api.campaignType,api.recordType,IFNULL(api.segment,'#'),IFNULL(api.segment,'#')
+	ORDER BY api.requesttime asc
+	) v ON   v.reportId =r.reportId
+  </select>
+  
+  <select id="getAllNeedTreatReport" resultMap="BaseResultMap" parameterType="java.lang.String" >
+	SELECT <include refid="Base_Column_List" />
+    from t_amz_adv_report_request 
+	where reportId IN (
+	 select MAX(r.reportId) reportId from t_amz_adv_report_request r
+	 left join t_amz_adv_profile p on r.profileid=p.id
+	 WHERE (r.treat_status is null or r.treat_status='error' or r.treat_status=''  or treat_status='requestreportbyprofile')
+	 and r.treat_number&lt;10 
+	 and r.requesttime&gt;=DATE_ADD(now(),INTERVAL -12 HOUR)
+	 group BY p.advauthId
+	) 
+	order by byday DESC,requesttime desc
+	 
+  </select>
+  
+  <select id="getNeedRequestReport" resultType="java.util.Map" parameterType="java.lang.String">
+			SELECT m.*,ifnull(v.byday,'6666-01-01')  byday,v.opttime  from t_amz_adv_report_request_type m
+			LEFT JOIN (
+			SELECT  p.marketplaceId,r.campaignType,r.recordType,IFNULL(r.segment,'#') segment,p.`type` ftype,
+			IFNULL(r.creativeType,'#') creativeType,min(byday)  byday,max(fileSize) fileSize,p.id profileid,max(r.opttime) opttime
+			from t_amz_adv_report_request r
+			LEFT JOIN t_amz_adv_profile p ON p.id=r.profileId
+			WHERE p.id=#{profileid,jdbcType=CHAR} and r.requesttime&gt;=DATE_ADD(now(),INTERVAL -24 HOUR)
+			GROUP BY p.id,r.campaignType,r.recordType,r.segment,r.creativeType
+			) v ON  v.campaignType=m.campaigntype AND v.recordType=m.reponsetype AND v.segment=IFNULL(m.segment,'#') AND v.creativeType=IFNULL(m.activeType,'#')
+			WHERE  ( m.nomarket NOT LIKE CONCAT('%',v.marketplaceid,'%') OR m.nomarket IS NULL  )
+			AND (v.ftype=case when m.disablevendor then 'seller' ELSE v.ftype end OR v.ftype IS null)
+			<if test="non_segment!=null">
+				   and  #{non_segment,jdbcType=CHAR} not like concat('%',IFNULL(m.segment,'#'),'%') 
+				</if>
+			ORDER BY  ifnull(v.byday,'6666-01-01') DESC ,LEVEL ASC
+			limit 1;
+  </select>
+   <delete id="deleteByProfileAndType" parameterType="java.lang.String" >
+   		delete from t_amz_adv_report_request 
+	where treat_number&lt;10 
+	and (treat_status is null or treat_status='error' or treat_status='')
+	and requesttime&gt;=DATE_ADD(now(),INTERVAL -24 HOUR)
+	and profileId = #{profileid,jdbcType=CHAR}
+	<if test="campaigntype!=null">
+	and campaigntype=#{campaigntype,jdbcType=CHAR}
+	</if>
+	<if test="recordtype!=null">
+	and recordtype=#{recordtype,jdbcType=CHAR}
+	</if>
+	<if test="segment!=null">
+	and segment=#{segment,jdbcType=CHAR}
+	</if>
+	and isrun=false and (log is null or log ='')
+  </delete>
+  
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRequestKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_request
+    where reportId = #{reportid,jdbcType=CHAR}
+      and advauthId = #{advauthid,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRequestKey" >
+    delete from t_amz_adv_request
+    where reportId = #{reportid,jdbcType=CHAR}
+      and advauthId = #{advauthid,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRequest" >
+    insert into t_amz_adv_request (reportId, advauthId, recordType, 
+      status, statusDetails)
+    values (#{reportid,jdbcType=CHAR}, #{advauthid,jdbcType=CHAR}, #{recordtype,jdbcType=CHAR}, 
+      #{status,jdbcType=CHAR}, #{statusdetails,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRequest" >
+    insert into t_amz_adv_request
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="reportid != null" >
+        reportId,
+      </if>
+      <if test="advauthid != null" >
+        advauthId,
+      </if>
+      <if test="recordtype != null" >
+        recordType,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="statusdetails != null" >
+        statusDetails,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="reportid != null" >
+        #{reportid,jdbcType=CHAR},
+      </if>
+      <if test="advauthid != null" >
+        #{advauthid,jdbcType=CHAR},
+      </if>
+      <if test="recordtype != null" >
+        #{recordtype,jdbcType=CHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=CHAR},
+      </if>
+      <if test="statusdetails != null" >
+        #{statusdetails,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRequest" >
+    update t_amz_adv_request
+    <set >
+      <if test="recordtype != null" >
+        recordType = #{recordtype,jdbcType=CHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=CHAR},
+      </if>
+      <if test="statusdetails != null" >
+        statusDetails = #{statusdetails,jdbcType=CHAR},
+      </if>
+    </set>
+    where reportId = #{reportid,jdbcType=CHAR}
+      and advauthId = #{advauthid,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRequest" >
+    update t_amz_adv_request
+    set recordType = #{recordtype,jdbcType=CHAR},
+      status = #{status,jdbcType=CHAR},
+      statusDetails = #{statusdetails,jdbcType=CHAR}
+    where reportId = #{reportid,jdbcType=CHAR}
+      and advauthId = #{advauthid,jdbcType=CHAR}
+  </update> -->
+</mapper>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.auth.mapper.AmazonGroupMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.AmazonGroup">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="profitcfgid" property="profitcfgid" jdbcType="CHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, name, shopid,profitcfgid,operator,opttime,creator,createtime
+	</sql>
+	
+	<select id="selectUsedByShop" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct g.id, g.name, g.shopid
+		from t_amazon_group g
+		inner join t_amazon_auth a on g.id=a.groupid
+		where a.shop_id = #{shopid,jdbcType=CHAR}
+	</select>
+	
+	<select id="getShopCountByShopId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1)
+		from t_amazon_group
+		where shopid = #{shopid,jdbcType=CHAR}
+	</select>
+
+	<select id="selectUsedByShopSKU" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct g.id, g.name, g.shopid
+		from t_amazon_group g
+		inner join t_amazon_auth a on g.id=a.groupid
+		left join t_product_info p on p.amazonAuthId=a.id
+		where a.shop_id = #{shopid,jdbcType=CHAR} 
+			and p.sku=#{sku,jdbcType=CHAR}
+	</select>
+
+	<select id="findShopNameByCompany" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select tg.id, tg.name, max(tg.shopid) shopid,max(tg.findex) findex,
+		max(tg.profitcfgid) profitcfgid ,max(tg.operator) operator,max(tg.opttime) opttime,
+		max(tg.creator) creator,max(tg.createtime) createtime
+		from t_amazon_group tg 
+		inner join t_amazon_auth a on tg.id=a.groupid
+		where a.shop_id=#{shopid,jdbcType=CHAR}
+		group by tg.name,tg.id
+		order by tg.findex
+	</select>
+	
+	<select id="findAdvShopNameByCompany" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct g.id, g.name, g.shopid
+		from t_amazon_group g
+		inner join t_amz_adv_auth a on g.id=a.groupid
+		where a.shopid = #{shopid,jdbcType=CHAR}
+	</select>
+	
+	<select id="findAdvGroup" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT ifnull(pro.sellerid,'noDate') sellerid,ifnull(c.marketplaceId,'noDate') marketplaceId,
+			DATE_FORMAT(a.opttime, '%Y-%m-%d %H:%i:%S') as opttime, g.name groupname,'none' status,ifnull(c.name,'noDate') name,
+			ifnull(c.region,re.code) region,ifnull(c.market,'noDate') market,re.client_id,re.client_secret,
+			ifnull(c.region_name,re.name) regionName,re.code advRegion,a.id authid ,a.disable advDisable,pro.type
+		from t_amazon_group g
+		left join t_amz_adv_auth a on a.groupid=g.id
+		left join t_amz_adv_profile pro on pro.advauthId = a.id
+		left join t_marketplace c on pro.marketplaceId = c.marketplaceId
+		left join t_amz_region re on re.code = a.region
+		where a.shopid = #{shopid,jdbcType=CHAR}
+			and g.id = #{groupid,jdbcType=CHAR}
+		order by g.`name` asc,a.region asc,c.findex asc
+	</select>
+	
+	<select id="findAmazonGroup" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT a.sellerid,c.marketplaceId,DATE_FORMAT(b.opttime, '%Y-%m-%d %H:%i:%S') as opttime ,
+			g.name groupname,ifnull(a.status,'none') status,c.name,c.region,c.market,re.client_id,
+			re.client_secret,c.region_name regionName,re.code advRegion,a.id authid ,a.disable  
+		from t_amazon_group g
+		left join t_amazon_auth a on a.groupid=g.id
+		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		inner join t_marketplace c on b.marketplace_id = c.marketplaceId
+		left join t_amz_region re on re.code = case when a.region in('JP','AU') then 'FE' else a.region end  
+		where a.shop_id = #{shopid,jdbcType=CHAR}
+			and g.id = #{groupid,jdbcType=CHAR}
+		order by g.`name` asc,a.region asc, c.findex asc
+	</select>
+	
+	<!-- <insert id="insertAmazonGroup" parameterType="java.lang.String">
+		insert into t_amazon_group(id,name,shopid,profitcfgid)
+		values(UUID_SHORT(),#{shopname,jdbcType=CHAR},#{shopid,jdbcType=CHAR},#{profitcfgid,jdbcType=CHAR})
+	</insert> -->
+	
+	<!-- <update id="updateAmazonGroup" parameterType="java.lang.String">
+		update t_amazon_group tp set tp.name=#{sname,jdbcType=CHAR} where id=#{id,jdbcType=CHAR};
+	</update> -->
+	
+	<!-- 同步auth表的数据加入到group中 -->
+	<insert id="insertInitGroup" parameterType="java.lang.String">
+		select uuid_short(), shop_id
+		case when LOCATE('-', name)=0
+		then name
+		else substr(name,1,LOCATE('-', name)-1)
+		end name
+		from t_amazon_auth a 
+		where substr(a.name,1,locate('-',a.name)-1) not in(select name from t_amazon_group where shopid=#{shopid,jdbcType=CHAR}) 
+			and a.groupid is null
+		group by shop_id,
+			case when LOCATE('-', name)=0
+			then name
+			else substr(name,1,LOCATE('-', name)-1)
+			end
+	</insert>
+
+	<!-- 同步更新groupid到已有的auth表 -->
+	<update id="updateInitAuthGroupId" parameterType="java.lang.String">
+		update t_amazon_auth a 
+		set a.groupid = (select id from t_amazon_group where name=
+			case when LOCATE('-', a.name)=0
+			then a.name
+			else substr(a.name,1,LOCATE('-', a.name)-1)
+			end
+			and a.shop_id=shopid ) 
+		where a.shop_id=#{shopid,jdbcType=CHAR} and (a.groupid is null)
+	</update>
+	
+</mapper>

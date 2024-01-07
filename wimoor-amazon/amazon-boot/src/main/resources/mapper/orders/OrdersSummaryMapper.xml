@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.OrdersSummaryMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.OrdersSummary">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="purchase_date" property="purchaseDate" jdbcType="DATE" />
+		<result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="asin" property="asin" jdbcType="CHAR" />
+		<result column="amazonAuthId" property="amazonauthid" jdbcType="BIGINT" />
+		<result column="quantity" property="quantity" jdbcType="INTEGER" />
+		<result column="ordersum" property="ordersum" jdbcType="INTEGER" />
+		<result column="orderprice" property="orderprice" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id,marketplaceid, asin, sku,purchase_date, amazonAuthId, quantity,ordersum,orderprice
+	</sql>
+	
+	<select id="selectByUniqueKey" resultMap="BaseResultMap" parameterType="java.util.Map">
+		SELECT id,marketplaceid, asin, sku,purchase_date, amazonAuthId, quantity,ordersum,orderprice
+		 from t_orders_summary 
+		where amazonAuthId=#{amazonauthid,jdbcType=CHAR} and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+ 		and sku=#{sku,jdbcType=CHAR} and purchase_date=#{purchaseDate,jdbcType=DATE}
+	</select>
+	
+	<select id="findordershopReport" resultType="java.util.Map" parameterType="java.util.Map">
+		select 
+		ifnull(p.location,p.url) image,
+		DATE_FORMAT(i.openDate,'%Y-%m-%d') openDate,
+		ifnull(o.msku,t.sku) msku,
+		t.sku,t.purchase_date,t.quantity
+		<if test="summaryType=='day'">
+			from t_orders_summary t
+		</if>
+	    <if test="summaryType=='week'">
+			from t_orders_summary_week t
+		</if>
+	    <if test="summaryType=='month'">
+			from t_orders_summary_month t
+		</if>
+		left join t_product_info i on i.sku=t.sku and i.marketplaceid=t.marketplaceid and i.amazonauthid=t.amazonauthid
+		left join t_product_in_opt o on o.pid=i.id
+		left join t_picture p on p.id=i.image
+		where t.purchase_date &gt;=#{beginDate,jdbcType=DATE}
+			and t.purchase_date &lt;= #{endDate,jdbcType=DATE}
+			and exists(select id from t_amazon_auth a where a.id = t.amazonAuthId and a.shop_id = #{shopid,jdbcType=CHAR} 
+			<if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="region != null">
+		           and a.region = #{region,jdbcType=CHAR}
+			</if>
+			)
+		<if test="marketplaceid != null ">
+			 <if test="marketplaceid=='IEU'">
+					   and t.marketplaceid in('A13V1IB3VIYZZH','A17E79C6D8DWNP',
+					  						  'A1805IZSGTT6HS','A1C3SOZRARQ6R3',
+					  						  'A1PA6795UKMFR9','A1RKKUPIHCS9HS',
+					                          'A2NODRKZP88ZB9','A33AVAJ2PDY3EV',
+					                          'APJ6JRA9NG5V4','ARBP9OOSHTCHU')
+			  </if>
+		      <if test="marketplaceid!='IEU'">
+					and t.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+		      </if>
+		</if>
+		<if test="search != null">
+			and t.sku like #{search,jdbcType=CHAR}
+		</if>
+		order by t.purchase_date desc
+	</select>
+
+	<select id="ordershopReport" resultType="java.util.Map">
+		<if test="opendatesort != null">
+			select k.openDate , v.* 
+			from
+			(
+		</if>
+		select t.sku sku
+		<foreach collection="fieldlist" item="fieldmap" index="field_list" open="" separator="" close="">
+			,SUM(CASE t.purchase_date WHEN #{fieldmap.condition,jdbcType=CHAR} THEN
+			ifnull(quantity,0) ELSE 0 END ) ${fieldmap.field}
+		</foreach>
+			,sum(ifnull(t.quantity,0)) vsum
+		from t_orders_summary t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		where t.purchase_date &gt;=#{beginDate,jdbcType=DATE}
+			and t.purchase_date &lt;= #{endDate,jdbcType=DATE}
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="region != null">
+			and a.region=#{region,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid != null">
+			and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="search != null">
+			and t.sku like #{search,jdbcType=CHAR}
+		</if>
+		<if test="color != null">
+			and exists(select mt.sku from t_erp_material mt where mt.sku=t.sku 
+			and mt.shopid=#{shopid,jdbcType=CHAR} and mt.isDelete = 0
+			and mt.color=#{color,jdbcType=CHAR})
+		</if>
+		<if test="owner!=null">
+			and exists(select mt.sku from t_erp_material mt where mt.sku=t.sku 
+			and mt.shopid=#{shopid,jdbcType=CHAR} and mt.isDelete = 0
+			and mt.owner=#{owner,jdbcType=CHAR})
+		</if>
+		group by t.sku
+		<if test="opendatesort != null ">
+			) v
+		</if>
+		<if test="opendatesort != null ">
+			left join (
+				select max(sku) sku, min(openDate) openDate
+				from t_product_info i
+				left join t_amazon_auth a on a.id=i.amazonAuthId
+				where a.shop_id=#{shopid,jdbcType=CHAR}
+				group by i.sku 
+			) k on v.sku=k.sku
+		</if>
+
+	</select>
+
+	<select id="getOrderSumField" resultType="java.util.Map">
+		select purchase_date,sum(ifnull(quantity,0)) quantity
+		from t_orders_summary t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		where t.purchase_date &gt;=#{beginDate,jdbcType=CHAR}
+			and t.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="region != null">
+			and a.region=#{region,jdbcType=CHAR}
+		</if>
+		<if test="color != null">
+			and exists(
+			select mt.sku 
+			from t_erp_material mt 
+			where mt.sku=t.sku 
+				and mt.shopid=#{shopid,jdbcType=CHAR} 
+				and mt.isDelete = 0
+				and mt.color=#{color,jdbcType=CHAR})
+		</if>
+		<if test="owner!=null">
+			and exists(
+			select mt.sku 
+			from t_erp_material mt 
+			where mt.sku=t.sku
+				and mt.owner=#{owner,jdbcType=CHAR} 
+				and mt.isDelete = 0
+				and mt.shopid=#{shopid,jdbcType=CHAR} )
+		</if>
+		<if test="marketplaceid != null">
+			and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="search != null">
+			and t.sku like #{search,jdbcType=CHAR}
+		</if>
+		group by purchase_date
+		union
+		select '汇总'
+		purchase_date,ifnull(sum(ifnull(quantity,0)),0) quantity
+		from t_orders_summary t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+		where t.purchase_date &gt;=#{beginDate,jdbcType=CHAR}
+			and t.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="region != null">
+			and a.region=#{region,jdbcType=CHAR}
+		</if>
+		<if test="color != null">
+			and exists(select mt.sku from t_erp_material mt where mt.sku=t.sku and
+			mt.shopid=#{shopid,jdbcType=CHAR} and mt.isDelete = 0 and mt.color=#{color,jdbcType=CHAR})
+		</if>
+		<if test="owner!=null"> mt.sku=t.sku
+			and mt.owner=#{owner,jdbcType=CHAR} and mt.isDelete = 0
+			and mt.shopid=#{shopid,jdbcType=CHAR} )
+		</if>
+		<if test="marketplaceid != null">
+			and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="search != null">
+			and t.sku like #{search,jdbcType=CHAR}
+		</if>
+		order by purchase_date desc
+	</select>
+
+	<select id="selectBySkuMarketplace" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select s.id,s.marketplaceid, s.asin, s.sku,s.purchase_date, s.amazonAuthId, s.quantity,s.ordersum,s.orderprice  
+		from t_orders_summary s 
+		left join t_amazon_auth a on s.amazonAuthId=a.id
+		where marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and sku = #{sku,jdbcType=CHAR}
+		<if test="amazonAuthId != null">
+			and a.id=#{amazonAuthId,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="startDate != null">
+			and purchase_date &gt;=#{startDate,jdbcType=CHAR}
+		</if>
+		<if test="endDate != null">
+			and purchase_date &lt;=#{endDate,jdbcType=CHAR}
+		</if>
+		<if test="purchaseDate != null">
+			and purchase_date &gt;= #{purchaseDate,jdbcType=DATE}
+		</if>
+		and a.shop_id=#{shopid,jdbcType=CHAR}
+	</select>
+
+	<select id="selectBySkuMarketplaceForShip" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select s.id,s.marketplaceid, s.asin, s.sku,s.purchase_date, s.amazonAuthId, s.quantity,s.ordersum,s.orderprice 
+		from t_orders_summary s
+		where marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and s.sku=#{sku,jdbcType=CHAR}
+		<if test="startDate != null">
+			and purchase_date &gt;=#{startDate,jdbcType=CHAR}
+		</if>
+		<if test="endDate != null">
+			and purchase_date &lt;=#{endDate,jdbcType=CHAR}
+		</if>
+		<if test="purchaseDate != null">
+			and purchase_date &gt;= #{purchaseDate,jdbcType=DATE}
+		</if>
+		and exists(select id from t_amazon_auth a where s.amazonAuthId=a.id and a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+	    <if test="amazonAuthId != null">
+			and a.id=#{amazonAuthId,jdbcType=CHAR}
+		</if>
+		)
+		
+	</select>
+
+	<select id="selectBySkuOfEU" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select max(os.amazonAuthId) amazonAuthId,
+		   'EU' marketplaceid,
+		     max(os.asin) asin,
+			os.purchase_date,
+			sum(os.quantity) quantity,
+			sum(os.ordersum) ordersum,
+			os.sku
+		from t_orders_summary os
+		left join t_marketplace m on m.marketplaceid=os.marketplaceid
+		where 
+		os.purchase_date &gt;= #{purchaseDate,jdbcType=DATE}
+	   <if test="amazonAuthId == null">
+		and exists(select id from t_amazon_auth a where os.amazonAuthId=a.id and a.shop_id=#{shopid,jdbcType=CHAR}
+			<if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+		)
+		</if>
+	   <if test="amazonAuthId != null">
+			and os.amazonauthid=#{amazonAuthId,jdbcType=CHAR}
+		</if>
+	    and m.region='EU'
+        and os.sku=#{sku,jdbcType=CHAR}
+		group by os.purchase_date,os.sku
+	</select>
+
+	<select id="selectByPrimaryKeyUpPurchaseDate" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.orders.pojo.entity.OrdersSummary">
+		select
+		<include refid="Base_Column_List" />
+		from t_orders_summary
+		where marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and sku = #{sku,jdbcType=CHAR}
+			and purchase_date &gt;= #{purchaseDate,jdbcType=DATE}
+	</select>
+
+	<select id="lastTop5" resultType="java.util.Map">
+			select s.sku,sum(s.quantity) quantity
+			from t_orders_summary s
+			where purchase_date=date_sub(curdate(),interval 2 day)
+				and exists(select id 
+				from t_amazon_auth 
+				where shop_id=  #{shopid,jdbcType=CHAR} AND id=s.amazonAuthId and s.orderprice>0)
+			GROUP by s.sku
+			ORDER BY sum(s.quantity) desc
+		    limit 5
+	</select>
+	<select id="top5" resultType="com.wimoor.amazon.orders.pojo.vo.ProductSalesRankVo" parameterType="com.wimoor.amazon.common.pojo.dto.SummaryMutilParameterQueryDTO">
+		 SELECT g.name groupname,m.name marketname,ifnull(c.name,i.pgroup) catename,v.sku,v.quantity,v.orderprice ,r.afn_fulfillable_quantity fulfillable,
+		 		  IFNULL(p.location,p.url) image,ifnull(mt.name,i.name) name
+		  FROM ( SELECT  s.amazonAuthId,s.marketplaceid,s.sku,SUM(s.quantity) quantity,SUM(s.orderprice) orderprice
+		  FROM t_orders_summary s 
+		  WHERE   EXISTS(SELECT id FROM t_amazon_auth 
+				  WHERE id=s.amazonAuthId 
+				  AND shop_id=#{shopid,jdbcType=CHAR}
+				  <if test="groupid !=null">
+				     and  groupid=#{groupid,jdbcType=CHAR}
+			      </if>
+				   ) 
+			  <if test="beginDate != null">
+				and s.purchase_date &gt;= #{beginDate,jdbcType=CHAR}
+			 </if>
+			 <if test="endDate != null">
+				and s.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+			</if>
+		
+		  GROUP BY s.amazonAuthId,s.marketplaceid,s.sku
+		  ORDER BY quantity desc
+		  LIMIT 15) v
+		  LEFT JOIN t_product_info i ON i.amazonAuthId=v.amazonAuthId AND i.marketplaceid=v.marketplaceid AND i.sku=v.sku
+		  LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+		  LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		  LEFT JOIN t_marketplace m ON m.marketplaceId=i.marketplaceid
+		  LEFT JOIN t_picture p ON p.id=i.image
+		  LEFT JOIN t_inventory_report r ON r.amazonAuthId=i.amazonAuthId AND r.sku=i.sku AND r.marketplaceid=case when m.region='EU' then 'EU' ELSE i.marketplaceid END 
+		  LEFT JOIN t_product_in_opt o ON o.pid=i.id
+		  LEFT JOIN t_erp_material mt ON mt.sku=IFNULL(o.msku,i.sku) AND mt.shopid=g.shopid AND mt.isDelete=0
+		  LEFT JOIN  t_erp_material_category c ON c.id=mt.categoryid
+		  WHERE i.amazonAuthId IS NOT NULL 
+		  LIMIT 5
+  </select>
+	<select id="lastQtyMarket" resultType="java.util.Map">
+	   select m.marketplaceid,v.sales_channel pointName,v.quantity quantity
+		FROM (select sm.sales_channel,sum(sm.quantity) quantity
+			from t_summaryall sm
+			WHERE  purchase_date =DATE_FORMAT(date_sub(curdate(),interval 2 day),'%Y-%m-%d')
+			and exists(select id from t_amazon_auth where shop_id= #{shopid,jdbcType=CHAR} AND id=sm.amazonAuthId)
+			and (order_status='Shipped' or order_status='Pending' )
+		    <if test="amazonAuthority != null">
+			  and sm.amazonauthid = #{amazonAuthority.id,jdbcType=CHAR}
+		    </if>
+			group by sm.sales_channel 
+		) v
+		LEFT JOIN  t_marketplace m ON m.point_name=v.sales_channel
+		order BY  v.quantity desc
+	</select>
+
+	<select id="lastQtyAmount" resultType="java.util.Map" parameterType="java.lang.String">
+		select sum(quantity) quantity
+		from t_summaryall sm
+		where purchase_date=date_sub(curdate(),interval 2 day)
+			 and exists(select id from t_amazon_auth where shop_id= #{shopid,jdbcType=CHAR} AND id=sm.amazonAuthId)
+			 and (order_status='Shipped' or order_status='Pending' )
+		<if test="amazonAuthority != null">
+			and sm.amazonAuthId = #{amazonAuthority.id,jdbcType=CHAR}
+		</if>
+	</select>
+
+	<select id="weekAmount" resultType="java.util.Map" parameterType="java.lang.String">
+		select purchase_date,sum(quantity) quantity
+		from t_summaryall sm
+		where purchase_date>=date_sub(curdate(),interval 8 day)
+		    and purchase_date &lt; curdate()
+		    and (order_status='Shipped' or order_status='Pending' )
+			and exists(select id from t_amazon_auth where shop_id= #{shopid,jdbcType=CHAR} AND id=sm.amazonAuthId)
+		<if test="amazonAuthority != null">
+			and sm.amazonauthid = #{amazonAuthority.id,jdbcType=CHAR}
+		</if>
+		group by purchase_date
+	</select>
+
+	<select id="last2Qty" resultType="java.util.Map" parameterType="java.lang.String">
+		select sum(quantity) quantity
+		from t_summaryall sm
+		where purchase_date=date_sub(curdate(),interval 3 day)
+		and exists(select id from t_amazon_auth where shop_id= #{shopid,jdbcType=CHAR} AND id=sm.amazonAuthId)
+		 and (order_status='Shipped' or order_status='Pending' )
+		<if test="amazonAuthority != null">
+			and sm.amazonauthid = #{amazonAuthority.id,jdbcType=CHAR}
+		</if>
+	</select>
+
+	<select id="lastweekQty" resultType="java.util.Map" parameterType="java.lang.String">
+		select sum(quantity) quantity
+		from t_summaryall sm
+		where purchase_date=date_sub(curdate(),interval 9 day)
+		 and (order_status='Shipped' or order_status='Pending' )
+			and exists(select id from t_amazon_auth where shop_id= #{shopid,jdbcType=CHAR} AND id=sm.amazonAuthId)
+		<if test="amazonAuthority != null">
+			and sm.amazonauthid = #{amazonAuthority.id,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectShopLimit" resultType="java.util.Map">
+		select t.shopId shopid,ifnull(sum(ts.ordernumber),0) count 
+		from t_manager_limit t
+		left join t_amazon_auth ta on ta.shop_id = t.shopId
+		left join t_summaryall ts on ts.amazonauthid = ta.id
+		where date_format(str_to_date(purchase_date,'%Y-%m'),'%Y-%m')=date_format(now(),'%Y-%m')
+		group by t.shopId
+	</select>
+
+	<select id="refreshShopSummary" parameterType="java.util.Map">
+		delete from t_summaryAll where
+		<if test="begin!=null">
+			purchase_date &gt;=#{begin,jdbcType=CHAR}
+		</if>
+		<if test="begin==null">
+			purchase_date >=date_sub(curdate(),interval 30 day)
+		</if>
+		<if test="amazonauthid!=null">
+			and amazonauthid=#{amazonauthid,jdbcType=CHAR}
+		</if>
+		;
+		insert into t_summaryAll
+		select uuid_short(),r.amazonauthid,date_format(r.purchase_date,'%Y-%m-%d'),r.sales_channel,
+			r.order_status,r.fulfillment_channel, IF(r.item_promotion_discount,'0','1'),r.is_business_order
+			,sum(r.quantity) ,count(r.amazon_order_id),
+			IFNULL(r.item_promotion_discount,0)/IFNULL(r.item_price,1), sum(r.item_price) price
+		from t_orders_report r
+		where
+		<if test="begin!=null">
+			r.purchase_date &gt;=#{begin,jdbcType=CHAR}
+		</if>
+		<if test="begin==null">
+			r.purchase_date >=date_sub(curdate(),interval 30 day)
+		</if>
+		<if test="amazonauthid!=null">
+			and r.amazonAuthId=#{amazonauthid,jdbcType=CHAR}
+		</if>
+		group by r.amazonauthid,date_format(r.purchase_date,'%Y-%m-%d') ,r.sales_channel,
+			r.order_status,r.fulfillment_channel,
+			IF(r.item_promotion_discount,'0','1'),r.is_business_order,
+			IFNULL(r.item_promotion_discount,0)/IFNULL(r.item_price,1);
+	</select>
+
+	<insert id="saveBatch">
+		insert into
+		t_orders_summary(id,marketplaceid,sku,purchase_date,amazonauthid,asin,
+		quantity, ordersum, orderprice) values
+		<foreach collection="list" item="rpt" index="index" separator=",">
+			(UUID_SHORT(),#{rpt.marketplaceid,jdbcType=CHAR},
+			#{rpt.sku,jdbcType=CHAR},
+			#{rpt.purchaseDate,jdbcType=DATE},
+			#{rpt.amazonauthid,jdbcType=CHAR}, #{rpt.asin,jdbcType=CHAR},
+			#{rpt.quantity,jdbcType=INTEGER},
+			#{rpt.ordersum,jdbcType=INTEGER}, #{rpt.orderprice,jdbcType=DECIMAL}
+			)
+		</foreach>
+	</insert>
+	
+	<insert id="refreshByOrder" parameterType="java.util.Map">
+		delete from t_orders_summary where
+			purchase_date &gt;=#{begin,jdbcType=CHAR}
+			and amazonAuthId=#{amazonauthid,jdbcType=CHAR};
+			
+		insert ignore into
+		t_orders_summary 
+		(id,amazonAuthId,marketplaceid,purchase_date, asin, sku,  quantity,ordersum,orderprice,quantity2b,ordersum2b,orderprice2b)
+		select UUID_SHORT() id,r.amazonAuthId, IFNULL(m.marketplaceId,r.sales_channel) marketplaceid, 
+			date_format(r.purchase_date,'%Y-%m-%d') purchase_date,max(r.asin) asin,r.sku sku,
+			sum(r.quantity) quantity,
+			count(r.amazon_order_id) ordersum,
+			sum(r.item_price) orderprice,
+			sum(case when r.is_business_order='true' then r.quantity else 0 end) quantity2b,
+			count(case when r.is_business_order='true' then 1 else null end) ordersum2b,
+			sum(case when r.is_business_order='true' then r.item_price else 0 end) orderprice2b
+		from t_orders_report r
+		left join t_marketplace m on m.point_name=r.sales_channel
+		where r.purchase_date &gt;=#{begin,jdbcType=CHAR}
+			and r.amazonAuthId= #{amazonauthid,jdbcType=CHAR}
+			and (r.order_status='Shipped' or r.order_status='Pending' or r.order_status='Shipping' or r.order_status='Unshipped')
+		group by r.amazonAuthId,
+		IFNULL(m.marketplaceId,r.sales_channel),date_format(r.purchase_date,'%Y-%m-%d'),r.sku;
+		
+	    delete from t_orders_summary_week where
+        purchase_date &gt;=DATE_SUB(#{begin,jdbcType=CHAR} ,INTERVAL WEEKDAY(#{begin,jdbcType=CHAR}) + 0 DAY)
+        and amazonAuthId=#{amazonauthid,jdbcType=CHAR} ;
+        
+		INSERT  ignore INTO t_orders_summary_week
+		(id,amazonAuthId,marketplaceid,purchase_date, asin, sku,  quantity,ordersum,orderprice,quantity2b,ordersum2b,orderprice2b)
+		SELECT MAX(id) id,
+		  amazonAuthId amazonAuthId,
+		  marketplaceid marketplaceid,
+		  DATE_SUB(purchase_date ,INTERVAL WEEKDAY(purchase_date) + 0 DAY) purchase_date,
+		  asin asin,
+		  sku sku,
+		  SUM(quantity) quantity,
+		  SUM(ordersum) ordersum,
+		  SUM(orderprice) orderprice,
+		  SUM(quantity2b) quantity2b,
+		  SUM(ordersum2b) ordersum2b,
+		  SUM(orderprice2b) orderprice2b
+		FROM t_orders_summary
+		WHERE purchase_date &gt;=DATE_SUB(#{begin,jdbcType=CHAR} ,INTERVAL WEEKDAY(#{begin,jdbcType=CHAR}) + 0 DAY)
+		 and amazonAuthId= #{amazonauthid,jdbcType=CHAR}
+		GROUP BY amazonAuthId,marketplaceid,sku,DATE_SUB(purchase_date ,INTERVAL WEEKDAY(purchase_date) + 0 DAY) ,asin;
+
+	   delete from t_orders_summary_month where
+       purchase_date &gt;=DATE_ADD(#{begin,jdbcType=CHAR},interval -day(#{begin,jdbcType=CHAR})+1 day)
+       and amazonAuthId=#{amazonauthid,jdbcType=CHAR} ;
+        
+       INSERT  ignore INTO t_orders_summary_month
+       (id,amazonAuthId,marketplaceid,purchase_date, asin, sku,  quantity,ordersum,orderprice,quantity2b,ordersum2b,orderprice2b)
+		SELECT MAX(id) id,
+		  amazonAuthId amazonAuthId,
+		  marketplaceid marketplaceid,
+		  DATE_ADD(purchase_date,interval -day(purchase_date)+1 day) purchase_date,
+		  asin asin,
+		  sku sku,
+		  SUM(quantity) quantity,
+		  SUM(ordersum) ordersum,
+		  SUM(orderprice) orderprice,
+		  SUM(quantity2b) quantity2b,
+		  SUM(ordersum2b) ordersum2b,
+		  SUM(orderprice2b) orderprice2b
+		FROM t_orders_summary
+		WHERE purchase_date &gt;=DATE_ADD(#{begin,jdbcType=CHAR},interval -day(#{begin,jdbcType=CHAR})+1 day)
+		 and amazonAuthId= #{amazonauthid,jdbcType=CHAR}
+		GROUP BY amazonAuthId,marketplaceid,sku,DATE_ADD(purchase_date,interval -day(purchase_date)+1 day),ASIN;
+
+	</insert>
+	
+	<select id="getOrdersPrice" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT t.*,ifnull(p.location,p.url) location,i.name name,i.asin,
+		g.name groupname,m.name marketname,mt.color,u.name fowner,de.cname amounttype,de2.cname amountdescription 
+		 from t_amz_settlement_report t
+		left JOIN t_amazon_auth a ON a.id=t.amazonAuthId
+		LEFT JOIN t_marketplace m ON m.point_name=t.marketplace_name
+		LEFT JOIN t_product_info i ON i.sku=t.sku AND i.amazonAuthId=t.amazonAuthId AND i.marketplaceid=m.marketplaceId
+		LEFT JOIN t_picture p ON p.id=i.image
+		LEFT JOIN t_product_in_opt opt ON opt.pid=i.id
+		LEFT JOIN t_erp_material mt ON mt.sku=ifnull(opt.msku,i.sku) AND mt.shopid=a.shop_id
+		LEFT JOIN t_userinfo u ON u.id=mt.owner
+		left join t_amazon_group g on g.id=a.groupid
+		left join t_amz_settlement_amount_description de on de.ename=t.amount_type
+		left join t_amz_settlement_amount_description de2 on de2.ename=t.amount_description
+		WHERE a.groupid=#{groupid,jdbcType=CHAR}
+		AND a.shop_id=#{shopid,jdbcType=CHAR} 
+		<if test="settlementid==null">
+		AND t.posted_date>=#{startDate,jdbcType=CHAR}
+		AND t.posted_date &lt;=#{endDate,jdbcType=CHAR}
+		</if>
+		<if test="settlementid!=null">
+		 AND t.settlement_id=#{settlementid,jdbcType=CHAR}
+		</if>
+		<if test="region!=null">
+			and m.region=#{region,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!=null">
+			and m.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="search!=null">
+			<if test='searchtype=="sku"'>
+				and (i.sku=#{search,jdbcType=CHAR})
+			</if>
+			<if test='searchtype=="order"'>
+			 and (t.order_id=#{search,jdbcType=CHAR})
+			</if>
+		</if>
+		<if test="color!=null">
+			and mt.color=#{color,jdbcType=CHAR}
+		</if>
+		<if test="owner!=null">
+			and mt.owner=#{owner,jdbcType=CHAR}
+		</if>
+	</select>
+
+	<select id="getSumOrdersPrice" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT max(g.name) allgroupname,max(m.name) allmarketname,max(m.currency) allcurrency,max(s.sku) allsku,
+			SUM(s.quantity) allquantity,SUM(s.ordersum) allordersum,SUM(s.orderprice) allorderprice
+		FROM (
+			SELECT amazonAuthId,marketplaceid,sku,SUM(quantity) quantity,SUM(ordersum) ordersum,SUM(orderprice) orderprice
+			from t_orders_summary
+			WHERE purchase_date>=#{startDate,jdbcType=TIMESTAMP} 
+				and purchase_date&lt;=#{endDate,jdbcType=TIMESTAMP}
+			GROUP BY amazonAuthId,marketplaceid,sku 
+		) s
+		LEFT JOIN t_product_info info ON info.amazonAuthId=s.amazonAuthId and info.marketplaceid=s.marketplaceid AND info.sku=s.sku
+		LEFT JOIN t_product_in_opt opt ON opt.pid=info.id
+		left join t_picture p on p.id=info.image
+		LEFT JOIN t_amazon_auth a ON a.id=info.amazonAuthId
+		LEFT JOIN t_erp_material mt ON mt.sku=ifnull(opt.msku,info.sku) AND mt.shopid=a.shop_id
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		LEFT JOIN t_marketplace m ON m.marketplaceId=info.marketplaceid
+		LEFT JOIN t_userinfo u ON u.id=mt.owner
+		WHERE a.shop_id=#{shopid,jdbcType=CHAR}
+		<if test="groupid!=null">
+			and g.id=#{groupid,jdbcType=BIGINT}
+		</if>
+		<if test="color!=null">
+			and mt.color=#{color,jdbcType=CHAR}
+		</if>
+		<if test="owner!=null">
+			and mt.owner=#{owner,jdbcType=CHAR}
+		</if>
+		<if test="region!=null">
+			and m.region=#{region,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!=null">
+			and info.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="search!=null">
+			and s.sku=#{search,jdbcType=CHAR}
+		</if>
+		group by a.shop_id
+	</select>
+	<select id="getSummaryOrder" parameterType="java.util.Map" resultType="java.util.Map">
+	 select MAX(V.total_buydate) total_buydate,COUNT(V.total_order) total_order ,
+	 SUM(V.total_cancel_order) total_cancel_order,
+	 SUM(V.total_quantity) total_quantity,SUM(V.itemprice) itemprice,
+	 case when COUNT(V.total_order)=0 then 0 else	CONVERT((SUM(V.itemprice)/COUNT(V.total_order)),decimal(12,4))	END  avgprice,
+	 case when COUNT(V.total_order)=0 then 0 else CONVERT(SUM(V.total_quantity)/COUNT(V.total_order), decimal(12,4)) END avgsales,
+	  ifnull(SUM(V.requantity),0) reqty,
+	  ifnull(COUNT(V.reorder),0) reorderqty,
+	  case when SUM(V.total_quantity)=0  then 0  ELSE  CONVERT(SUM(V.requantity)/SUM(V.total_quantity),decimal(12,4)) END  returnqtyrate,
+	  case when SUM(V.total_order)=0 then 0  ELSE  CONVERT(COUNT(V.reorder)/COUNT(V.total_order),decimal(12,4)) END  returnordrate
+		from (
+			select max(t.purchase_date) total_buydate, max(t.amazon_order_id) total_order,
+			case when (t.item_status='Cancelled') then 1 else 0 end total_cancel_order,
+			sum(t.quantity) total_quantity,SUM(t.item_price) itemprice,re.quantity requantity,re.order_id reorder
+			from t_orders_report t
+			left join t_amazon_auth au on au.id=t.amazonAuthId
+			left join t_amazon_group g on au.groupid=g.id
+			left join t_amz_returns_report re ON t.amazon_order_id=re.order_id AND t.sku=re.sku AND  au.sellerid=re.sellerid AND re.return_date>=t.purchase_date
+			<if test="color!=null">
+			left join t_marketplace mt on mt.point_name=t.sales_channel
+			left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and t.asin=info.asin and info.marketplaceid=mt.marketplaceId
+			left join t_product_in_opt opt on opt.pid=info.id
+			left join t_erp_material m on m.sku=ifnull(opt.msku,t.sku) and m.shopid=au.shop_id and m.isDelete = 0
+			</if>
+			where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+			and (t.quantity>0 or (t.quantity=0 and t.item_status='Cancelled'))
+			<if test="amazonAuthId!=null">
+				and t.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+			</if>
+		    <if test="color!=null">
+				and m.color=#{color,jdbcType=CHAR}
+			</if>
+			<if test="status!=null">
+				and t.order_status=#{status,jdbcType=CHAR}
+			</if>
+			<if test="channel!=null">
+				and t.fulfillment_channel=#{channel,jdbcType=CHAR}
+			</if>
+			<if test="pointname!=null">
+				and t.sales_channel=#{pointname,jdbcType=CHAR}
+			</if>
+			<if test="groupid!=null">
+				and au.groupid=#{groupid,jdbcType=BIGINT}
+			</if>
+			<if test="groupList !=null">
+				and au.groupid in(
+				<foreach collection="groupList" item="grop" index="index" separator=",">
+					#{grop.id,jdbcType=BIGINT} 
+				</foreach>
+				)
+			</if>
+			<if test="isbusiness!=null">
+				and IFNULL(t.is_business_order,'false') =#{isbusiness,jdbcType=CHAR}
+			</if>
+			<if test="sku!=null">
+				and t.sku=#{sku,jdbcType=CHAR}
+			</if>
+			<if test="asin!=null">
+				and t.asin=#{asin,jdbcType=CHAR}
+			</if>
+			<if test="orderid!=null">
+				and t.amazon_order_id=#{orderid,jdbcType=CHAR}
+			</if>
+			group by t.amazon_order_id 
+		) V 
+	
+	</select>
+</mapper>

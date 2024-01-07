@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.auth.mapper.AmazonAuthorityMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.AmazonAuthority">
+		<id column="id" jdbcType="CHAR" property="id" />
+		<result column="shop_id" jdbcType="CHAR" property="shopId" />
+		<result column="sellerid" jdbcType="VARCHAR" property="sellerid" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="disable" jdbcType="BIT" property="disable" />
+		<result column="MWSAuthToken" jdbcType="VARCHAR" property="mwsauthtoken" />
+		<result column="region" jdbcType="CHAR" property="region" />
+		<result column="groupid" property="groupid" jdbcType="CHAR" />
+		<result column="pictureId" jdbcType="CHAR" property="pictureId" />
+		<result column="status" jdbcType="CHAR" property="status" />
+		<result column="statusupdate" jdbcType="TIMESTAMP" property="statusupdate" />
+		<result column="productdate" jdbcType="TIMESTAMP" property="productdate" />
+		<result column="opttime" jdbcType="TIMESTAMP" property="opttime" />
+		<result column="createtime" jdbcType="TIMESTAMP" property="createtime" />
+		<result column="refreshinvtime" jdbcType="TIMESTAMP" property="refreshinvtime" />
+		<result column="refresh_token_time" jdbcType="TIMESTAMP" property="refreshTokenTime" />
+		<result column="refresh_token" jdbcType="CHAR" property="refreshToken" />
+		<result column="aws_region" jdbcType="CHAR" property="AWSRegion" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		`id`,`shop_id`,`sellerid`,`groupid`,
+		`region`,`MWSAuthToken`,`disable`,
+		`name`,`pictureId`,`status` ,
+		`statusupdate` ,`productdate`,
+		`refreshinvtime`,`refresh_token`,`refresh_token_time` ,`aws_region`,
+		`createtime`,`opttime` ,
+		`access_key_id`,`secret_key`,
+		`role_arn`,`client_id`,`client_secret`
+	</sql>
+	
+	<select id="selectBySellerId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_amazon_auth 
+		where sellerid = #{sellerid,jdbcType=CHAR}
+	</select>
+	<select id="uuid"  resultType="java.lang.String">
+		     select uuid_short()
+	</select>
+ 
+    <select id="getAvailableAuthority" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_amazon_auth 
+		where  `disable` = false
+		<if test="region!=null">
+			and aws_region=#{region,jdbcType=CHAR}
+		</if>
+		 and (status is null or status!='invalid')
+	</select>
+	<select id="getAllBossEmalShop"   resultType="java.lang.String">
+		select
+		 distinct shop_id shopid
+		from t_amazon_auth a
+		left join t_shop s on s.id=a.shop_id
+		where  a.`disable` = false
+		 and (status is null or status!='invalid')
+		 and s.boss_email is not null
+	</select>
+	<select id="selectBySellerIdAndShopId" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.auth.pojo.entity.AmazonAuthority">
+		select
+		<include refid="Base_Column_List" />
+		from t_amazon_auth 
+		where sellerid = #{sellerid,jdbcType=CHAR} 
+			and shop_id = #{shopId,jdbcType=CHAR}
+	</select>
+
+	<select id="selectAllBySellerId" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.auth.pojo.entity.AmazonAuthority">
+		select
+		<include refid="Base_Column_List" />
+		from t_amazon_auth 
+		where sellerid = #{sellerid,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectByGroupAndMarket" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select a.id, a.shop_id, a.sellerid,
+		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,a.status,
+		a.statusupdate,a.productdate,a.opttime,a.refreshinvtime,refresh_token,aws_region
+		from t_amazon_auth a
+		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		where a.groupid=#{groupid,jdbcType=CHAR} 
+			and b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectByMarket" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct a.id, a.shop_id, a.sellerid,
+		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,a.status,a.statusupdate,
+		a.productdate,a.opttime,refresh_token,aws_region
+		from t_amazon_auth a
+		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		where a.disable=0
+		    and  ifnull(a.status,'enable') not in ('invalid') 
+		<if test="marketplaceid!=null">
+			and b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		order by a.opttime
+	</select>
+
+	<select id="selectByShopAndMarket" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select a.id, a.shop_id, a.sellerid,
+		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,
+		a.status,a.statusupdate,a.productdate,a.opttime,refresh_token,aws_region
+		from t_amazon_auth a
+		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		where b.marketplace_id=#{marketplaceid,jdbcType=CHAR}
+		and  ifnull(a.status,'enable') not in ('invalid') 
+		and a.disable=0
+		<if test="shopid!=null">
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectByRegion" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct a.id, a.shop_id, a.sellerid,
+		a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,a.status,
+		a.statusupdate,a.productdate,a.opttime,a.refresh_token,a.aws_region
+		from t_amazon_auth a
+		left join t_amazonseller_market b on a.sellerid=b.sellerid
+		inner join t_marketplace c on b.marketplace_id = c.marketplaceId
+		where a.region=#{region,jdbcType=CHAR} 
+			and a.disable=0 and b.disable=0 
+		    and  ifnull(a.status,'enable') not in ('denied_acc','invalid')  
+	</select>
+
+	
+	<select id="selectByshopid" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select distinct a.id, a.shop_id, concat(g.name,'-',Lower(a.region)) name,a.sellerid,
+			a.MWSAuthToken,a.region,a.pictureId,a.opttime,g.id groupid,g.name groupname,refresh_token,aws_region
+		from t_amazon_auth a
+		left join t_amazon_group g on a.groupid=g.id
+		where a.shop_id=#{shopid,jdbcType=CHAR} 
+			and a.`disable` = false
+		order by a.opttime desc
+	</select>
+
+	<select id="getCurrentShopCountByShopId" parameterType="java.lang.String" resultType="java.lang.Long">
+		select COUNT(1) from t_amazon_auth
+		where shop_id = #{shopId,jdbcType=CHAR} 
+			and disable = false
+	</select>
+
+	<update id="deleteBySellerId" parameterType="java.lang.String">
+		update t_amazon_auth set disable= true, opttime=now()
+		where sellerid = #{sellerid,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateAmazonForSellerid" parameterType="java.util.Map">
+		update t_amazon_auth 
+		set disable=#{disable,jdbcType=BIT}  
+		where sellerid = #{sellerid,jdbcType=CHAR};
+		 
+		update t_amazonseller_market 
+		set disable = #{disable,jdbcType=BIT},opttime=now()
+		where sellerid = #{sellerid,jdbcType=CHAR};
+	</update>
+
+	<select id="selectMarketPlaceById" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(m.marketplace_id) from t_amazon_auth a
+		left join t_amazonseller_market m on a.sellerid = m.sellerid
+		where a.id = #{amazonAuthId,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectFinByShopid" parameterType="java.lang.String" resultType="java.util.Map">
+		select g.name,acc.financial_event_group_start starttime,acc.processing_status accstatus,
+			acc.original_total amount ,acc.currency from t_amz_fin_account acc
+		left join t_amazon_auth a on a.id=acc.amazonAuthid
+		left join t_amazon_group g on a.groupid=g.id
+		where acc.processing_status='Open' 
+			and g.shopid=#{shopid,jdbcType=CHAR}
+			and g.id=#{groupid,jdbcType=CHAR}
+		order by acc.financial_event_group_start desc
+	</select>
+
+	<select id="getNeedDelete" resultMap="BaseResultMap">
+		select * from t_amazon_auth
+		where `disable`=true 
+			and opttime &lt; DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+	</select>
+ 
+	
+	<delete id="batchDeleteProductInfoHis" parameterType="java.util.List">
+		DELETE from t_product_price_his where id in 
+			<foreach collection="list" item="id" index="i" open="(" separator="," close=" )">
+				#{id,jdbcType=CHAR}
+			</foreach>
+	</delete>
+	
+ 
+	<select id="selectAdvByGroupId" parameterType="java.lang.String" resultType="java.util.Map">
+	   select 
+			  case when  `disable`=0 and disableTime is not null
+			  AND   TIMESTAMPDIFF(DAY,DATE_FORMAT(disableTime, '%Y-%m-%d') ,DATE_FORMAT(NOW(), '%Y-%m-%d')) &lt; 2 
+			  then '0' ELSE '1' end  adauth,
+			  t.* from t_amz_adv_auth t where groupid=#{groupid,jdbcType=CHAR} and disable=0
+	</select>
+	<select id="selectAdvMarketByAdvAuthId" parameterType="java.lang.String" resultType="java.util.Map">
+	   select* from t_amz_adv_profile where advauthId=#{advauthId,jdbcType=CHAR}
+	</select>
+	
+	<update id="deleteByLogic"  parameterType="java.util.Map">
+		update t_amazon_auth 
+		set disable=true ,opttime=now() 
+		where sellerid = #{param.sellerid,jdbcType=CHAR};
+	</update>
+ 
+ 
+ 	<select id="selectAuthMaketplace" parameterType="java.lang.String" resultType="java.util.Map">
+ 	      SELECT CONCAT('【',a.market,'】',g.name,a.name) label,CONCAT(a.marketplaceId,'-',t.id) value
+		 FROM t_amazon_auth t
+		 LEFT JOIN t_amazon_group g ON g.id=t.groupid
+		 LEFT JOIN t_amazonseller_market m ON m.sellerid=t.sellerid AND m.`disable`=0
+		 LEFT JOIN t_marketplace a ON a.marketplaceId=m.marketplace_id
+		  WHERE t.shop_id=#{shopid,jdbcType=CHAR}
+		  AND a.marketplaceId IS NOT NULL  and t.`disable`=0 and g.isdelete=0 
+		  ORDER BY g.name,a.findex asc
+ 	</select>
+	
+</mapper>

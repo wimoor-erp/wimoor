@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductPriceRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductPriceRecord">
+        <id column="pid" property="pid" />
+        <result column="opttime" property="opttime" />
+        <result column="lowestprice" property="lowestprice" />
+        <result column="price" property="price" />
+        <result column="refprice" property="refprice" />
+        <result column="oldprice" property="oldprice" />
+        <result column="shipprice" property="shipprice" />
+        <result column="oldshipprice" property="oldshipprice" />
+        <result column="startdate" property="startdate" />
+        <result column="enddate" property="enddate" />
+        <result column="ftype" property="ftype" />
+        <result column="remark" property="remark" />
+    </resultMap>
+
+</mapper>
