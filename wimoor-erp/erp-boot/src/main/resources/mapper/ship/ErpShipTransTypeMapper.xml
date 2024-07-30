@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ErpShipTransTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ErpShipTransType" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, name, operator, opttime
+  </sql>
+  <select id="selectTransTypeList" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  		select * from t_erp_transtype t where (t.shopid=#{shopid,jdbcType=CHAR} or t.shopid IS NULL)
+  		<if test="name!=null">
+  		 and t.name=#{name,jdbcType=CHAR}
+  		</if>
+  </select>
+</mapper>

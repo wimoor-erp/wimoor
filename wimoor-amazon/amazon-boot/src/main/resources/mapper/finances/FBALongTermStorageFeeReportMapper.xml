@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.FBALongTermStorageFeeReportMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.FBALongTermStorageFeeReport" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="snapshot_date" property="snapshotDate" jdbcType="TIMESTAMP" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="qty_charged_12month" property="qtyCharged12month" jdbcType="INTEGER" />
+    <result column="per_unit_volume" property="perUnitVolume" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="qty_charged_6month" property="qtyCharged6month" jdbcType="INTEGER" />
+    <result column="amount_6" property="amount6" jdbcType="DECIMAL" />
+    <result column="amount_12" property="amount12" jdbcType="DECIMAL" />
+    <result column="volume_unit" property="volumeUnit" jdbcType="DECIMAL" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="is_sl" property="isSl" jdbcType="BIT" />
+    <result column="amazonauthid" property="amazonauthid" jdbcType="CHAR" />
+    <result column="lastupdate" property="lastupdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, snapshot_date, sku, fnsku, asin, qty_charged_12month, per_unit_volume, currency, 
+    qty_charged_6month, amount_6, amount_12, volume_unit, country, is_sl, amazonauthid, 
+    lastupdate
+  </sql>
+  <select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+  	SELECT IFNULL(p.location,p.url) image,i.name,i.sku,i.`asin`,m.name marketname,g.name gname,t.snapshot_date,t.qty_charged,
+	t.amount_charged,t.surcharge_age_tier,t.currency,t.rate_surcharge,t.per_unit_volume
+	FROM t_fba_longterm_storage_fee_report t 
+	LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+	LEFT JOIN t_amazon_group g ON g.id=a.groupid
+	LEFT JOIN t_marketplace m ON m.market=t.country
+	LEFT JOIN t_product_info i ON i.sku=t.sku AND i.amazonAuthId=t.amazonauthid AND i.marketplaceid=m.marketplaceId
+	LEFT JOIN t_picture p ON p.id=i.image
+	where  
+	t.snapshot_date &gt; #{param.fromDate,jdbcType=CHAR} and t.snapshot_date &lt; #{param.toDate,jdbcType=CHAR}
+	<if test="param.amazonauthid==null">
+	 and exists(select id from t_amazon_auth ah left join t_marketplace mm on mm.aws_region=ah.aws_region where 
+			    ah.id=a.id and ah.shop_id = #{param.shopid,jdbcType=CHAR}  
+				 <if test="param.groupid!=null">
+			    	AND  ah.groupid=#{param.groupid,jdbcType=CHAR}
+			    </if>
+				 <if test="param.marketplaceid!=null">
+			    	AND  mm.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+			    </if>
+	 		  ) 
+     </if>
+     <if test="param.marketplaceid!=null">
+    	AND  m.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+    </if>
+    <if test="param.amazonauthid!=null">
+    	AND  t.amazonauthid=#{param.amazonauthid,jdbcType=CHAR}
+    </if>
+     <if test="param.search!=null">
+    	AND  (t.sku like #{param.search,jdbcType=CHAR} or t.asin like #{param.search,jdbcType=CHAR})
+    </if>
+  </select>
+   <select id="findSku_LongtermStorage" parameterType="java.util.Map" resultType="java.util.Map">
+  	        select  sku,max(sr.currency) currency,  sum(ifnull(sr.amount_charged,ifnull(ifnull(sr.amount_6,sr.amount_12),0)))  longTermFee
+					from t_fba_longterm_storage_fee_report  sr
+					where amazonauthid=#{amazonAuthId,jdbcType=CHAR}
+					      and sr.snapshot_date >=#{fromDate,jdbcType=DATE}
+                          and sr.snapshot_date   &lt; #{endDate,jdbcType=DATE}
+			              and country=#{country,jdbcType=CHAR}
+			      group by `amazonauthid`, `country`,  sku
+	</select>
+ <insert id="insertBatch"  parameterType="java.util.List">
+      insert ignore into  t_fba_longterm_storage_fee_report ( 
+      id, 
+      snapshot_date, 
+      sku, 
+      fnsku, 
+      `condition`,
+      `asin`,
+      qty_charged_12month,
+      qty_charged_6month,
+      qty_charged,
+      amount_6,
+      amount_12,
+      amount_charged,
+      surcharge_age_tier,
+      currency,
+      per_unit_volume,
+      rate_surcharge,
+      volume_unit,
+      country,
+      is_sl,
+      amazonauthid,
+      lastupdate
+      )
+    values
+       <foreach collection ="list" item="stm" index= "index" separator =",">
+      (uuid_short(), 
+      #{stm.snapshotDate,jdbcType=CHAR}, 
+      #{stm.sku,jdbcType=CHAR}, 
+      #{stm.fnsku,jdbcType=CHAR}, 
+      #{stm.condition,jdbcType=CHAR},
+      #{stm.asin,jdbcType=CHAR}, 
+      #{stm.qtyCharged12month,jdbcType=INTEGER}, 
+      #{stm.qtyCharged6month,jdbcType=INTEGER}, 
+      #{stm.qtyCharged,jdbcType=INTEGER}, 
+      #{stm.amount6,jdbcType=DECIMAL}, 
+      #{stm.amount12,jdbcType=DECIMAL}, 
+      #{stm.amountCharged,jdbcType=DECIMAL}, 
+      #{stm.surchargeAgeTier,jdbcType=CHAR},
+      #{stm.currency,jdbcType=CHAR}, 
+      #{stm.perUnitVolume,jdbcType=DECIMAL},
+      #{stm.rateSurcharge,jdbcType=DECIMAL},
+      #{stm.volumeUnit,jdbcType=DECIMAL}, 
+      #{stm.country,jdbcType=CHAR}, 
+      #{stm.isSl,jdbcType=BIT},
+      #{stm.amazonauthid,jdbcType=CHAR},  
+      #{stm.lastupdate,jdbcType=TIMESTAMP}
+      )
+      </foreach> 
+  </insert>
+</mapper>

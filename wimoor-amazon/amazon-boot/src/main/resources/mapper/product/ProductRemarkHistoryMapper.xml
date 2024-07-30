@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductRemarkHistoryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductRemarkHistory" >
+    <id column="pid" property="pid" jdbcType="BIGINT" />
+    <id column="ftype" property="ftype" jdbcType="CHAR" />
+    <id column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    pid, ftype, opttime, operator, remark
+  </sql>
+   <select id="getProRemarkHisByPid" parameterType="java.lang.String" resultType="java.util.Map">
+   		SELECT t.pid,info.name optname,t.opttime,t.remark FROM t_product_remark_his t 
+		LEFT JOIN t_userinfo info ON t.operator=info.id
+		WHERE t.pid=#{pid,jdbcType=CHAR}  AND  t.ftype=#{ftype,jdbcType=CHAR}
+   	    order by t.opttime DESC
+   </select>
+</mapper>

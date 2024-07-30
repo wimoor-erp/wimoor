@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvRemindMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvRemind">
+		<id column="profileid" property="profileid" jdbcType="BIGINT" />
+		<id column="campaignid" property="campaignid" jdbcType="BIGINT" />
+		<id column="adgroupid" property="adgroupid" jdbcType="BIGINT" />
+		<id column="keywordid" property="keywordid" jdbcType="BIGINT" />
+		<id column="adid" property="adid" jdbcType="BIGINT" />
+		<id column="targetid" property="targetid" jdbcType="BIGINT" />
+		<result column="cycle" property="cycle" jdbcType="INTEGER" />
+		<result column="quota" property="quota" jdbcType="CHAR" />
+		<result column="fcondition" property="condition" jdbcType="CHAR" />
+		<result column="subtrahend" property="subtrahend" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="DECIMAL" />
+		<result column="iswarn" property="iswarn" jdbcType="BIT" />
+		<result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		profileid, campaignid, adgroupid, keywordid, adid, targetid, cycle, quota, fcondition,
+		subtrahend, amount, iswarn,createdate,opttime,creator,operator
+	</sql>
+	
+	<select id="getCreatorList" resultType="java.util.Map" parameterType="java.lang.String">
+		select distinct u.id,u.name 
+		from t_amz_adv_remind r
+		left join t_amz_adv_profile p on p.id=r.profileid
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_userinfo u on u.id=r.creator
+		where a.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		select g.name groupname,g.id groupid,au.id advauthid,m.name maketname,
+			ifnull(cam.name,camsd.name) campaigns_name,ifnull(adg.name,adgsd.name)  adgroups_name, ifnull(pad.sku,padsd.sku)  productads_sku,
+			kw.keywordText, m.currency, u.name username, t.* 
+		from t_amz_adv_remind t
+		left join t_amz_adv_campaigns cam on cam.campaignId=t.campaignid and cam.profileid=t.profileid
+		left join t_amz_adv_adgroups adg on adg.adGroupId=t.adgroupid and adg.campaignId=t.campaignid and adg.profileid=t.profileid
+		left join t_amz_adv_productads pad on pad.adId=t.adid and pad.adGroupId=t.adgroupid and pad.campaignId=t.campaignid and pad.profileid=t.profileid
+		left join t_amz_adv_campaigns_sd camsd on camsd.campaignId=t.campaignid and camsd.profileid=t.profileid
+		left join t_amz_adv_adgroups_sd adgsd on adgsd.adGroupId=t.adgroupid and adgsd.campaignId=t.campaignid and adgsd.profileid=t.profileid
+		left join t_amz_adv_productads_sd padsd on padsd.adId=t.adid and padsd.adGroupId=t.adgroupid and padsd.campaignId=t.campaignid and padsd.profileid=t.profileid
+		left join t_amz_adv_keywords kw on kw.keywordId=t.keywordid and kw.adGroupId=t.adgroupid and kw.campaignId=t.campaignid and kw.profileid=t.profileid
+		left join t_amz_adv_profile f on t.profileid=f.id
+		left join t_marketplace m on m.marketplaceid=f.marketplaceid
+		left join t_amz_adv_auth au on f.advauthId=au.id and au.disable = 0
+		left join t_amazon_group g on g.id=au.groupid
+		left join t_userinfo u on u.id=t.creator
+		where au.shopid=#{shopid,jdbcType=CHAR}
+		<if test="profileid!=null">
+			and t.profileid=#{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid!=null">
+			and f.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="campaignid!=null">
+			and t.campaignid=#{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="adgroupid!=null">
+			and t.adgroupid=#{adgroupid,jdbcType=BIGINT}
+		</if>
+		<if test="groupid!=null">
+			and g.id=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="creatorid!=null">
+			and t.creator=#{creatorid,jdbcType=CHAR}
+		</if>
+		<if test="search!=null">
+			and (kw.keywordText like #{search,jdbcType=CHAR}
+			or pad.sku like #{search,jdbcType=CHAR}
+			or pad.asin like #{search,jdbcType=CHAR})
+		</if>
+	</select>
+	
+	<select id="selectAllRemind" resultType="java.util.Map">
+		select cam.name campaigns_name, adg.name adgroups_name, pad.sku productads_sku,
+			kw.keywordText,t.profileid,t.campaignid,t.adgroupid,t.keywordid,t.adid 
+		from t_amz_adv_remind t
+		left join t_amz_adv_campaigns cam on cam.campaignId=t.campaignid and cam.profileid=t.profileid
+		left join t_amz_adv_adgroups adg on adg.adGroupId=t.adgroupid and adg.campaignId=t.campaignid and adg.profileid=t.profileid
+		left join t_amz_adv_productads pad on pad.adId=t.adid and pad.adGroupId=t.adgroupid and pad.campaignId=t.campaignid and pad.profileid=t.profileid
+		left join t_amz_adv_keywords kw on kw.keywordId=t.keywordid and kw.adGroupId=t.adgroupid and kw.campaignId=t.campaignid and kw.profileid=t.profileid
+		left join t_amz_adv_profile f on t.profileid=f.id
+	</select>
+
+	<select id="selectByprofileid" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.*
+		from t_amz_adv_remind t
+		left join t_amz_adv_campaigns spc on spc.campaignId=t.campaignid
+		left join t_amz_adv_campaigns_hsa hsac on hsac.campaignId=t.campaignid
+		where t.profileid in
+		<foreach collection="profileidList" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		<if test="recordType!=null">
+			and t.recordtype =#{recordType,jdbcType=CHAR}
+		</if>
+		<if test="campaignType=='sp'">
+			and hsac.campaignId is null
+		</if>
+		<if test="campaignType=='hsa'">
+			and spc.campaignId is null
+		</if>
+	</select>
+
+	<update id="updateRemindIswarn" parameterType="java.util.Map">
+		update t_amz_adv_remind t 
+		set t.iswarn = 1 , t.opttime = now()
+		where t.profileid=#{profileid,jdbcType=BIGINT}
+			and t.campaignid = #{campaignid,jdbcType=BIGINT}
+			and t.adgroupid = #{adgroupid,jdbcType=BIGINT}
+			and t.adid = #{adid,jdbcType=BIGINT}
+			and t.targetid = #{targetid,jdbcType=BIGINT}
+			and t.keywordid = #{keywordid,jdbcType=BIGINT}
+	</update>
+
+	<update id="updateRemindIsnotwarn" parameterType="java.util.Map">
+		update t_amz_adv_remind t 
+		set t.iswarn = 0 , t.opttime = now()
+		where t.profileid=#{profileid,jdbcType=BIGINT}
+			and t.campaignid = #{campaignid,jdbcType=BIGINT}
+			and t.adgroupid = #{adgroupid,jdbcType=BIGINT}
+			and t.adid = #{adid,jdbcType=BIGINT}
+			and t.targetid = #{targetid,jdbcType=BIGINT}
+			and t.keywordid = #{keywordid,jdbcType=BIGINT}
+	</update>
+
+	<delete id="deleteReminForProfileId" parameterType="java.math.BigInteger">
+		delete from t_amz_adv_remind where profileid = #{profileid,jdbcType=BIGINT}
+	</delete>
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-admin/admin-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-admin/admin-boot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-admin/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-admin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon-adv/amazon-adv-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon-adv/amazon-adv-boot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon-adv/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon-adv/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon/amazon-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon/amazon-boot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon/amazon-sp-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-amazon/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-auth/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-entity/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-feishu/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-mvc/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-mybatis/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-redis/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-storage/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/common-swagger/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-erp/erp-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-erp/erp-boot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-erp/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-erp/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/wimoor-shopee/src/main/java" charset="UTF-8" />
+  </component>
+</project>

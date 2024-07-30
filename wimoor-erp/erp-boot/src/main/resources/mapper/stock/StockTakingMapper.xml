@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.StockTakingMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.StockTaking" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="number" property="number" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <result column="whtotalamount" property="whtotalamount" jdbcType="INTEGER" />
+    <result column="whtotalprice" property="whtotalprice" jdbcType="DECIMAL" />
+    <result column="overamount" property="overamount" jdbcType="INTEGER" />
+    <result column="lossamount" property="lossamount" jdbcType="INTEGER" />
+    <result column="overprice" property="overprice" jdbcType="DECIMAL" />
+    <result column="lossprice" property="lossprice" jdbcType="DECIMAL" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="creator" property="creator" jdbcType="CHAR" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="isworking" property="isworking" jdbcType="BIT" />
+  </resultMap>
+
+	<select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
+		<!-- SELECT a.*,b.`name` warehouse ,c.`name` username  from t_erp_stocktaking a 
+		LEFT JOIN t_erp_warehouse b on a.warehouseid=b.id
+		LEFT JOIN t_userinfo c on a.creator=c.id where a.shopid = #{params.shopid,jdbcType=CHAR} 
+		<if test="params.search!=null">
+			and a.number like #{params.search,jdbcType=CHAR}
+		</if>
+		<if test="params.warehouseid!=null">
+			and a.warehouseid=#{params.warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="params.isworking!=null">
+			and a.isworking=#{params.isworking,jdbcType=BIT}
+		</if>
+		<if test="params.fromDate != null and params.endDate != null"> 
+      		and DATE_FORMAT(a.createdate,'%Y-%m-%d') &gt;=#{params.fromDate,jdbcType=DATE}
+   	 		and  DATE_FORMAT(a.createdate,'%Y-%m-%d') &lt;=#{params.endDate,jdbcType=DATE} 
+        </if> -->
+        SELECT s.id,s.remark,s.number,s.isworking,s.createdate,
+		v.warehouseids,v.skunum,v.amount,v.overamount,v.lossamount ,v.amountprice,v.overamountprice,v.lossamountprice ,
+		v2.shelfids,v2.shelfskunum,v2.amount amountshelf,v2.overamount overamountshelf,v2.lossamount  lossamountshelf,
+		v2.amountprice amountshelfprice,v2.overamountprice overamountshelfprice,v2.lossamountprice  lossamountshelfprice
+		from t_erp_stocktaking s 
+		LEFT JOIN (
+		SELECT 
+		stocktakingid,COUNT(distinct materialid) skunum,
+		GROUP_CONCAT(distinct warehouseid) warehouseids,
+		SUM(i.amount) amount ,
+		SUM(i.overamount) overamount ,
+		SUM(i.lossamount) lossamount ,
+		SUM(i.amount*m.price) amountprice,
+		SUM(i.overamount*m.price) overamountprice ,
+		SUM(i.lossamount*m.price) lossamountprice 
+		from
+		t_erp_stocktaking_item i 
+		LEFT JOIN t_erp_material m ON m.id=i.materialid
+		GROUP BY stocktakingid)  v ON s.id=v.stocktakingid
+		LEFT JOIN (
+		select stocktakingid,COUNT(distinct materialid) shelfskunum,GROUP_CONCAT(distinct  shelfid) shelfids, 
+		SUM(amount) amount ,
+		SUM(overamount) overamount ,
+		SUM(lossamount) lossamount ,
+		SUM(amount*m.price) amountprice ,
+		SUM(overamount*m.price) overamountprice ,
+		SUM(lossamount*m.price) lossamountprice 
+		 from t_erp_stocktaking_item_shelf i
+		 LEFT JOIN t_erp_material m ON m.id=i.materialid
+		  GROUP BY stocktakingid
+		)v2 ON s.id=v2.stocktakingid
+		WHERE s.shopid= #{params.shopid,jdbcType=CHAR}
+		<if test="params.search!=null">
+			and s.number like #{params.search,jdbcType=CHAR}
+		</if>
+		<if test="params.warehouseid!=null">
+		   and v.warehouseids LIKE #{params.warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="params.shelfid!=null">
+			and v2.shelfids LIKE #{params.shelfid,jdbcType=CHAR}
+		</if>
+		<if test="params.isworking!=null">
+			and s.isworking=#{params.isworking,jdbcType=BIT}
+		</if>
+		<if test="params.fromDate != null and params.endDate != null"> 
+      		and DATE_FORMAT(s.createdate,'%Y-%m-%d') &gt;=#{params.fromDate,jdbcType=DATE}
+   	 		and  DATE_FORMAT(s.createdate,'%Y-%m-%d') &lt;=#{params.endDate,jdbcType=DATE} 
+        </if>
+		
+	</select>
+	
+	<select id="getTotalProfitAndLoss" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT SUM(v.overamount) overamount,SUM(v.lossamount) lossamount,
+		SUM(v.overprice) overprice,SUM(v.lossprice) lossprice 
+		from (
+			SELECT a.stocktakingid stocktakingid,b.sku,b.price, 
+			sum(a.overamount) overamount,sum(a.lossamount) lossamount,
+			sum(a.overamount*b.price) overprice,sum(a.lossamount*b.price) lossprice 
+			from t_erp_stocktaking_item a left join t_erp_material b on a.materialid =b.id
+		where a.stocktakingid=#{warehouseid,jdbcType=CHAR} 
+		GROUP BY b.id )v 
+		where v.stocktakingid=#{warehouseid,jdbcType=CHAR}
+	</select>
+  
+  <select id="getSumQuantity" parameterType="java.lang.String" resultType="java.util.Map">
+	 SELECT IFNULL(sum(i.quantity),0) fulfillable,
+			IFNULL(sum(i2.quantity),0) outbound,
+			IFNULL(sum(item.amount),0) amount,
+			IFNULL(sum(item.overamount),0) overamount,
+			IFNULL(sum(item.lossamount),0) lossamount  
+		 from t_erp_stocktaking_item item 
+		 LEFT JOIN t_erp_material m on m.id=item.materialid 
+		 LEFT JOIN t_erp_inventory i on i.warehouseid=item.warehouseid and i.materialid=item.materialid and 
+     		i.`status`='fulfillable' 
+		 LEFT JOIN t_erp_inventory i2 on i2.warehouseid=item.warehouseid and i2.materialid=item.materialid and 
+      		i2.`status` like 'outbound%' 
+		 where item.stocktakingid=#{id,jdbcType=CHAR} and item.warehouseid=#{warehouseid,jdbcType=CHAR}
+  </select>
+  
+  <select id="findStockInv" parameterType="java.lang.String" resultType="java.util.Map">
+  		SELECT t.warehouseid,w.name wname,t.materialid,m.sku,t.quantity,m.name 
+  		FROM t_erp_inventory t
+		LEFT JOIN t_erp_warehouse w ON w.id=t.warehouseid
+		LEFT JOIN t_erp_material m ON m.id=t.materialid
+		WHERE t.`status`='fulfillable' AND w.disabled=0 AND m.isDelete=0
+		AND t.warehouseid=#{warehouseid,jdbcType=CHAR}
+  </select>
+   
+   
+</mapper>

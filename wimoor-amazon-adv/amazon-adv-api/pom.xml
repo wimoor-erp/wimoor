@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+		<groupId>com.wimoor</groupId>
+		<artifactId>wimoor-amazon-adv</artifactId>
+		<version>2.0.0</version>
+	</parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>amazon-adv-api</artifactId>
+    <properties>
+        <wimoor.version>2.0.0</wimoor.version>
+	</properties>
+    <dependencies>
+ 
+        <!-- 远程调用HTTP客户端 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+        <dependency>
+		    <groupId>com.wimoor</groupId>
+		    <artifactId>common-core</artifactId>
+		    <version>${wimoor.version}</version>
+		</dependency>
+		 <dependency>
+		    <groupId>com.wimoor</groupId>
+		    <artifactId>common-redis</artifactId>
+		    <version>${wimoor.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.wimoor</groupId>
+		    <artifactId>common-mvc</artifactId>
+		    <version>${wimoor.version}</version>
+		</dependency>
+    </dependencies>
+
+</project>

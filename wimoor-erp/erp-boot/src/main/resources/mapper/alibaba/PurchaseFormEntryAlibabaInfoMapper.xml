@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.PurchaseFormEntryAlibabaInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseFormEntryAlibabaInfo" >
+    <id column="entryid" property="entryid" jdbcType="CHAR" />
+    <result column="alibaba_auth" property="alibabaAuth" jdbcType="BIGINT" />
+    <result column="alibaba_orderid" property="alibabaOrderid" jdbcType="BIGINT" />
+    <result column="order_status" property="orderStatus" jdbcType="CHAR" />
+    <result column="logistics_info" property="logisticsInfo" jdbcType="LONGVARCHAR" />
+    <result column="order_info" property="orderInfo" jdbcType="LONGVARCHAR" />
+    <result column="logistics_trace_info" property="logisticsTraceInfo" jdbcType="LONGVARCHAR" />
+    <result column="order_refresh_time" property="orderRefreshTime" jdbcType="TIMESTAMP" />
+    <result column="logistics_refresh_time" property="logisticsRefreshTime" jdbcType="TIMESTAMP" />
+    <result column="logistics_trace_refresh_time" property="logisticsTraceRefreshTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+	entryid,
+	alibaba_auth,
+	alibaba_orderid,
+	logistics_info,
+	logistics_trace_info,
+	order_info,
+  </sql>
+ <select id="findNeedRefresh" resultMap="BaseResultMap"   >
+        select 
+    info.entryid, 
+    info.alibaba_auth,
+    info.alibaba_orderid,
+    info.order_status,
+    info.order_refresh_time,
+	info.logistics_refresh_time,
+	info.logistics_trace_refresh_time
+    from  t_erp_purchase_form_entry_alibabainfo_ext info 
+    left join t_erp_purchase_form_entry entry on entry.id=info.entryid
+    where entry.auditstatus=2
+    and (info.order_status='waitlogisticstakein' 
+      or info.order_status='waitbuyerreceive'
+      or info.order_status='waitbuyerpay'
+      or info.order_status='waitsellersend')
+  </select>
+ <select id="getEntryIdByLogisticsId" resultType="java.lang.String"  parameterType="java.lang.String" >
+		select lgt.entryid from 
+		t_erp_purchase_form_entry_logistics lgt
+		LEFT JOIN t_erp_purchase_form_entry e ON e.id=lgt.entryid
+		LEFT JOIN t_erp_purchase_form f ON f.id=e.formid
+		where lgt.logisticsId = #{logisticsId,jdbcType=CHAR}
+		AND f.shopid=#{shopid,jdbcType=CHAR}
+        and f.createdate>DATE_ADD(now(),INTERVAL -1 year)
+		and e.auditstatus>=2
+</select>
+  <!-- 
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_purchase_form_entry_alibabainfo
+    where entryid = #{entryid,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryAlibabaInfoWithBLOBs" >
+    insert into t_erp_purchase_form_entry_alibabainfo (entryid, alibaba_auth, alibaba_orderid, 
+      logisticsId, traceInfo, orderInfo
+      )
+    values (#{entryid,jdbcType=CHAR}, #{alibabaAuth,jdbcType=BIGINT}, #{alibabaOrderid,jdbcType=BIGINT}, 
+      #{logisticsid,jdbcType=CHAR}, #{traceinfo,jdbcType=LONGVARCHAR}, #{orderinfo,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryAlibabaInfoWithBLOBs" >
+    insert into t_erp_purchase_form_entry_alibabainfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="entryid != null" >
+        entryid,
+      </if>
+      <if test="alibabaAuth != null" >
+        alibaba_auth,
+      </if>
+      <if test="alibabaOrderid != null" >
+        alibaba_orderid,
+      </if>
+      <if test="logisticsid != null" >
+        logisticsId,
+      </if>
+      <if test="traceinfo != null" >
+        traceInfo,
+      </if>
+      <if test="orderinfo != null" >
+        orderInfo,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="entryid != null" >
+        #{entryid,jdbcType=CHAR},
+      </if>
+      <if test="alibabaAuth != null" >
+        #{alibabaAuth,jdbcType=BIGINT},
+      </if>
+      <if test="alibabaOrderid != null" >
+        #{alibabaOrderid,jdbcType=BIGINT},
+      </if>
+      <if test="logisticsid != null" >
+        #{logisticsid,jdbcType=CHAR},
+      </if>
+      <if test="traceinfo != null" >
+        #{traceinfo,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="orderinfo != null" >
+        #{orderinfo,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryAlibabaInfoWithBLOBs" >
+    update t_erp_purchase_form_entry_alibabainfo
+    <set >
+      <if test="alibabaAuth != null" >
+        alibaba_auth = #{alibabaAuth,jdbcType=BIGINT},
+      </if>
+      <if test="alibabaOrderid != null" >
+        alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT},
+      </if>
+      <if test="logisticsid != null" >
+        logisticsId = #{logisticsid,jdbcType=CHAR},
+      </if>
+      <if test="traceinfo != null" >
+        traceInfo = #{traceinfo,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="orderinfo != null" >
+        orderInfo = #{orderinfo,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where entryid = #{entryid,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryAlibabaInfoWithBLOBs" >
+    update t_erp_purchase_form_entry_alibabainfo
+    set alibaba_auth = #{alibabaAuth,jdbcType=BIGINT},
+      alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT},
+      logisticsId = #{logisticsid,jdbcType=CHAR},
+      traceInfo = #{traceinfo,jdbcType=LONGVARCHAR},
+      orderInfo = #{orderinfo,jdbcType=LONGVARCHAR}
+    where entryid = #{entryid,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.PurchaseFormEntryAlibabaInfo" >
+    update t_erp_purchase_form_entry_alibabainfo
+    set alibaba_auth = #{alibabaAuth,jdbcType=BIGINT},
+      alibaba_orderid = #{alibabaOrderid,jdbcType=BIGINT},
+      logisticsId = #{logisticsid,jdbcType=CHAR}
+    where entryid = #{entryid,jdbcType=CHAR}
+  </update> -->
+</mapper>

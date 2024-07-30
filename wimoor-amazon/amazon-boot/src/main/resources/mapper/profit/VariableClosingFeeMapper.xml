@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.VariableClosingFeeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.VariableClosingFee" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="country" property="country" jdbcType="CHAR" />
+    <result column="typeid" property="typeid" jdbcType="INTEGER" />
+    <result column="isMedia" property="ismedia" jdbcType="CHAR" />
+    <result column="logisticsId" property="logisticsid" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="format" property="format" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, country, typeid, isMedia, logisticsId, name, format
+  </sql>
+  
+  <select id="findByLogisticsId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_variable_closing_fee
+    where logisticsId = #{logistics,jdbcType=CHAR} and isMedia = #{isMedia,jdbcType=CHAR}
+  </select>
+  <select id="findByLogisticsAndType" resultMap="BaseResultMap" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_variable_closing_fee
+    where logisticsId = #{logistics,jdbcType=CHAR} and typeid = #{typeId,jdbcType=INTEGER}
+  </select>
+  <select id="findByTypeId" resultMap="BaseResultMap" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_variable_closing_fee
+    where country = #{country,jdbcType=CHAR} and typeid = #{typeId,jdbcType=INTEGER}
+  </select>
+  
+</mapper>

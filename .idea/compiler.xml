@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="amazon-boot" />
+        <module name="amazon-sp-api" />
+        <module name="common-storage" />
+        <module name="wimoor-auth" />
+        <module name="admin-api" />
+        <module name="admin-boot" />
+        <module name="common-redis" />
+        <module name="wimoor-gateway" />
+        <module name="erp-api" />
+        <module name="amazon-adv-boot" />
+        <module name="common-mvc" />
+        <module name="common-mybatis" />
+        <module name="common-feishu" />
+        <module name="erp-boot" />
+        <module name="common-swagger" />
+        <module name="amazon-adv-api" />
+        <module name="amazon-api" />
+        <module name="common-entity" />
+        <module name="wimoor-shopee" />
+        <module name="common-core" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="admin-api" options="-parameters" />
+      <module name="admin-boot" options="-parameters" />
+      <module name="amazon-adv-api" options="-parameters" />
+      <module name="amazon-adv-boot" options="-parameters" />
+      <module name="amazon-api" options="-parameters" />
+      <module name="amazon-boot" options="-parameters" />
+      <module name="amazon-sp-api" options="-parameters" />
+      <module name="common-core" options="-parameters" />
+      <module name="common-entity" options="-parameters" />
+      <module name="common-feishu" options="-parameters" />
+      <module name="common-mvc" options="-parameters" />
+      <module name="common-mybatis" options="-parameters" />
+      <module name="common-redis" options="-parameters" />
+      <module name="common-storage" options="-parameters" />
+      <module name="common-swagger" options="-parameters" />
+      <module name="erp-api" options="-parameters" />
+      <module name="erp-boot" options="-parameters" />
+      <module name="wimoor-auth" options="-parameters" />
+      <module name="wimoor-gateway" options="-parameters" />
+      <module name="wimoor-shopee" options="-parameters" />
+    </option>
+  </component>
+</project>

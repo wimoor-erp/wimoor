@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.SummaryAllMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.SummaryAll">
+		<id column="id" property="id" jdbcType="VARCHAR" />
+		<result column="amazonauthid" property="amazonauthid" jdbcType="CHAR" />
+		<result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+		<result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+		<result column="order_status" property="orderStatus" jdbcType="CHAR" />
+		<result column="fulfillChannel" property="fulfillChannel" jdbcType="CHAR" />
+		<result column="discount" property="discount" jdbcType="CHAR" />
+		<result column="is_business_order" property="isBusinessOrder" jdbcType="CHAR" />
+		<result column="quantity" property="quantity" jdbcType="DECIMAL" />
+		<result column="ordernumber" property="ordernumber" jdbcType="BIGINT" />
+		<result column="discount_amount" property="discountAmount" jdbcType="DECIMAL" />
+		<result column="price" property="price" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, amazonauthid, purchase_date, sales_channel, order_status, fulfillChannel, discount,
+		is_business_order, quantity, ordernumber, discount_amount, price
+	</sql>
+	
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_summaryall
+		where id = #{id,jdbcType=VARCHAR}  and purchase_date = #{purchaseDate,jdbcType=VARCHAR};
+	</select>
+
+	<select id="selectSummary" resultType="java.util.Map">
+		select t.sales_channel, sum(t.price) price
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		where a.shop_id = #{shopid,jdbcType=CHAR}
+		and (t.order_status ='Shipped' or
+		t.order_status='Pending')
+		<if test="pmarketplaceId != null">
+			and t.sales_channel=#{pmarketplaceId,jdbcType=CHAR}
+		</if>
+		<if test="sellerid != null">
+			and a.sellerid=#{sellerid,jdbcType=CHAR}
+		</if>
+		<if test="sellerList != null and sellerList.size > 0">
+			and a.sellerid in
+			<foreach collection="sellerList" item="adv" index="index"
+				open="(" close=")" separator=",">
+				#{adv,jdbcType=CHAR}
+			</foreach>
+		</if>
+		<if test="beginDate != null">
+			and t.purchase_date &gt;= #{beginDate,jdbcType=CHAR}
+		</if>
+		<if test="endDate != null">
+			and t.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+		</if>
+		group by t.sales_channel
+	</select>
+
+	<select id="selectDaysSummary" resultType="java.util.Map">
+		select t.purchase_date,t.sales_channel, sum(t.price) price
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			a.shop_id = #{shopid,jdbcType=CHAR}
+			and (t.order_status ='Shipped' or t.order_status='Pending')
+			<if test="pmarketplaceId != null">
+				and t.sales_channel=#{pmarketplaceId,jdbcType=CHAR}
+			</if>
+			<if test="sellerid != null">
+				and a.sellerid=#{sellerid,jdbcType=CHAR}
+			</if>
+			<if test="sellerList != null and sellerList.size > 0">
+				and a.sellerid in
+				<foreach collection="sellerList" item="adv" index="index" open="(" close=")" separator=",">
+					#{adv,jdbcType=CHAR}
+				</foreach>
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;= #{beginDate,jdbcType=CHAR}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+			</if>
+		</where>
+		group by t.purchase_date,t.sales_channel
+	</select>
+	
+	<select id="selectMonthsSummary" resultType="java.util.Map">
+		select date_format(max(purchase_date),'%Y-%m') purchase_date,t.sales_channel, sum(t.price) price
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			a.shop_id = #{shopid,jdbcType=CHAR}
+			and (t.order_status ='Shipped' or
+			t.order_status='Pending')
+			<if test="pmarketplaceId != null">
+				and t.sales_channel=#{pmarketplaceId,jdbcType=CHAR}
+			</if>
+			<if test="sellerid != null">
+				and a.sellerid=#{sellerid,jdbcType=CHAR}
+			</if>
+			<if test="sellerList != null and sellerList.size > 0">
+				and a.sellerid in
+				<foreach collection="sellerList" item="adv" index="index"
+					open="(" close=")" separator=",">
+					#{adv,jdbcType=CHAR}
+				</foreach>
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;= #{beginDate,jdbcType=CHAR}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt;= #{endDate,jdbcType=CHAR}
+			</if>
+		</where>
+		group by concat( year(purchase_date) ,'-' ,month(purchase_date)),t.sales_channel
+	</select>
+
+<select id="selectLastByMutilParameter" resultType="java.util.Map">
+		select sum(t.quantity) quantity,sum(t.ordernumber) ordernumber
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			a.shop_id = #{shopid,jdbcType=CHAR}
+			<if test="groupid !=null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="lastBeginDate != null">
+				and t.purchase_date &gt;= #{lastBeginDate,jdbcType=DATE}
+			</if>
+			<if test="lastEndDate != null">
+				and t.purchase_date &lt; #{lastEndDate,jdbcType=DATE}
+			</if>
+           
+			<choose>
+				<when test="salechannel !=null">
+					and
+					(
+					<foreach collection="salechannel" item="sales_channel"
+						index="salesChannel_list" open="(" separator="or" close=")">
+						t.sales_channel = #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+				</when>
+				<otherwise>
+					and t.sales_channel =null
+				</otherwise>
+			</choose>
+			<if test="fulfillmentChannel !=null">
+				and
+
+				(
+				<foreach collection="fulfillmentChannel"
+					item="fulfillChannelItem" index="fulfillChannel_list" open="("
+					separator="or" close=")">
+					t.fulfillChannel = #{fulfillChannelItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="orderStatus !=null">
+				and
+				(
+				<foreach collection="orderStatus" item="orderStatusItem"
+					index="orderStatus_list" open="(" separator="or" close=")">
+					t.order_status = #{orderStatusItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="discountfrom !=null">
+				and t.discount_amount &gt;= #{discountfrom,jdbcType=DECIMAL}
+			</if>
+			<if test="discountto !=null">
+				and t.discount_amount &lt;= #{discountto,jdbcType=DECIMAL}
+			</if>
+			<if test="is_business_order !=null">
+				and
+				(
+				<foreach collection="is_business_order" item="busorderitem"
+					index="isBusinessOrder_list" open="(" separator="or" close=")">
+					IFNULL(t.is_business_order,'false') = #{busorderitem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+	</select>
+	
+	<select id="selectSumByMutilParameter" resultType="java.util.Map">
+		select sum(t.quantity) quantity,sum(t.ordernumber) ordernumber
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			a.shop_id = #{shopid,jdbcType=CHAR}
+			<if test="groupid !=null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;= #{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt; #{endDate,jdbcType=DATE}
+			</if>
+            <if test="salechannel !=null">
+					and
+					(
+					<foreach collection="salechannel" item="sales_channel"
+						index="salesChannel_list" open="(" separator="or" close=")">
+						t.sales_channel = #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+			</if>
+			<if test="fulfillChannel !=null">
+				and
+
+				(
+				<foreach collection="fulfillChannel"
+					item="fulfillChannelItem" index="fulfillChannel_list" open="("
+					separator="or" close=")">
+					t.fulfillChannel = #{fulfillChannelItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="orderStatus !=null">
+				and
+				(
+				<foreach collection="orderStatus" item="orderStatusItem"
+					index="orderStatus_list" open="(" separator="or" close=")">
+					t.order_status = #{orderStatusItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="discountfrom !=null">
+				and t.discount_amount &gt;= #{discountfrom,jdbcType=DECIMAL}
+			</if>
+			<if test="discountto !=null">
+				and t.discount_amount &lt;= #{discountto,jdbcType=DECIMAL}
+			</if>
+			<if test="is_business_order !=null">
+				and
+				(
+				<foreach collection="is_business_order" item="busorderitem"
+					index="isBusinessOrder_list" open="(" separator="or" close=")">
+					IFNULL(t.is_business_order,'false') = #{busorderitem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+	</select>
+	
+   <select id="marketSummary" resultType="java.util.Map">
+		select
+		    ifnull(mk.name,t.sales_channel) name,
+			sum(t.quantity) quantity,
+			sum(t.ordernumber) ordernumber
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		LEFT JOIN t_marketplace mk ON mk.point_name=t.sales_channel
+		<where>
+			a.shop_id = #{shopid,jdbcType=CHAR}
+			<if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;=#{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt;#{endDate,jdbcType=DATE}
+			</if>
+ 
+			<if test="orderStatus !=null">
+				and
+				(
+				<foreach collection="orderStatus" item="orderStatusItem"
+					index="orderStatus_list" open="(" separator="or" close=")">
+					t.order_status = #{orderStatusItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+			group by  ifnull( mk.name,t.sales_channel)
+    </select>
+	<select id="selectByMutilParameter" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(t.purchase_date,'%Y-%m-%d')  purchase_date,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(purchase_date, case when date_format(purchase_date,'%w')=0 then 0 else
+			date_format(purchase_date,'%w') -7 end),'%Y-%m-%d') purchase_date,
+		</if>
+		<if test="bytime =='Monthly'">
+			date_format(t.purchase_date,'%Y-%m') purchase_date,
+		</if>
+			sum(t.quantity) quantity,sum(t.ordernumber) ordernumber
+		from t_summaryall t
+		left join t_amazon_auth a on a.id= t.amazonAuthId
+		<where>
+			a.shop_id = #{shopid,jdbcType=CHAR}
+			<if test="groupid != null">
+				and a.groupid=#{groupid,jdbcType=CHAR}
+			</if>
+			<if test="beginDate != null">
+				and t.purchase_date &gt;=#{beginDate,jdbcType=DATE}
+			</if>
+			<if test="endDate != null">
+				and t.purchase_date &lt;#{endDate,jdbcType=DATE}
+			</if>
+
+			<if  test="salechannel !=null">
+					and
+					(
+					<foreach collection="salechannel" item="sales_channel"
+						index="salesChannel_list" open="(" separator="or" close=")">
+						t.sales_channel = #{sales_channel,jdbcType=CHAR}
+					</foreach>
+					)
+			</if>
+			<if test="fulfillmentChannel !=null">
+				and
+				(
+				<foreach collection="fulfillmentChannel"
+					item="fulfillChannelItem" index="fulfillChannel_list" open="("
+					separator="or" close=")">
+					t.fulfillChannel = #{fulfillChannelItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="orderStatus !=null">
+				and
+				(
+				<foreach collection="orderStatus" item="orderStatusItem"
+					index="orderStatus_list" open="(" separator="or" close=")">
+					t.order_status = #{orderStatusItem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+
+			<if test="discountfrom !=null">
+				and t.discount_amount &gt;= #{discountfrom,jdbcType=DECIMAL}
+			</if>
+			<if test="discountto !=null">
+				and t.discount_amount &lt;= #{discountto,jdbcType=DECIMAL}
+			</if>
+			<if test="is_business_order !=null">
+				and
+				(
+				<foreach collection="is_business_order" item="busorderitem"
+					index="isBusinessOrder_list" open="(" separator="or" close=")">
+					IFNULL(t.is_business_order,'false') = #{busorderitem,jdbcType=CHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+		<if test="bytime =='Daily'">
+			group by t.purchase_date
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(purchase_date, case when
+			date_format(purchase_date,'%w')=0 then 0 else
+			date_format(purchase_date,'%w') -7 end),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by date_format(t.purchase_date,'%Y-%m')
+		</if>
+	</select>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from t_summaryall
+		where id = #{id,jdbcType=VARCHAR} and purchase_date = #{purchaseDate,jdbcType=VARCHAR}
+	</delete>
+	
+	<insert id="insert" parameterType="com.wimoor.amazon.orders.pojo.entity.SummaryAll">
+		insert into t_summaryall (id, amazonauthid, purchase_date,
+			sales_channel, order_status, fulfillChannel,
+			discount, is_business_order, quantity, ordernumber ,discount_amount ,price
+		)
+		values (#{id,jdbcType=VARCHAR}, #{amazonauthid,jdbcType=CHAR},
+		#{purchaseDate,jdbcType=VARCHAR},
+		#{salesChannel,jdbcType=CHAR}, #{orderStatus,jdbcType=CHAR}, #{fulfillChannel,jdbcType=CHAR},
+		#{discount,jdbcType=VARCHAR}, #{isBusinessOrder,jdbcType=CHAR},
+		#{quantity,jdbcType=DECIMAL}, #{ordernumber,jdbcType=BIGINT}
+		, #{discountAmount,jdbcType=DECIMAL}, #{price,jdbcType=BIGINT}
+		)
+	</insert>
+	
+	<insert id="insertSelective" parameterType="com.wimoor.amazon.orders.pojo.entity.SummaryAll">
+		insert into t_summaryall
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="amazonauthid != null">
+				amazonauthid,
+			</if>
+			<if test="purchaseDate != null">
+				purchase_date,
+			</if>
+			<if test="salesChannel != null">
+				sales_channel,
+			</if>
+			<if test="orderStatus != null">
+				order_status,
+			</if>
+			<if test="fulfillChannel != null">
+				fulfillChannel,
+			</if>
+			<if test="discount != null">
+				discount,
+			</if>
+			<if test="isBusinessOrder != null">
+				is_business_order,
+			</if>
+			<if test="quantity != null">
+				quantity,
+			</if>
+			<if test="ordernumber != null">
+				ordernumber,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="amazonauthid != null">
+				#{amazonauthid,jdbcType=CHAR},
+			</if>
+			<if test="purchaseDate != null">
+				#{purchaseDate,jdbcType=VARCHAR},
+			</if>
+			<if test="salesChannel != null">
+				#{salesChannel,jdbcType=CHAR},
+			</if>
+			<if test="orderStatus != null">
+				#{orderStatus,jdbcType=CHAR},
+			</if>
+			<if test="fulfillChannel != null">
+				#{fulfillChannel,jdbcType=CHAR},
+			</if>
+			<if test="discount != null">
+				#{discount,jdbcType=VARCHAR},
+			</if>
+			<if test="isBusinessOrder != null">
+				#{isBusinessOrder,jdbcType=CHAR},
+			</if>
+			<if test="quantity != null">
+				#{quantity,jdbcType=DECIMAL},
+			</if>
+			<if test="ordernumber != null">
+				#{ordernumber,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.orders.pojo.entity.SummaryAll">
+		update t_summaryall
+		<set>
+			<if test="amazonauthid != null">
+				amazonauthid = #{amazonauthid,jdbcType=CHAR},
+			</if>
+			<if test="purchaseDate != null">
+				purchase_date = #{purchaseDate,jdbcType=VARCHAR},
+			</if>
+			<if test="salesChannel != null">
+				sales_channel = #{salesChannel,jdbcType=CHAR},
+			</if>
+			<if test="orderStatus != null">
+				order_status = #{orderStatus,jdbcType=CHAR},
+			</if>
+			<if test="fulfillChannel != null">
+				fulfillChannel = #{fulfillChannel,jdbcType=CHAR},
+			</if>
+			<if test="discount != null">
+				discount = #{discount,jdbcType=VARCHAR},
+			</if>
+			<if test="isBusinessOrder != null">
+				is_business_order = #{isBusinessOrder,jdbcType=CHAR},
+			</if>
+			<if test="quantity != null">
+				quantity = #{quantity,jdbcType=DECIMAL},
+			</if>
+			<if test="ordernumber != null">
+				ordernumber = #{ordernumber,jdbcType=BIGINT},
+			</if>
+		</set>
+		where id = #{id,jdbcType=VARCHAR} and purchase_date = #{purchaseDate,jdbcType=VARCHAR};
+	</update>
+	
+	<insert id="saveBatch">
+		insert into t_summmaryall( id, amazonauthid, purchase_date,
+			sales_channel, order_status, fulfillChannel, discount,
+			is_business_order, quantity, ordernumber, discount_amount, price)
+		values
+		<foreach collection="list" item="rpt" index="index" separator=",">
+			(#{rpt.id,jdbcType=VARCHAR},#{rpt.amazonauthid,jdbcType=CHAR},
+			#{rpt.purchaseDate,jdbcType=VARCHAR},
+			#{rpt.salesChannel,jdbcType=CHAR}, #{rpt.orderStatus,jdbcType=CHAR},
+			#{rpt.fulfillChannel,jdbcType=CHAR},
+			#{rpt.discount,jdbcType=VARCHAR},
+			#{rpt.isBusinessOrder,jdbcType=CHAR},
+			#{rpt.quantity,jdbcType=DECIMAL},
+			#{rpt.ordernumber,jdbcType=BIGINT},#{rpt.discountAmount,jdbcType=VARCHAR},#{rpt.price,jdbcType=DECIMAL}
+			)
+		</foreach>
+	</insert>
+	
+	<update id="updateByPrimaryKey" parameterType="com.wimoor.amazon.orders.pojo.entity.SummaryAll">
+		update t_summaryall
+		set amazonauthid = #{amazonauthid,jdbcType=CHAR},
+		sales_channel = #{salesChannel,jdbcType=CHAR},
+		order_status = #{orderStatus,jdbcType=CHAR},
+		fulfillChannel = #{fulfillChannel,jdbcType=CHAR},
+		discount = #{discount,jdbcType=VARCHAR},
+		is_business_order = #{isBusinessOrder,jdbcType=CHAR},
+		quantity = #{quantity,jdbcType=DECIMAL},
+		ordernumber = #{ordernumber,jdbcType=BIGINT}
+		where id = #{id,jdbcType=VARCHAR} and purchase_date = #{purchaseDate,jdbcType=VARCHAR};
+	</update>
+	
+	<select id="selectByKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.orders.pojo.entity.SummaryAll">
+		select
+		<include refid="Base_Column_List" />
+		from t_summaryall
+		where amazonauthid = #{amazonauthid,jdbcType=CHAR}
+		<if test="purchaseDate != null">
+			and purchase_date = #{purchaseDate,jdbcType=VARCHAR}
+		</if>
+		<if test="salesChannel != null">
+			and sales_channel = #{salesChannel,jdbcType=CHAR}
+		</if>
+		<if test="orderStatus != null">
+			and order_status = #{orderStatus,jdbcType=CHAR}
+		</if>
+		<if test="fulfillChannel != null">
+			and fulfillChannel = #{fulfillChannel,jdbcType=CHAR}
+		</if>
+		<if test="discount != null">
+			and discount = #{discount,jdbcType=VARCHAR}
+		</if>
+		<if test="discountAmount != null">
+			and discount_amount = #{discountAmount,jdbcType=VARCHAR}
+		</if>
+		<if test="isBusinessOrder != null">
+			and is_business_order = #{isBusinessOrder,jdbcType=CHAR}
+		</if>
+	</select>
+	
+</mapper>

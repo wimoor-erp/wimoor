@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.common.mapper.DaysalesFormulaMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.common.pojo.entity.DaysalesFormula" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="formula" property="formula" jdbcType="VARCHAR" />
+    <result column="formula_name" property="formulaName" jdbcType="VARCHAR" />
+    <result column="month_sales_rate" property="monthSalesRate" jdbcType="DECIMAL" />
+    <result column="15sales_rate" property="salesRate15" jdbcType="DECIMAL" />
+    <result column="7sales_rate" property="salesRate7" jdbcType="DECIMAL" />
+    <result column="creator" property="creator" jdbcType="BIGINT" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, formula, formula_name, month_sales_rate, 15sales_rate, 7sales_rate, creator, operator, createdate, 
+    opttime
+  </sql>
+  
+  <select id="selectByShopid" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_daysales_formula
+    where shopid = #{shopid,jdbcType=CHAR}
+  </select>
+   
+</mapper>

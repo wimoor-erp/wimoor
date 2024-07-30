@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchasePlanConsumableItemMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchasePlanConsumableItem">
+        <id column="id" property="id" />
+        <result column="materialid" property="materialid" />
+        <result column="warehouseid" property="warehouseid" />
+        <result column="amount" property="amount" />
+        <result column="shopid" property="shopid" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+    <select id="getSummary" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT COUNT(0) skunum,SUM(amount) amount FROM  t_erp_v3_purchase_plan_consumable_item
+     WHERE warehouseid=#{warehouseid,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  
+  <select id="listInfo" resultType="java.util.Map" parameterType="java.lang.String">
+	 SELECT   p.location image,m.sku,m.name mname,c.name supplier,m.supplier supplierid,w.name warehousename,
+	          m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.id mid,
+	          DATE_ADD(now(), INTERVAL ifnull(m.delivery_cycle,0) day) deliverycycledate,i.amount num
+	 FROM  t_erp_v3_purchase_plan_consumable_item i
+	 left join t_erp_material m on m.id=i.materialid
+	 left join t_erp_customer c on c.id=m.supplier
+	 left join t_erp_warehouse w on w.id=i.warehouseid
+	 left join ( SELECT  i.materialid,
+				          sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+						  sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+						  sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+					from t_erp_inventory i
+					left join t_erp_v3_purchase_plan_consumable_item p on p.materialid=i.materialid and p.warehouseid=i.warehouseid
+					where   p.shopid=#{shopid,jdbcType=CHAR}
+					and i.shopid=#{shopid,jdbcType=CHAR} and p.warehouseid=#{warehouseid,jdbcType=CHAR}
+					group by i.materialid
+					) v on v.materialid=i.materialid
+	 left join t_picture p on p.id=m.image
+     WHERE   i.shopid=#{shopid,jdbcType=CHAR} and i.warehouseid=#{warehouseid,jdbcType=CHAR}
+  </select>
+</mapper>

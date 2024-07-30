@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryMonthMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzSettlementReportSummaryMonth">
+		<id column="amazonAuthId" property="amazonauthid" jdbcType="CHAR" />
+		<id column="marketplace_name" property="marketplaceName" jdbcType="CHAR" />
+		<id column="posted_date" property="postedDate" jdbcType="DATE" />
+		<id column="transaction_type" property="transactionType" jdbcType="CHAR" />
+		<id column="amount_type" property="amountType" jdbcType="CHAR" />
+		<id column="amount_description" property="amountDescription" jdbcType="CHAR" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="DECIMAL" />
+		<result column="quantity_purchased" property="quantityPurchased" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		amazonAuthId, marketplace_name, posted_date, transaction_type, amount_type,
+		amount_description, currency, amount, quantity_purchased
+	</sql>
+	
+	<select id="settlementitem" resultType="java.util.Map" parameterType="java.util.Map">
+		select s.amazonAuthId,s.marketplace_name,
+		 <if test="datetype==null">
+		    DATE_FORMAT(s.posted_date,'%y-%m') posted_date
+		 </if>
+		 <if test="datetype!=null">
+  	        DATE_FORMAT(acc.deposit_date,'%y-%m') posted_date
+         </if> 
+		     , s.currency , 
+			sum(case when a.region='EU' 
+				then
+					case when transaction_type='Order' and amount_type='ItemPrice'
+						and (amount_description='Principal' or amount_description='Tax')
+					then amount else 0 end
+				else
+				case when transaction_type='Order'
+					and amount_description='Principal'
+				then amount else 0 end
+				end) in_principal ,
+			sum(case when (transaction_type='Order'
+				and amount_description!='Principal'
+				and amount_description not like 'FBA%'
+				and amount_description not like 'Commission%'
+				) or amount_type='FBA Inventory Reimbursement' then amount else 0 end) in_other ,
+		<!-- 注释此处以上算收入 -->
+			sum(case when amount_type='Cost of Advertising' then amount else 0 end) out_adv ,
+
+			sum(case when (transaction_type='Order' or transaction_type='Refund')
+				and amount_description like 'Commission%' then amount else 0 end) out_commission,
+
+			sum(case when transaction_type='Order' and amount_description like 'FBA%' then amount else 0 end) out_fba,
+			sum(case when transaction_type='Refund' then amount else 0 end) out_refund,
+	
+			sum(case when (transaction_type!='Order' and transaction_type!='Refund'
+				and amount_type!='Cost of Advertising'
+				and amount_type!='FBA Inventory Reimbursement' )
+				or ( transaction_type='Order'
+				and amount_description='Principal'
+				and amount_type!='ItemPrice' )
+	
+			then amount else 0 end ) out_other
+			,sum(ifnull(s.amount,0)) converted_total
+		from t_amz_settlement_summary_month s
+		left join t_amazon_auth a on a.id=s.amazonAuthId
+		<if test="datetype!=null">
+			left join t_amz_settlement_acc_report acc on acc.settlement_id=s.settlementid
+		</if>
+		where 1=1
+		 <if test="datetype==null">
+		  and s.posted_date>=#{fromDate,jdbcType=CHAR}
+		  and s.posted_date&lt;=#{endDate,jdbcType=CHAR}
+		 </if>
+		 <if test="datetype!=null">
+  	         and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+  	         and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+  	         and s.posted_date&gt;=#{setfromDate,jdbcType=CHAR}
+		     and s.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+         </if>
+		<if test="marketplace_name != null">
+			and s.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="settlementid != null">
+			and s.settlementid=#{settlementid,jdbcType=CHAR}
+		</if>
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		group by s.amazonAuthId,s.marketplace_name,
+		 <if test="datetype==null">
+		    DATE_FORMAT(s.posted_date,'%y-%m')
+		 </if>
+		 <if test="datetype!=null">
+  	        DATE_FORMAT(acc.deposit_date,'%y-%m')
+         </if>
+		,s.currency
+	</select>
+
+	<select id="advfee" resultType="java.util.Map" parameterType="java.util.Map">
+		select DATE_FORMAT(bydate,'%y-%m') posted_date,sum(spend) amount,m.currency
+		from t_amz_advert_report adv
+		left join t_amazon_auth a on a.sellerid=adv.sellerid
+		left join t_marketplace m on m.marketplaceId=adv.marketplaceid
+		where adv.bydate>=#{fromDate,jdbcType=CHAR}
+			and adv.bydate&lt;=#{endDate,jdbcType=CHAR}
+		<if test="marketplaceid != null">
+			and adv.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+		group by DATE_FORMAT(bydate,'%y-%m'),m.currency
+		order by DATE_FORMAT(bydate,'%y-%m') asc
+	</select>
+
+	<select id="localitem" resultType="java.util.Map" parameterType="java.util.Map">
+		select max(concat(right(CAST(m.year AS SIGNED),2),'-', case when m.month&lt;10 then '0' else '' end ,m.month)) posted_date,
+			max(p.name) name ,max(m.rec -m.pay) amount
+		from t_erp_fin_type_journalmonthly m
+		LEFT JOIN t_erp_fin_account a ON a.id=m.acct
+		left join t_erp_fin_project p on m.projectid=p.id
+		where a.shopid=#{shopid,jdbcType=CHAR}
+			<if test="datetype==null">
+			and concat(m.year,'-',case when m.month&lt;10 then '0' else '' end ,m.month,'-01')>=#{fromDate,jdbcType=CHAR}
+			and concat(m.year,'-',case when m.month&lt;10 then '0' else '' end ,m.month,'-01')&lt;=#{endDate,jdbcType=CHAR}
+			</if>
+			<if test="datetype!=null">
+			and concat(m.year,'-',case when m.month&lt;10 then '0' else '' end ,m.month,'-01')>=#{setfromDate,jdbcType=CHAR}
+			and concat(m.year,'-',case when m.month&lt;10 then '0' else '' end ,m.month,'-01')&lt;=#{setendDate,jdbcType=CHAR}
+			</if>
+		group by m.year,m.month,p.id
+	</select>
+	
+	<select id="selectOtherin" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.amount_description amounttype,max(t.currency) currency ,sum(t.amount) amount
+		from t_amz_settlement_summary_month t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+	    <if test="datetype!=null">
+			left join t_amz_settlement_acc_report acc on acc.settlement_id=t.settlementid
+		</if>
+		where 1=1
+		 <if test="datetype==null">
+		  and t.posted_date>=#{fromDate,jdbcType=CHAR}
+		  and t.posted_date&lt;=#{endDate,jdbcType=CHAR}
+		 </if>
+		 <if test="datetype!=null">
+  	         and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+  	         and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+  	         and t.posted_date&gt;=#{setfromDate,jdbcType=CHAR}
+		     and t.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+		     <if test="marketplace_name != null">
+			and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		     </if>
+         </if>
+ 
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+			and ((transaction_type='Order' and amount_description!='Principal'
+				and amount_description not like 'FBA%' and amount_description not like 'Commission%' ) or amount_type='FBA Inventory Reimbursement')
+		<if test="marketplace_name != null">
+			and t.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		group by t.amount_description,t.marketplace_name
+	</select>
+
+	<select id="selectOtherout" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.amount_description amounttype,t.currency ,sum(t.amount) amount
+		from t_amz_settlement_summary_month t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+         <if test="datetype!=null">
+			left join t_amz_settlement_acc_report acc on acc.settlement_id=t.settlementid
+		</if>
+		where 1=1
+		 <if test="datetype==null">
+		  and t.posted_date>=#{fromDate,jdbcType=CHAR}
+		  and t.posted_date&lt;=#{endDate,jdbcType=CHAR}
+		 </if>
+		 <if test="datetype!=null">
+  	         and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+  	         and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+  	         and t.posted_date&gt;=#{setfromDate,jdbcType=CHAR}
+		     and t.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+		     <if test="marketplace_name != null">
+			  and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		     </if>
+         </if>
+			and a.shop_id=#{shopid,jdbcType=CHAR}
+			AND ( t.transaction_type!='Order' and t.transaction_type!='Refund' and t.amount_type!='Cost of Advertising' 
+				and t.amount_type!='FBA Inventory Reimbursement' or ( t.transaction_type='Order' and t.amount_description='Principal'
+				and t.amount_type!='ItemPrice' )
+			)
+		<if test="marketplace_name != null">
+			and t.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		group by t.amount_description,t.marketplace_name
+	</select>
+
+	<delete id="refreshSummary" parameterType="java.util.Map">
+		delete from t_amz_settlement_summary_month
+		where   settlementid=#{settlement_id,jdbcType=CHAR};
+			
+		insert into t_amz_settlement_summary_month
+		select UUID_SHORT(),
+		       r.settlement_id,
+		       r.amazonAuthId,
+		       rt.marketplace_name,
+		       r.posted_date,
+		       transaction_type,
+		       amount_type,
+			   amount_description ,
+			   fulfillment_id fulfillment_type, 
+			   r.currency,sum(amount), 
+			   sum(case when r.transaction_type='Refund' AND r.amount_type='ItemPrice' AND r.amount_description='Principal' then  
+ 	             IFNULL((SELECT sum(quantity) from t_amz_returns_report rr 
+ 	                                           where rr.order_id=r.order_id 
+                                                 AND rr.sku=r.sku 
+                                                 AND rr.sellerid=a.sellerid),1)
+			 ELSE  r.quantity_purchased   END) quantity_purchased,
+			COUNT(DISTINCT r.order_id)
+		from t_amz_settlement_report r
+		left JOIN t_amz_settlement_acc_report rt ON rt.settlement_id=r.settlement_id
+		LEFT JOIN t_amazon_auth a ON a.id=r.amazonAuthId
+		where  r.settlement_id=#{settlement_id,jdbcType=CHAR}
+		group BY r.amazonAuthId,rt.marketplace_name,r.posted_date ,transaction_type ,amount_type ,amount_description,fulfillment_id,r.currency
+	</delete>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		insert into t_amz_settlement_summary_month (amazonAuthId,
+		marketplace_name, posted_date,
+		transaction_type, amount_type, amount_description,
+		fulfillment_type,currency, amount
+		)
+		values
+		<foreach collection="list" item="smonth" index="index" separator=",">
+			(
+			#{smonth.amazonauthid,jdbcType=CHAR}, #{smonth.marketplaceName,jdbcType=CHAR},
+			#{smonth.postedDate,jdbcType=DATE},
+			#{smonth.transactionType,jdbcType=CHAR},
+			#{smonth.amountType,jdbcType=CHAR},
+			#{smonth.amountDescription,jdbcType=CHAR},
+			#{smonth.fulfillmentType,jdbcType=CHAR},#{smonth.currency,jdbcType=CHAR},
+			#{smonth.amount,jdbcType=DECIMAL}
+			)
+		</foreach>
+	</insert>
+</mapper>
