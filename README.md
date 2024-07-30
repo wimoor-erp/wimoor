@@ -58,7 +58,7 @@
 * 第四步：看所有文件对应的readme
 * 第五步：配置redis,nacos,seata,mysql,node,jdk1.8导入对应配置
 * 第六步：导入数据到mysql
-* 第七步：用eclipse打开wimoor
+* 第七步：用IDEA打开wimoor
 * 第八步：运行wimoor-admin,wimoor-gateway,wimoor-auth,wimoor-amazon,wimoor-erp,wimoor-amazon-adv
 * 第九步：用前端开发工具hbuild或者VSCode 打开wimoorUI
 * 第十步：修改config里面的路由改成127.0.0.1 然后npm run serve
