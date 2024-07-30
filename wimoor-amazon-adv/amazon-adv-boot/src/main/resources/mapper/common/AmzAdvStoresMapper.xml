@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvStoresMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvStores" >
+    <id column="entityId" property="entityid" jdbcType="VARCHAR" />
+    <id column="brandEntityId" property="brandentityid" jdbcType="VARCHAR" />
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <id column="storePageId" property="storepageid" jdbcType="VARCHAR" />
+    <result column="storeName" property="storename" jdbcType="VARCHAR" />
+    <result column="storePageUrl" property="storepageurl" jdbcType="VARCHAR" />
+    <result column="storePageName" property="storepagename" jdbcType="VARCHAR" />
+    <result column="opptime" property="opptime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    entityId, brandEntityId, profileid, storePageId, storeName, storePageUrl, storePageName, 
+    opptime
+  </sql>
+  
+  <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_adv_stores ( 
+    entityId, brandEntityId, profileid, storePageId, storeName, storePageUrl, storePageName, opptime)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.entityid,jdbcType=CHAR}, #{adv.brandentityid,jdbcType=CHAR},#{adv.profileid,jdbcType=BIGINT}, 
+      #{adv.storepageid,jdbcType=CHAR}, #{adv.storename,jdbcType=CHAR}, #{adv.storepageurl,jdbcType=CHAR}, 
+      #{adv.storepagename,jdbcType=DECIMAL},#{adv.opptime,jdbcType=TIMESTAMP}
+    )
+    </foreach>
+  </insert>
+  
+</mapper>

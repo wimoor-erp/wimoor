@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipInboundCaseMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipInboundCase" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shipmentid" property="shipmentid" jdbcType="CHAR" />
+    <result column="merchantsku" property="merchantsku" jdbcType="CHAR" />
+    <result column="unitspercase" property="unitspercase" jdbcType="INTEGER" />
+    <result column="numberofcase" property="numberofcase" jdbcType="INTEGER" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shipmentid, merchantsku, unitspercase, numberofcase, quantity
+  </sql>
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_ship_inboundcase
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_ship_inboundcase
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipInboundCase" >
+    insert into t_erp_ship_inboundcase (id, shipmentid, merchantsku, 
+      unitspercase, numberofcase, quantity
+      )
+    values (#{id,jdbcType=CHAR}, #{shipmentid,jdbcType=CHAR}, #{merchantsku,jdbcType=CHAR}, 
+      #{unitspercase,jdbcType=INTEGER}, #{numberofcase,jdbcType=INTEGER}, #{quantity,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipInboundCase" >
+    insert into t_erp_ship_inboundcase
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shipmentid != null" >
+        shipmentid,
+      </if>
+      <if test="merchantsku != null" >
+        merchantsku,
+      </if>
+      <if test="unitspercase != null" >
+        unitspercase,
+      </if>
+      <if test="numberofcase != null" >
+        numberofcase,
+      </if>
+      <if test="quantity != null" >
+        quantity,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="shipmentid != null" >
+        #{shipmentid,jdbcType=CHAR},
+      </if>
+      <if test="merchantsku != null" >
+        #{merchantsku,jdbcType=CHAR},
+      </if>
+      <if test="unitspercase != null" >
+        #{unitspercase,jdbcType=INTEGER},
+      </if>
+      <if test="numberofcase != null" >
+        #{numberofcase,jdbcType=INTEGER},
+      </if>
+      <if test="quantity != null" >
+        #{quantity,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.ShipInboundCase" >
+    update t_erp_ship_inboundcase
+    <set >
+      <if test="shipmentid != null" >
+        shipmentid = #{shipmentid,jdbcType=CHAR},
+      </if>
+      <if test="merchantsku != null" >
+        merchantsku = #{merchantsku,jdbcType=CHAR},
+      </if>
+      <if test="unitspercase != null" >
+        unitspercase = #{unitspercase,jdbcType=INTEGER},
+      </if>
+      <if test="numberofcase != null" >
+        numberofcase = #{numberofcase,jdbcType=INTEGER},
+      </if>
+      <if test="quantity != null" >
+        quantity = #{quantity,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ShipInboundCase" >
+    update t_erp_ship_inboundcase
+    set shipmentid = #{shipmentid,jdbcType=CHAR},
+      merchantsku = #{merchantsku,jdbcType=CHAR},
+      unitspercase = #{unitspercase,jdbcType=INTEGER},
+      numberofcase = #{numberofcase,jdbcType=INTEGER},
+      quantity = #{quantity,jdbcType=INTEGER}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

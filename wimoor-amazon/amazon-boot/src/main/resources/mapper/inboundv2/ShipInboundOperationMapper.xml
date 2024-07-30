@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipInboundOperationMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation" >
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="operationid" property="operationid" jdbcType="CHAR" />
+    <result column="operation" property="operation" jdbcType="CHAR" />
+    <result column="operation_status" property="operationStatus" jdbcType="CHAR" />
+    <result column="operation_problem" property="operationProblem" jdbcType="CHAR" />
+  </resultMap>
+    
+</mapper>

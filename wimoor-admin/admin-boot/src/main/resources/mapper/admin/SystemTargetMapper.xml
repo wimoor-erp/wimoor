@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SystemTargetMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SystemTarget" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="description" property="description" jdbcType="CHAR" />
+  </resultMap>
+  <select id="findAllTarget" resultMap="BaseResultMap">
+    select * from t_sys_target
+  </select>
+</mapper>

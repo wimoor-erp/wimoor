@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvBrandMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvBrand" >
+    <id column="brandId" property="brandid" jdbcType="VARCHAR" />
+    <id column="brandEntityId" property="brandentityid" jdbcType="VARCHAR" />
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="brandRegistryName" property="brandregistryname" jdbcType="VARCHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    brandId, brandEntityId, profileid, brandRegistryName, opttime
+  </sql>
+  
+  <insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_brand (brandId, brandEntityId, profileid, brandRegistryName, opttime)
+		values
+		<foreach collection="list" item="adv" index="index"
+			separator=",">
+			(
+			#{adv.brandid,jdbcType=VARCHAR}, #{adv.brandentityid,jdbcType=VARCHAR},
+			#{adv.profileid,jdbcType=BIGINT},#{adv.brandregistryname,jdbcType=VARCHAR},
+			#{adv.opttime,jdbcType=TIMESTAMP}
+			)
+		</foreach>
+	</insert>
+  
+  
+</mapper>

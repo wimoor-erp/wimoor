@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialMarkMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialMark" >
+    <id column="materialid" property="materialid" jdbcType="CHAR" />
+    <id column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="mark" property="mark" jdbcType="VARCHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    materialid, ftype, mark,opttime,operator
+  </sql>
+  <!--
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="com.wimoor.erp.pojo.entity.MaterialMarkKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_material_mark
+    where materialid = #{materialid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.MaterialMarkKey" >
+    delete from t_erp_material_mark
+    where materialid = #{materialid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.MaterialMark" >
+    insert into t_erp_material_mark (materialid, ftype, mark
+      )
+    values (#{materialid,jdbcType=CHAR}, #{ftype,jdbcType=CHAR}, #{mark,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.MaterialMark" >
+    insert into t_erp_material_mark
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="materialid != null" >
+        materialid,
+      </if>
+      <if test="ftype != null" >
+        ftype,
+      </if>
+      <if test="mark != null" >
+        mark,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="materialid != null" >
+        #{materialid,jdbcType=CHAR},
+      </if>
+      <if test="ftype != null" >
+        #{ftype,jdbcType=CHAR},
+      </if>
+      <if test="mark != null" >
+        #{mark,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.MaterialMark" >
+    update t_erp_material_mark
+    <set >
+      <if test="mark != null" >
+        mark = #{mark,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where materialid = #{materialid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.MaterialMark" >
+    update t_erp_material_mark
+    set mark = #{mark,jdbcType=VARCHAR}
+    where materialid = #{materialid,jdbcType=CHAR}
+      and ftype = #{ftype,jdbcType=CHAR}
+  </update>
+    -->
+</mapper>

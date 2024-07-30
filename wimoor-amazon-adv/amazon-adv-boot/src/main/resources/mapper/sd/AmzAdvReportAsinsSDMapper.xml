@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sd.dao.AmzAdvReportAsinsSDMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sd.pojo.AmzAdvReportAsinsSD" >
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <id column="asin" property="asin" jdbcType="CHAR" />
+    <id column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="otherAsin" property="otherasin" jdbcType="CHAR" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="campaignName" property="campaignname" jdbcType="CHAR" />
+    <result column="adGroupName" property="adgroupname" jdbcType="CHAR" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="DECIMAL" />
+    <result column="clicks" property="clicks" jdbcType="DECIMAL" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+    <result column="attributedConversions1d" property="attributedconversions1d" jdbcType="DECIMAL" />
+    <result column="attributedConversions7d" property="attributedconversions7d" jdbcType="DECIMAL" />
+    <result column="attributedConversions14d" property="attributedconversions14d" jdbcType="DECIMAL" />
+    <result column="attributedConversions30d" property="attributedconversions30d" jdbcType="DECIMAL" />
+    <result column="attributedConversions1dSameSKU" property="attributedconversions1dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedConversions7dSameSKU" property="attributedconversions7dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedConversions14dSameSKU" property="attributedconversions14dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedConversions30dSameSKU" property="attributedconversions30dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedUnitsOrdered1d" property="attributedunitsordered1d" jdbcType="DECIMAL" />
+    <result column="attributedUnitsOrdered7d" property="attributedunitsordered7d" jdbcType="DECIMAL" />
+    <result column="attributedUnitsOrdered14d" property="attributedunitsordered14d" jdbcType="DECIMAL" />
+    <result column="attributedUnitsOrdered30d" property="attributedunitsordered30d" jdbcType="DECIMAL" />
+    <result column="attributedSales1d" property="attributedsales1d" jdbcType="DECIMAL" />
+    <result column="attributedSales7d" property="attributedsales7d" jdbcType="DECIMAL" />
+    <result column="attributedSales14d" property="attributedsales14d" jdbcType="DECIMAL" />
+    <result column="attributedSales30d" property="attributedsales30d" jdbcType="DECIMAL" />
+    <result column="attributedSales1dSameSKU" property="attributedsales1dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales7dSameSKU" property="attributedsales7dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales14dSameSKU" property="attributedsales14dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales30dSameSKU" property="attributedsales30dsamesku" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    bydate, asin, otherAsin, keywordId, campaignId, adGroupId, sku, profileid, campaignName,
+    adGroupName, currency, impressions, clicks, cost, attributedConversions1d, 
+    attributedConversions7d, attributedConversions14d, attributedConversions30d, attributedConversions1dSameSKU, 
+    attributedConversions7dSameSKU, attributedConversions14dSameSKU, attributedConversions30dSameSKU, 
+    attributedUnitsOrdered1d, attributedUnitsOrdered7d, attributedUnitsOrdered14d, attributedUnitsOrdered30d, 
+    attributedSales1d, attributedSales7d, attributedSales14d, attributedSales30d, attributedSales1dSameSKU, 
+    attributedSales7dSameSKU, attributedSales14dSameSKU, attributedSales30dSameSKU
+  </sql>
+     <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sd_asins ( 
+       bydate, profileid,campaignId,adGroupId, asin,otherAsin,sku,impressions, clicks, cost, opttime,
+       attributedUnitsOrdered1dOtherSKU,
+	   attributedUnitsOrdered7dOtherSKU,
+	   attributedUnitsOrdered14dOtherSKU,
+	   attributedUnitsOrdered30dOtherSKU,
+	   attributedSales1dOtherSKU,
+	   attributedSales7dOtherSKU,
+	   attributedSales14dOtherSKU,
+	   attributedSales30dOtherSKU
+       )
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (     
+      #{adv.bydate,jdbcType=DATE},
+      #{adv.profileid,jdbcType=BIGINT}, 
+      #{adv.campaignid,jdbcType=BIGINT}, 
+      #{adv.adgroupid,jdbcType=BIGINT},  
+      #{adv.asin,jdbcType=CHAR},
+      #{adv.otherasin,jdbcType=CHAR},
+      #{adv.sku,jdbcType=CHAR},
+      #{adv.impressions,jdbcType=INTEGER},
+      #{adv.clicks,jdbcType=INTEGER}, 
+      #{adv.cost,jdbcType=DECIMAL}, 
+      #{adv.opttime,jdbcType=DATE},
+      #{adv.attributedUnitsOrdered1dOtherSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered7dOtherSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered14dOtherSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered30dOtherSKU,jdbcType=INTEGER}, 
+      
+      #{adv.attributedSales1dOtherSKU,jdbcType=DECIMAL}, 
+      #{adv.attributedSales7dOtherSKU,jdbcType=DECIMAL}, 
+      #{adv.attributedSales14dOtherSKU,jdbcType=DECIMAL}, 
+      #{adv.attributedSales30dOtherSKU,jdbcType=DECIMAL}
+    )
+    </foreach>
+  </insert>
+</mapper>

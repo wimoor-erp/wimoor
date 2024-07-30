@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialSupplierStepwiseMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="materialid" property="materialid" jdbcType="BIGINT" />
+    <result column="supplierid" property="supplierid" jdbcType="BIGINT" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <select id="selectSupplierByMainId" resultMap="BaseResultMap" parameterType="java.lang.String">
+  	SELECT * FROM t_erp_material_supplier_stepwise t
+	WHERE t.materialid=#{id,jdbcType=CHAR} and t.supplierid=#{supid,jdbcType=CHAR}
+  </select>
+</mapper>

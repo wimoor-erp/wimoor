@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInPresaleMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInPresale" >
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="sku" jdbcType="CHAR" property="sku" />
+    <result column="marketplaceid" jdbcType="CHAR" property="marketplaceid" />
+    <result column="groupid" jdbcType="CHAR" property="groupid" />
+    <result column="date" property="date" jdbcType="DATE" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="start" property="start" jdbcType="DATE" />
+    <result column="end" property="end" jdbcType="DATE" />
+    <result column="month" property="month" jdbcType="CHAR" />
+    <result column="hasdaysales" property="hasdaysales" jdbcType="BIT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id,sku,marketplaceid,groupid, date, quantity, operator, opttime, start, end, month,hasdaysales
+  </sql>
+  	<insert id="replaceBatch" parameterType="java.util.List">
+		replace into t_product_in_presale ( id, sku, marketplaceid, groupid, date, quantity, amazonauthid,operator,opttime)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.id,jdbcType=CHAR},
+			#{adv.sku,jdbcType=CHAR},
+			#{adv.marketplaceid,jdbcType=CHAR},
+			#{adv.groupid,jdbcType=CHAR}, 
+			#{adv.date,jdbcType=DATE},
+            #{adv.quantity,jdbcType=INTEGER},
+		    #{adv.amazonauthid,jdbcType=CHAR},
+		    #{adv.operator,jdbcType=CHAR},
+		    #{adv.opttime,jdbcType=TIMESTAMP}
+			)
+		</foreach>
+	</insert>
+  <select id="listProduct" resultType="java.util.Map" parameterType="java.util.Map">
+     select v.* from (SELECT
+			  MAX(g.name) groupname,
+			  MAX(g.id) groupid,
+			  MAX(a.id) amazonauthid,
+			  MAX( case when m.region='EU' then '欧洲' ELSE m.name END ) marketname,
+			  MAX(i.openDate) openDate,
+			  MAX(i.asin) asin,
+			  MAX(i.name) name,
+			  MAX(i.sku) psku,
+			  IFNULL(MAX(o.msku),max(i.sku)) msku,
+			  case when m.region='EU' then 'EU' ELSE m.marketplaceId END  marketplaceid,
+			  max(ifnull(p.location,p.url)) image,
+			  SUM(r.avgsales) avgsales,
+			  SUM(r.sales_seven) sumseven,
+			  SUM(r.sales_month) summonth,
+			  SUM(r.sales_fifteen) sum15,
+			  max(d.name) statusname,
+			  max(d.color)  statuscolor
+			 FROM t_product_info i 
+			LEFT JOIN t_product_in_opt o ON o.pid=i.id
+			LEFT JOIN t_product_in_order r ON r.pid=i.id
+			LEFT JOIN t_product_info_status_define d on d.id=o.status
+			LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+			LEFT JOIN t_amazon_group g ON g.id=a.groupid
+			LEFT JOIN t_marketplace m ON m.marketplaceId=i.marketplaceid
+			LEFT JOIN t_picture p ON p.id=i.image
+			WHERE a.shop_id=#{param.shopid,jdbcType=CHAR}
+			    and  a.disable = FALSE  and (o.disable is null or o.disable=0) 
+			    and  i.invalid=0   and i.isparent=0
+			 <if test="param.groupid!=null">
+				AND a.groupid=#{param.groupid,jdbcType=CHAR}
+			</if>
+			 <if test="param.marketplaceid!=null">
+				AND (m.marketplaceId=#{param.marketplaceid,jdbcType=CHAR} OR m.region=#{param.marketplaceid,jdbcType=CHAR})
+			</if>
+			<if test="param.sku!=null">
+				AND sku like #{param.sku,jdbcType=CHAR}
+			</if>
+			<if test="param.fromDate!=null">
+				AND i.openDate>= #{param.fromDate,jdbcType=DATE}
+			</if>
+			<if test="param.owner!=null">
+				AND o.owner= #{param.owner,jdbcType=DATE}
+			</if>
+			<if test="param.toDate!=null">
+				AND i.openDate &lt;= #{param.toDate,jdbcType=DATE}
+			</if>
+		     <if test="param.msku!=null">
+				AND IFNULL(o.msku,i.sku) like #{param.sku,jdbcType=CHAR}
+			</if>
+			 <if test="param.asin!=null">
+				AND  i.asin like #{param.asin,jdbcType=CHAR}
+			</if>
+			GROUP BY i.amazonAuthId,i.sku,case when m.region='EU' then 'EU' ELSE m.marketplaceId END 
+			) v
+			left join t_amz_product_sales_plan p on p.groupid=v.groupid and p.marketplaceid=v.marketplaceid
+			and v.psku=p.sku 
+			<if test="param.needplan==true">
+			   where  p.id is null
+			</if>
+			
+  </select>
+  
+  <select id="selectDateEvent" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select p.sku,p.marketplaceid,p.groupid,p.`start`,p.`end`,max(p.quantity) quantity,max(p.hasdaysales) hasdaysales 
+    from t_product_in_presale p
+    left join t_marketplace m on m.marketplaceid=p.marketplaceid
+    where p.sku=#{sku,jdbcType=CHAR} and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) and p.groupid=#{groupid,jdbcType=BIGINT} 
+    <if test="month!=null">
+    	and p.month=CONCAT(DATE_FORMAT(now(),'%Y'),'-',#{month,jdbcType=CHAR}) 
+    </if>
+    <if test="month==null">
+        and p.date&gt;=CONCAT(DATE_FORMAT(now(),'%Y'),'-01-01') 
+    </if>
+   group by p.sku,p.marketplaceid,p.groupid,p.`start`,p.`end`
+   order by p.`start`
+  </select>
+  
+   <select id="selectEvent" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select   p.id,p.sku,p.marketplaceid,p.groupid, p.date, p.quantity, p.operator, p.opttime
+    from t_product_in_presale p
+    left join t_marketplace m on m.marketplaceid=p.marketplaceid
+    where p.sku=#{sku,jdbcType=CHAR} and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) and p.groupid=#{groupid,jdbcType=BIGINT} 
+      and p.date&gt;=now()
+  </select>
+  
+  <select id="selectByGroup" resultMap="BaseResultMap" parameterType="java.lang.String" >
+	    select   max(p.id) id,p.sku,p.marketplaceid,p.groupid,sum(p.quantity) quantity, null operator, null opttime
+	    from t_product_in_presale p
+	    left join t_marketplace m on m.marketplaceid=p.marketplaceid
+	    where   p.groupid=#{groupid,jdbcType=BIGINT} 
+	      and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) 
+	      <if test="sku">
+	      and p.sku=#{sku,jdbcType=CHAR} 
+	      </if>
+	      and p.date&gt;=now()
+	     group by p.sku
+  </select>
+    
+   <select id="selectDayEvent" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select   p.id,p.sku,p.marketplaceid,p.groupid, p.date, p.quantity, p.operator, p.opttime
+    from t_product_in_presale p
+    left join t_marketplace m on m.marketplaceid=p.marketplaceid
+    where p.sku=#{sku,jdbcType=CHAR} and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) 
+      and p.groupid=#{groupid,jdbcType=BIGINT} 
+      and p.date=#{date,jdbcType=CHAR} 
+  </select>
+  
+   <select id="selectAllDayPresale" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select   p.id,p.sku,p.marketplaceid,p.groupid, p.date, p.quantity, p.operator, p.opttime
+    from t_product_in_presale p
+    left join t_marketplace m on m.marketplaceid=p.marketplaceid
+    where p.sku=#{sku,jdbcType=CHAR} and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR}) 
+      and p.groupid=#{groupid,jdbcType=BIGINT} 
+      AND p.date>=#{beginDate,jdbcType=CHAR}
+	  AND p.date&lt;#{endDate,jdbcType=CHAR}
+		
+  </select>
+  
+  <select id="selectMonthDateEvent" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select p.sku,p.marketplaceid,p.groupid,max(DATE_ADD(p.date,interval -day(p.date)+1 day)) date,sum(p.quantity) quantity
+    from t_product_in_presale p
+    left join t_marketplace m on m.marketplaceid=p.marketplaceid
+    where p.sku=#{sku,jdbcType=CHAR} and (p.marketplaceid=#{marketplaceid,jdbcType=CHAR} or m.region=#{marketplaceid,jdbcType=CHAR})
+     and p.groupid=#{groupid,jdbcType=BIGINT} 
+         and p.date&gt;=DATE_ADD(now(),interval -day(now()) day)
+   group by p.sku,p.marketplaceid,p.groupid, month(p.date)
+  </select>
+  
+   <select id="selectMonthDateSales" resultType="java.util.Map" parameterType="java.lang.String" >
+	   SELECT month(s.purchase_date) month ,SUM(s.quantity) quantity FROM t_orders_summary s
+	    left join t_marketplace m on m.marketplaceid=s.marketplaceid
+		LEFT JOIN t_amazon_auth a ON a.id=s.amazonAuthId
+		WHERE a.groupid=#{groupid,jdbcType=BIGINT} 
+		AND (s.marketplaceid=#{marketplaceid,jdbcType=CHAR}  or m.region=#{marketplaceid,jdbcType=CHAR})
+		AND s.sku=#{sku,jdbcType=CHAR} 
+		AND s.purchase_date>=#{beginDate,jdbcType=CHAR}
+		AND s.purchase_date&lt;#{endDate,jdbcType=CHAR}
+		group by month(s.purchase_date)
+  </select>
+  
+     <select id="selectDateSales" resultType="java.util.Map" parameterType="java.lang.String" >
+	   SELECT DAY(s.purchase_date) day,SUM(s.quantity) quantity FROM t_orders_summary s
+	    left join t_marketplace m on m.marketplaceid=s.marketplaceid
+		LEFT JOIN t_amazon_auth a ON a.id=s.amazonAuthId
+		WHERE a.groupid=#{groupid,jdbcType=BIGINT} 
+		AND (s.marketplaceid=#{marketplaceid,jdbcType=CHAR}  or m.region=#{marketplaceid,jdbcType=CHAR})
+		AND s.sku=#{sku,jdbcType=CHAR} 
+		AND s.purchase_date>=#{beginDate,jdbcType=CHAR}
+		AND s.purchase_date&lt;#{endDate,jdbcType=CHAR}
+        group by s.purchase_date
+  </select>
+  
+  <select id="findAllByShop" resultType="java.util.Map" parameterType="java.lang.String" >
+			  SELECT g.name groupname,case when p.marketplaceid='EU' then '欧洲' ELSE m.name END marketplacename,p.sku,p.date ,p.quantity,p.opttime,u.name optname
+			  FROM  t_product_in_presale p
+			  LEFT JOIN t_marketplace m ON p.marketplaceid=m.marketplaceId
+			  LEFT JOIN t_amazon_group g ON g.id=p.groupid
+			  LEFT JOIN t_userinfo u ON u.id=p.operator
+			  WHERE g.shopid=#{shopid,jdbcType=CHAR}
+  </select>
+  
+  <select id="selectHoliday" resultType="java.util.Map" parameterType="java.lang.String" >
+			  select month,value holiday from t_sys_holiday d
+			  WHERE  marketplaceid=#{marketplaceid,jdbcType=CHAR}
+  </select>
+  
+    <select id="selectEstimated" resultType="java.util.Map">
+			   SELECT * from t_erp_estimated_sales WHERE isinvalid=0  AND endtime>NOW()
+  </select>
+
+
+  <insert id="refreshData"  parameterType="com.wimoor.amazon.auth.pojo.entity.AmazonAuthority">
+    insert ignore into t_product_in_presale_archive
+    select * from t_product_in_presale 
+    where amazonauthid= #{id,jdbcType=CHAR} and date &lt; CURDATE();
+    
+    delete from t_product_in_presale 
+    where amazonauthid= #{id,jdbcType=CHAR} and date &lt; CURDATE();
+  </insert>
+  
+ <!--  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_product_in_presale
+    where pid = #{pid,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_product_in_presale
+    where pid = #{pid,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ProductInPresale" >
+    insert into t_product_in_presale (pid, date, quantity, 
+      operator, opttime)
+    values (#{pid,jdbcType=BIGINT}, #{date,jdbcType=TIMESTAMP}, #{quantity,jdbcType=INTEGER}, 
+      #{operator,jdbcType=BIGINT}, #{opttime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ProductInPresale" >
+    insert into t_product_in_presale
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="pid != null" >
+        pid,
+      </if>
+      <if test="date != null" >
+        date,
+      </if>
+      <if test="quantity != null" >
+        quantity,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="pid != null" >
+        #{pid,jdbcType=BIGINT},
+      </if>
+      <if test="date != null" >
+        #{date,jdbcType=TIMESTAMP},
+      </if>
+      <if test="quantity != null" >
+        #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=BIGINT},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.ProductInPresale" >
+    update t_product_in_presale
+    <set >
+      <if test="date != null" >
+        date = #{date,jdbcType=TIMESTAMP},
+      </if>
+      <if test="quantity != null" >
+        quantity = #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=BIGINT},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where pid = #{pid,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.ProductInPresale" >
+    update t_product_in_presale
+    set date = #{date,jdbcType=TIMESTAMP},
+      quantity = #{quantity,jdbcType=INTEGER},
+      operator = #{operator,jdbcType=BIGINT},
+      opttime = #{opttime,jdbcType=TIMESTAMP}
+    where pid = #{pid,jdbcType=BIGINT}
+  </update> -->
+</mapper>

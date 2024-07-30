@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzFinUserItemDataMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzFinUserItemData">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="itemid" property="itemid" jdbcType="BIGINT" />
+		<result column="groupid" property="groupid" jdbcType="BIGINT" />
+		<result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+		<result column="byday" property="byday" jdbcType="DATE" />
+		<result column="shopid" property="shopid" jdbcType="BIGINT" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="DECIMAL" />
+		<result column="opttime" property="opttime" jdbcType="DATE" />
+		<result column="operator" property="operator" jdbcType="BIGINT" />
+	</resultMap>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_fin_user_item_data (
+			id,itemid, groupid, marketplaceid, byday,shopid,sku, amount,currency, opttime, operator
+		)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.id,jdbcType=BIGINT},#{adv.itemid,jdbcType=BIGINT},#{adv.groupid,jdbcType=BIGINT},
+			#{adv.marketplaceid,jdbcType=CHAR},
+			#{adv.byday,jdbcType=DATE},#{adv.shopid,jdbcType=BIGINT},#{adv.sku,jdbcType=CHAR},#{adv.amount,jdbcType=DECIMAL},
+			#{adv.currency,jdbcType=CHAR},#{adv.opttime,jdbcType=DATE}, #{adv.operator,jdbcType=BIGINT}
+			)
+		</foreach>
+	</insert>
+
+	<select id="getFinDataList" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.market, m.name marketname, g.name groupname, it.name itemname, t.*,
+		ifnull(p.location,p.url) image,info.name pname
+		from t_amz_fin_user_item_data t
+		left join t_amazon_group g on g.id=t.groupid
+		left join t_marketplace m on m.marketplaceid=t.marketplaceid
+		LEFT JOIN t_amz_fin_user_item it ON it.id=t.itemid
+		left join (
+			select a.id, a.shop_id shopid, a.sellerid,
+			a.MWSAuthToken,a.region,a.name,a.disable,a.groupid,a.pictureId,a.status,
+			a.statusupdate,a.productdate,a.opttime,a.refreshinvtime,refresh_token,aws_region
+			from t_amazon_auth a
+			left join t_amazonseller_market b on a.sellerid=b.sellerid
+			where a.groupid=#{param.groupid,jdbcType=CHAR} 
+			and b.marketplace_id=#{param.marketplaceid,jdbcType=CHAR}		
+		) v on v.shopid=#{param.shopid,jdbcType=CHAR} 
+		left join t_product_info info on info.sku=t.sku and v.id=info.amazonAuthId and info.marketplaceid=t.marketplaceid 
+		left join t_picture p on p.id=info.image
+		where t.shopid = #{param.shopid,jdbcType=CHAR}
+		<if test="param.groupid!=null">
+			and t.groupid=#{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.fromDate!=null">
+			and t.byday>=#{param.fromDate,jdbcType=CHAR}
+			and t.byday&lt;=#{param.endDate,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid!=null">
+			and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.itemid!=null">
+			and t.itemid=#{param.itemid,jdbcType=CHAR}
+		</if>
+		<if test="param.currency!=null">
+			and t.currency = #{param.currency,jdbcType=CHAR}
+		</if>
+		<if test="param.sku!=null">
+			and t.sku like #{param.sku,jdbcType=CHAR}
+		</if>
+	   <if test="param.osku!=null">
+			and t.sku = #{param.osku,jdbcType=CHAR}
+		</if>
+	</select>
+
+	<select id="getFinDataLastWeek" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.market, g.name groupname, it.name itemname, t.itemid,t.groupid,
+			t.marketplaceid,t.shopid,t.currency,t.sku, sum(t.amount) amount
+		from t_amz_fin_user_item_data t
+		left join t_amazon_group g on g.id=t.groupid
+		left join t_amazon_auth a on g.id=a.groupid and a.shop_id=g.shopid
+		LEFT JOIN t_amz_fin_user_item it ON it.id=t.itemid
+		left join t_marketplace m on m.marketplaceid=t.marketplaceid
+		where a.`disable`=0 	and t.byday &gt; date_sub(curdate(),interval 8 day)  and t.byday &lt; curdate()
+		and (
+		<foreach collection="list" item="param" index="index" separator="or">
+				(
+				 t.shopid = #{param.shopid,jdbcType=CHAR}
+				 <if test="param.groupid!=null">
+					and  t.groupid=#{param.groupid,jdbcType=CHAR}
+				 </if>
+				 <if test="param.marketplaceid!=null">
+					and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+				</if>
+				<if test="param.sku!=null">
+					and t.sku = #{param.sku,jdbcType=CHAR}
+				</if>
+				) 
+		 </foreach>	
+		 )	
+		group by t.itemid,t.groupid,t.marketplaceid,t.shopid,t.currency,t.sku
+	</select>
+
+	<select id="getFinDataMonthList" resultType="java.util.Map" parameterType="java.util.Map">
+		select m.market, m.name marketname, g.name groupname, it.name itemname, t.itemid,
+			t.groupid,t.marketplaceid,t.shopid,t.currency,sum(t.amount) amount,
+			concat(t.itemid,t.groupid,t.marketplaceid,t.currency) id
+		from t_amz_fin_user_item_data t
+		left join t_amazon_group g on g.id=t.groupid
+		LEFT JOIN t_amz_fin_user_item it ON it.id=t.itemid
+		left join t_marketplace m on m.marketplaceid=t.marketplaceid
+		where t.shopid = #{param.shopid,jdbcType=CHAR}
+		<if test="param.groupid!=null">
+			and t.groupid=#{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.fromDate!=null">
+			and t.byday>=#{param.fromDate,jdbcType=CHAR}
+			and t.byday&lt;=#{param.endDate,jdbcType=CHAR}
+		</if>
+		<if test="param.marketplaceid!=null">
+			and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="param.itemid!=null">
+			and t.itemid=#{param.itemid,jdbcType=CHAR}
+		</if>
+		<if test="param.sku!=null">
+			and t.sku like #{param.sku,jdbcType=CHAR}
+		</if>
+		group by t.itemid,t.groupid,t.marketplaceid,t.shopid,t.currency
+	</select>
+
+	<select id="getFinDataForSku" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.*,tg.name,tm.name marketplaceName,item.name itemName
+		from t_amz_fin_user_item_data t
+		left join t_amz_fin_user_item item on item.id = t.itemid 
+		left join t_amazon_group tg on t.groupid = tg.id
+		left join t_marketplace tm on tm.marketplaceId = t.marketplaceid
+		where t.shopid = #{shopid,jdbcType=CHAR}
+			and item.`disable` = 0
+		<if test="groupid!=null">
+			and t.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="fromDate!=null">
+			and t.byday>=#{fromDate,jdbcType=CHAR}
+		</if>
+		<if test="endDate!=null">
+			and t.byday&lt;=#{endDate,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!=null">
+			and t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="itemid!=null">
+			and t.itemid=#{itemid,jdbcType=CHAR}
+		</if>
+		<if test="sku!=null">
+			and t.sku = #{sku,jdbcType=CHAR}
+		</if>
+		order by byday desc
+	</select>
+
+</mapper>

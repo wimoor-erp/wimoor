@@ -1,0 +1,91 @@
+#wmprofit{
+	padding:10px;
+	width:100%;
+	border:1px solid #DDD;
+    margin-right: 4px;
+    background-color: #C45500!important;
+    font-size: 12px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    line-height: 14px;
+    font-weight: 400;
+    border-radius: 3px 3px 3px 3px;
+    font-size: 11px;
+    line-height: 1.05;
+    margin-bottom: 4px!important;
+    padding: 4px 5px 4px 6px;
+    color: #fff;
+    position: relative;
+}
+#wmprofitpriceInsideBuyBox{
+	position: relative;
+    
+}
+#wmprofitpriceInsideBuyBox .sub{
+	position: absolute;
+	z-index:2000;
+    top:0px;
+    right:-2px;
+    width:800px;
+	background:#fff;
+	padding:20px;
+	box-shadow: 1px 2px 4px rgb(0 0 0 / 40%);
+    -moz-box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+    -webkit-box-shadow: 1px 2px 4px rgb(0 0 0 / 40%);
+}
+.small-box {
+    margin-bottom: 15px;
+}
+.bg-aqua, .callout.callout-info, .alert-info, .label-info, .modal-info .modal-body {
+    background-color: #00c0ef !important;
+}
+.small-box {
+    border-radius: 2px;
+    float:left;
+    margin: 10px;
+    width:30%;
+    box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
+}
+
+element.style {
+}
+.row{
+ 
+	width:100%;
+}
+.text-left {
+  text-align: left;
+}
+.pull-right {
+  float: right !important;
+}
+#wmprofitpriceInsideBuyBox  .products-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+#wmprofitpriceInsideBuyBox li{
+    list-style: none;
+}
+.mylist li table {
+    border-bottom: 1px dotted #dedede;
+}
+.small-box {
+    margin-bottom: 15px;
+}
+.bg-aqua {
+    background-color: #00c0ef !important;
+}
+.bg-red {
+    background-color: #ff3a3a !important;
+}
+.bg-green {
+    background-color: #1fcc4f !important;
+}
+.bg-red, .bg-yellow, .bg-aqua, .bg-blue, .bg-light-blue, .bg-green, .bg-navy, .bg-teal, .bg-olive, .bg-lime, .bg-orange, .bg-fuchsia, .bg-purple, .bg-maroon, .bg-black, .bg-red-active, .bg-yellow-active, .bg-aqua-active, .bg-blue-active, .bg-light-blue-active, .bg-green-active, .bg-navy-active, .bg-teal-active, .bg-olive-active, .bg-lime-active, .bg-orange-active, .bg-fuchsia-active, .bg-purple-active, .bg-maroon-active, .bg-black-active, .callout.callout-danger, .callout.callout-warning, .callout.callout-info, .callout.callout-success, .alert-success, .alert-danger, .alert-error, .alert-warning, .alert-info, .label-danger, .label-info, .label-warning, .label-orange, .label-primary, .label-success, .modal-primary .modal-body, .modal-primary .modal-header, .modal-primary .modal-footer, .modal-warning .modal-body, .modal-warning .modal-header, .modal-warning .modal-footer, .modal-info .modal-body, .modal-info .modal-header, .modal-info .modal-footer, .modal-success .modal-body, .modal-success .modal-header, .modal-success .modal-footer, .modal-danger .modal-body, .modal-danger .modal-header, .modal-danger .modal-footer {
+    color: #fff !important;
+}
+
+ 

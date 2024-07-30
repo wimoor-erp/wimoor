@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.report.dao.AmzAdvSumProductAdsMapper">
+	<resultMap id="BaseResultMap"
+		type="com.wimoor.amazon.adv.report.pojo.AmzAdvSumProductAds">
+		<id column="profileid" property="profileid" jdbcType="BIGINT" />
+		<id column="byday" property="byday" jdbcType="DATE" />
+		<result column="impressions" property="impressions" jdbcType="INTEGER" />
+		<result column="clicks" property="clicks" jdbcType="INTEGER" />
+		<result column="cost" property="cost" jdbcType="DECIMAL" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="attributedUnitsOrdered" property="attributedunitsordered" jdbcType="INTEGER" />
+		<result column="attributedConversions" property="attributedConversions" jdbcType="INTEGER" />
+		<result column="attributedSales" property="attributedsales" jdbcType="DECIMAL" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		profileid, byday, impressions, clicks, cost, currency,
+		attributedUnitsOrdered,attributedConversions, attributedSales,ctype
+	</sql>
+	
+	<select id="selectByKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.report.pojo.AmzAdvSumProductAdsKey">
+		select
+		<include refid="Base_Column_List" />
+		from t_amz_adv_sumpdtads
+		where profileid = #{profileid,jdbcType=BIGINT}
+			and byday = #{byday,jdbcType=DATE}
+			and ctype = #{ctype,jdbcType=CHAR}
+	</select>
+	
+	<select id="getSumProduct" resultType="java.util.Map" parameterType="java.util.Map">
+		select p.marketplaceId,
+			sum(a.impressions) impressions,
+			sum(a.clicks) clicks,
+			sum(a.cost) cost,
+			sum(a.attributedUnitsOrdered) attributedUnitsOrdered,
+			sum(a.attributedConversions) attributedConversions,
+			sum(a.attributedSales) attributedSales
+		from t_amz_adv_sumpdtads a
+		left join t_amz_adv_profile p on p.id=a.profileid
+		left join t_amz_adv_auth ath on ath.id=p.advauthId and ath.disable = 0
+		where ath.shopid=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and ath.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="profileid != null">
+			and p.id=#{profileid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceId != null">
+			and p.marketplaceId=#{marketplaceId,jdbcType=CHAR}
+		</if>
+		<if test="begin != null">
+			and a.byday>=#{begin,jdbcType=CHAR}
+		</if>
+		<if test="begin == null">
+			and a.byday>= date_add(curdate(),INTERVAL -7 DAY)
+		</if>
+		<if test="end != null">
+			and a.byday&lt;=#{end,jdbcType=CHAR}
+		</if>
+		group by p.marketplaceId
+	</select>
+
+	<select id="getAllSumProduct" resultType="java.util.Map" parameterType="java.util.Map">
+		select  sum(a.impressions) impressions,
+			    sum(a.clicks) clicks,
+			    sum( case p.currencyCode
+							    <foreach collection="currencyrate.entrySet()" index="key" item="value">
+							        when #{key} then #{value}*ifnull(a.cost,0) 
+							      </foreach>
+				                   ELSE 0  END
+				                   ) cost,
+			    sum(a.attributedUnitsOrdered) attributedUnitsOrdered,
+			    sum(a.attributedConversions) attributedConversions,
+			    sum(a.attributedSales) attributedSales
+		from t_amz_adv_sumpdtads a
+		left join t_amz_adv_profile p on p.id=a.profileid
+		left join t_amz_adv_auth ath on ath.id=p.advauthId and ath.disable = 0
+		where ath.shopid=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and ath.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="profileid != null">
+			and p.id=#{profileid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceId != null">
+			and p.marketplaceId=#{marketplaceId,jdbcType=CHAR}
+		</if>
+		<if test="begin != null">
+			and a.byday>=#{begin,jdbcType=CHAR}
+		</if>
+		<if test="begin == null">
+			and a.byday>= date_add(curdate(),INTERVAL -7 DAY)
+		</if>
+		<if test="end != null">
+			and a.byday&lt;=#{end,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="getMonthSumProduct" resultType="java.util.Map" parameterType="java.util.Map">
+		select date_format(max(a.byday),'%Y-%m') byday,p.marketplaceId,
+			sum(a.impressions) impressions,
+			sum(a.clicks) clicks,
+			sum(a.cost) cost,
+			sum(a.attributedUnitsOrdered) attributedUnitsOrdered,
+			sum(a.attributedConversions) attributedConversions,
+			sum(a.attributedSales) attributedSales
+		from t_amz_adv_sumpdtads a
+		left join t_amz_adv_profile p on p.id=a.profileid
+		left join t_amz_adv_auth ath on ath.id=p.advauthId and ath.disable = 0
+		where ath.shopid=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and ath.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="profileid != null">
+			and p.id=#{profileid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceId != null">
+			and p.marketplaceId=#{marketplaceId,jdbcType=CHAR}
+		</if>
+		<if test="begin != null">
+			and a.byday>=#{begin,jdbcType=DATE}
+		</if>
+		<if test="begin == null">
+			and a.byday>= date_add(curdate(),INTERVAL -7 DAY)
+		</if>
+		<if test="end != null">
+			and a.byday&lt;=#{end,jdbcType=DATE}
+		</if>
+		group by concat( year(a.byday) ,'-' ,month(a.byday)),p.marketplaceId
+	</select>
+
+	<select id="getDaysSumProduct" resultType="java.util.Map" parameterType="java.util.Map">
+		select date_format(a.byday,'%Y-%m-%d') byday,p.marketplaceId,
+			sum(a.impressions) impressions,
+			sum(a.clicks) clicks,
+			sum(a.cost) cost,
+			sum(a.attributedUnitsOrdered) attributedUnitsOrdered,
+			sum(a.attributedConversions) attributedConversions,
+			sum(a.attributedSales) attributedSales
+		from t_amz_adv_sumpdtads a
+		left join t_amz_adv_profile p on p.id=a.profileid
+		left join t_amz_adv_auth ath on ath.id=p.advauthId and ath.disable = 0
+		where ath.shopid=#{shopid,jdbcType=CHAR}
+		<if test="groupid != null">
+			and ath.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="profileid != null">
+			and p.id=#{profileid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceId != null">
+			and p.marketplaceId=#{marketplaceId,jdbcType=CHAR}
+		</if>
+		<if test="begin != null">
+			and a.byday>=#{begin,jdbcType=DATE}
+		</if>
+		<if test="begin == null">
+			and a.byday>= date_add(curdate(),INTERVAL -7 DAY)
+		</if>
+		<if test="end != null">
+			and a.byday&lt;=#{end,jdbcType=DATE}
+		</if>
+		group by a.byday,p.marketplaceId
+	</select>
+	
+	<update id="updateByKey" parameterType="com.wimoor.amazon.adv.report.pojo.AmzAdvSumProductAds">
+		update t_amz_adv_sumpdtads
+		set impressions = #{impressions,jdbcType=INTEGER},
+			clicks = #{clicks,jdbcType=INTEGER},
+			cost = #{cost,jdbcType=DECIMAL},
+			currency = #{currency,jdbcType=CHAR},
+			attributedUnitsOrdered = #{attributedunitsordered,jdbcType=INTEGER},
+			attributedConversions=#{attributedConversions,jdbcType=INTEGER},
+			attributedSales = #{attributedsales,jdbcType=DECIMAL}
+		where profileid = #{profileid,jdbcType=BIGINT}
+			and byday = #{byday,jdbcType=DATE}
+			and ctype = #{ctype,jdbcType=CHAR}
+	</update>
+
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.customer.mapper.CustomerMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.customer.pojo.entity.Customer" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="number" property="number" jdbcType="CHAR" />
+    <result column="fullname" property="fullname" jdbcType="VARCHAR" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="contacts" property="contacts" jdbcType="VARCHAR" />
+    <result column="phone_num" property="phoneNum" jdbcType="VARCHAR" />
+    <result column="contact_info" property="contactInfo" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, number, fullname, ftype, contacts, phone_num, contact_info, address, shopid, 
+    operator, opttime
+  </sql>
+  <select id="findByCondition"  resultType="java.util.Map" parameterType="java.lang.String" >
+	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
+      u.name operator2, opttime
+	 from  t_erp_customer c
+	 left join t_userinfo u on u.id=c.operator
+	 left join t_parameterconfig p on p.ptype='customer' and p.pkey=c.ftype
+	 where c.shopid=#{shopid,jdbcType=CHAR}
+   <if test="search != null" >
+	 and (c.name like #{search,jdbcType=CHAR}
+	 or c.number like #{search,jdbcType=CHAR}
+	 or c.fullname like #{search,jdbcType=CHAR}
+	 or c.contacts like #{search,jdbcType=CHAR}
+	 or c.phone_num like #{search,jdbcType=CHAR}
+	 or c.address like #{search,jdbcType=CHAR}
+     )
+     </if>
+  </select>
+  
+  <select id="findByShopId"  resultMap="BaseResultMap"  parameterType="java.lang.String" >
+	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
+      u.name operator, opttime
+	 from  t_erp_customer c
+	 left join t_userinfo u on u.id=c.operator
+	 left join t_parameterconfig p on p.ptype='customer' and p.pkey=c.ftype
+	 where c.shopid=#{shopid,jdbcType=CHAR}
+	  <if test="name != null" >
+	     and c.name like #{name,jdbcType=CHAR}
+	  </if>
+  </select>
+  <select id="findByName"  resultMap="BaseResultMap"  parameterType="java.lang.String" >
+	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
+      u.name operator, opttime
+	 from  t_erp_customer c
+	 left join t_userinfo u on u.id=c.operator
+	 left join t_parameterconfig p on p.ptype='customer' and p.pkey=c.ftype
+	 where c.shopid=#{shopid,jdbcType=CHAR}
+	     and c.name = #{name,jdbcType=CHAR}
+	     limit 1;
+  </select>
+  
+</mapper>

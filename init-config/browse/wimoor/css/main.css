@@ -1,0 +1,59 @@
+.wimoor-eaescs{
+	border: 1px solid rgb(206, 209, 210);
+	height: 67px;
+	padding:10px;
+    min-width: 165px;
+}
+#holiday-wimoor{
+	position: relative;
+    
+}
+.wholidayclose{
+	position: absolute;
+	z-index:2001;
+    top:60px;
+    right:-10px;
+    cursor:pointer;
+}
+#holiday-wimoor .sub{
+	position: absolute;
+	z-index:2000;
+    top:60px;
+    right:-15px;
+    width:800px;
+	background:#fff;
+	padding:20px;
+	box-shadow: 1px 2px 4px rgb(0 0 0 / 40%);
+    -moz-box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+    -webkit-box-shadow: 1px 2px 4px rgb(0 0 0 / 40%);
+ 
+}
+.wholidaydescrption{
+	font-size:12px;
+    padding-top:10px;
+    color: #373d3e !important;
+ 
+}
+.wholidayhead{
+		
+		 
+}
+.wholiday{
+	border-bottom:solid 1px #dedede;
+	padding-bottom:20px;
+	margin-top:20px;
+}
+.wholiday:last-child{
+	border-bottom:none;
+	padding-bottom:20px;
+	margin-top:20px;
+}
+.wholidayname{
+	font-size:18px;
+    color: #002f36 !important;
+	padding-left:10px;
+}
+.wholidaydate{
+	font-size:14px;
+	color: -internal-light-dark(black, white) !important;
+}

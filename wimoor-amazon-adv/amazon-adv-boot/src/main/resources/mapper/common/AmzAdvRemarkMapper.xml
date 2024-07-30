@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvRemarkMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvRemark" >
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <id column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <id column="adgroupId" property="adgroupid" jdbcType="BIGINT" />
+    <id column="keywordId" property="keywordid" jdbcType="BIGINT" />
+    <id column="adId" property="adid" jdbcType="BIGINT" />
+    <id column="targetId" property="targetid" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    profileid, campaignId, adgroupId, keywordId, adId,targetId, remark, opttime, operator
+  </sql>
+  
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceMapper">
+
+    <!-- 通用查询映射结果 -->
+   <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoice" >
+     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="groupid" property="groupid" jdbcType="BIGINT" />
+    <result column="logoUrl" property="logourl" jdbcType="VARCHAR" />
+    <result column="company" property="company" jdbcType="VARCHAR" />
+    <result column="country" property="country" jdbcType="VARCHAR" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="postalcode" property="postalcode" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="sign" property="sign" jdbcType="VARCHAR" />
+  </resultMap>
+  
+    
+</mapper>

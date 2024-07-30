@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.report.dao.AmzAdvSnapshotMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.report.pojo.AmzAdvSnapshot" >
+    <id column="snapshotId" property="snapshotid" jdbcType="CHAR" />
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <id column="region" property="region" jdbcType="CHAR" />
+    <result column="status" property="status" jdbcType="CHAR" />
+    <result column="recordType" property="recordtype" jdbcType="CHAR" />
+    <result column="campaignType" property="campaigntype" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="requesttime" property="requesttime" jdbcType="TIMESTAMP" />
+    <result column="treat_number" property="treatnumber" jdbcType="INTEGER" />
+    <result column="treat_status" property="treatstatus" jdbcType="INTEGER" />
+    <result column="log" property="log" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    snapshotId, profileid, region, status, recordType, opttime,campaignType ,requesttime ,treat_number,treat_status,log 
+  </sql>
+  
+  <select id="selectByProfileAndType" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    SELECT * from t_amz_adv_snapshot
+    where profileid = #{profileid,jdbcType=CHAR}
+      	and recordType= #{recordType,jdbcType=CHAR}
+ 		and campaignType= #{campaignType,jdbcType=CHAR}
+		and requesttime&gt;=DATE_ADD(now(),INTERVAL -20 HOUR)  
+	limit 1
+  </select>
+  
+  <select id="selectAvailableByAdType" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    SELECT * from t_amz_adv_snapshot 
+    where  recordType= #{recordType,jdbcType=CHAR} 
+ 		and campaignType= #{campaignType,jdbcType=CHAR}
+ 		and requesttime&gt;=DATE_ADD(now(),INTERVAL -20 HOUR)  
+		and treat_number&lt;10 
+		and (status='IN_PROGRESS' or status='SUCCESS')
+ 		and (treat_status is null or treat_status='error' or treat_status='')
+	limit 200
+  </select>
+  
+</mapper>

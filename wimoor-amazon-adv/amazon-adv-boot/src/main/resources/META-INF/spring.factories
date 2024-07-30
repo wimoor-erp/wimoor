@@ -1,0 +1,8 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.wimoor.common.mvc.FileUpload,\
+  com.wimoor.common.service.impl.StorageService,\
+  com.wimoor.common.service.util.FTPServerUtil,\
+  com.wimoor.common.service.util.MinIOApiUtil,\
+  com.wimoor.common.service.util.OSSApiUtil,\
+  com.wimoor.common.mvc.GlobalExceptionHandler
+
