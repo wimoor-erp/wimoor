@@ -8,13 +8,13 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 172.18.115.249:8848
-        namespace: prod_wimoor
-        ip: 172.28.177.197
+        server-addr: 127.0.0.1:8848
+        namespace: prod
+        ip: 127.0.0.1
       config:
         server-addr: ${spring.cloud.nacos.discovery.server-addr}
         file-extension: yaml
-        namespace: prod_wimoor
+        namespace: prod
         # 公共配置
         shared-configs[0]: 
           data-id: wimoor-common
