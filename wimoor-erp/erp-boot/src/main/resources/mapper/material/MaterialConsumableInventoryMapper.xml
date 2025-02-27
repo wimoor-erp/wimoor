@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialConsumableInventoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialConsumableInventory">
+        <id column="id" property="id" />
+        <result column="warehouseid" property="warehouseid" />
+        <result column="shopid" property="shopid" />
+        <result column="materialid" property="materialid" />
+        <result column="quantity" property="quantity" />
+    </resultMap>
+
+</mapper>

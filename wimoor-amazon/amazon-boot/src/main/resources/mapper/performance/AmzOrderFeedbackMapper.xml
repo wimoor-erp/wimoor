@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.performance.mapper.AmzOrderFeedbackMapper" >
+  
+ <select id="findByCondition"  resultType="java.util.Map" parameterType="com.wimoor.amazon.performance.pojo.dto.PerformanceReportListDTO">
+     select g.name groupname,m.name marketname,r.purchase_date,r.order_status,p.sku,p.name,IFNULL(pt.location,pt.url) image,f.*
+     FROM t_amz_order_feedback f
+     LEFT JOIN  t_orders_report r ON r.amazon_order_id=f.amazon_order_id
+     LEFT JOIN  t_amazon_auth a ON a.id=f.amazonauthid
+     LEFT JOIN  t_amazon_group g ON g.id=a.groupid
+     left join  t_marketplace m ON m.point_name=r.sales_channel
+     LEFT JOIN t_product_info p ON p.sku=r.sku AND p.marketplaceid=m.marketplaceId AND p.amazonAuthId=f.amazonauthid
+     LEFT JOIN t_picture pt ON pt.id=p.image
+    where g.shopid=#{param.shopid,jdbcType=CHAR}
+    <if test="param.search != null and param.search != ''">
+      and (p.name like concat('%',#{param.search,jdbcType=CHAR},'%')
+            or r.sku like concat('%',#{param.search,jdbcType=CHAR},'%')
+          )
+    </if>
+    <if test="param.groupid != null and param.groupid != ''">
+      and a.groupid=#{param.groupid,jdbcType=CHAR}
+    </if>
+    <if test="param.marketplaceid != null and param.marketplaceid != ''">
+     and m.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+    </if>
+  </select>
+</mapper>

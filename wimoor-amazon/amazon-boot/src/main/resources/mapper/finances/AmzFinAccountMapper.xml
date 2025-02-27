@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzFinAccountMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzFinAccount">
+        <id column="amazonAuthid" property="amazonAuthid" />
+        <result column="currency" property="currency" />
+        <result column="groupid" property="groupid" />
+        <result column="financial_event_group_start" property="financialEventGroupStart" />
+        <result column="financial_event_group_end" property="financialEventGroupEnd" />
+        <result column="fund_transfer_date" property="fundTransferDate" />
+        <result column="processing_status" property="processingStatus" />
+        <result column="trace_id" property="traceId" />
+        <result column="account_tail" property="accountTail" />
+        <result column="converted_total" property="convertedTotal" />
+        <result column="beginning_balance" property="beginningBalance" />
+        <result column="original_total" property="originalTotal" />
+        <result column="fund_transfer_status" property="fundTransferStatus" />
+    </resultMap>
+
+	 <select id="getFinancialSum" resultType="java.util.Map" parameterType="java.lang.String">
+		select a.currency
+		, sum(case when ifnull(a.processing_status,'Open')='Open' 
+		                then a.original_total else 0 end) totalAmount
+		, sum(case when     ifnull(a.processing_status,'Open')='Closed'
+		                and ifnull(a.fund_transfer_status,'Unknown')='Failed' 
+		                then a.original_total else 0 end) totalFailedAmount
+		from t_amz_fin_account a
+		left join t_amazon_auth t on t.id=a.amazonAuthid 
+		left join t_amazon_group g on g.id=t.groupid and t.shop_id=g.shopid
+		where t.`disable`=0  and g.shopid=#{shopid,jdbcType=CHAR}
+	    <if test='groupid!=null'>
+			and t.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="currency!=null">
+			and a.currency=#{currency,jdbcType=CHAR}
+		</if>
+		    and ( ifnull(a.processing_status,'Open')='Open'  
+		           or 
+			      (fund_transfer_date &gt;= #{fromDate,jdbcType=DATE}	
+			       and 
+			       fund_transfer_date &lt;= #{endDate,jdbcType=DATE})
+			     )
+		 
+        group by a.currency
+	</select>
+	 <select id="getlastUpdate" resultType="java.util.Date" parameterType="java.lang.String">
+		select  max(refreshtime) refreshtime
+		from t_amz_fin_account a
+		where  amazonAuthid=#{amazonAuthid,jdbcType=CHAR}
+	</select>
+	
+	 <select id="getFinancial" resultType="java.util.Map" parameterType="java.lang.String">
+		select g.name groupname,g.id groupid,a.currency, a.amazonauthid amazonauthid,
+		a.financial_event_group_start startDate,original_total totalAmount,
+		a.groupid accgroupid,'finacc' fatype,a.processing_status pstatus,a.fund_transfer_status tstatus
+		from t_amz_fin_account a
+		left join t_amazon_auth t on t.id=a.amazonAuthid 
+		left join t_amazon_group g on g.id=t.groupid and t.shop_id=g.shopid
+		where ifnull(a.processing_status,'Open')='Open'
+			and t.`disable`=0 
+			and g.shopid=#{param.shopid,jdbcType=CHAR}
+	    <if test='param.groupid!=null'>
+			and t.groupid = #{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.currency!=null">
+			and a.currency=#{param.currency,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectUnclosedFinByShopid" resultType="java.util.Map" parameterType="java.lang.String">
+		select g.name,g.id groupid,a.*
+		from t_amazon_group g
+		left join t_amazon_auth t on g.id=t.groupid and t.shop_id=g.shopid
+		left join t_amz_fin_account a on t.id=a.amazonAuthid
+		where ifnull(a.processing_status,'Open')='Open'
+			and t.`disable`=0 
+			and g.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+
+	<select id="selectFinByShopid" parameterType="java.lang.String" resultType="java.util.Map">
+		 SELECT a.groupid,t.currency,SUM(total_amount) amount,'convert' type
+			from t_amz_settlement_acc_report t
+			LEFT JOIN t_amazon_auth a ON a.id=t.amazonauthid
+			WHERE a.shop_id =  #{shopid,jdbcType=CHAR} 
+				and a.`disable`=0 
+				and ((t.settlement_start_date &gt;=#{beginDate,jdbcType=CHAR}  	and t.settlement_start_date &lt;#{endDate,jdbcType=CHAR} ) or 
+				(t.settlement_end_date &gt;=#{beginDate,jdbcType=CHAR}  and t.settlement_end_date &lt;#{endDate,jdbcType=CHAR})
+				OR (t.settlement_start_date &lt;=#{beginDate,jdbcType=CHAR}  and t.settlement_end_date &gt;=#{endDate,jdbcType=CHAR})
+				 )
+			GROUP BY 	a.groupid,t.currency
+         UNION all
+			SELECT a.groupid, f.currency,sum(original_total) amount,'untransfer' type
+			from t_amz_fin_account f
+			left join t_amazon_auth a on a.id=f.amazonAuthid
+			where a.shop_id=  #{shopid,jdbcType=CHAR} 	and a.`disable`=0 
+            AND f.processing_status='Open'
+			group by a.groupid,f.currency
+	</select>
+
+</mapper>

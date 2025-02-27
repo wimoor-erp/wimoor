@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxItemMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBoxItem">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="ShipmentId" property="shipmentid" jdbcType="CHAR" />
+		<result column="SellerSKU" property="sellersku" jdbcType="CHAR" />
+		<result column="inboundplanid" property="inboundplanid" jdbcType="CHAR" />
+		<result column="FulfillmentNetworkSKU" property="fulfillmentnetworksku" jdbcType="CHAR" />
+		<result column="Quantity" property="quantity" jdbcType="INTEGER" />
+		<result column="QuantityShipped" property="quantityshipped" jdbcType="INTEGER" />
+		<result column="QuantityReceived" property="quantityreceived" jdbcType="INTEGER" />
+		<result column="QuantityInCase" property="quantityincase" jdbcType="INTEGER" />
+	</resultMap>
+	 
+	<select id="findByShipment" parameterType="java.lang.String" resultType="com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBoxItem">
+	select * from t_erp_ship_v2_inboundshipment_boxitem i
+	left join t_erp_ship_v2_inboundshipment_box b on b.id=i.boxid
+	where b.shipmentid=#{shipmentid,jdbcType=CHAR}
+	</select>
+</mapper>

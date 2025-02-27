@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.profit.mapper.ReferralFeeMapper">
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.ReferralFee">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="isMedia" jdbcType="CHAR" property="ismedia" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="loweast" jdbcType="DECIMAL" property="loweast" />
+    <result column="top1" jdbcType="DECIMAL" property="top1" />
+    <result column="top2" jdbcType="DECIMAL" property="top2" />
+    <result column="top3" jdbcType="DECIMAL" property="top3" />
+    <result column="percent1" jdbcType="DECIMAL" property="percent1" />
+    <result column="percent2" jdbcType="DECIMAL" property="percent2" />
+    <result column="percent3" jdbcType="DECIMAL" property="percent3" />
+    <result column="country" jdbcType="VARCHAR" property="country" />
+    <result column="parent_id" jdbcType="INTEGER" property="parentId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, type, isMedia, name, loweast, top1, top2, top3,  percent1, percent2, percent3,country,parent_id
+  </sql>
+ <!--  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_referralfee
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_referralfee
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.plum.frame.pojo.ReferralFee">
+    insert into t_referralfee (id, type,
+      isMedia, name, loweast, 
+      top1, top2, top3,
+      percent1, percent2, percent3)
+    values (#{id,jdbcType=INTEGER}, #{type,jdbcType=VARCHAR}, 
+      #{ismedia,jdbcType=CHAR}, #{name,jdbcType=VARCHAR}, #{loweast,jdbcType=DECIMAL}, 
+      #{top1,jdbcType=DECIMAL}, #{top2,jdbcType=DECIMAL}, #{top3,jdbcType=DECIMAL}, 
+      #{percent1,jdbcType=DECIMAL}, #{percent2,jdbcType=DECIMAL}, #{percent3,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.plum.frame.pojo.ReferralFee">
+    insert into t_referralfee
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="ismedia != null">
+        isMedia,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="loweast != null">
+        loweast,
+      </if>
+      <if test="top1 != null">
+        top1,
+      </if>
+      <if test="top2 != null">
+        top2,
+      </if>
+      <if test="top3 != null">
+        top3,
+      </if>
+      <if test="percent1 != null">
+        percent1,
+      </if>
+      <if test="percent2 != null">
+        percent2,
+      </if>
+      <if test="percent3 != null">
+        percent3,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="ismedia != null">
+        #{ismedia,jdbcType=CHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="loweast != null">
+        #{loweast,jdbcType=DECIMAL},
+      </if>
+      <if test="top1 != null">
+        #{top1,jdbcType=DECIMAL},
+      </if>
+      <if test="top2 != null">
+        #{top2,jdbcType=DECIMAL},
+      </if>
+      <if test="top3 != null">
+        #{top3,jdbcType=DECIMAL},
+      </if>
+      <if test="percent1 != null">
+        #{percent1,jdbcType=DECIMAL},
+      </if>
+      <if test="percent2 != null">
+        #{percent2,jdbcType=DECIMAL},
+      </if>
+      <if test="percent3 != null">
+        #{percent3,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.plum.frame.pojo.ReferralFee">
+    update t_referralfee
+    <set>
+      <if test="type != null">
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="ismedia != null">
+        isMedia = #{ismedia,jdbcType=CHAR},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="loweast != null">
+        loweast = #{loweast,jdbcType=DECIMAL},
+      </if>
+      <if test="top1 != null">
+        top1 = #{top1,jdbcType=DECIMAL},
+      </if>
+      <if test="top2 != null">
+        top2 = #{top2,jdbcType=DECIMAL},
+      </if>
+      <if test="top3 != null">
+        top3 = #{top3,jdbcType=DECIMAL},
+      </if>
+      <if test="percent1 != null">
+        percent1 = #{percent1,jdbcType=DECIMAL},
+      </if>
+      <if test="percent2 != null">
+        percent2 = #{percent2,jdbcType=DECIMAL},
+      </if>
+      <if test="percent3 != null">
+        percent3 = #{percent3,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.plum.frame.pojo.ReferralFee">
+    update t_referralfee
+    set type = #{type,jdbcType=VARCHAR},
+      isMedia = #{ismedia,jdbcType=CHAR},
+      name = #{name,jdbcType=VARCHAR},
+      loweast = #{loweast,jdbcType=DECIMAL},
+      top1 = #{top1,jdbcType=DECIMAL},
+      top2 = #{top2,jdbcType=DECIMAL},
+      top3 = #{top3,jdbcType=DECIMAL},
+      percent1 = #{percent1,jdbcType=DECIMAL},
+      percent2 = #{percent2,jdbcType=DECIMAL},
+      percent3 = #{percent3,jdbcType=DECIMAL},
+    where id = #{id,jdbcType=INTEGER}
+  </update> -->
+   <select id="findByTypeId"  resultMap="BaseResultMap">
+   	select * from t_referralfee 
+    where (id = #{id,jdbcType=INTEGER} or parent_id= #{id,jdbcType=INTEGER}) and country like #{country,jdbcType=VARCHAR}
+   </select>
+   <select id="findAllType"  resultMap="BaseResultMap">
+   	select id,type
+    from t_referralfee where country='US' or country='ETC' ORDER BY type
+   </select>
+   <select id="findByPgroup" resultMap="BaseResultMap" >
+       select * from   t_referralfee f 
+       where  f.`type` like #{pgroup,jdbcType=VARCHAR}
+		and  f.country like #{country,jdbcType=VARCHAR} LIMIT 0,1
+   </select>
+</mapper>

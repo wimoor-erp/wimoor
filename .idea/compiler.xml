@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="amazon-boot" />
+        <module name="amazon-sp-api" />
+        <module name="quote-api" />
+        <module name="chelsea-boot" />
+        <module name="common-storage" />
+        <module name="admin-api" />
+        <module name="chelsea-api" />
+        <module name="admin-boot" />
+        <module name="quote-boot" />
+        <module name="common-redis" />
+        <module name="wimoor-gateway" />
+        <module name="erp-api" />
+        <module name="amazon-adv-boot" />
+        <module name="common-mvc" />
+        <module name="common-mybatis" />
+        <module name="common-feishu" />
+        <module name="erp-boot" />
+        <module name="common-swagger" />
+        <module name="data-boot" />
+        <module name="amazon-adv-api" />
+        <module name="amazon-api" />
+        <module name="common-entity" />
+        <module name="common-core" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="data-api" target="1.8" />
+      <module name="wimoor-auth" target="1.8" />
+      <module name="wimoor-shopee" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="GENERATE_NO_WARNINGS" value="true" />
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="admin-api" options="-parameters" />
+      <module name="admin-boot" options="-parameters" />
+      <module name="amazon-adv-api" options="-parameters" />
+      <module name="amazon-adv-boot" options="-parameters" />
+      <module name="amazon-api" options="-parameters" />
+      <module name="amazon-boot" options="-parameters" />
+      <module name="amazon-sp-api" options="-parameters" />
+      <module name="chelsea-api" options="-parameters" />
+      <module name="chelsea-boot" options="-parameters" />
+      <module name="common-core" options="-parameters" />
+      <module name="common-entity" options="-parameters" />
+      <module name="common-feishu" options="-parameters" />
+      <module name="common-mvc" options="-parameters" />
+      <module name="common-mybatis" options="-parameters" />
+      <module name="common-redis" options="-parameters" />
+      <module name="common-storage" options="-parameters" />
+      <module name="common-swagger" options="-parameters" />
+      <module name="data-api" options="-parameters" />
+      <module name="data-boot" options="-parameters" />
+      <module name="erp-api" options="-parameters" />
+      <module name="erp-boot" options="-parameters" />
+      <module name="quote-api" options="-parameters" />
+      <module name="quote-boot" options="-parameters" />
+      <module name="wimoor-auth" options="-parameters" />
+      <module name="wimoor-gateway" options="-parameters" />
+      <module name="wimoor-shopee" options="-parameters" />
+    </option>
+  </component>
+</project>

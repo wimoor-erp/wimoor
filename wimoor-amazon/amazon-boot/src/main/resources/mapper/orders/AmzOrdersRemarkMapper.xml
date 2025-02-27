@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.orders.mapper.AmzOrdersRemarkMapper">
+
+    <!-- 通用查询映射结果 -->
+   <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.AmzOrdersRemark" >
+    <id column="amazon_orderid" property="amazonOrderid" jdbcType="CHAR" />
+    <result column="feed_queueid" property="feedQueueid" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+    
+</mapper>

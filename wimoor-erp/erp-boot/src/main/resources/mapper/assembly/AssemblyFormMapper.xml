@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.assembly.mapper.AssemblyFormMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.erp.assembly.pojo.entity.AssemblyForm">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="number" property="number" jdbcType="CHAR" />
+		<result column="auditor" property="auditor" jdbcType="CHAR" />
+		<result column="creator" property="creator" jdbcType="CHAR" />
+		<result column="ftype" property="ftype" jdbcType="CHAR" />
+		<result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+		<result column="audittime" property="audittime" jdbcType="TIMESTAMP" />
+		<result column="mainmid" property="mainmid" jdbcType="CHAR" />
+		<result column="amount" property="amount" jdbcType="INTEGER" />
+		<result column="amount_handle" property="amountHandle" jdbcType="INTEGER" />
+		<result column="auditstatus" property="auditstatus" jdbcType="CHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+		<result column="operator" property="operator" jdbcType="CHAR" />
+		<result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, number, auditor, creator, warehouseid, audittime,
+		mainmid,amount,amount_handle,auditstatus,remark,shopid,opttime,operator,createdate,ftype
+	</sql>
+    <select id="refreshInbound" parameterType="java.lang.String" resultType="java.lang.Integer">
+       select ifnull((
+		    SELECT  ifnull(sum(f.amount),0)- ifnull(SUM(i.amount),0) quantity 
+			FROM t_erp_assembly_form f
+			LEFT JOIN  (select formid,SUM(amount) amount from t_erp_assembly_from_instock  GROUP BY formid)i ON i.formid=f.id
+			WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} AND f.ftype='ass'
+			AND f.mainmid=#{materialid,jdbcType=CHAR}
+			AND f.auditstatus IN (1,2) ),0)+
+              ifnull((
+				  SELECT  (ifnull(sum(f.amount),0)- ifnull(SUM(i.amount),0))*(e.amount/f.amount) quantity
+				  FROM t_erp_assembly_form f
+						   LEFT JOIN  (select formid,SUM(amount) amount from t_erp_assembly_from_instock  GROUP BY formid)i ON i.formid=f.id
+				  left join t_erp_assembly_form_entry e on e.formid=f.id
+				  WHERE f.warehouseid=#{warehouseid,jdbcType=CHAR} AND f.ftype='dis'
+					AND e.materialid=#{materialid,jdbcType=CHAR}
+					AND f.auditstatus IN (1,2)
+			  ),0)
+    </select>
+	<select id="getCountNum" resultType="java.util.Map" parameterType="java.util.Map">
+		select a.id,a.number,a.ftype,a.auditstatus,v.*
+		from t_erp_assembly_form a
+		LEFT join t_erp_material m on a.mainmid = m.id
+		left join (
+			select entry.formid,
+				<if test="search != null">
+					max(case when m2.sku like #{search,jdbcType=CHAR} then 1 else 0 end) subhave,
+				</if>
+				max(
+					case when form.ftype='ass'
+					then
+					case when ifnull(i2.quantity,0) &lt; (entry.amount/form.amount)
+					then 1 else 0 end
+					else
+					case when i1.quantity>=form.amount then 0 else 1 end
+					end
+				) needpo 
+			from t_erp_assembly_form_entry entry
+			<if test="search != null">
+				left join t_erp_material m2 on m2.id=entry.materialid
+			</if>
+			left join t_erp_assembly_form form on entry.formid=form.id
+			left join t_erp_inventory i1 on form.mainmid=i1.materialid and i1.warehouseid=form.warehouseid
+				and i1.shopid=#{shopid,jdbcType=CHAR} and i1.`status` ='fulfillable'
+			left join t_erp_inventory i2 on entry.materialid=i2.materialid and i2.warehouseid=entry.warehouseid
+				and i2.`status` ='fulfillable' and i2.shopid=#{shopid,jdbcType=CHAR}
+			where form.shopid=#{shopid,jdbcType=CHAR} and form.auditstatus=1
+			group by entry.formid
+		) v on v.formid=a.id
+		where a.shopid=#{shopid,jdbcType=CHAR}
+			and a.auditstatus in (1,2)
+		<if test="ftype !=null ">
+			and (a.ftype= #{ftype,jdbcType=CHAR} )
+		</if>
+		<if test="search != null">
+			and (m.sku like #{search,jdbcType=CHAR} or a.number like #{search,jdbcType=CHAR} or v.subhave=1)
+		</if>
+		order by a.ftype,a.auditstatus
+	</select>
+
+
+	<select id="findByCondition" resultType="java.util.Map" parameterType="com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO">
+		select ta.id,ta.number number,ta.ftype,m.sku sku, ta.amount,u.name creator, 
+			ta.auditstatus auditstatus, ta.remark remark,ta.opttime opttime , 
+			v.needpo purchaseneed, v.hasqty,v.needin ,ta.createdate,
+			p.location image,m.name,ta.amount_handle,v2.shipmentids,w.name wname,w.id warehouseid,ta.check_inv,
+			ifnull(pur.puramount,-1) puramount
+		from t_erp_assembly_form ta
+		left join t_erp_inventory i on ta.mainmid=i.materialid and i.warehouseid=ta.warehouseid
+			and i.shopid=ta.shopid and i.`status` ='fulfillable'
+		left join t_erp_warehouse w on w.id=ta.warehouseid
+		LEFT JOIN t_userinfo u on ta.creator = u.id
+		LEFT join t_erp_material m on ta.mainmid = m.id
+		left join t_picture p on p.id=m.image
+		<if test="param.isplan ==true">
+			left join t_erp_preprocessing_form pre on pre.id=ta.check_inv
+		</if>
+		left join (
+		SELECT m.id purMainid,sum(t.needship) puramount FROM   t_amz_product_sales_plan  t
+		LEFT JOIN t_erp_material m ON m.sku=t.msku AND m.isDelete=0 AND  t.shopid=m.shopid
+		WHERE m.issfg='1' and t.shopid=#{param.shopid,jdbcType=CHAR}
+		group by m.id) pur on pur.purMainid=ta.mainmid
+		left join (
+			select entry.formid,
+			<if test="param.search != null">
+			   <if test="param.searchtype == 'sku'">
+				max(case when m2.sku like #{param.search,jdbcType=CHAR} then 1 else 0 end) subhave,
+				</if>
+			</if>
+				max(
+					case when form.ftype='ass'
+					then
+					case when ifnull(i2.quantity,0) &lt; (entry.amount/form.amount) then 1 else 0 end
+					else
+					case when i1.quantity>=form.amount then 0 else 1 end
+					end
+				) needpo ,
+				max(
+					case when form.ftype='ass'
+					then
+					case when ifnull(i3.quantity,0)+ifnull(i2.quantity,0) &lt; (entry.amount/form.amount*(form.amount-ifnull(form.amount_handle,0))) 
+					then (entry.amount/form.amount*(form.amount-ifnull(form.amount_handle,0)))-(ifnull(i3.quantity,0)+ifnull(i2.quantity,0)) else 0 end
+					else
+					0
+					end
+				) needin ,
+				min( 
+					case when form.ftype='ass'
+					then ifnull(i2.quantity,0)/(entry.amount/(form.amount))
+					else
+					case when i1.quantity>=form.amount then form.amount else 0 end
+					end
+				) hasqty
+			from t_erp_assembly_form_entry entry
+			<if test="param.search != null">
+			   <if test="param.searchtype == 'sku'">
+				left join t_erp_material m2 on m2.id=entry.materialid
+				</if>
+			</if>
+			left join t_erp_assembly_form form on entry.formid=form.id
+			left join t_erp_inventory i1 on form.mainmid=i1.materialid and i1.warehouseid=form.warehouseid
+				and i1.shopid=#{param.shopid,jdbcType=CHAR} and i1.`status` ='fulfillable'
+			left join t_erp_inventory i2 on entry.materialid=i2.materialid and i2.warehouseid=entry.warehouseid
+				and i2.`status` ='fulfillable' and i2.shopid=#{param.shopid,jdbcType=CHAR}
+			left join t_erp_inventory i3 on entry.materialid=i3.materialid and i3.warehouseid=entry.warehouseid
+				and i3.`status` = 'inbound_purchase' and i3.shopid=#{param.shopid,jdbcType=CHAR}
+			where form.shopid=#{param.shopid,jdbcType=CHAR}
+			<if test="param.fromDate !=null ">
+				and form.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+				and form.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test="param.auditstatus !=null ">
+				<if test='param.auditstatus =="2" '>
+					and (form.auditstatus=2 or form.auditstatus=1 )
+				</if>
+				<if test='param.auditstatus !="2" '>
+					and (form.auditstatus= #{param.auditstatus,jdbcType=CHAR} )
+				</if>
+		    </if>
+			group by entry.formid
+		) v on v.formid=ta.id
+		left join (select formid,group_concat(shipmentid) shipmentids,count(0) assnum from t_erp_assembly_from_instock 
+           where 1=1
+		  <if test="param.search != null">
+			<if test="param.searchtype == 'shipment'">
+		     and shipmentid=#{param.search,jdbcType=CHAR} 
+			</if>
+		  </if>
+		group by formid) v2 on v2.formid=ta.id
+		where ta.shopid=#{param.shopid,jdbcType=CHAR}
+		<if test="param.isplan ==true">
+			  <if test="param.preprocessingid !=null">
+				and ta.check_inv=#{param.preprocessingid,jdbcType=CHAR}
+			  </if>
+			<if test="param.preprocessingid ==null">
+				and (pre.id is null or pre.isrun=1)
+			</if>
+		</if>
+		<if test="param.search != null">
+		     <if test="param.searchtype == 'sku'">
+			and (m.sku like #{param.search,jdbcType=CHAR} or v.subhave=1)
+			</if>
+			<if test="param.searchtype == 'number'">
+			and ta.number like #{param.search,jdbcType=CHAR} 
+			</if>
+			<if test="param.searchtype == 'shipment'">
+		     and assnum>0
+			</if>
+		</if>
+		<if test="param.auditstatus !=null ">
+			<if test='param.auditstatus =="2" '>
+				and (ta.auditstatus=2 or ta.auditstatus=1 )
+			</if>
+			<if test='param.auditstatus !="2" '>
+				and (ta.auditstatus= #{param.auditstatus,jdbcType=CHAR} )
+			</if>
+		</if>
+		<if test="param.owner!=null">
+		    and m.owner=#{param.owner,jdbcType=CHAR}
+		</if>
+		<if test='param.auditstatus =="2" and  param.operate=="true"'>
+			and v.needpo=0
+		</if>
+		<if test='param.auditstatus =="2" and  param.operate=="false"'>
+			and v.needpo=1
+		</if>
+		<if test="param.ftype !=null ">
+			and (ta.ftype= #{param.ftype,jdbcType=CHAR} )
+		</if>
+		<if test="param.supplier!=null ">
+			and  m.supplier= #{param.supplier,jdbcType=CHAR}  
+		</if>
+		<if test="param.fromDate !=null ">
+		and ta.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+		and ta.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="param.warehouseid !=null ">
+			and (w.id= #{param.warehouseid,jdbcType=CHAR} )
+		</if>
+		ORDER BY ta.number
+	</select>
+
+	<select id="findById" resultType="java.util.Map" parameterType="java.lang.String">
+		select w.name warehouse,m.sku skuname,ifnull(p.location,p.url) image,m.name mname, a.*,i.quantity invqty
+		from t_erp_assembly_form a
+		left join t_erp_material m on m.id=a.mainmid
+		LEFT JOIN t_erp_warehouse w on a.warehouseid = w.id
+		left join t_picture p on p.id=m.image
+		left join t_erp_inventory i on a.mainmid=i.materialid and i.warehouseid=a.warehouseid
+			and i.shopid=a.shopid and i.`status` ='fulfillable'
+		where a.id=#{id,jdbcType=CHAR};
+	</select>
+	
+	<select id="findLastByMaterial" resultType="java.util.Map" parameterType="java.lang.String">
+		select ta.id,ta.number number,ta.ftype,m.sku sku, ta.amount,u.name creator, 
+			ta.auditstatus auditstatus, ta.remark remark,ta.opttime opttime , 
+			v.needpo purchaseneed, v.hasqty,v.needin ,ta.createdate,
+			p.location image,m.name,ta.amount_handle, w.name wname,w.id warehouseid,
+			ifnull(ta.amount,0)-ifnull(ta.amount_handle,0) hashandle
+		from t_erp_assembly_form ta
+		left join t_erp_inventory i on ta.mainmid=i.materialid and i.warehouseid=ta.warehouseid
+			and i.shopid=ta.shopid and i.`status` ='fulfillable'
+		left join t_erp_warehouse w on w.id=ta.warehouseid
+		LEFT JOIN t_userinfo u on ta.creator = u.id
+		LEFT join t_erp_material m on ta.mainmid = m.id
+		left join t_picture p on p.id=m.image
+		left join (
+			select entry.formid,
+				max(
+					case when form.ftype='ass'
+					then
+					case when ifnull(i2.quantity,0) &lt; (entry.amount/form.amount) then 1 else 0 end
+					else
+					case when i1.quantity>=form.amount then 0 else 1 end
+					end
+				) needpo ,
+				max(
+					case when form.ftype='ass'
+					then
+					case when ifnull(i3.quantity,0)+ifnull(i2.quantity,0) &lt; (entry.amount/form.amount*(form.amount-ifnull(form.amount_handle,0))) 
+					then (entry.amount/form.amount*(form.amount-ifnull(form.amount_handle,0)))-(ifnull(i3.quantity,0)+ifnull(i2.quantity,0)) else 0 end
+					else
+					0
+					end
+				) needin ,
+				min( 
+					case when form.ftype='ass'
+					then ifnull(i2.quantity,0)/(entry.amount/(form.amount))
+					else
+					case when i1.quantity>=form.amount then form.amount else 0 end
+					end
+				) hasqty
+			from t_erp_assembly_form form
+			left join t_erp_assembly_form_entry entry on entry.formid=form.id
+			left join t_erp_material m2 on m2.id=entry.materialid
+			left join t_erp_inventory i1 on form.mainmid=i1.materialid and i1.warehouseid=form.warehouseid
+				and i1.shopid=m2.shopid and i1.`status` ='fulfillable'
+			left join t_erp_inventory i2 on entry.materialid=i2.materialid and i2.warehouseid=entry.warehouseid
+				and i2.`status` ='fulfillable' and i2.shopid=m2.shopid
+			left join t_erp_inventory i3 on entry.materialid=i3.materialid and i3.warehouseid=entry.warehouseid
+				and i3.`status` = 'inbound_purchase' and i3.shopid=m2.shopid
+			where form.mainmid=#{materialid,jdbcType=CHAR}
+		    AND form.auditstatus IN (1,2,3,4)
+			group by entry.formid
+		) v on v.formid=ta.id
+ 
+		where   ta.auditstatus IN (1,2,3,4)
+        and ta.mainmid=#{materialid,jdbcType=CHAR}
+		<if test="limittype=='three'">
+		ORDER BY ta.auditstatus asc,ta.createdate desc
+		limit 3
+		</if>
+		<if test="limittype=='one'">
+		ORDER BY ta.createdate desc
+		limit 1
+		</if>
+		
+		
+	</select>
+	
+	<select id="findSumNeed" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select
+		ifnull(count(1),0)
+		from t_erp_assembly_form
+		where auditstatus=1 and shopid=#{shopid,jdbcType=CHAR}
+	</select>
+
+	<select id="getLastAssRecord" resultType="java.util.Map" parameterType="java.lang.String">
+		SELECT amount,date_format(createdate,'%Y-%m-%d') createdate
+		from t_erp_assembly_form t
+		where t.shopid=#{shopid,jdbcType=CHAR}
+			and t.ftype='ass'
+			and t.warehouseid=#{warehouseid,jdbcType=CHAR}
+			and t.auditstatus = 3
+		order by createdate desc limit 3;
+	</select>
+
+	<select id="getAssemblySumReport" resultType="java.util.Map">
+		select
+		<if test="bytime =='Daily'">
+			date_format(instock.opttime,'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Weekly'">
+			date_format(subdate(instock.opttime,date_format(instock.opttime,'%w')-7),'%Y-%m-%d') createdate,
+		</if>
+		<if test="bytime =='Monthly'">
+			concat( year(instock.opttime) ,'-' ,month(instock.opttime)) createdate,
+		</if>
+		sum(instock.amount) amount
+		from t_erp_assembly_form form
+		left join t_erp_assembly_from_instock instock on instock.formid=form.id
+		left join t_erp_material m on m.id=form.mainmid
+		left join t_erp_warehouse w on form.warehouseid = w.id
+		where form.ftype='ass' and form.auditstatus>=3
+		<if test="shopid != null">
+			and form.shopid =#{shopid,jdbcType=CHAR}
+		</if>
+		<if test="warehouseid!=null">
+			and w.parentid =#{warehouseid,jdbcType=CHAR}
+		</if>
+		<if test="sku != null">
+			and m.sku like #{sku,jdbcType=CHAR}
+		</if>
+		<if test="begindate != null">
+			and instock.opttime &gt;=#{begindate,jdbcType=CHAR}
+		</if>
+		<if test="enddate != null">
+			and instock.opttime &lt;=#{enddate,jdbcType=CHAR}
+		</if>
+		<if test="bytime =='Daily'">
+			group by date_format(instock.opttime,'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Weekly'">
+			group by date_format(subdate(instock.opttime,date_format(instock.opttime,'%w')-7),'%Y-%m-%d')
+		</if>
+		<if test="bytime =='Monthly'">
+			group by concat( year(instock.opttime) ,'-' ,month(instock.opttime))
+		</if>
+	</select>
+	
+	<select id="getAssemblyFormByWarehouseid" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select *
+		from t_erp_assembly_form a
+		where a.warehouseid = #{warehouseid,jdbcType=CHAR} 
+			and a.auditstatus in(0,1,2)
+	</select>
+
+	<select id="assemblyFormNeedInv" resultType="java.lang.Integer" parameterType="java.lang.String">
+	    select SUM((e.amount/a.amount)*(a.amount-ifnull(a.amount_handle,0))) amount
+		from t_erp_assembly_form a
+		LEFT JOIN t_erp_assembly_form_entry e ON e.formid=a.id
+		where a.shopid=#{shopid,jdbcType=CHAR} 
+		    and e.materialid=#{materialid,jdbcType=CHAR} 
+		    and a.warehouseid  in (
+		          <foreach collection="list" item="id" index="index" separator=",">
+					    #{id,jdbcType=CHAR}
+				  </foreach>	
+		    )
+		    and a.ftype='ass'
+			and (a.auditstatus=1 OR a.auditstatus=2) AND (a.amount>ifnull(a.amount_handle,0))
+	</select>
+	
+	<select id="getCanAssemblyFormByMaterial" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select *
+		from t_erp_assembly_form a
+		where a.warehouseid = #{warehouseid,jdbcType=CHAR} 
+		    and a.mainmid=#{materialid,jdbcType=CHAR} 
+		    and a.shopid=#{shopid,jdbcType=CHAR} 
+		    and a.ftype='ass'
+			and (auditstatus=1 OR auditstatus=2) AND (amount>ifnull(amount_handle,0))
+			order by a.createdate asc
+	</select>
+
+<select id="findLastByMaterials" resultType="com.wimoor.erp.assembly.pojo.entity.AssemblyForm" parameterType="java.util.List">
+     SELECT f.mainmid,f.number,f.amount,f.amount_handle,f.createdate,f.auditstatus FROM (
+			select
+					a.mainmid,max(createdate) createdate
+					from t_erp_assembly_form a
+					where a.mainmid IN (
+					         <foreach collection="list" item="id" index="index" separator=",">
+								  #{id,jdbcType=CHAR}
+							 </foreach>			
+					)
+					AND a.auditstatus IN (1,2,3,4)
+					AND a.createdate>DATE_SUB(CURRENT_date() ,INTERVAL 1 YEAR)
+					AND a.ftype='ass'
+				   GROUP BY a.mainmid
+				     ) v 
+			LEFT JOIN t_erp_assembly_form f ON f.mainmid=v.mainmid AND f.createdate=v.createdate
+</select>
+
+<select id="detailList" resultType="java.util.Map" parameterType="com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO">
+SELECT b.number,d.name warehousename,g.name,g.sku,c.sku subsku,
+b.amount,b.amount_handle,a.amount subamount,(floor((b.amount-b.amount_handle)*(a.amount/b.amount)))AS subneed, 
+v.fulfillable subfulfillable,v.inbound subinbound,
+n.fulfillable,n.inbound,
+b.creator,b.opttime
+from t_erp_assembly_form_entry a 
+LEFT JOIN t_erp_assembly_form b ON b.id = a.formid 
+LEFT JOIN t_erp_material c ON a.materialid = c.id #子SKU
+LEFT JOIN t_erp_warehouse d ON b.warehouseid = d.id 
+LEFT JOIN t_erp_material g ON b.mainmid = g.id #主SKU
+LEFT JOIN 
+(SELECT shopid,warehouseid,materialid ,
+SUM(case when STATUS LIKE 'inbound_%' then quantity ELSE 0 END ) inbound,
+SUM(case when STATUS LIKE 'fulfillable' then quantity ELSE 0 END ) fulfillable,
+SUM(case when STATUS LIKE 'outbound_%' then quantity ELSE 0 END ) outbound 
+FROM t_erp_inventory
+GROUP BY shopid,warehouseid,materialid ) v 
+ON v.shopid=b.shopid AND v.warehouseid=b.warehouseid AND v.materialid=c.id
+LEFT JOIN 
+(SELECT shopid,materialid ,
+SUM(case when STATUS LIKE 'inbound_%' then quantity ELSE 0 END ) inbound,
+SUM(case when STATUS LIKE 'fulfillable' then quantity ELSE 0 END ) fulfillable,
+SUM(case when STATUS LIKE 'outbound_%' then quantity ELSE 0 END ) outbound 
+FROM t_erp_inventory
+GROUP BY shopid,materialid ) n 
+ON n.shopid=b.shopid AND n.materialid=c.id
+where b.shopid=#{param.shopid,jdbcType=CHAR} AND b.auditstatus = 2
+		<if test="param.search != null">
+		     <if test="param.searchtype == 'sku'">
+			and (g.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype == 'number'">
+			 and b.number like #{param.search,jdbcType=CHAR} 
+			</if>
+		</if>
+		<if test="param.auditstatus !=null ">
+			<if test='param.auditstatus =="2" '>
+				and (ta.auditstatus=2 or ta.auditstatus=1 )
+			</if>
+			<if test='param.auditstatus !="2" '>
+				and (ta.auditstatus= #{param.auditstatus,jdbcType=CHAR} )
+			</if>
+		</if>
+		<if test="param.owner!=null">
+		    and g.owner=#{param.owner,jdbcType=CHAR}
+		</if>
+		<if test='param.auditstatus =="2" and  param.operate=="true"'>
+			and v.needpo=0
+		</if>
+		<if test='param.auditstatus =="2" and  param.operate=="false"'>
+			and v.needpo=1
+		</if>
+		<if test="param.ftype !=null ">
+			and (b.ftype= #{param.ftype,jdbcType=CHAR} )
+		</if>
+		<if test="param.supplier!=null ">
+			and  g.supplier= #{param.supplier,jdbcType=CHAR}  
+		</if>
+		<if test="param.fromDate !=null ">
+		and b.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+		and b.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="param.warehouseid !=null ">
+			and (w.id= #{param.warehouseid,jdbcType=CHAR} )
+		</if>
+ORDER BY b.opttime DESC,c.sku
+</select>
+<select id="formList" resultType="java.util.Map" parameterType="com.wimoor.erp.assembly.pojo.dto.AssemblyFormListDTO">
+SELECT a.number ,w.name warehousename,b.sku ,b.name ,a.amount ,
+#状态显示，方式一
+(case when a.auditstatus=1 then '未提交'   
+           when a.auditstatus=2 then '待处理' 
+           when a.auditstatus=3 then '已完成' 
+                when a.auditstatus=4 then '已终止' 
+                when a.auditstatus=5 then '已作废' 
+                ELSE '其他'  END) AS auditstatus,
+
+a.remark ,a.creator,a.createdate
+FROM t_erp_assembly_form a 
+LEFT JOIN t_erp_warehouse w on w.id=a.warehouseid
+LEFT JOIN t_erp_material b ON a.mainmid = b.id
+WHERE a.shopid = #{param.shopid,jdbcType=CHAR}  
+		<if test="param.search != null">
+		     <if test="param.searchtype == 'sku'">
+			and (b.sku like #{param.search,jdbcType=CHAR})
+			</if>
+			<if test="param.searchtype == 'number'">
+			 and a.number like #{param.search,jdbcType=CHAR} 
+			</if>
+		</if>
+		<if test="param.auditstatus !=null ">
+			<if test='param.auditstatus =="2" '>
+				and (a.auditstatus=2 or a.auditstatus=1 )
+			</if>
+			<if test='param.auditstatus !="2" '>
+				and (a.auditstatus= #{param.auditstatus,jdbcType=CHAR} )
+			</if>
+		</if>
+		<if test="param.owner!=null">
+		    and b.owner=#{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.ftype !=null ">
+			and (b.ftype= #{param.ftype,jdbcType=CHAR} )
+		</if>
+		<if test="param.supplier!=null ">
+			and  b.supplier= #{param.supplier,jdbcType=CHAR}  
+		</if>
+		<if test="param.fromDate !=null ">
+		and a.createdate &gt;= #{param.fromDate,jdbcType=TIMESTAMP}
+		and a.createdate &lt;= #{param.toDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="param.warehouseid !=null ">
+			and (a.warehouseid= #{param.warehouseid,jdbcType=CHAR} )
+		</if>
+       ORDER BY a.opttime DESC,b.sku
+</select>
+
+	<select id="findSummaryInfo"  resultType="com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo"  parameterType="java.util.List">
+		SELECT  sum(f.amount) sumshipped,
+				sum(f.amount) sumQuantity,
+		       max(w.name) warehouse,
+			   max(w.id) warehouseid,
+			   group_concat(distinct f.number) shipmentid,
+			   max(f.shopid) shopid,
+			   max(f.check_inv) checkinv
+
+
+		FROM t_erp_assembly_form_entry  t
+		LEFT JOIN t_erp_assembly_form f ON f.id=t.formid
+		left join t_erp_warehouse w on w.id=f.warehouseid
+		WHERE t.formid IN (
+			<foreach collection="list" item="formid" index="field_list" open="" separator="," close="">
+				#{formid,jdbcType=CHAR}
+			</foreach>
+		)
+
+	</select>
+
+
+	<select id="getItemByFormids"  parameterType="java.util.List" resultType="java.util.Map">
+		SELECT
+			max(m.id) materialid,
+			max(m.sku) sku,
+			max(m.name) name,
+			sum(t.amount) amount,
+			t.warehouseid,
+			max(w.name) wname,
+			max(i.quantity) fulfillable,
+			max(m.id) id,
+			max(ifnull(p.location,p.url)) image
+		FROM t_erp_assembly_form t
+				 LEFT JOIN t_erp_material m ON t.mainmid=m.id
+				 LEFT JOIN t_erp_warehouse w ON w.id=t.warehouseid
+				 LEFT JOIN t_erp_inventory i ON i.warehouseid=t.warehouseid AND i.materialid=m.id AND i.shopid=m.shopid AND i.`status`='fulfillable'
+				 LEFT JOIN t_picture p on p.id=m.image
+		WHERE t.id IN (
+			<foreach collection="list" item="formid" index="field_list" open="" separator="," close="">
+				#{formid,jdbcType=CHAR}
+			</foreach>
+			)
+		group by t.warehouseid,t.mainmid;
+	</select>
+
+	<select id="getSkuListByRunid"  parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT
+			max(m.id) materialid,
+			max(m.sku) sku,
+			max(m.name) name,
+			sum(t.amount) amount,
+			t.warehouseid,
+			max(w.name) wname,
+			max(i.quantity) fulfillable,
+			max(m.id) id,
+			max(ifnull(p.location,p.url)) image
+		FROM t_erp_assembly_form t
+				 LEFT JOIN t_erp_material m ON t.mainmid=m.id
+				 LEFT JOIN t_erp_warehouse w ON w.id=t.warehouseid
+				 LEFT JOIN t_erp_inventory i ON i.warehouseid=t.warehouseid AND i.materialid=m.id AND i.shopid=m.shopid AND i.`status`='fulfillable'
+				 LEFT JOIN t_picture p on p.id=m.image
+		WHERE t.check_inv=#{runid,jdbcType=CHAR} and m.shopid=#{shopid,jdbcType=CHAR}
+		group by t.warehouseid,t.mainmid;
+	</select>
+</mapper>

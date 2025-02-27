@@ -9,11 +9,10 @@
   	<module>wimoor-common</module>
   	<module>wimoor-admin</module>
   	<module>wimoor-gateway</module>
-  	<module>wimoor-auth</module>
-  	<module>wimoor-shopee</module>
   	<module>wimoor-erp</module>
   	<module>wimoor-amazon</module>
   	<module>wimoor-amazon-adv</module>
+	<module>wimoor-quote</module>
   </modules>
   
    <parent>
@@ -47,7 +46,11 @@
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
         </dependency>
-
+		  <dependency>
+			  <groupId>org.springframework.boot</groupId>
+			  <artifactId>spring-boot-devtools</artifactId>
+			  <optional>true</optional>
+		  </dependency>
     </dependencies>
     
       <dependencyManagement>
@@ -78,7 +81,7 @@
 		         <dependency>
 			            <groupId>com.alibaba</groupId>
 			            <artifactId>druid-spring-boot-starter</artifactId>
-			            <version>1.1.10</version>
+			            <version>1.2.19</version>
 			        </dependency>
 			   <dependency>
 				    <groupId>com.alibaba.cloud</groupId>
@@ -105,6 +108,7 @@
 					    <artifactId>aviator</artifactId> 
 					    <version>3.0.0</version>
 					</dependency>
+
             </dependencies>
  
             </dependencyManagement>

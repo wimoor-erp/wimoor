@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.FulfillmentOutboundOrderMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.FulfillmentOutboundOrder" >
+    <id column="order_id" property="orderId" jdbcType="VARCHAR" />
+    <id column="sku" property="sku" jdbcType="CHAR" />
+    <result column="amazonAuthId" property="amazonauthid" jdbcType="BIGINT" />
+    <result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+    <result column="last_updated_date" property="lastUpdatedDate" jdbcType="TIMESTAMP" />
+    <result column="order_type" property="orderType" jdbcType="CHAR" />
+    <result column="order_status" property="orderStatus" jdbcType="CHAR" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="disposition" property="disposition" jdbcType="CHAR" />
+    <result column="requested_quantity" property="requestedQuantity" jdbcType="INTEGER" />
+    <result column="cancelled_quantity" property="cancelledQuantity" jdbcType="INTEGER" />
+    <result column="disposed_quantity" property="disposedQuantity" jdbcType="INTEGER" />
+    <result column="shipped_quantity" property="shippedQuantity" jdbcType="INTEGER" />
+    <result column="in_process_quantity" property="inProcessQuantity" jdbcType="INTEGER" />
+    <result column="removal_fee" property="removalFee" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    sellerFulfillmentOrderId, marketplaceId,displayableOrderId, displayableOrderDate, displayableOrderComment, shippingSpeedCategory, deliveryStart, deliveryEnd,
+    destinationAddress, fulfillmentAction, fulfillmentPolicy, receivedDate, fulfillmentOrderStatus,
+    statusUpdatedDate, notificationEmails, featureConstraints, amazonauthid, refreshtime
+  </sql>
+  
+  <select id="findList" parameterType="com.wimoor.amazon.orders.pojo.dto.OrdersFulfillmentDTO" resultType="com.wimoor.amazon.orders.pojo.entity.FulfillmentOutboundOrder" >
+    SELECT t.`*`  FROM t_amz_fulfillment_order t
+    left join t_amazon_auth a on a.id=t.amazonAuthId
+    where a.shop_id=#{param.shopid,jdbcType=CHAR} and t.amazonAuthId = #{param.amazonAuthId,jdbcType=CHAR}
+	<if test="param.startDate!=null">
+		and t.displayableOrderDate >=#{param.startDate,jdbcType=CHAR}
+	</if>
+	<if test="param.endDate!=null">
+        and t.displayableOrderDate &lt;=#{param.endDate,jdbcType=CHAR}
+	</if>
+	<if test="param.orderid!=null and param.orderid!=''">
+	 AND t.sellerFulfillmentOrderId=#{param.orderid,jdbcType=CHAR}
+	</if>
+      <if test="param.status!=null and param.status!=''">
+          AND t.fulfillmentOrderStatus=#{param.status,jdbcType=CHAR}
+      </if>
+
+  </select>
+
+  
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.performance.mapper.AmzPromotionsPerformanceReportMapper" >
+  
+ <select id="findByCondition"  resultType="java.util.Map" parameterType="com.wimoor.amazon.performance.pojo.dto.PerformanceReportListDTO">
+    select g.name groupname,m.name marketname,r.*
+    from t_amz_promotions_performance_report r
+    left join t_amazon_auth a on a.id=r.amazonauthid
+    left join t_amazon_group g on g.id=a.groupid
+    left join t_marketplace m on m.marketplaceid=r.marketplaceid
+    where g.shopid=#{param.shopid,jdbcType=CHAR}
+    <if test="param.search != null and param.search != ''">
+      and (r.name like concat('%',#{param.search,jdbcType=CHAR},'%')
+            or r.promotionid like concat('%',#{param.search,jdbcType=CHAR},'%')
+            or exists(select * from t_amz_promotions_asin a where a.promotionid=r.promotionid and a.asin like concat('%',#{param.search,jdbcType=CHAR},'%'))
+          )
+    </if>
+    <if test="param.groupid != null and param.groupid != ''">
+      and a.groupid=#{param.groupid,jdbcType=CHAR}
+    </if>
+    <if test="param.marketplaceid != null and param.marketplaceid != ''">
+     and r.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
+    </if>
+  </select>
+</mapper>

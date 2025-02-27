@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipInboundCaseV2Mapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundCase" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="inboundPlanId" property="inboundPlanId" jdbcType="CHAR" />
+    <result column="merchantsku" property="merchantsku" jdbcType="CHAR" />
+    <result column="unitspercase" property="unitspercase" jdbcType="INTEGER" />
+    <result column="numberofcase" property="numberofcase" jdbcType="INTEGER" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, inboundPlanId, merchantsku, unitspercase, numberofcase, quantity
+  </sql>
+  
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.orders.mapper.OrdersFulfilledShipmentsFeeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.OrdersFulfilledShipmentsFee">
+        <id column="amazon_order_id" property="amazonOrderId" />
+        <result column="amazonauthid" property="amazonauthid" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="shipmentid" property="shipmentid" />
+        <result column="sku" property="sku" />
+        <result column="shipment_date" property="shipmentDate" />
+        <result column="reporting_date" property="reportingDate" />
+        <result column="payments_date" property="paymentsDate" />
+        <result column="purchase_date" property="purchaseDate" />
+        <result column="quantity" property="quantity" />
+        <result column="unitcost" property="unitcost" />
+        <result column="unittransfee" property="unittransfee" />
+    </resultMap>
+
+	
+	<select id="exists" parameterType="java.util.Map" resultType="java.lang.Integer">
+	     select count(amazonauthid) from  t_amz_rpt_orders_fulfilled_shipments_fee
+		 where amazonauthid= #{amazonauthid,jdbcType=CHAR}
+		 and sku= #{sku,jdbcType=CHAR}
+		 and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		 and shipment_date>=#{shipmentStartDate,jdbcType=CHAR} 
+		 and shipment_date&lt;#{shipmentEndDate,jdbcType=CHAR} 
+	</select>
+	
+	<delete id="delete" parameterType="java.util.Map">
+	     delete from  t_amz_rpt_orders_fulfilled_shipments_fee
+		 where amazonauthid= #{amazonauthid,jdbcType=CHAR}
+		 and sku= #{sku,jdbcType=CHAR}
+		 and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		 and shipment_date>=#{shipmentStartDate,jdbcType=CHAR} 
+		 and shipment_date&lt;#{shipmentEndDate,jdbcType=CHAR} 
+	</delete>
+	
+	<select id="findDetailByShipment" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT f.shipmentid,f.sku,f.amazon_order_id,r.purchase_date,r.payments_date,r.shipment_date,f.quantity,
+		 r.item_price,r.ship_city,r.ship_country,r.carrier,r.tracking_number,r.estimated_arrival_date
+		 from t_amz_rpt_orders_fulfilled_shipments_fee f
+		LEFT JOIN t_amz_rpt_orders_fulfilled_shipments_report r 
+		ON r.amazon_order_id=f.amazon_order_id AND r.shipment_item_id=f.itemid
+		WHERE f.shipmentid=#{shipmentid,jdbcType=CHAR} AND f.sku=#{sku,jdbcType=CHAR}
+	</select>
+	<update id="updateFeeByShipment" parameterType="java.lang.String"  >
+		update t_amz_rpt_orders_fulfilled_shipments_fee f
+		LEFT JOIN t_erp_ship_inbounditem i ON i.ShipmentId=f.shipmentid AND i.SellerSKU=f.sku
+		SET f.unitcost=i.unitcost ,f.unittransfee=i.unittransfee
+		WHERE i.ShipmentId=f.shipmentid AND i.SellerSKU=f.sku
+		AND i.ShipmentId=#{shipmentid,jdbcType=CHAR}
+		AND i.SellerSKU=#{sku,jdbcType=CHAR}
+	</update>
+	   <select id="findSku_InOutShipment" parameterType="java.util.Map" resultType="java.util.Map">
+				SELECT f.sku,sum(f.unittransfee*f.quantity ) transfee,SUM(f.unitcost*f.quantity)  cost
+				from t_amz_rpt_orders_fulfilled_shipments_fee f 
+				WHERE 
+				f.amazonauthid=#{amazonAuthId,jdbcType=CHAR} AND f.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+				and f.shipment_date>=#{fromDate,jdbcType=DATE} AND f.shipment_date&lt; #{endDate,jdbcType=DATE}
+            GROUP BY f.sku
+	</select>
+	
+</mapper>

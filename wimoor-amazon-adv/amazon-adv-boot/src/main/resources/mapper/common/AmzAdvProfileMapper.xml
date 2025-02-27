@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvProfileMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvProfile">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="countryCode" property="countrycode" jdbcType="CHAR" />
+		<result column="currencyCode" property="currencycode" jdbcType="CHAR" />
+		<result column="marketplaceId" property="marketplaceid" jdbcType="CHAR" />
+		<result column="timezone" property="timezone" jdbcType="CHAR" />
+		<result column="type" property="type" jdbcType="CHAR" />
+		<result column="dailyBudget" property="dailyBudget" jdbcType="CHAR" />
+		<result column="sellerId" property="sellerid" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, countryCode, currencyCode, marketplaceId, sellerId,dailyBudget,type,timezone
+	</sql>
+
+	<select id="getSelleridBygroup" resultType="java.util.Map" parameterType="java.lang.String">
+		select tp.sellerId,max(tp.id) id,max(tp.countryCode) countryCode ,
+		   max(tp.currencyCode) currencyCode,
+		   max(tp.marketplaceId) marketplaceId, 
+		   max(tp.dailyBudget) dailyBudget,
+		   max(tp.type) type,
+		   max(tp.timezone) timezone
+		from t_amz_adv_profile tp 
+		left join t_amz_adv_auth a on tp.advauthId = a.id and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		where tg.id = #{groupid,jdbcType=CHAR}
+		group by tp.sellerId
+	</select>
+	
+	<select id="getUUID" resultType="java.lang.String" >
+	     select uuid_short()
+	</select>
+	
+	
+	<select id="getProfileBySellerid" resultType="java.util.Map" parameterType="java.lang.String">
+		select tp.*
+		from t_amz_adv_profile tp
+		left join t_amz_adv_auth a on tp.advauthId = a.id
+		where tp.sellerId = #{sellerid,jdbcType=CHAR}
+			and a.`disable` = 0
+	</select>
+	
+	<select id="getAdvDateStatus" resultType="java.util.Map" parameterType="java.lang.String">
+		select t.*
+		from t_amz_adv_request t
+		left join t_amz_adv_profile p on p.id = t.profileId
+		where p.sellerId = #{sellerid,jdbcType=CHAR}
+		 	and t.`status` = #{status,jdbcType=CHAR}
+		 	and t.requesttime &gt; DATE_FORMAT(now(),'%Y-%m-%d')
+ 			and t.requesttime &lt; CONCAT(DATE_FORMAT(now(),'%Y-%m-%d'),' 07:00:00')
+		 order by t.opttime desc
+	</select>
+	
+	<select id="findBkp1" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_compaignsplace_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+	
+	<select id="findBkp2" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_keywordsquery_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+	
+	<select id="findBkp3" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_keywords_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+	
+	<select id="findBkp4" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_keywords_hsa_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+	
+	<select id="findBkp5" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_productads_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+	
+	<select id="findBkp6" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_product_target_query_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+	
+	<select id="findBkp7" resultType="java.util.Map"  parameterType="java.util.Map">
+		SELECT * FROM t_amz_adv_rpt_product_targe_bkp20210924  WHERE profileid=#{profileid,jdbcType=CHAR} AND bydate=#{dates,jdbcType=CHAR}
+	</select>
+
+</mapper>

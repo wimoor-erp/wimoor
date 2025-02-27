@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductRankMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductRank">
+        <id column="id" property="id" />
+        <result column="byday" property="byday" />
+        <result column="categoryId" property="categoryId" />
+        <result column="rank" property="rank" />
+        <result column="product_id" property="productId" />
+        <result column="isMain" property="isMain" />
+        <result column="isNewest" property="isNewest" />
+    </resultMap>
+	<select id="selectBeforeProductRank" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT pr.product_id from t_product_rank pr 
+		left join t_product_info p on p.id=pr.product_id 
+		where p.amazonAuthId=#{amazonauthid,jdbcType=CHAR} and marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+		and p.invalid!=1 and p.isparent!=1 
+		and pr.byday &lt;DATE_FORMAT(now(),'%Y-%m-%d')
+	</select>
+	
+	<select id="selectBySku" resultType="com.wimoor.amazon.product.pojo.entity.ProductRank" parameterType="java.lang.String">
+		select
+		r.id, r.byday, r.categoryId categoryid, r.rank, r.product_id, r.isMain ismain, r.isNewest isnewest
+		from t_product_rank_his r
+		left join t_product_info p on r.product_id=p.id
+		left join t_amazon_auth a on a.id=p.amazonAuthid
+		where r.isMain=true and
+		a.shop_id=#{shopid,jdbcType=CHAR}
+		and p.sku=#{sku,jdbcType=CHAR}
+		and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		<if test="amazonauthid != null">
+			and p.amazonAuthId=#{amazonauthid,jdbcType=CHAR}
+		</if>
+		<if test="begindate != null">
+			and byday &gt;= #{begindate,jdbcType=CHAR}
+		</if>
+		<if test="enddate != null">
+			and byday &lt;= #{enddate,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectCountRankBySku" resultType="java.util.Map" parameterType="java.lang.String">
+		select rankv.categoryId,rankv.rank,cate.Name name 
+		from t_product_rank rankv 
+		left join t_amz_adv_browsenode cate on rankv.categoryId = cate.id 
+		left join t_product_info p on rankv.product_id=p.id
+		left join t_amazon_auth a on a.id=p.amazonAuthid
+		where a.shop_id=#{shopid,jdbcType=CHAR}
+			and p.sku=#{sku,jdbcType=CHAR}
+			and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		<if test="amazonauthid != null">
+			and p.amazonAuthId=#{amazonauthid,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectRankBySku" resultType="java.util.Map" parameterType="java.lang.String">
+		select r.id, r.byday, r.categoryId, r.rank, r.product_id, r.isMain, cate.Name name 
+		from t_product_rank_his r
+		left join t_amz_adv_browsenode cate on r.categoryId = cate.id 
+		left join t_product_info p on r.product_id=p.id
+		left join t_amazon_auth a on a.id=p.amazonAuthid
+		where a.shop_id=#{shopid,jdbcType=CHAR}
+			and p.sku=#{sku,jdbcType=CHAR}
+			and p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		<if test="amazonauthid != null">
+			and p.amazonAuthId=#{amazonauthid,jdbcType=CHAR}
+		</if>
+		<if test="begindate != null">
+			and byday &gt;= #{begindate,jdbcType=CHAR}
+		</if>
+		<if test="enddate != null">
+			and byday &lt;= #{enddate,jdbcType=CHAR}
+		</if>
+		order by byday
+	</select>
+	
+	<select id="findRankByCategoryId" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT  r.rank,max(case when   ifnull(op.disable,0)=0	and i.invalid=0 and i.isparent=0 and   o.sales_month>0    then  r.product_id ELSE 0 END ) pid,max(r.byday) byday
+		FROM  t_product_rank_his r 
+		LEFT JOIN t_product_info i ON i.id=r.product_id
+		LEFT JOIN t_product_in_order o ON o.pid=r.product_id
+		left join t_product_in_opt op on op.pid=r.product_id
+		LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+		WHERE r.byday>DATE_ADD(now(),INTERVAL -30 DAY) AND 
+		a.shop_id=#{shopid,jdbcType=CHAR}   and	r.categoryId=#{categoryId,jdbcType=CHAR} 
+		group by r.rank
+		HAVING(max(case when   ifnull(op.disable,0)=0	and i.invalid=0 and i.isparent=0 and   o.sales_month>0    then  r.product_id ELSE 0 END )>0)
+		limit 100
+	</select>
+
+	<select id="findRankByPid" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from t_product_rank r where r.product_id=#{pid,jdbcType=CHAR}
+		and
+		r.isMain=1 and r.isNewest=1
+		limit 1
+	</select>
+	
+	<insert id="insert" parameterType="com.wimoor.amazon.product.pojo.entity.ProductRank">
+		replace into t_product_rank_his (id, byday, categoryId,
+		`rank`, product_id, isMain, isNewest
+		)
+		values (#{id,jdbcType=CHAR}, #{byday,jdbcType=TIMESTAMP},
+		#{categoryid,jdbcType=CHAR},
+		#{rank,jdbcType=INTEGER}, #{productId,jdbcType=CHAR}, #{ismain,jdbcType=BIT},false
+		);
+
+		replace into t_product_rank (id, byday, categoryId,
+		`rank`, product_id, isMain, isNewest, title, link
+		)
+		values (#{id,jdbcType=CHAR}, #{byday,jdbcType=TIMESTAMP}, #{categoryid,jdbcType=CHAR},
+		#{rank,jdbcType=INTEGER}, #{productId,jdbcType=CHAR}, #{ismain,jdbcType=BIT}, true,#{title,jdbcType=CHAR}, #{link,jdbcType=CHAR}
+		);
+	</insert>
+	
+	<delete id="updateNewestByProduct" parameterType="java.lang.String">
+		delete from t_product_rank where product_id=#{productId,jdbcType=CHAR}
+	</delete>
+	
+	 <select id="findProductRank" resultType="java.util.Map" parameterType="java.lang.String">
+	    select rankv.categoryId,rankv.rank,ifnull(cate.Name,rankv.title) name 
+		from t_product_rank rankv 
+		left join t_amz_adv_browsenode cate on rankv.categoryId = cate.id  
+		where rankv.product_id = #{id,jdbcType=CHAR}
+	</select>
+</mapper>

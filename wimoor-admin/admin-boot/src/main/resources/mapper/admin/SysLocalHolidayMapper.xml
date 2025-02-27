@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.admin.mapper.SysLocalHolidayMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SysLocalHoliday">
+        <id column="id" property="id" />
+        <result column="shopid" property="shopid" />
+        <result column="day" property="day" />
+        <result column="name" property="name" />
+        <result column="type" property="type" />
+        <result column="week" property="week" />
+        <result column="creator" property="creator" />
+        <result column="createtime" property="createtime" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+    <sql id="selectHolidayInfoVo">
+        select
+            id,
+            year,
+            month,
+            day,
+            name,
+            if((name is null or name = ''), lunars, name) showName,
+            week_name weekName,
+            type,
+            case type
+            when 0 then '工作日'
+            when 1 then '周末'
+            when 2 then '节假日'
+            when 3 then '调休'
+            else '' end typeStr,
+            key_date keyDate,
+            cur_date curDate,
+            lunars
+        from t_sys_local_holiday
+    </sql>
+
+    <select id="selectHolidayInfoList" parameterType="com.wimoor.admin.pojo.entity.SysLocalHoliday" resultType="com.wimoor.admin.pojo.entity.SysLocalHoliday">
+        <include refid="selectHolidayInfoVo"/>
+        <where>
+            <if test="shopid != null "> and shopid = #{shopid}  </if>
+            <if test="startDate != null "> and cur_date &gt;= #{startDate}</if>
+            <if test="endDate != null "> and cur_date &lt;= #{endDate}</if>
+        </where>
+    </select>
+</mapper>
