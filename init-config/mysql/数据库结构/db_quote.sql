@@ -1,9 +1,3 @@
--- --------------------------------------------------------
--- 主机:                           rm-wz903sa454i2h35ik6o.mysql.rds.aliyuncs.com
--- 服务器版本:                        5.7.28-log - Source distribution
--- 服务器操作系统:                      Linux
--- HeidiSQL 版本:                  12.10.0.7000
--- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
