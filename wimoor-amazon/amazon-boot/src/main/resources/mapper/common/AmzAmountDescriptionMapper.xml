@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.common.mapper.AmzAmountDescriptionMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.common.pojo.entity.AmzAmountDescription" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="cname" property="cname" jdbcType="VARCHAR" />
+    <result column="ename" property="ename" jdbcType="VARCHAR" />
+    <result column="cdescription" property="cdescription" jdbcType="VARCHAR" />
+    <result column="edescription" property="edescription" jdbcType="VARCHAR" />
+  </resultMap>
+   
+</mapper>

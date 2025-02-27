@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.PurchaseAlibabaSettlementMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseAlibabaSettlement">
+        <result column="id" property="id" />
+        <result column="acct" property="acct" />
+        <result column="alibaba_account" property="alibabaAccount" />
+        <result column="amount" property="amount" />
+        <result column="quantity" property="quantity" />
+        <result column="postdate" property="postdate" />
+        <result column="paydate" property="paydate" />
+        <result column="payamount" property="payamount" />
+        <result column="paytimes" property="paytimes" />
+        <result column="loaddate" property="loaddate" />
+        <result column="remark" property="remark" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,70 @@
+spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.jdbc-url=jdbc:mysql://${mysql.host}:${mysql.port}/db_admin?allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai
+spring.datasource.username=${mysql.username}
+spring.datasource.password=${mysql.password}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.quartz.jdbc.initialize-schema=NEVER
+spring.quartz.job-store-type=jdbc
+spring.quartz.properties.org.quartz.jobStore.dataSource=quartzDataSource
+spring.quartz.properties.org.quartz.jobStore.misfireThreshold=360000
+
+spring.datasource.quartz.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.quartz.jdbc-url=jdbc:mysql://${mysql.host}:${mysql.port}/db_quartz?allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai
+spring.datasource.quartz.username=${mysql.username}
+spring.datasource.quartz.password=${mysql.password}
+spring.datasource.quartz.driver-class-name=com.mysql.cj.jdbc.Driver
+
+
+spring.quartz.properties.org.quartz.scheduler.instanceName= clusteredScheduler
+spring.quartz.properties.org.quartz.scheduler.instanceId= AUTO
+spring.quartz.properties.org.quartz.threadPool.class= org.quartz.simpl.SimpleThreadPool
+spring.quartz.properties.org.quartz.threadPool.threadCount= 80000
+spring.quartz.properties.org.quartz.threadPool.threadPriority= 5
+spring.quartz.properties.org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread= true
+
+spring.mail.host=smtp.feishu.cn
+spring.mail.port=465
+spring.mail.username=name@myemail.com
+spring.mail.password=FJDKSJ2165446
+spring.mail.default-encoding=UTF-8
+spring.mail.properties.mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+spring.mail.properties.mail.debug=true
+
+spring.mvc.view.suffix=.jsp
+spring.mvc.view.prefix=/WEB-INF/
+spring.mvc.throw-exception-if-no-handler-found=true
+spring.mvc.static-path-pattern=/**
+
+spring.cache.cache-names=system
+
+aliyun.sms.access_key_id=ABCdd1efa1eFFD2s
+aliyun.sms.access_key_secret=a1b2c3d4e5f6g8h9j1
+aliyun.sms.sign=wimoor
+aliyun.sms.code.register=SMS_123456789
+aliyun.sms.code.losepassword=SMS_234567891
+aliyun.sms.code.invalid=SMS_345678912
+aliyun.sms.code.changephone=SMS_456789123
+
+sys.admin.id=26138972975759242
+
+eign.client.config.default.connectTimeout= 10000
+feign.client.config.default.readTimeout= 600000
+
+config.websit= https://localhost:8084
+config.ui-server= http://localhost:8084
+config.authority-server= http://localhost:8087/auth
+config.cas-server= https://sso.wimoor.com
+config.cas-filter-url-pattern= /shiro-cas
+
+ 
+wechat.small-app-id= wx123456789
+wechat.small-app-secret= 123456789123456789123456789
+wechat.open-app-id= wx123456789a
+wechat.open-app-secret= 123456789132456789123456789
+wechat.mch-id= 123456789
+wechat.key= Wimoor123456789123456789123456789
+wechat.templateurl= https://api.weixin.qq.com/cgi-bin/message/template/send
+
+feishu.app-id= cli_a12345678912345
+feishu.app-secret= 123456789123456789132456789

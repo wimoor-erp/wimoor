@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.order.mapper.OrderPlanFormMapper" >
+    <select id="findPlanForm" resultType="java.util.Map">
+        SELECT f.id,
+               max(f.warehouseid) warehouseid,
+               max(concat(wp.name,'-',w.name)) warehousename,
+               max(f.shopid) shopid ,
+               MAX(f.`number`) `number`,
+               MAX(f.createtime) createtime,
+               MAX(f.auditstatus)  auditstatus,
+               MAX(f.opttime) opttime
+        FROM t_erp_order_ship_plan_form f
+        LEFT JOIN  t_erp_order_ship_plan_form_entry e on e.formid=f.id
+        LEFT JOIN  t_erp_material m on m.id=e.materialid
+        LEFT JOIN  t_erp_warehouse w on w.id=f.warehouseid
+        left join t_erp_warehouse wp on wp.id=w.parentid
+        WHERE f.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.warehouseid!=null">
+            and f.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.id!=null">
+            and f.id = #{param.id,jdbcType=CHAR}
+        </if>
+        <if test="param.auditstatus!=null">
+            and f.auditstatus = #{param.auditstatus,jdbcType=CHAR}
+        </if>
+        <if test="param.auditstatus==null">
+            <if test="param.isdelete!=null">
+                and f.auditstatus =0
+            </if>
+            <if test="param.isdelete==null">
+                and f.auditstatus in (1,2)
+            </if>
+        </if>
+
+        <if test="param.sku!=null">
+            and m.sku like #{param.sku,jdbcType=CHAR}
+        </if>
+        <if test="param.fromDate!=null">
+            and f.createtime &gt;= #{param.fromDate,jdbcType=CHAR}
+            and f.createtime &lt;= #{param.toDate,jdbcType=CHAR}
+        </if>
+        GROUP BY f.id
+    </select>
+
+    <select id="findPlanFormEntry" resultType="java.util.Map">
+        select m.id, m.sku sku,m.color color,
+        m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
+        g.color catecolor,m.upc upc,g.name category,
+        IFNULL(p.location,p.url) image,m.brand brand,
+        m.price price,ifnull(i.fulfillable,0)+ifnull(i.outbound,0) qty,
+        ifnull(i.fulfillable,0) fulfillable,ifnull(i.outbound,0) outbound,
+        m.isDelete isDelete,i.warehousename,
+        c.name supplier, m.issfg issfg, m.remark remark,
+        u.name operator,m.supplier supplierid,
+        m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate createdate,
+        m.purchaseUrl, d.length,d.width,d.height ,d.weight,
+        di.length plength,di.width pwidth,di.height pheight,
+        di.weight  pweight,e.quantity,ifnull(e.quantity,0)/ifnull(m.boxnum,1) boxqty
+        from t_erp_order_ship_plan_form_entry e
+        left join t_erp_material m on m.id=e.materialid
+        left join t_dimensions d on d.id=m.pkgDimensions
+        left join t_dimensions di on di.id=m.boxDimensions
+        left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
+        left join t_picture p on m.image=p.id
+        left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
+        left join ( select i.shopid,max(i.warehouseid) warehouseid,i.materialid ,w.name warehousename,
+        sum( case when i.status='inbound' then i.quantity else 0 end ) inbound,
+        sum( case when i.status='outbound' then i.quantity else 0 end ) outbound,
+        sum( case when i.status='fulfillable' then i.quantity else 0 end ) fulfillable
+        from t_erp_inventory i
+        left join t_erp_warehouse w on w.id=i.warehouseid
+        where i.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.warehouseid != null">
+            and i.warehouseid = #{param.warehouseid,jdbcType=CHAR}
+        </if>
+        group by i.shopid, i.materialid
+        ) i on i.materialid=m.id
+        left join t_userinfo u on u.id=m.operator
+        where e.formid=#{param.id,jdbcType=CHAR}
+
+    </select>
+</mapper>

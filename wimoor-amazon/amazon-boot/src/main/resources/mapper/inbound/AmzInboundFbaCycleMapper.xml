@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inbound.mapper.AmzInboundFbaCycleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.AmzInboundFbaCycle">
+        <id column="id" property="id" />
+        <result column="shopid" property="shopid" />
+        <result column="transtype" property="transtype" />
+        <result column="marketplaceid" property="marketplaceid" />
+        <result column="name" property="name" />
+        <result column="number" property="number" />
+        <result column="stocking_cycle" property="stockingCycle" />
+        <result column="min_cycle" property="minCycle" />
+        <result column="put_on_days" property="putOnDays" />
+        <result column="first_leg_days" property="firstLegDays" />
+        <result column="isdefault" property="isdefault" />
+        <result column="remark" property="remark" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+
+</mapper>

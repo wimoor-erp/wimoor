@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.quote.mapper.QuoteOrderMapper" >
+    <resultMap id="BaseResultMap" type="com.wimoor.quote.api.entity.QuoteOrder" >
+        <result column="id" property="id" jdbcType="CHAR" />
+        <result column="buyerid" property="buyerid" jdbcType="CHAR" />
+        <result column="ftype" property="ftype" jdbcType="CHAR" />
+        <result column="status" property="status" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="findByCondition" resultType="com.wimoor.quote.api.entity.QuoteOrder" parameterType="com.wimoor.quote.api.dto.QuoteDTO">
+             select * from t_order o
+             where  o.buyerid = #{param.buyerid}
+             <if test="param.status != null">
+                 and o.status = #{param.status}
+             </if>
+            <if test="param.fromDate != null">
+                and o.createtime &gt;= #{param.fromDate,jdbcType=CHAR}
+            </if>
+            <if test="param.toDate != null">
+                and o.createtime &lt;= #{param.toDate,jdbcType=CHAR}
+            </if>
+        <if test="param.search!=null and param.search!=''">
+            and (o.remark like concat('%',#{param.search,jdbcType=CHAR},'%')
+            or o.number like concat('%',#{param.search,jdbcType=CHAR},'%')
+            or exists(select * from   t_supplier_quotation_price p
+                        left join t_user_supplier sp on sp.id=p.supplierid
+                        where p.orderid=o.id
+                        and (  sp.name like concat('%',#{param.search,jdbcType=CHAR},'%'))
+            )
+            or exists(select * from t_shipment s
+                left join t_order_shipment so on so.shipmentid=s.shipmentid
+                left join t_shipment_item i on i.shipmentid=s.shipmentid
+                where so.orderid=o.id
+                    and (  s.name like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        or s.destination like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        or s.country like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        or s.shipmentid like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        or s.groupname like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        or s.warehousename like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        or i.sku like concat('%',#{param.search,jdbcType=CHAR},'%')
+                        )
+            ))
+
+        </if>
+    </select>
+
+    <select id="findSupplierByCondition" resultType="com.wimoor.quote.api.entity.QuoteOrder" parameterType="java.lang.String">
+        select o.* from t_order o
+        left join t_order_supplier q on q.orderid = o.id
+        where q.supplierid = #{param.supplierid} and o.status != 5
+    </select>
+
+</mapper>

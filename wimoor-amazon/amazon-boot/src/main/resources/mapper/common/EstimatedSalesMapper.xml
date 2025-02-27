@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.common.mapper.EstimatedSalesMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.common.pojo.entity.EstimatedSales">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+		<result column="groupid" property="groupid" jdbcType="BIGINT" />
+		<result column="presales" property="presales" jdbcType="INTEGER" />
+		<result column="startTime" property="starttime" jdbcType="DATE" />
+		<result column="endTime" property="endtime" jdbcType="DATE" />
+		<result column="conditions" property="conditions" jdbcType="INTEGER" />
+		<result column="conditionNum" property="conditionnum" jdbcType="DECIMAL" />
+		<result column="isInvalid" property="isInvalid" jdbcType="BIT" />
+		<result column="operator" property="operator" jdbcType="BIGINT" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, sku, marketplaceid, groupid, presales, startTime, endTime, conditions, conditionNum, isInvalid, operator, opttime
+	</sql>
+
+	<select id="findEstimatedSales" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select *
+		from t_erp_estimated_sales ts
+		where ts.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+			and ts.sku = #{sku,jdbcType=CHAR}
+			and ts.groupid = #{groupid,jdbcType=CHAR}
+	</select>
+	
+ 
+
+</mapper>

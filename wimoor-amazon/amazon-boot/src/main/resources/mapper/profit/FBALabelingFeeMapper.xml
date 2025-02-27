@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.FBALabelingFeeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.FBALabelingFee" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="isStandard" property="isStandard" jdbcType="BIT" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="country" property="country" jdbcType="CHAR" />
+  </resultMap>
+  
+  <select id="getPriceByProductTierId" resultMap="BaseResultMap" >
+    select * from t_fba_labeling_service_fee
+    where country = #{country,jdbcType=CHAR} and IFNULL(isStandard,#{isStandard,jdbcType=BIT}) = #{isStandard,jdbcType=BIT} 
+  </select>
+</mapper>

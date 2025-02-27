@@ -1,0 +1,16 @@
+redis.host=127.0.0.1
+redis.password=123456
+mysql.host=localhost
+mysql.port=3306
+mysql.username=root
+mysql.password=123456
+
+spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.jdbc-url=jdbc:mysql://${mysql.host}:${mysql.port}/db_admin?allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai
+spring.datasource.username=${mysql.username}
+spring.datasource.password=${mysql.password}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.redis.database= 0
+spring.redis.host= ${redis.host}
+spring.redis.password= ${redis.password}

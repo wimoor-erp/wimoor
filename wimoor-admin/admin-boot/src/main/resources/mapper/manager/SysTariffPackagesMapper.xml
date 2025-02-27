@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.SysTariffPackagesMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.SysTariffPackages">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="roleId" property="roleId" />
+        <result column="maxShopCount" property="maxShopCount" />
+        <result column="maxProductCount" property="maxProductCount" />
+        <result column="maxOrderCount" property="maxOrderCount" />
+        <result column="maxMember" property="maxMember" />
+        <result column="maxProfitPlanCount" property="maxProfitPlanCount" />
+        <result column="maxMarketCount" property="maxMarketCount" />
+        <result column="orderMemoryCount" property="orderMemoryCount" />
+        <result column="dayOpenAdvCount" property="dayOpenAdvCount" />
+        <result column="controlProductCount" property="controlProductCount" />
+        <result column="anysisProductCount" property="anysisProductCount" />
+        <result column="yearprice" property="yearprice" />
+        <result column="monthprice" property="monthprice" />
+        <result column="lastUpdateTime" property="lastUpdateTime" />
+        <result column="lastUpdateUser" property="lastUpdateUser" />
+    </resultMap>
+
+</mapper>

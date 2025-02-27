@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvReportAdgroupsMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sp.pojo.AmzAdvReportAdgroups" >
+    <id column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="campaignName" property="campaignname" jdbcType="CHAR" />    
+    <result column="adGroupName" property="adgroupname" jdbcType="CHAR" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+    <result column="attributedConversions1d" property="attributedconversions1d" jdbcType="INTEGER" />
+    <result column="attributedConversions7d" property="attributedconversions7d" jdbcType="INTEGER" />
+    <result column="attributedConversions14d" property="attributedconversions14d" jdbcType="INTEGER" />
+    <result column="attributedConversions30d" property="attributedconversions30d" jdbcType="INTEGER" />
+    <result column="attributedConversions1dSameSKU" property="attributedconversions1dsamesku" jdbcType="INTEGER" />
+    <result column="attributedConversions7dSameSKU" property="attributedconversions7dsamesku" jdbcType="INTEGER" />
+    <result column="attributedConversions14dSameSKU" property="attributedconversions14dsamesku" jdbcType="INTEGER" />
+    <result column="attributedConversions30dSameSKU" property="attributedconversions30dsamesku" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered1d" property="attributedunitsordered1d" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered7d" property="attributedunitsordered7d" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered14d" property="attributedunitsordered14d" jdbcType="INTEGER" />
+    <result column="attributedUnitsOrdered30d" property="attributedunitsordered30d" jdbcType="INTEGER" />
+    <result column="attributedSales1d" property="attributedsales1d" jdbcType="DECIMAL" />
+    <result column="attributedSales7d" property="attributedsales7d" jdbcType="DECIMAL" />
+    <result column="attributedSales14d" property="attributedsales14d" jdbcType="DECIMAL" />
+    <result column="attributedSales30d" property="attributedsales30d" jdbcType="DECIMAL" />
+    <result column="attributedSales1dSameSKU" property="attributedsales1dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales7dSameSKU" property="attributedsales7dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales14dSameSKU" property="attributedsales14dsamesku" jdbcType="DECIMAL" />
+    <result column="attributedSales30dSameSKU" property="attributedsales30dsamesku" jdbcType="DECIMAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    adGroupId,campaignId,bydate, profileid,campaignName,adGroupName, impressions, clicks, cost, attributedConversions1d, 
+    attributedConversions7d, attributedConversions14d, attributedConversions30d, attributedConversions1dSameSKU, 
+    attributedConversions7dSameSKU, attributedConversions14dSameSKU, attributedConversions30dSameSKU, 
+    attributedUnitsOrdered1d, attributedUnitsOrdered7d, attributedUnitsOrdered14d, attributedUnitsOrdered30d, 
+    attributedSales1d, attributedSales7d, attributedSales14d, attributedSales30d, attributedSales1dSameSKU, 
+    attributedSales7dSameSKU, attributedSales14dSameSKU, attributedSales30dSameSKU
+  </sql>
+  
+     <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sp_adgroups ( 
+       adGroupId,bydate, profileid, campaignId,impressions, clicks, cost, opttime)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.adgroupid,jdbcType=BIGINT},  #{adv.bydate,jdbcType=DATE},
+      #{adv.profileid,jdbcType=BIGINT}, #{adv.campaignid,jdbcType=BIGINT}, 
+      #{adv.impressions,jdbcType=INTEGER},#{adv.clicks,jdbcType=INTEGER},
+      #{adv.cost,jdbcType=DECIMAL},  #{adv.opttime,jdbcType=DATE}
+    )
+    </foreach>
+  </insert>
+  
+   <insert id="insertBatchAttributed"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sp_adgroups_attributed ( 
+       adGroupId,bydate,  
+       attributedConversions1d, 
+       attributedConversions7d, 
+       attributedConversions14d, 
+       attributedConversions30d, 
+   
+       attributedUnitsOrdered1d, 
+       attributedUnitsOrdered7d, 
+       attributedUnitsOrdered14d, 
+       attributedUnitsOrdered30d, 
+       
+       attributedSales1d, 
+       attributedSales7d, 
+       attributedSales14d, 
+       attributedSales30d)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.adgroupid,jdbcType=BIGINT},  #{adv.bydate,jdbcType=DATE},
+      #{adv.attributedconversions1d,jdbcType=INTEGER}, 
+      #{adv.attributedconversions7d,jdbcType=INTEGER}, 
+      #{adv.attributedconversions14d,jdbcType=INTEGER}, 
+      #{adv.attributedconversions30d,jdbcType=INTEGER}, 
+
+      #{adv.attributedunitsordered1d,jdbcType=INTEGER}, 
+      #{adv.attributedunitsordered7d,jdbcType=INTEGER}, 
+      #{adv.attributedunitsordered14d,jdbcType=INTEGER}, 
+      #{adv.attributedunitsordered30d,jdbcType=INTEGER}, 
+      
+      #{adv.attributedsales1d,jdbcType=DECIMAL},
+      #{adv.attributedsales7d,jdbcType=DECIMAL}, 
+      #{adv.attributedsales14d,jdbcType=DECIMAL}, 
+      #{adv.attributedsales30d,jdbcType=DECIMAL}
+    )
+    </foreach>
+  </insert>
+  
+     <insert id="insertBatchAttributedSame"   parameterType="java.util.List">
+    replace into t_amz_adv_rpt2_sp_adgroups_attributed_same ( 
+       adGroupId,bydate,
+       attributedConversions1dSameSKU, 
+       attributedConversions7dSameSKU, 
+       attributedConversions14dSameSKU, 
+       attributedConversions30dSameSKU,
+        
+       attributedSales1dSameSKU, 
+       attributedSales7dSameSKU, 
+       attributedSales14dSameSKU, 
+       attributedSales30dSameSKU,
+       
+       attributedUnitsOrdered1dSameSKU,
+       attributedUnitsOrdered7dSameSKU,
+       attributedUnitsOrdered14dSameSKU,
+       attributedUnitsOrdered30dSameSKU
+       )
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.adgroupid,jdbcType=BIGINT},  #{adv.bydate,jdbcType=DATE},
+
+      #{adv.attributedconversions1dsamesku,jdbcType=INTEGER}, 
+      #{adv.attributedconversions7dsamesku,jdbcType=INTEGER}, 
+      #{adv.attributedconversions14dsamesku,jdbcType=INTEGER}, 
+      #{adv.attributedconversions30dsamesku,jdbcType=INTEGER}, 
+      
+      #{adv.attributedsales1dsamesku,jdbcType=DECIMAL}, 
+      #{adv.attributedsales7dsamesku,jdbcType=DECIMAL}, 
+      #{adv.attributedsales14dsamesku,jdbcType=DECIMAL}, 
+      #{adv.attributedsales30dsamesku,jdbcType=DECIMAL},
+      
+      #{adv.attributedUnitsOrdered1dSameSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered7dSameSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered14dSameSKU,jdbcType=INTEGER}, 
+      #{adv.attributedUnitsOrdered30dSameSKU,jdbcType=INTEGER}
+    )
+    </foreach>
+  </insert>
+  
+  
+   <select id="getAdgroups" resultType="java.util.LinkedHashMap" parameterType="java.util.Map" >
+    select  t.bydate,cm.name campaignName,ad.name adGroupName,impressions, clicks, cost, attributedConversions1d, 
+       attributedConversions7d, attributedConversions14d, attributedConversions30d, attributedConversions1dSameSKU, 
+       attributedConversions7dSameSKU, attributedConversions14dSameSKU, attributedConversions30dSameSKU, 
+       attributedUnitsOrdered1d, attributedUnitsOrdered7d, attributedUnitsOrdered14d, attributedUnitsOrdered30d, 
+       attributedSales1d, attributedSales7d, attributedSales14d, attributedSales30d, attributedSales1dSameSKU, 
+       attributedSales7dSameSKU, attributedSales14dSameSKU, attributedSales30dSameSKU
+    from t_amz_adv_rpt2_sp_adgroups t
+	left join t_amz_adv_rpt2_sp_adgroups_attributed d on d.adGroupId=t.adGroupId and d.bydate=t.bydate
+	left join t_amz_adv_rpt2_sp_adgroups_attributed_same sa on sa.adGroupId=t.adGroupId and sa.bydate=t.bydate
+	left join t_amz_adv_adgroups ad on ad.adGroupId=pdt.adGroupId and ad.campaignId=pdt.campaignId and pdt.profileid=ad.profileid
+	left join t_amz_adv_campaigns cm on cm.campaignId=pdt.campaignId and cm.profileid=pdt.profileid
+    where t.profileid = #{profileid,jdbcType=BIGINT} 
+    and t.bydate&lt;=#{endDate,jdbcType=CHAR} 
+    and t.bydate&gt;=#{fromDate,jdbcType=CHAR}
+  </select>
+  
+	<select id="top5"  resultType="java.util.Map" parameterType="java.math.BigInteger">
+	  select * from (select 
+		pdt.adGroupId,
+		max(cm.name) campaignName,
+		max(ad.name) adGroupName,
+		sum(ifnull(pdt.cost,0)) cost,
+		sum(ifnull(d.attributedSales7d,0)) sales,
+		sum(ifnull(pdt.cost,0))/sum(ifnull(d.attributedSales7d,0)) acos,
+		sum(ifnull(d.attributedSales7d,0))/sum(ifnull(pdt.cost,0)) roas
+		from t_amz_adv_rpt2_sp_adgroups pdt
+		left join t_amz_adv_rpt2_sp_adgroups_attributed d on d.adGroupId=pdt.adGroupId and d.bydate=pdt.bydate
+		left join t_amz_adv_rpt2_sp_adgroups_attributed_same sa on sa.adGroupId=pdt.adGroupId and sa.bydate=pdt.bydate
+		left join t_amz_adv_adgroups ad on ad.adGroupId=pdt.adGroupId and ad.campaignId=pdt.campaignId and pdt.profileid=ad.profileid
+		left join t_amz_adv_campaigns cm on cm.campaignId=pdt.campaignId and cm.profileid=pdt.profileid
+		where 
+		 pdt.profileid=  #{profileid,jdbcType=INTEGER}
+		and  pdt.bydate>date_add(curdate() , interval -7 day)
+		group by  pdt.adGroupId
+		having(sum(pdt.cost)>7)
+		) v
+	  order by roas asc  ,cost desc limit 5
+	</select>
+ 
+</mapper>

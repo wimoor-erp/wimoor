@@ -1,0 +1,102 @@
+<html><head>
+<meta charset="UTF-8">
+<title>系统登录错误</title>
+<style>
+.login-bg{
+	  background-image: url(https://wimoor-file.oss-cn-shenzhen.aliyuncs.com/sys/photos/common/login-bg.7f27a767.png);
+	  background-size: cover;
+	  position: fixed;
+	      left: 0;
+	      right: 0;
+	      top: 0;
+	      bottom: 0;
+  }
+  .screen-height{
+	  height: calc(100vh);
+  }
+  .login-content{
+	  display: flex;
+	  justify-content: center;
+	  padding-top: 10%;
+  }
+  .login-box{
+	  width:480px;
+	  padding:24px 32px;
+	  border:none;
+	  background-color:rgba(255,255,255,);
+  }
+  .font-12{
+	  font-size: 12px;
+  }
+  .left-content{
+	  width:36%;
+  }
+  .m-t-24{
+	  margin-top: 24px;
+  }
+  .m-t-64{
+	  margin-top:64px;
+	justify-content: center;
+  }
+  .text-gray{
+	  color:var(--el-color-info)
+  }
+.docx-callout-block
+{
+    padding:24px 62px;
+    border-radius:10px;
+    font-size:22px;
+    height: 250px;
+    background-color:#fff;
+    box-shadow: 5px 5px 5px #dedede;
+    text-align: center;
+    vertical-align: middle;
+}
+.refresh {
+    float: right;
+    padding-right: 5px;
+    padding-top: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    position: relative;
+    top: 0px;
+    right: 0px;
+}
+ .refresh2 {
+    float: right;
+    padding-right: 5px;
+    padding-top: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    position: relative;
+    top: 0px;
+    right: 20px;
+}
+.left-content {
+    width: 36%;
+}
+</style>
+</head>
+<body>
+ <div class="login-bg">
+        <div class="screen-height">
+			<div class="login-content">
+			<div class="left-content"></div>
+			<div class="login-box">
+			<div class="docx-callout-block ">
+			<a class="refresh" onclick="location.reload()">刷新重试</a>
+		    <a class="refresh2" onclick='location=location.origin+"/auth/logout"'>使用其他账号</a>
+			<div style="padding-top:80px;">
+			<span>无法找到对应用户,已被删除或注销</span>
+			</div>
+			
+			<div style="padding-top:80px;color:#dedede;font-size:12px;">若问题无法解决，请联系管理员</div>
+			
+			</div>
+			</div>
+        </div>
+    </div>
+	</div>
+
+
+</body></html>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.ship.mapper.ShipTransChannelMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.ship.pojo.entity.ShipTransChannel" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR"  />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <select id="selectListByshopid" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select t.id,t.name,u.name operator,t.opttime,t.shopid from t_erp_ship_transchannel t 
+     left join t_userinfo u on u.id=t.operator
+     where (t.shopid=#{shopid,jdbcType=CHAR}  or t.shopid is null)
+     <if test="name!=null">
+      and t.name =#{name,jdbcType=CHAR}
+     </if>
+  </select>
+   
+  <!-- <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.ShipTransChannel" >
+    insert into t_erp_ship_transchannel (id, name, opttime, 
+      operator)
+    values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{opttime,jdbcType=TIMESTAMP}, 
+      #{operator,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.ShipTransChannel" >
+    insert into t_erp_ship_transchannel
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

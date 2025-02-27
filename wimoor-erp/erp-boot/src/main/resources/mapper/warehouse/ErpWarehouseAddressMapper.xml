@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.warehouse.mapper.ErpWarehouseAddressMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.warehouse.pojo.entity.ErpWarehouseAddress">
+        <id column="id" property="id" />
+        <result column="shopid" property="shopid" />
+        <result column="name" property="name" />
+        <result column="detail" property="detail" />
+        <result column="postcode" property="postcode" />
+        <result column="phone" property="phone" />
+        <result column="landlord" property="landlord" />
+        <result column="lost_effect_date" property="lostEffectDate" />
+        <result column="remark" property="remark" />
+        <result column="disabled" property="disabled" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+        <result column="creator" property="creator" />
+        <result column="creattime" property="creattime" />
+    </resultMap>
+
+</mapper>

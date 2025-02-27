@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.orders.mapper.OrdersFulfilledShipmentsReportMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.OrdersFulfilledShipmentsReport" >
+    <id column="amazon_order_id" property="amazonOrderId" jdbcType="CHAR" />
+    <id column="shipment_item_id" property="shipmentItemId" jdbcType="CHAR" />
+    <id column="amazon_order_item_id" property="amazonOrderItemId" jdbcType="CHAR" />
+    <result column="merchant_order_id" property="merchantOrderId" jdbcType="CHAR" />
+    <result column="shipment_id" property="shipmentId" jdbcType="CHAR" />
+    <result column="merchant_order_item_id" property="merchantOrderItemId" jdbcType="CHAR" />
+    <result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+    <result column="payments_date" property="paymentsDate" jdbcType="TIMESTAMP" />
+    <result column="shipment_date" property="shipmentDate" jdbcType="TIMESTAMP" />
+    <result column="reporting_date" property="reportingDate" jdbcType="TIMESTAMP" />
+    <result column="buyer_email" property="buyerEmail" jdbcType="CHAR" />
+    <result column="buyer_name" property="buyerName" jdbcType="CHAR" />
+    <result column="buyer_phone_number" property="buyerPhoneNumber" jdbcType="CHAR" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="quantity_shipped" property="quantityShipped" jdbcType="INTEGER" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="item_price" property="itemPrice" jdbcType="DECIMAL" />
+    <result column="item_tax" property="itemTax" jdbcType="DECIMAL" />
+    <result column="shipping_price" property="shippingPrice" jdbcType="DECIMAL" />
+    <result column="shipping_tax" property="shippingTax" jdbcType="DECIMAL" />
+    <result column="gift_wrap_price" property="giftWrapPrice" jdbcType="DECIMAL" />
+    <result column="gift_wrap_tax" property="giftWrapTax" jdbcType="DECIMAL" />
+    <result column="ship_service_level" property="shipServiceLevel" jdbcType="CHAR" />
+    <result column="recipient_name" property="recipientName" jdbcType="CHAR" />
+    <result column="ship_address_1" property="shipAddress1" jdbcType="VARCHAR" />
+    <result column="ship_address_2" property="shipAddress2" jdbcType="VARCHAR" />
+    <result column="ship_address_3" property="shipAddress3" jdbcType="VARCHAR" />
+    <result column="ship_city" property="shipCity" jdbcType="CHAR" />
+    <result column="ship_state" property="shipState" jdbcType="CHAR" />
+    <result column="ship_postal_code" property="shipPostalCode" jdbcType="CHAR" />
+    <result column="ship_country" property="shipCountry" jdbcType="CHAR" />
+    <result column="ship_phone_number" property="shipPhoneNumber" jdbcType="CHAR" />
+    <result column="bill_address_1" property="billAddress1" jdbcType="VARCHAR" />
+    <result column="bill_address_2" property="billAddress2" jdbcType="VARCHAR" />
+    <result column="bill_address_3" property="billAddress3" jdbcType="VARCHAR" />
+    <result column="bill_city" property="billCity" jdbcType="CHAR" />
+    <result column="bill_state" property="billState" jdbcType="CHAR" />
+    <result column="bill_postal_code" property="billPostalCode" jdbcType="CHAR" />
+    <result column="bill_country" property="billCountry" jdbcType="CHAR" />
+    <result column="item_promotion_discount" property="itemPromotionDiscount" jdbcType="DECIMAL" />
+    <result column="ship_promotion_discount" property="shipPromotionDiscount" jdbcType="DECIMAL" />
+    <result column="carrier" property="carrier" jdbcType="CHAR" />
+    <result column="tracking_number" property="trackingNumber" jdbcType="CHAR" />
+    <result column="estimated_arrival_date" property="estimatedArrivalDate" jdbcType="TIMESTAMP" />
+    <result column="fulfillment_center_id" property="fulfillmentCenterId" jdbcType="CHAR" />
+    <result column="fulfillment_channel" property="fulfillmentChannel" jdbcType="CHAR" />
+    <result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+    <result column="amazonauthid" property="amazonauthid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    amazon_order_id, shipment_item_id, amazon_order_item_id, merchant_order_id, shipment_id, 
+    merchant_order_item_id, purchase_date, payments_date, shipment_date, reporting_date, 
+    buyer_email, buyer_name, buyer_phone_number, sku, product_name, quantity_shipped, 
+    currency, item_price, item_tax, shipping_price, shipping_tax, gift_wrap_price, gift_wrap_tax, 
+    ship_service_level, recipient_name, ship_address_1, ship_address_2, ship_address_3, 
+    ship_city, ship_state, ship_postal_code, ship_country, ship_phone_number, bill_address_1, 
+    bill_address_2, bill_address_3, bill_city, bill_state, bill_postal_code, bill_country, 
+    item_promotion_discount, ship_promotion_discount, carrier, tracking_number, estimated_arrival_date, 
+    fulfillment_center_id, fulfillment_channel, sales_channel,amazonauthid
+  </sql>
+  	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_rpt_orders_fulfilled_shipments_report (
+		amazon_order_id, shipment_item_id, amazon_order_item_id, merchant_order_id, shipment_id, 
+	    merchant_order_item_id, purchase_date, payments_date, shipment_date, reporting_date, 
+	    buyer_email, buyer_name, buyer_phone_number, sku, product_name, quantity_shipped, 
+	    currency, item_price, item_tax, shipping_price, shipping_tax, gift_wrap_price, gift_wrap_tax, 
+	    ship_service_level, recipient_name, ship_address_1, ship_address_2, ship_address_3, 
+	    ship_city, ship_state, ship_postal_code, ship_country, ship_phone_number, bill_address_1, 
+	    bill_address_2, bill_address_3, bill_city, bill_state, bill_postal_code, bill_country, 
+	    item_promotion_discount, ship_promotion_discount, carrier, tracking_number, estimated_arrival_date, 
+	    fulfillment_center_id, fulfillment_channel, sales_channel,amazonauthid)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+		    #{adv.amazonOrderId,jdbcType=CHAR},
+			#{adv.shipmentItemId,jdbcType=CHAR},
+			#{adv.amazonOrderItemId,jdbcType=CHAR},
+			#{adv.merchantOrderId,jdbcType=CHAR},
+			#{adv.shipmentId,jdbcType=CHAR},	
+		    #{adv.merchantOrderItemId,jdbcType=CHAR},	
+			#{adv.purchaseDate,jdbcType=TIMESTAMP},	
+		    #{adv.paymentsDate,jdbcType=TIMESTAMP},	
+		    #{adv.shipmentDate,jdbcType=TIMESTAMP},
+		    #{adv.reportingDate,jdbcType=TIMESTAMP},
+		    #{adv.buyerEmail,jdbcType=CHAR},
+	        #{adv.buyerName,jdbcType=CHAR},
+	        #{adv.buyerPhoneNumber,jdbcType=CHAR},
+	        #{adv.sku,jdbcType=CHAR},
+	        #{adv.productName,jdbcType=CHAR},
+	        #{adv.quantityShipped,jdbcType=INTEGER},
+	        #{adv.currency,jdbcType=CHAR},
+	        #{adv.itemPrice,jdbcType=DECIMAL},
+	        #{adv.itemTax,jdbcType=DECIMAL},
+	        #{adv.shippingPrice,jdbcType=DECIMAL},
+	        #{adv.shippingTax,jdbcType=DECIMAL},	 	        
+	        #{adv.giftWrapPrice,jdbcType=DECIMAL},	 
+	        #{adv.giftWrapTax,jdbcType=DECIMAL},
+	        #{adv.shipServiceLevel,jdbcType=CHAR},
+	        #{adv.recipientName,jdbcType=CHAR},
+	        #{adv.shipAddress1,jdbcType=CHAR},
+	        #{adv.shipAddress2,jdbcType=CHAR},
+	        #{adv.shipAddress3,jdbcType=CHAR},
+	        #{adv.shipCity,jdbcType=CHAR},
+	        #{adv.shipState,jdbcType=CHAR},
+	        #{adv.shipPostalCode,jdbcType=CHAR},
+	        #{adv.shipCountry,jdbcType=CHAR},
+	        #{adv.shipPhoneNumber,jdbcType=CHAR},
+	        #{adv.billAddress1,jdbcType=CHAR},
+	        #{adv.billAddress2,jdbcType=CHAR},
+	        #{adv.billAddress3,jdbcType=CHAR},
+	        #{adv.billCity,jdbcType=CHAR},
+	        #{adv.billState,jdbcType=CHAR},
+	        #{adv.billPostalCode,jdbcType=CHAR},  
+	        #{adv.billCountry,jdbcType=CHAR},  
+	        #{adv.itemPromotionDiscount,jdbcType=DECIMAL},  
+	        #{adv.shipPromotionDiscount,jdbcType=DECIMAL},  
+	 	    #{adv.carrier,jdbcType=CHAR},  
+	 	    #{adv.trackingNumber,jdbcType=CHAR},  
+	 	    #{adv.estimatedArrivalDate,jdbcType=DATE},  
+	 	    #{adv.fulfillmentCenterId,jdbcType=CHAR},  
+	 	    #{adv.fulfillmentChannel,jdbcType=CHAR},  
+	 	    #{adv.salesChannel,jdbcType=CHAR},
+	 	    #{adv.amazonauthid,jdbcType=CHAR})
+		</foreach>
+	</insert>
+	
+	
+   <update id="moveBatch" parameterType="java.util.Map"  >
+		replace into t_amz_rpt_orders_fulfilled_shipments_report_archive (
+		amazon_order_id, shipment_item_id, amazon_order_item_id, merchant_order_id, shipment_id, 
+	    merchant_order_item_id, purchase_date, payments_date, shipment_date, reporting_date, 
+	    buyer_email, buyer_name, buyer_phone_number, sku, product_name, quantity_shipped, 
+	    currency, item_price, item_tax, shipping_price, shipping_tax, gift_wrap_price, gift_wrap_tax, 
+	    ship_service_level, recipient_name, ship_address_1, ship_address_2, ship_address_3, 
+	    ship_city, ship_state, ship_postal_code, ship_country, ship_phone_number, bill_address_1, 
+	    bill_address_2, bill_address_3, bill_city, bill_state, bill_postal_code, bill_country, 
+	    item_promotion_discount, ship_promotion_discount, carrier, tracking_number, estimated_arrival_date, 
+	    fulfillment_center_id, fulfillment_channel, sales_channel,amazonauthid)
+	    select amazon_order_id, shipment_item_id, amazon_order_item_id, merchant_order_id, shipment_id, 
+	    merchant_order_item_id, purchase_date, payments_date, shipment_date, reporting_date, 
+	    buyer_email, buyer_name, buyer_phone_number, sku, product_name, quantity_shipped, 
+	    currency, item_price, item_tax, shipping_price, shipping_tax, gift_wrap_price, gift_wrap_tax, 
+	    ship_service_level, recipient_name, ship_address_1, ship_address_2, ship_address_3, 
+	    ship_city, ship_state, ship_postal_code, ship_country, ship_phone_number, bill_address_1, 
+	    bill_address_2, bill_address_3, bill_city, bill_state, bill_postal_code, bill_country, 
+	    item_promotion_discount, ship_promotion_discount, carrier, tracking_number, estimated_arrival_date, 
+	    fulfillment_center_id, fulfillment_channel, sales_channel,amazonauthid
+	    from t_amz_rpt_orders_fulfilled_shipments_report 
+		 where amazonauthid= #{amazonauthid,jdbcType=CHAR}
+		 and shipment_date&lt;DATE_ADD(NOW(),INTERVAL  -130 day)
+	</update>
+	
+	<select id="list" parameterType="java.util.Map" resultType="com.wimoor.amazon.orders.pojo.entity.OrdersFulfilledShipmentsReport">
+	     select * from  t_amz_rpt_orders_fulfilled_shipments_report 
+		 where amazonauthid= #{amazonauthid,jdbcType=CHAR}
+		 and sku= #{sku,jdbcType=CHAR}
+		 and sales_channel=#{salesChannel,jdbcType=CHAR}
+		 and shipment_date>=#{shipmentStartDate,jdbcType=CHAR} 
+		 and shipment_date&lt;#{shipmentEndDate,jdbcType=CHAR} 
+	</select>
+</mapper>

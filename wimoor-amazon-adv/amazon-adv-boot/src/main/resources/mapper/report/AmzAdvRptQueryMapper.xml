@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.report.dao.AmzAdvRptQueryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.report.pojo.AmzAdvRptQuery" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="query" property="query" jdbcType="CHAR" />
+  </resultMap>
+  
+  <select id="selectByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+    select * from  t_amz_adv_rpt_query
+    where  query = #{query,jdbcType=CHAR}
+  </select>
+ <!--  <sql id="Base_Column_List" >
+    id
+  </sql>
+  <sql id="Blob_Column_List" >
+    query
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from t_amz_adv_rpt_query
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_amz_adv_rpt_query
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRptQuery" >
+    insert into t_amz_adv_rpt_query (id, query)
+    values (#{id,jdbcType=BIGINT}, #{query,jdbcType=BINARY})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRptQuery" >
+    insert into t_amz_adv_rpt_query
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="query != null" >
+        query,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="query != null" >
+        #{query,jdbcType=BINARY},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRptQuery" >
+    update t_amz_adv_rpt_query
+    <set >
+      <if test="query != null" >
+        query = #{query,jdbcType=BINARY},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.wimoor.amazon.adv.common.pojo.AmzAdvRptQuery" >
+    update t_amz_adv_rpt_query
+    set query = #{query,jdbcType=BINARY}
+    where id = #{id,jdbcType=BIGINT}
+  </update> -->
+</mapper>

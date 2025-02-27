@@ -1,0 +1,54 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: admin-server
+          uri: lb://wimoor-admin
+          predicates:
+            - Path=/admin/**
+        - id: wimoor-erp
+          uri: lb://wimoor-erp
+          predicates:
+            - Path=/erp/**
+        - id: wimoor-auth
+          uri: lb://wimoor-auth
+          predicates:
+            - Path=/auth/**
+        - id: wimoor-amazon
+          uri: lb://wimoor-amazon
+          predicates:
+            - Path=/amazon/**
+        - id: wimoor-amazon-adv
+          uri: lb://wimoor-amazon-adv
+          predicates:
+            - Path=/amazonadv/**
+        - id: wimoor-quote
+          uri: lb://wimoor-quote
+          predicates:
+            - Path=/quote/**
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+  logging:
+    level:
+      org.springframework.cloud.gateway: error
+security:
+  ignoreUrls:
+      - /amazon/api/v1/report/product/amzProductPageviews/auth/uploadSessionFile
+      - /amazon/api/v1/amzauthority/authSeller
+      - /amazonadv/api/v1/advert/bindAdvAuthData
+      - /ssoclient/**
+      - /admin/api/v1/auth/**
+      - /admin/api/v1/users/register
+      - /admin/api/v1/users/updatePassword
+      - /admin/api/v1/sms/**
+      - /erp/api/v1/purchase1688/message
+      - /admin/api/v1/users/getSmsCode 
+      - /admin/api/v1/users/getEmailCode
+      - /admin/api/v1/users/register
+      - /admin/api/v1/users/updatePasswordForget 
+      - /admin/webhook/event/**
+      - /admin/webhoot/card/**
+      - /quote/api/v1/quote/supplier/listSupplierOrder
+      - /quote/api/v1/quote/supplier/submitPrice

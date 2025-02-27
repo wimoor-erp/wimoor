@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.report.dao.AmzAdvSumAllTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.report.pojo.AmzAdvSumAllType" >
+    <id column="profileid" property="profileid" jdbcType="BIGINT" />
+    <id column="state" property="state" jdbcType="CHAR" />
+    <id column="campaignType" property="campaigntype" jdbcType="CHAR" />
+    <id column="recordType" property="recordtype" jdbcType="CHAR" />
+    <id column="byday" property="byday" jdbcType="DATE" />
+    <result column="quantity" property="quantity" jdbcType="INTEGER" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    profileid, state, campaignType, recordType, byday, quantity, opttime
+  </sql>
+    <select id="selectByKey" resultMap="BaseResultMap" parameterType="com.wimoor.amazon.adv.report.pojo.AmzAdvSumAllTypeKey" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_amz_adv_sumalltype
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </select>
+  <update id="updateByKey" parameterType="com.wimoor.amazon.adv.report.pojo.AmzAdvSumAllType" >
+    update t_amz_adv_sumalltype
+    set quantity = #{quantity,jdbcType=INTEGER},
+      opttime = #{opttime,jdbcType=TIMESTAMP}
+    where profileid = #{profileid,jdbcType=BIGINT}
+      and state = #{state,jdbcType=CHAR}
+      and campaignType = #{campaigntype,jdbcType=CHAR}
+      and recordType = #{recordtype,jdbcType=CHAR}
+      and byday = #{byday,jdbcType=DATE}
+  </update> 
+  <select id="getTypeNumberWithoutUnUseable" resultType="java.util.Map">
+  select t.recordType,sum(t.quantity) quantity,min(t.opttime) opttime
+		 from t_amz_adv_sumalltype t
+		 left join  t_amz_adv_profile p on t.profileid=p.id 
+		 left join  t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		and t.byday= #{byday,jdbcType=CHAR}
+		and (`state`='enabled' or `state`='paused' )
+		group by t.recordType
+  </select>
+    <select id="getTypeNumberEnabled" resultType="java.util.Map">
+  select t.recordType,sum(t.quantity) quantity,min(t.opttime) opttime
+		 from t_amz_adv_sumalltype t
+		 left join  t_amz_adv_profile p on t.profileid=p.id 
+		 left join  t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		where a.shopid=#{shopid,jdbcType=CHAR}
+		and t.byday= #{byday,jdbcType=CHAR}
+		and (`state`='enabled')
+		group by t.recordType
+  </select>
+  <select id="getMonthSumNum" resultType="java.util.Map" parameterType="java.util.Map" >
+  select  date_format(max(byday),'%Y-%m') byday,max(v.quantity) quantity
+ from (select byday,sum(quantity) quantity
+ from  t_amz_adv_sumalltype a
+    left join t_amz_adv_profile p on p.id=a.profileid
+    left join t_amz_adv_auth ath on ath.id=p.advauthId and ath.disable = 0
+    where ath.shopid=#{shopid,jdbcType=CHAR}
+       and state='enabled'
+      <if test="recordType != null" >
+       and recordType=#{recordType,jdbcType=CHAR}
+      </if>
+     <if test="groupid != null" >
+      and  ath.groupid=#{groupid,jdbcType=CHAR}
+      </if>
+     <if test="profileid != null" >
+       and p.id=#{profileid,jdbcType=CHAR}
+      </if>
+        <if test="marketplaceId != null" >
+       and p.marketplaceId=#{marketplaceId,jdbcType=CHAR}
+      </if>
+      <if test="begin != null" >
+       and a.byday>=#{begin,jdbcType=DATE}
+      </if>
+       <if test="end != null" >
+       and a.byday&lt;=#{end,jdbcType=DATE}
+      </if> 
+ group by byday
+ ) v
+group by concat( year(v.byday) ,'-' ,month(v.byday))
+  </select>
+
+    <select id="selectSPAdvSummaryNums" resultType="java.util.Map" parameterType="com.wimoor.amazon.adv.controller.pojo.dto.QueryForList">
+        <if test="param.ftype=='adcams'">
+            SELECT 'adcams' ftype,COUNT(t.profileid) nums FROM t_amz_adv_campaigns t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+            UNION
+            SELECT 'adgroups' ftype,COUNT(t.profileid) nums FROM t_amz_adv_adgroups t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+            UNION
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_productads t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+        </if>
+        <if test="param.ftype=='adgroups'">
+            SELECT 'adgroups' ftype,COUNT(t.profileid) nums FROM t_amz_adv_adgroups t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_productads t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keywords' ftype,COUNT(t.profileid) nums FROM t_amz_adv_keywords t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keyquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_sp_keywords_query t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT} AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate&gt;=#{param.fromDate,jdbcType=CHAR}
+            UNION
+            SELECT 'targets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'negtargets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_negativa t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targetsquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_sp_product_targets t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}  AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate&gt;=#{param.fromDate,jdbcType=CHAR}
+        </if>
+
+        <if test="param.ftype=='ProductAds'">
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_productads t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keywords' ftype,COUNT(t.profileid) nums FROM t_amz_adv_keywords t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keyquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_sp_keywords_query t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT} AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate&gt;=#{param.fromDate,jdbcType=CHAR}
+            UNION
+            SELECT 'targets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'negtargets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_negativa t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targetsquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_sp_product_targets t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}  AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate&gt;=#{param.fromDate,jdbcType=CHAR}
+        </if>
+
+    </select>
+
+
+    <select id="selectSDAdvSummaryNums" resultType="java.util.Map" parameterType="com.wimoor.amazon.adv.controller.pojo.dto.QueryForList">
+        <if test="param.ftype=='adcams'">
+            SELECT 'adcams' ftype,COUNT(t.profileid) nums FROM t_amz_adv_campaigns_sd t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+            UNION
+            SELECT 'adgroups' ftype,COUNT(t.profileid) nums FROM t_amz_adv_adgroups_sd t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+            UNION
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_productads_sd t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+        </if>
+        <if test="param.ftype=='adgroups'">
+            SELECT 'adgroups' ftype,COUNT(t.profileid) nums FROM t_amz_adv_adgroups_sd t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_productads_sd t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_sd t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'negtargets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_negativa_sd t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targetsquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_sd_product_targets t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}  AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate>=#{param.fromDate,jdbcType=CHAR}
+        </if>
+
+        <if test="param.ftype=='ProductAds'">
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_productads_sd t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_sd t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'negtargets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_negativa_sd t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targetsquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_sd_product_targets t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}  AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate>=#{param.fromDate,jdbcType=CHAR}
+        </if>
+
+    </select>
+
+    <select id="selectSBAdvSummaryNums" resultType="java.util.Map" parameterType="com.wimoor.amazon.adv.controller.pojo.dto.QueryForList">
+        <if test="param.ftype=='adcams'">
+            SELECT 'adcams' ftype,COUNT(t.profileid) nums FROM t_amz_adv_campaigns_hsa t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+            UNION
+            SELECT 'adgroups' ftype,COUNT(t.profileid) nums FROM t_amz_adv_adgroups_hsa t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+            UNION
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_ads_hsa t WHERE t.profileid=#{param.profileid,jdbcType=BIGINT}
+        </if>
+        <if test="param.ftype=='adgroups'">
+            SELECT 'adgroups' ftype,COUNT(t.profileid) nums FROM t_amz_adv_adgroups_hsa t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_ads_hsa t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keywords' ftype,COUNT(t.profileid) nums FROM t_amz_adv_keywords_hsa t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keyquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_hsa_keywords_query t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT} AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate>=#{param.fromDate,jdbcType=CHAR}
+            UNION
+            SELECT 'targets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_hsa t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'negtargets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_negativa_hsa t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targetsquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_hsa_product_targets t WHERE t.campaignId=#{param.campaignid,jdbcType=BIGINT}  AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate>=#{param.fromDate,jdbcType=CHAR}
+        </if>
+
+        <if test="param.ftype=='ProductAds'">
+            SELECT 'products' ftype,COUNT(t.profileid) nums FROM t_amz_adv_ads_hsa t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keywords' ftype,COUNT(t.profileid) nums FROM t_amz_adv_keywords_hsa t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'keyquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_hsa_keywords_query t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT} AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate>=#{param.fromDate,jdbcType=CHAR}
+            UNION
+            SELECT 'targets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_hsa t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'negtargets' ftype,COUNT(t.profileid) nums FROM t_amz_adv_product_targe_negativa_hsa t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}
+            UNION
+            SELECT 'targetsquery' ftype,COUNT(t.profileid) nums FROM t_amz_adv_rpt2_hsa_product_targets t WHERE t.adGroupId=#{param.adGroupid,jdbcType=BIGINT}  AND t.profileid=#{param.profileid,jdbcType=BIGINT}
+            AND t.bydate>=#{param.fromDate,jdbcType=CHAR}
+        </if>
+    </select>
+
+
+</mapper>

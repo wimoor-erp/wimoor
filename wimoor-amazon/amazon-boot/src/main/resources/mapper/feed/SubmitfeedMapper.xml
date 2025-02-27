@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.feed.mapper.SubmitfeedMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.feed.pojo.entity.Submitfeed" >
+    <id column="feed_submissionid" property="feedSubmissionid" jdbcType="CHAR" />
+    <id column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <id column="sellerid" property="sellerid" jdbcType="CHAR" />
+    <id column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="feed_type" property="feedType" jdbcType="CHAR" />
+    <result column="submitted_date" property="submittedDate" jdbcType="TIMESTAMP" />
+    <result column="started_processing_date" property="startedProcessingDate" jdbcType="TIMESTAMP" />
+    <result column="completed_processiong_date" property="completedProcessiongDate" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="feed_processing_status" property="feedProcessingStatus" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    feed_submissionid, marketplaceid, sellerid, shopid, feed_type, submitted_date, started_processing_date, 
+    completed_processiong_date, operator, opttime, feed_processing_status
+  </sql>
+  
+  <update id="updateBysubmissionid" parameterType="com.wimoor.amazon.feed.pojo.entity.Submitfeed" >
+    update t_amz_submitfeed
+    <set >
+      <if test="feedType != null" >
+        feed_type = #{feedType,jdbcType=CHAR},
+      </if>
+      <if test="submittedDate != null" >
+        submitted_date = #{submittedDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startedProcessingDate != null" >
+        started_processing_date = #{startedProcessingDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="completedProcessiongDate != null" >
+        completed_processiong_date = #{completedProcessiongDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="feedProcessingStatus != null" >
+        feed_processing_status = #{feedProcessingStatus,jdbcType=CHAR},
+      </if>
+    </set>
+    where feed_submissionid = #{feedSubmissionid,jdbcType=CHAR}
+  </update>
+  
+  <select id="selectINPROGRESS" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select feed_submissionid,marketplaceid,sellerid,feed_processing_status 
+  	from t_amz_submitfeed where 
+  	   marketplaceid = #{marketplaceid,jdbcType=CHAR}
+       and sellerid = #{sellerid,jdbcType=CHAR}
+       and opttime>date_add(now(), interval -10 DAY)
+  	   and feed_processing_status in('IN_PROGRESS','SUBMITTED','UNCONFIRMED','AWAITING_ASYNCHRONOUS_REPLY','IN_SAFETY_NET') limit 99
+  </select>
+  <select id="selectLastOneHour" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select     feed_submissionid, marketplaceid, sellerid, shopid, feed_type, submitted_date, started_processing_date, 
+    completed_processiong_date, operator, opttime, feed_processing_status
+  	  from t_amz_submitfeed where  sellerid = #{sellerid,jdbcType=CHAR}
+       and feed_type =#{feedtype,jdbcType=CHAR}
+       and opttime>date_add(now(), interval -1 HOUR)
+       order by opttime desc
+  </select> 
+</mapper>

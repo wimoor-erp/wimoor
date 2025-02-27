@@ -1,0 +1,24 @@
+server:
+  port: 8093
+  servlet: 
+     context-path: /amazon
+spring:
+  application:
+    name: wimoor-amazon
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: prod_wimoor
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+        namespace: prod_wimoor
+        # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
+ 

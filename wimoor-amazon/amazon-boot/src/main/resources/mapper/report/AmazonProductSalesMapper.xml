@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.report.mapper.AmazonProductSalesMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.report.pojo.entity.AmazonProductSales">
+		<result column="amazonAuthId" property="amazonAuthId" jdbcType="CHAR" />
+		<result column="purchase_date" property="purchaseDate" jdbcType="TIMESTAMP" />
+		<result column="sales_channel" property="salesChannel" jdbcType="CHAR" />
+		<result column="order_status" property="orderStatus" jdbcType="CHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="asin" property="asin" jdbcType="CHAR" />
+		<result column="currency" property="currency" jdbcType="CHAR" />
+		<result column="quantity" property="quantity" jdbcType="INTEGER" />
+		<result column="ordersum" property="ordersum" jdbcType="INTEGER" />
+		<result column="pricermb" property="pricermb" jdbcType="DECIMAL" />
+		<result column="price" property="price" jdbcType="DECIMAL" />
+		<result column="ship_country" property="shipCountry" jdbcType="CHAR" />
+	</resultMap>
+	
+	 
+	
+</mapper>
