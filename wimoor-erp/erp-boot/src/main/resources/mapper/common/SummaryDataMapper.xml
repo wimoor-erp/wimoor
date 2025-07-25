@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.common.mapper.SummaryDataMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.common.pojo.entity.SummaryData" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="value" property="value" jdbcType="DECIMAL" />
+     <result column="mapdata" property="mapdata" jdbcType="VARCHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="updatetime" property="updatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <select id="findMainReport" parameterType="java.lang.String" resultMap="BaseResultMap">
+  		select * from t_erp_summary_data t where t.shopid=#{shopid,jdbcType=CHAR}
+  		<if test="ftype !=null">
+  		and t.ftype like #{ftype,jdbcType=CHAR} 
+  		</if>
+  </select>
+  
+   <!-- 在售商品数量 -->
+   <select id="refreshProNum"  >
+        delete from t_erp_summary_data where ftype='main-2-pro';
+        insert into t_erp_summary_data
+        select uuid_short(),'main-2-pro',count(0),null,ifnull(shop_id,0) shopid,now()
+   		from t_product_info t
+		left join t_amazon_auth a on a.id=t.amazonAuthId
+        where  t.invalid=0 and t.isparent=0 
+        group by a.shop_id;
+   </select>
+      <!-- 在售商品数量 -->
+   <select id="findProNum" parameterType="java.lang.String" resultType="java.lang.Integer" >
+     select COUNT(0)  
+   		from t_product_info t
+		left join t_amazon_auth a on t.amazonAuthId=a.id
+	    where a.shop_id=#{shopid,jdbcType=CHAR} and t.invalid=0 and t.isparent=0
+ 
+   </select>
+   
+   <select id="refreshProRate" >
+        delete from t_erp_summary_data where ftype='main-2-protosel';
+        insert into t_erp_summary_data
+		select uuid_short(),'main-2-protosel', ifnull(sum(case when ifnull(f.flownumber,ifnull(t.totalOfferCount,1))=1  then 0 else 1 end )/count(0)*100,0),NULL,ifnull(a.shop_id,0),NOW()
+   	    from t_product_info t
+	  	left join t_amazon_auth a on t.amazonAuthId=a.id
+        left join t_product_follow f on f.asin=t.asin and f.marketplaceid=t.marketplaceid and f.amazonAuthId=a.id
+	    group by a.shop_id;
+   </select>
+   
+   <select id="monthSalesOrders"    resultType="java.util.Map" >
+     select sum(ifnull(quantity,0)) quantity,sum(ifnull(ordernumber,0)) ordernumber from  t_summaryall o
+      left join t_amazon_auth a on o.amazonAuthId=a.id
+      where a.shop_id=#{shopid,jdbcType=CHAR}
+      and o.purchase_date>=#{oneday,jdbcType=DATE}
+   </select>
+   
+ 
+   
+  
+   <!-- 上月商品总销量  -->
+   <delete id="deleteAllMainRpt" parameterType="java.lang.String">
+   delete t from t_erp_summary_data t where t.shopid=#{shopid,jdbcType=CHAR}  and t.ftype
+   in('weekdata','lastqty','last5','market')
+   </delete>
+</mapper>

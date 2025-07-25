@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBox" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shipmentid" property="shipmentid" jdbcType="CHAR" />
+    <result column="boxnum" property="boxnum" jdbcType="INTEGER" />
+    <result column="length" property="length" jdbcType="DECIMAL" />
+    <result column="width" property="width" jdbcType="DECIMAL" />
+    <result column="height" property="height" jdbcType="DECIMAL" />
+    <result column="unit" property="unit" jdbcType="CHAR" />
+    <result column="weight" property="weight" jdbcType="DECIMAL" />
+    <result column="wunit" property="wunit" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <select id="findShipInboundBox" resultType="java.util.Map" parameterType="java.lang.String">
+    select * from (select max(box.shipmentid)     shipmentid,
+                          box.id,
+                          max(box.boxnum)         boxnum,
+                          sum(ca.quantity)        qty,
+                          max(box.weight)         weight,
+                          max(box.length)         length,
+                          max(box.width)          width,
+                          max(box.height)         height,
+                          max(box.tracking_id)    tracking_id,
+                          max(box.package_status) package_status
+                   from t_erp_ship_v2_inboundshipment_box box
+                            left join t_erp_ship_v2_inboundshipment_boxitem ca on ca.boxid = box.id
+                   where box.shipmentid = #{id,jdbcType=CHAR}
+                   group by box.shipmentid, box.id) v order by v.id
+  </select>
+</mapper>

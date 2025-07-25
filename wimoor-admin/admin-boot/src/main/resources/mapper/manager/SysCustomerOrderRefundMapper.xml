@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.SysCustomerOrderRefundMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.SysCustomerOrderRefund">
+        <result column="id" property="id" />
+        <result column="shopid" property="shopid" />
+        <result column="orderid" property="orderid" />
+        <result column="out_trade_no" property="outTradeNo" />
+        <result column="trade_no" property="tradeNo" />
+        <result column="refund_amount" property="refundAmount" />
+        <result column="refund_reason" property="refundReason" />
+        <result column="out_request_no" property="outRequestNo" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+
+</mapper>

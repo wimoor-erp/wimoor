@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.warehouse.mapper.WarehouseTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.warehouse.pojo.entity.WarehouseType" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="issystem" property="issystem" jdbcType="BIT" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, issystem, name, remark, operator, opttime
+  </sql>
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_warehouse_type
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_warehouse_type
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.WarehouseType" >
+    insert into t_erp_warehouse_type (id, shopid, issystem, name, 
+      remark, operator, opttime
+      )
+    values (#{id,jdbcType=CHAR}, #{shopid,jdbcType=CHAR}, #{issystem,jdbcType=BIT}, #{name,jdbcType=CHAR}, 
+      #{remark,jdbcType=VARCHAR}, #{operator,jdbcType=CHAR}, #{opttime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.WarehouseType" >
+    insert into t_erp_warehouse_type
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shopid != null" >
+        shopid,
+      </if>
+      <if test="issystem != null" >
+        issystem,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="shopid != null" >
+        #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="issystem != null" >
+        #{issystem,jdbcType=BIT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=CHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+ <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.WarehouseType" >
+    update t_erp_warehouse_type
+    <set >
+      <if test="shopid != null" >
+        shopid = #{shopid,jdbcType=CHAR},
+      </if>
+      <if test="issystem != null" >
+        issystem = #{issystem,jdbcType=BIT},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=CHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.WarehouseType" >
+    update t_erp_warehouse_type
+    set shopid = #{shopid,jdbcType=CHAR},
+      issystem = #{issystem,jdbcType=BIT},
+      name = #{name,jdbcType=CHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      operator = #{operator,jdbcType=CHAR},
+      opttime = #{opttime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+   --> 
+</mapper>

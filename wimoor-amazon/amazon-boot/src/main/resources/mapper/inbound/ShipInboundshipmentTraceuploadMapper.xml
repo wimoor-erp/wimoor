@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inbound.mapper.ShipInboundshipmentTraceuploadMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inbound.pojo.entity.ShipInboundshipmentTraceupload">
+        <id column="shipmentid" property="shipmentid" />
+        <result column="creator" property="creator" />
+        <result column="boxnumber" property="boxnumber" />
+        <result column="trace_num" property="traceNum" />
+        <result column="status" property="status" />
+        <result column="opttime" property="opttime" />
+        <result column="createtime" property="createtime" />
+    </resultMap>
+
+
+<select id="listByAuth" resultType="com.wimoor.amazon.inbound.pojo.entity.ShipInboundshipmentTraceupload">
+ select * from t_erp_ship_inboundshipment_traceupload where shipmentid in (
+  select MAX(t.shipmentid) from t_erp_ship_inboundshipment_traceupload t
+  left join  t_erp_ship_inboundshipment s ON s.ShipmentId=t.shipmentid
+  LEFT JOIN  t_erp_ship_inboundplan p ON p.id=s.inboundplanid
+  LEFT JOIN  t_marketplace m ON m.marketplaceId=p.marketplaceid
+  LEFT JOIN  t_amazon_auth a ON a.aws_region=m.aws_region AND a.groupid=p.amazongroupid
+  WHERE t.`status`=0
+  GROUP BY a.id
+ )
+</select>
+</mapper>

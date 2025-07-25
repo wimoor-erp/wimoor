@@ -1,0 +1,25 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /erp
+spring:
+  application:
+    name: wimoor-erp
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 172.18.115.249:8848
+        namespace: prod_wimoor
+        ip: 172.18.115.249
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+        namespace: prod_wimoor
+        # 公共配置
+        shared-configs[0]:
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]:
+          data-id: wimoor-commom-ext
+          refresh: true
+ 

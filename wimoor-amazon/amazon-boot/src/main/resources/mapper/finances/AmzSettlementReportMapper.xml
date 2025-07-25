@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport" >
+    <result column="settlement_id" property="settlementId" jdbcType="BIGINT" />
+    <result column="settlement_start_date" property="settlementStartDate" jdbcType="TIMESTAMP" />
+    <result column="settlement_end_date" property="settlementEndDate" jdbcType="TIMESTAMP" />
+    <result column="deposit_date" property="depositDate" jdbcType="TIMESTAMP" />
+    <result column="total_amount" property="totalAmount" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="transaction_type" property="transactionType" jdbcType="CHAR" />
+    <result column="order_id" property="orderId" jdbcType="CHAR" />
+    <result column="merchant_order_id" property="merchantOrderId" jdbcType="CHAR" />
+    <result column="adjustment_id" property="adjustmentId" jdbcType="CHAR" />
+    <result column="shipment_id" property="shipmentId" jdbcType="CHAR" />
+    <result column="marketplace_name" property="marketplaceName" jdbcType="CHAR" />
+    <result column="amount_type" property="amountType" jdbcType="CHAR" />
+    <result column="amount_description" property="amountDescription" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <result column="fulfillment_id" property="fulfillmentId" jdbcType="CHAR" />
+    <result column="posted_date" property="postedDate" jdbcType="DATE" />
+    <result column="posted_date_time" property="postedDateTime" jdbcType="TIMESTAMP" />
+    <result column="order_item_code" property="orderItemCode" jdbcType="CHAR" />
+    <result column="merchant_order_item_id" property="merchantOrderItemId" jdbcType="CHAR" />
+    <result column="merchant_adjustment_item_id" property="merchantAdjustmentItemId" jdbcType="CHAR" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="quantity_purchased" property="quantityPurchased" jdbcType="INTEGER" />
+    <result column="promotion_id" property="promotionId" jdbcType="CHAR" />
+  </resultMap>
+  
+   <select id="hasData"  parameterType="com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport"  resultType="java.lang.Integer">
+		 SELECT count(settlement_id) FROM  t_amz_settlement_report
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </select>
+   <select id="hasDataArchive"  parameterType="com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport"  resultType="java.lang.Integer">
+		 SELECT count(settlement_id) FROM  t_amz_settlement_report_archive
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </select>
+  <insert id="moveData"  parameterType="com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport">
+		 INSERT INTO t_amz_settlement_report
+		  SELECT * FROM  t_amz_settlement_report_archive
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </insert>
+   <insert id="moveDataArchive"  parameterType="com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport">
+		 INSERT INTO t_amz_settlement_report_archive
+		  SELECT * FROM  t_amz_settlement_report
+		 WHERE settlement_id =#{settlementId,jdbcType=CHAR} 
+  </insert>
+  <select id="settlement"  resultType="java.util.Map" parameterType="java.util.Map">
+		select  d.posted_date,sum(d.amount) 
+		from  
+		   t_amz_settlement_summary_day d
+		   left join t_amazon_auth a on a.id=d.amazonAuthId
+		where 
+		 d.posted_date>=#{begindate,jdbcType=DATE}
+		and d.posted_date&lt;=#{enddate,jdbcType=DATE}
+		<if test="marketplace_name != null">
+		    and d.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+	   <if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		and a.shop_id=#{shopid,jdbcType=CHAR}
+		and d.amount_description='Principal'
+		group by d.posted_date
+  </select>
+
+  <select id="findBySettlementAcc"  resultType="java.util.Map"  parameterType="java.util.Map">
+    select g.name groupname, r.*
+		from  
+		   t_amz_settlement_report   r
+		   left join t_amz_settlement_acc_report rt on rt.settlement_id=r.settlement_id
+		   left join t_amazon_auth a on a.id=r.amazonAuthId
+		   left join t_amazon_group g on g.id=a.groupid
+		where
+		   a.shop_id=#{shopid,jdbcType=CHAR}
+		 <if test="amazonauthid != null">
+		   and r.amazonAuthId=#{amazonauthid,jdbcType=CHAR} 
+		 </if>
+		 <if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR} 
+		</if>
+	    <if test="marketplace_name != null">
+			and rt.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+		</if>  
+	    <if test="settlementId != null">
+			 and r.settlement_id=#{settlementId,jdbcType=CHAR} 
+		</if>  
+		<if test="sku != null">
+			 and r.sku=#{sku,jdbcType=CHAR} 
+		</if>  
+		<if test="datetype == null ">
+		           <if test="fromDate!=null">
+			        and r.posted_date>=#{fromDate,jdbcType=CHAR}
+	  	            and r.posted_date&lt;=#{endDate,jdbcType=CHAR}
+	  	             </if>
+	  	 </if>
+	  	 <if test="datetype!=null">
+	  	         <if test="fromDate!=null">
+	  	         and rt.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+	  	         and rt.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+	  	         </if>
+	  	         <if test="setfromDate!=null">
+	  	         and r.posted_date>=#{setfromDate,jdbcType=CHAR}
+	  	         and r.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+	  	         </if>
+	  	    <if test="amazonauthid!=null">
+	  	          and rt.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+	  	     </if>
+	  	     <if test="marketplace_name!=null">
+	  	          and rt.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+	  	      </if>
+	  	  </if>
+	  	       
+	 
+    </select>
+    
+    <select id="getDetailSettment"  resultType="java.util.Map" parameterType="java.util.Map">
+      select transaction_type,amount_type,amount_description,sum(r.amount) amount,max(r.currency) currency
+		from  
+		   t_amz_settlement_summary_month   r
+		   left join t_amz_settlement_acc_report rt on rt.settlement_id=r.settlementid
+		where r.settlementid=#{settlement_id,jdbcType=CHAR}
+  	       <if test="amazonAuthId != null">
+			and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+		  </if>
+  	     group by transaction_type,amount_type,amount_description
+    </select>
+    
+     <select id="getDetail"  resultType="java.util.Map" parameterType="java.util.Map">
+      select transaction_type,amount_type,amount_description,DATE_FORMAT(r.posted_date,'%m-%d') posted_date,
+      sum(r.amount) amount,max(r.currency) currency
+		from  
+		   t_amz_settlement_report   r
+		   left join t_amz_settlement_acc_report rt on rt.settlement_id=r.settlement_id
+		where  1=1
+		 <if test="fromDate != null">
+		   and  r.posted_date>=#{fromDate,jdbcType=CHAR}
+  	       and r.posted_date&lt;=#{endDate,jdbcType=CHAR}
+  	       </if>
+  	       <if test="amazonAuthId != null">
+			and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+		  </if>
+	   <if test="market != null">
+			and  rt.marketplace_name=#{market,jdbcType=CHAR} 
+		</if>  
+	    <if test="sku != null">
+			 and ifnull(r.sku,'*')=#{sku,jdbcType=CHAR}
+		</if>  
+		<if test="settlement_id != null">
+			 and r.settlement_id=#{settlement_id,jdbcType=CHAR}
+		</if>  
+  	     group by transaction_type,amount_type,amount_description,r.posted_date
+    </select>
+    
+    <select id="getDetailDaySKU"  resultType="java.util.Map" parameterType="java.util.Map">
+      select transaction_type,amount_type,amount_description,DATE_FORMAT(r.posted_date,'%m-%d') posted_date,
+      sum(r.amount) amount,max(r.currency) currency
+		from  
+		   t_amz_settlement_summary_day   r
+		     <if test="datetype!=null">
+		    left join t_amz_settlement_acc_report acc on acc.settlement_id=r.settlementid
+		   </if>
+				where  1=1 
+			 <if test="datetype == null">
+			        and r.posted_date>=#{fromDate,jdbcType=CHAR}
+	  	            and r.posted_date&lt;=#{endDate,jdbcType=CHAR}
+	  	       </if>
+	  	        <if test="datetype!=null">
+	  	         and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+	  	         and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+	  	         and r.posted_date>=#{setfromDate,jdbcType=CHAR}
+	  	         and r.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+	  	        <if test="amazonauthid!=null">
+	  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+	  	        </if>
+	  	         <if test="marketplace_name!=null">
+	  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+	  	         </if>
+	  	       </if>
+  	    <if test="amazonAuthId != null">
+			and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+	   </if>
+	   <if test="market != null">
+			and  r.marketplace_name=#{market,jdbcType=CHAR} 
+		</if>  
+	    <if test="sku != null">
+			 and r.sku=#{sku,jdbcType=CHAR}
+		</if>  
+  	     group by transaction_type,amount_type,amount_description,r.posted_date
+    </select>
+    
+    <select id="getDescNotSKU"  resultType="java.util.Map" parameterType="java.util.Map">
+      select transaction_type,amount_type,amount_description
+		from  distinct t_amz_settlement_summary_day   r
+		where r.posted_date>=#{fromDate,jdbcType=CHAR}
+  	       and r.posted_date&lt;=#{endDate,jdbcType=CHAR}
+  	    <if test="amazonAuthId != null">
+			and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+	   </if>
+	   <if test="marketplace_name != null">
+			and  r.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+		</if>  
+          and r.sku='*'
+    </select>
+    
+   <select id="getDetailDaySKUOther"  resultType="java.util.Map" parameterType="java.util.Map">
+       select *from (
+       select transaction_type,amount_type,amount_description,DATE_FORMAT(r.posted_date,'%m-%d') posted_date,
+         sum(r.amount) amount,max(r.currency) currency
+		from  
+		   t_amz_settlement_summary_day r
+		   <if test="datetype!=null">
+		    left join t_amz_settlement_acc_report acc on acc.settlement_id=r.settlementid
+		   </if>
+		      where 1=1
+		   <if test="datetype==null">
+		   and r.posted_date>=#{fromDate,jdbcType=CHAR}
+  	       and r.posted_date&lt;=#{endDate,jdbcType=CHAR}
+  	       </if>
+  	         <if test="datetype!=null">
+  	         and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+  	         and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+  	         and r.posted_date>=#{setfromDate,jdbcType=CHAR}
+  	         and r.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+  	        <if test="amazonauthid!=null">
+  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+  	        </if>
+  	         <if test="marketplace_name!=null">
+  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+  	         </if>
+  	       </if>
+  	       <if test="amazonAuthId != null">
+			and r.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+			</if>
+	   <if test="market != null">
+			and  r.marketplace_name=#{market,jdbcType=CHAR} 
+		</if>  
+	    <if test="sku != null">
+			 and ifnull(r.sku,'*')=#{sku,jdbcType=CHAR}
+		</if>  
+  	     group by transaction_type,amount_type,amount_description,r.posted_date) v
+         where 
+                not(amount_description='Principal' and transaction_type='Order' ) 
+				and not(amount_description like 'Commission%' and  (transaction_type='Order' or  transaction_type='Refund') ) 
+				and not(amount_description like 'FBA%' and transaction_type='Order') 
+				and not(amount_description='Principal' and transaction_type='Refund') 
+			    AND ((currency!='EUR' and currency!='GBP') or not(amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice'))
+    </select>
+ 
+    <select id="getDetailDay"  resultType="java.util.Map" parameterType="java.util.Map">
+      select transaction_type,amount_type,amount_description,DATE_FORMAT(r.posted_date,'%m-%d') posted_date,
+      sum(r.amount) amount,max(r.currency) currency
+		from  
+		   t_amz_settlement_summary_month   r
+		   left join t_amazon_auth a on a.id=r.amazonauthid
+		   <if test="datetype != null">
+			 left join t_amz_settlement_acc_report acc on acc.settlement_id=r.settlementid
+		   </if>  
+		where 1=1
+			 <if test="datetype == null">
+		        and r.posted_date>=#{fromDate,jdbcType=CHAR}
+  	            and r.posted_date&lt;=#{endDate,jdbcType=CHAR}
+  	       </if>
+  	        <if test="datetype!=null">
+  	         and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+  	         and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+  	         and r.posted_date>=#{setfromDate,jdbcType=CHAR}
+  	         and r.posted_date&lt;=#{setendDate,jdbcType=CHAR}
+  	        <if test="amazonauthid!=null">
+  	          and acc.amazonauthid=#{amazonauthid,jdbcType=CHAR} 
+  	        </if>
+  	         <if test="marketplace_name!=null">
+  	          and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR} 
+  	         </if>
+  	       </if>
+  	       <if test="amazonAuths != null" >
+  	       and
+  	       	 (<foreach collection="amazonAuths" item="auth" index="auth_list"  open="(" separator="or" close=" )">
+             		r.amazonAuthId=#{auth.id,jdbcType=CHAR} 
+          	 </foreach>)
+  	       </if>
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>  
+	   <if test="market != null">
+			and  r.marketplace_name=#{market,jdbcType=CHAR} 
+		</if>  
+  	     group by transaction_type,amount_type,amount_description,r.posted_date
+    </select>
+
+    <select id="findSettlementID"  resultType="java.lang.Long"  parameterType="java.lang.String">
+    select distinct settlement_id
+		from  
+		   t_amz_settlement_report  
+		where
+		   amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+		   and marketplace_name=#{pointname,jdbcType=CHAR}
+        order by posted_date desc 
+    </select>
+    <select id="settlement_sum"  resultType="java.util.Map" parameterType="java.util.Map">
+		select sum(d.amount) 
+		from  
+		   t_amz_settlement_summary_day d
+		   left join t_amazon_auth a on a.id=d.amazonAuthId
+		where
+		 d.posted_date>=#{begindate,jdbcType=DATE}
+		and d.posted_date&lt;=#{enddate,jdbcType=DATE}
+		and d.amount_description='Principal' 
+	    and a.shop_id=#{shopid,jdbcType=CHAR}
+	    <if test="marketplace_name != null">
+		    and d.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+	   <if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+	   </if>
+   </select>
+  
+    <select id="settlement_sump"  resultType="java.util.Map" parameterType="java.util.Map">
+		select   sum(refundnum) refundnum,  sum(order_amount) order_amount, sum(sales) sales
+		from  
+		    t_amz_settlement_summary_sku
+		where 
+		    posted_date>=#{begindate,jdbcType=DATE}
+		    and posted_date&lt;=#{enddate,jdbcType=DATE}
+		  <if test="marketplace_name != null">
+		    and d.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		</if>
+	   <if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		    and a.shop_id=#{shopid,jdbcType=CHAR}
+
+  </select>
+    <delete id="deleteBatch" parameterType="java.util.Map" >
+    delete from t_amz_settlement_report
+    where settlement_id = #{settlement_id,jdbcType=BIGINT}
+  </delete>
+   <insert id="insertBatch"   parameterType="java.util.List">
+      insert into t_amz_settlement_report (id,
+      settlement_id, currency, transaction_type, order_id, 
+      merchant_order_id, adjustment_id, shipment_id, 
+      marketplace_name, amount_type, amount_description, 
+      amount, fulfillment_id, posted_date, 
+      posted_date_time, order_item_code, merchant_order_item_id, 
+      merchant_adjustment_item_id, sku, quantity_purchased, 
+      promotion_id,amazonAuthId)
+    values 
+    <foreach collection ="list" item="stm" index= "index" separator =",">
+    ( uuid_short(),#{stm.settlementId,jdbcType=BIGINT}, #{stm.currency,jdbcType=CHAR}, #{stm.transactionType,jdbcType=CHAR}, #{stm.orderId,jdbcType=CHAR}, 
+      #{stm.merchantOrderId,jdbcType=CHAR}, #{stm.adjustmentId,jdbcType=CHAR}, #{stm.shipmentId,jdbcType=CHAR}, 
+      #{stm.marketplaceName,jdbcType=CHAR}, #{stm.amountType,jdbcType=CHAR}, #{stm.amountDescription,jdbcType=CHAR}, 
+      #{stm.amount,jdbcType=DECIMAL},       #{stm.fulfillmentId,jdbcType=CHAR}, #{stm.postedDate,jdbcType=DATE}, 
+      #{stm.postedDateTime,jdbcType=TIMESTAMP}, #{stm.orderItemCode,jdbcType=CHAR}, #{stm.merchantOrderItemId,jdbcType=CHAR}, 
+      #{stm.merchantAdjustmentItemId,jdbcType=CHAR}, #{stm.sku,jdbcType=CHAR}, #{stm.quantityPurchased,jdbcType=INTEGER}, 
+      #{stm.promotionId,jdbcType=CHAR}, #{stm.amazonAuthId,jdbcType=CHAR}
+    )
+    </foreach> 
+    </insert>
+    
+   <insert id="insertReplaceBatch"   parameterType="java.util.List">
+      replace into t_amz_settlement_report (id,
+      settlement_id, currency, transaction_type, order_id, 
+      merchant_order_id, adjustment_id, shipment_id, 
+      marketplace_name, amount_type, amount_description, 
+      amount, fulfillment_id, posted_date, 
+      posted_date_time, order_item_code, merchant_order_item_id, 
+      merchant_adjustment_item_id, sku, quantity_purchased, 
+      promotion_id,amazonAuthId)
+    values 
+    <foreach collection ="list" item="stm" index= "index" separator =",">
+    ( #{stm.id,jdbcType=BIGINT},#{stm.settlementId,jdbcType=BIGINT}, #{stm.currency,jdbcType=CHAR}, #{stm.transactionType,jdbcType=CHAR}, #{stm.orderId,jdbcType=CHAR}, 
+      #{stm.merchantOrderId,jdbcType=CHAR}, #{stm.adjustmentId,jdbcType=CHAR}, #{stm.shipmentId,jdbcType=CHAR}, 
+      #{stm.marketplaceName,jdbcType=CHAR}, #{stm.amountType,jdbcType=CHAR}, #{stm.amountDescription,jdbcType=CHAR}, 
+      #{stm.amount,jdbcType=DECIMAL},       #{stm.fulfillmentId,jdbcType=CHAR}, #{stm.postedDate,jdbcType=DATE}, 
+      #{stm.postedDateTime,jdbcType=TIMESTAMP}, #{stm.orderItemCode,jdbcType=CHAR}, #{stm.merchantOrderItemId,jdbcType=CHAR}, 
+      #{stm.merchantAdjustmentItemId,jdbcType=CHAR}, #{stm.sku,jdbcType=CHAR}, #{stm.quantityPurchased,jdbcType=INTEGER}, 
+      #{stm.promotionId,jdbcType=CHAR}, #{stm.amazonAuthId,jdbcType=CHAR}
+    )
+    </foreach> 
+    </insert>
+    <select id="findSettlementByPostDateAndOrder" parameterType="java.lang.String" resultMap="BaseResultMap">
+    	SELECT * from t_amz_settlement_report t where t.order_id=#{orderid,jdbcType=CHAR}
+        and t.posted_date >= #{startDate,jdbcType=CHAR} and t.posted_date &lt;= #{endDate,jdbcType=CHAR}
+    </select>
+    
+    <select id="getTotalAmountBySettementId"  resultType="java.math.BigDecimal" parameterType="java.util.Map">
+		select  sum(amount) from t_amz_settlement_report 
+		WHERE settlement_id=#{settlement_id,jdbcType=CHAR}
+   </select>
+    
+</mapper>

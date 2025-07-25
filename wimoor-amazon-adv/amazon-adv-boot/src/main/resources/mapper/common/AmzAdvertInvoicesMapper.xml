@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.AmzAdvertInvoicesMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.AmzAdvertInvoices">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="countryCode" property="countrycode" jdbcType="CHAR" />
+		<result column="currencyCode" property="currencycode" jdbcType="CHAR" />
+		<result column="marketplaceId" property="marketplaceid" jdbcType="CHAR" />
+		<result column="timezone" property="timezone" jdbcType="CHAR" />
+		<result column="type" property="type" jdbcType="CHAR" />
+		<result column="dailyBudget" property="dailyBudget" jdbcType="CHAR" />
+		<result column="sellerId" property="sellerid" jdbcType="CHAR" />
+	</resultMap>
+
+
+	<select id="getInvoicesSummary" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT DATE_FORMAT(t.invoiceDay,'%Y-%m') times,SUM(t.amountDue_amount)*-1 amount
+		FROM t_amz_advert_invoices t
+		LEFT JOIN t_amz_adv_profile p ON t.profileid=p.id
+        LEFT JOIN t_amz_adv_auth a on a.id=p.advauthId
+		WHERE   t.`status`='PAID_IN_FULL'
+		<if test="groupid!=null">
+			AND a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="marketplaceid!=null">
+			AND p.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		</if>
+		 and a.shopid=#{shopid,jdbcType=CHAR}
+		 AND t.invoiceDay &gt;= #{fromDate,jdbcType=CHAR} AND t.invoiceDay &lt;= #{toDate,jdbcType=CHAR}
+		GROUP BY t.profileid,DATE_FORMAT(t.invoiceDay,'%Y-%m')
+	</select>
+
+</mapper>

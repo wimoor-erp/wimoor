@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.quote.purchase.mapper.PurchaseAlibabaOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.quote.purchase.pojo.entity.PurchaseAlibabaOrder">
+            <result property="id" column="id" />
+            <result property="sellerid" column="sellerID" />
+            <result property="buyerid" column="buyerID" />
+            <result property="price" column="price" />
+            <result property="entryid" column="entryid" />
+            <result property="remark" column="remark" />
+            <result property="createtime" column="createtime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,sellerID,buyerID,price,entryid,remark,
+        createtime
+    </sql>
+</mapper>

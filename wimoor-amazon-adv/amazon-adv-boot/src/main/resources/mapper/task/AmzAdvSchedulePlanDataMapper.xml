@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.task.dao.AmzAdvSchedulePlanDataMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.task.pojo.AmzAdvSchedulePlanData" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="planid" property="planid" jdbcType="CHAR" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="adId" property="adid" jdbcType="BIGINT" />
+    <result column="keywordId" property="keywordid" jdbcType="BIGINT" />
+    <result column="oldbid" property="oldbid" jdbcType="DECIMAL" />
+    <result column="oldstatus" property="oldstatus" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, planid, profileid, campaignId, adGroupId, adId, keywordId, oldbid, oldstatus, 
+    operator, opttime
+  </sql>
+   
+</mapper>

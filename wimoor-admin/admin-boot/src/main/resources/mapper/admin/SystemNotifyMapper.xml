@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.admin.mapper.SystemNotifyMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.admin.pojo.entity.SystemNotify">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="title" property="title" jdbcType="VARCHAR" />
+		<result column="content" property="content" jdbcType="VARCHAR" />
+		<result column="ftype" property="type" jdbcType="INTEGER" />
+		<result column="target" property="target" jdbcType="CHAR" />
+		<result column="action" property="action" jdbcType="CHAR" />
+		<result column="sender" property="sender" jdbcType="CHAR" />
+		<result column="receiver" property="receiver" jdbcType="CHAR" />
+		<result column="createdAt" property="createdat" jdbcType="TIMESTAMP" />
+		<result column="shopid" property="shopid" jdbcType="CHAR" />
+	</resultMap>
+	
+	<select id="findAnnounceAndRemaind" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select s.* from t_sys_notify s
+		left join t_sys_usernotify us on us.notify=s.id and us.userid=#{userid,jdbcType=CHAR}
+		where (`ftype`=1 or  `ftype`=2) 
+		and us.notify is null
+		<if test="lasttime !=null">
+			and s.createdat>#{lasttime,jdbcType=TIMESTAMP}
+		</if>
+		<if test="targetlist !=null">
+		    and target in
+			<foreach collection="targetlist" item="target" index="index" open="(" close=")" separator=",">
+				#{target,jdbcType=CHAR}
+			</foreach>
+		</if>
+			and (s.shopid=#{shopid,jdbcType=CHAR} or s.shopid is null)
+	</select>
+	
+	<select id="findAnnounceByNewUser" resultMap="BaseResultMap">
+		select t.* 
+		from t_sys_notify t
+		where `ftype`=1 
+		order by t.createdAt desc limit 1
+	</select>
+	
+	<select id="findRemindByLasttime" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select s.* 
+		from t_sys_notify s
+		left join t_sys_usernotify us on us.notify=s.id and us.userid=#{userid,jdbcType=CHAR}
+		where `ftype`=2 
+		and us.notify is null
+			and s.createdat>#{lasttime,jdbcType=TIMESTAMP}
+			and s.target=#{target,jdbcType=CHAR}
+			and s.shopid=#{shopid,jdbcType=CHAR}
+	</select>
+
+	<select id="findRemindByLastOne" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select s.* 
+		from t_sys_notify s
+		where `ftype`=2
+			and s.target=#{target,jdbcType=CHAR}
+			and s.shopid=#{shopid,jdbcType=CHAR}
+		ORDER BY s.createdAt desc limit 1
+	</select>
+
+	<select id="findMsgLimit" resultMap="BaseResultMap">
+		select * 
+		from t_sys_notify m 
+		where m.ftype=1
+		order by m.createdAt desc limit 10
+	</select>
+
+	<select id="findNoReadByUser" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select s.* from t_sys_usernotify t
+		left join t_sys_notify s on t.notify=s.id
+		where t.isRead=0 
+			and t.userid=#{userid,jdbcType=CHAR}  
+		 	and s.createdAt>date_add(now(), interval -10 day)
+			order BY s.ftype ASC ,s.createdAt DESC
+			limit 4
+	</select>
+	
+	<select id="findNoReadByUserAll" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select s.*,t.isRead  from t_sys_usernotify t
+		left join t_sys_notify s on t.notify=s.id
+		where t.isRead=0 
+			and t.userid=#{userid,jdbcType=CHAR}  
+		 	and s.createdAt>date_add(now(), interval -10 day)
+			order BY s.ftype ASC ,s.createdAt DESC
+	</select>
+	
+	
+	 
+	 <select id="findNoReadByUserCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(s.id) num from t_sys_usernotify t
+		left join t_sys_notify s on t.notify=s.id
+		where t.isRead=0  and t.userid=#{userid,jdbcType=CHAR} 
+	</select>
+	
+	<select id="findMaxKey" resultType="java.util.Map">
+		select max(t.id) id from t_sys_notify t
+	</select>
+	
+	<select id="findNotifyNums" resultType="java.util.Map" parameterType="java.lang.String">
+		select t.ftype ,count(*) nums 
+		from t_sys_notify t
+		left join t_sys_usernotify u on u.notify=t.id
+		where (t.ftype=3 or t.ftype=2)and u.isRead=0
+			and u.userid=#{userid,jdbcType=CHAR}
+		group by t.ftype
+	</select>
+	
+	<select id="findHasNotifyToday" parameterType="java.util.Map" resultMap="BaseResultMap" >
+		select * from  t_sys_notify t
+		where t.sender=#{sender,jdbcType=CHAR}
+		and t.ftype='2' and t.shopid=#{shopid,jdbcType=CHAR}
+		and t.target=#{target,jdbcType=CHAR}
+		and t.action=#{action,jdbcType=CHAR}
+		order by t.createdAt desc limit 1
+	</select>
+</mapper>

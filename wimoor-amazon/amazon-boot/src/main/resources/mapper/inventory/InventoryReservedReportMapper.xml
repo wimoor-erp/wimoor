@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inventory.mapper.InventoryReservedReportMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.InventoryReservedReport" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="byday" property="byday" jdbcType="TIMESTAMP" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="reserved_qty" property="reservedQty" jdbcType="INTEGER" />
+    <result column="reserved_customerorders" property="reservedCustomerorders" jdbcType="INTEGER" />
+    <result column="reserved_fc_transfers" property="reservedFcTransfers" jdbcType="INTEGER" />
+    <result column="reserved_fc_processing" property="reservedFcProcessing" jdbcType="INTEGER" />
+    <result column="amazonAuthId" property="amazonAuthId" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sku, marketplaceid, byday, fnsku, asin, reserved_qty, reserved_customerorders, 
+    reserved_fc_transfers, reserved_fc_processing, amazonAuthId
+  </sql>
+  
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_inventory_reserved_report
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_inventory_reserved_report
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.plum.frame.pojo.InventoryReservedReport" >
+    insert into t_inventory_reserved_report (id, sku, marketplaceid, 
+      byday, fnsku, asin, reserved_qty, 
+      reserved_customerorders, reserved_fc_transfers, 
+      reserved_fc_processing, amazonAuthId)
+    values (#{id,jdbcType=BIGINT}, #{sku,jdbcType=CHAR}, #{marketplaceid,jdbcType=CHAR}, 
+      #{byday,jdbcType=TIMESTAMP}, #{fnsku,jdbcType=CHAR}, #{asin,jdbcType=CHAR}, #{reservedQty,jdbcType=INTEGER}, 
+      #{reservedCustomerorders,jdbcType=INTEGER}, #{reservedFcTransfers,jdbcType=INTEGER}, 
+      #{reservedFcProcessing,jdbcType=INTEGER}, #{amazonauthid,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.plum.frame.pojo.InventoryReservedReport" >
+    insert into t_inventory_reserved_report
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="sku != null" >
+        sku,
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid,
+      </if>
+      <if test="byday != null" >
+        byday,
+      </if>
+      <if test="fnsku != null" >
+        fnsku,
+      </if>
+      <if test="asin != null" >
+        asin,
+      </if>
+      <if test="reservedQty != null" >
+        reserved_qty,
+      </if>
+      <if test="reservedCustomerorders != null" >
+        reserved_customerorders,
+      </if>
+      <if test="reservedFcTransfers != null" >
+        reserved_fc_transfers,
+      </if>
+      <if test="reservedFcProcessing != null" >
+        reserved_fc_processing,
+      </if>
+      <if test="amazonauthid != null" >
+        amazonAuthId,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="sku != null" >
+        #{sku,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="byday != null" >
+        #{byday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="fnsku != null" >
+        #{fnsku,jdbcType=CHAR},
+      </if>
+      <if test="asin != null" >
+        #{asin,jdbcType=CHAR},
+      </if>
+      <if test="reservedQty != null" >
+        #{reservedQty,jdbcType=INTEGER},
+      </if>
+      <if test="reservedCustomerorders != null" >
+        #{reservedCustomerorders,jdbcType=INTEGER},
+      </if>
+      <if test="reservedFcTransfers != null" >
+        #{reservedFcTransfers,jdbcType=INTEGER},
+      </if>
+      <if test="reservedFcProcessing != null" >
+        #{reservedFcProcessing,jdbcType=INTEGER},
+      </if>
+      <if test="amazonauthid != null" >
+        #{amazonauthid,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.plum.frame.pojo.InventoryReservedReport" >
+    update t_inventory_reserved_report
+    <set >
+      <if test="sku != null" >
+        sku = #{sku,jdbcType=CHAR},
+      </if>
+      <if test="marketplaceid != null" >
+        marketplaceid = #{marketplaceid,jdbcType=CHAR},
+      </if>
+      <if test="byday != null" >
+        byday = #{byday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="fnsku != null" >
+        fnsku = #{fnsku,jdbcType=CHAR},
+      </if>
+      <if test="asin != null" >
+        asin = #{asin,jdbcType=CHAR},
+      </if>
+      <if test="reservedQty != null" >
+        reserved_qty = #{reservedQty,jdbcType=INTEGER},
+      </if>
+      <if test="reservedCustomerorders != null" >
+        reserved_customerorders = #{reservedCustomerorders,jdbcType=INTEGER},
+      </if>
+      <if test="reservedFcTransfers != null" >
+        reserved_fc_transfers = #{reservedFcTransfers,jdbcType=INTEGER},
+      </if>
+      <if test="reservedFcProcessing != null" >
+        reserved_fc_processing = #{reservedFcProcessing,jdbcType=INTEGER},
+      </if>
+      <if test="amazonauthid != null" >
+        amazonAuthId = #{amazonauthid,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.plum.frame.pojo.InventoryReservedReport" >
+    update t_inventory_reserved_report
+    set sku = #{sku,jdbcType=CHAR},
+      marketplaceid = #{marketplaceid,jdbcType=CHAR},
+      byday = #{byday,jdbcType=TIMESTAMP},
+      fnsku = #{fnsku,jdbcType=CHAR},
+      asin = #{asin,jdbcType=CHAR},
+      reserved_qty = #{reservedQty,jdbcType=INTEGER},
+      reserved_customerorders = #{reservedCustomerorders,jdbcType=INTEGER},
+      reserved_fc_transfers = #{reservedFcTransfers,jdbcType=INTEGER},
+      reserved_fc_processing = #{reservedFcProcessing,jdbcType=INTEGER},
+      amazonAuthId = #{amazonauthid,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+ -->
+ </mapper>

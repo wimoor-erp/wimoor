@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.order.mapper.OrderListingMapper" >
+    <select id="summary" resultType="java.util.Map">
+        SELECT
+            COUNT(DISTINCT sku) qty,
+            SUM(case when ftype=0 then quantity ELSE 0 END ) purchaseqty,
+            SUM(case when ftype=1 then quantity ELSE 0 END ) shipqty
+        FROM  t_erp_order_plan
+        WHERE shopid=#{shopid,jdbcType=CHAR}
+    </select>
+</mapper>

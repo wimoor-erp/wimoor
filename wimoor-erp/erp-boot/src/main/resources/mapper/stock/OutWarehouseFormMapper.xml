@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.OutWarehouseFormMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.OutWarehouseForm" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="number" property="number" jdbcType="CHAR" />
+    <result column="auditor" property="auditor" jdbcType="CHAR" />
+    <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    <result column="creator" property="creator" jdbcType="CHAR" />
+    <result column="audittime" property="audittime" jdbcType="TIMESTAMP" />
+    <result column="auditstatus" property="auditstatus" jdbcType="INTEGER" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="purchaser" property="purchaser" jdbcType="CHAR" />
+    <result column="toaddress" property="toaddress" jdbcType="VARCHAR" />
+    <result column="express" property="express" jdbcType="VARCHAR" />
+    <result column="expressno" property="expressno" jdbcType="CHAR" />
+     <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, number, auditor, creator, audittime, auditstatus, remark, opttime, operator,shopid,warehouseid,
+    purchaser,toaddress,express,expressno,createdate
+  </sql>
+  <select id="findByCondition" resultType="java.util.Map" parameterType="java.lang.String" >
+    select  a.id,a.number number,max(u.name) creator,a.auditstatus auditstatus,a.remark remark,
+    ifnull(a.customer,max(c.name)) customer,a.toaddress,a.express,a.expressno,
+    a.opttime opttime,max(w.name) wtoname 
+    from t_erp_outwh_form a LEFT JOIN t_userinfo u on a.creator = u.id 
+        left join t_erp_warehouse w on w.id=a.warehouseid
+		LEFT JOIN t_erp_outwh_form_entry b on a.id = b.formid
+		LEFT join t_erp_material m on b.materialid = m.id 
+		left join t_erp_customer c on c.id=a.purchaser
+    where a.shopid = #{params.shopid,jdbcType=CHAR}  
+    <if test="params.warehouseid != null" >
+	 and a.warehouseid = #{params.warehouseid,jdbcType=CHAR} 
+     </if>
+    <if test="params.search != null" >
+	 and (m.sku like #{params.search,jdbcType=CHAR} 
+	 or a.number like #{params.search,jdbcType=CHAR} ) 
+     </if> 
+     <if test="params.fromDate != null and params.endDate != null"> 
+      		and DATE_FORMAT(a.opttime,'%Y-%m-%d') &gt;=#{params.fromDate,jdbcType=DATE}
+   	 		and  DATE_FORMAT(a.opttime,'%Y-%m-%d') &lt;=#{params.endDate,jdbcType=DATE} 
+      </if>
+     group by a.id
+  </select>
+  
+  <select id="findDetailByCondition" resultType="java.util.Map" parameterType="java.util.Map" >
+  	SELECT f.number,w.name warehouse,u.name creator,DATE_FORMAT(f.opttime,'%Y-%m-%d %T') opttime,
+  		f.remark,m.sku,m.name,IFNULL(i.quantity,0) quantity,entry.* 
+	from t_erp_outwh_form f 
+	left join t_erp_outwh_form_entry entry on f.id=entry.formid 
+	left join t_erp_warehouse w on w.id=f.warehouseid 
+	LEFT JOIN t_userinfo u on f.creator = u.id 
+	LEFT join t_erp_material m on entry.materialid = m.id 
+	left join t_erp_inventory i on i.warehouseid=w.id and i.materialid=m.id and i.`status`='fulfillable' and i.shopid=f.shopid 
+	where f.shopid=#{params.shopid,jdbcType=CHAR}   
+	<if test="params.warehouseid != null" >
+	 and f.warehouseid = #{params.warehouseid,jdbcType=CHAR} 
+     </if>
+     <if test="params.search != null" >
+	 and (m.sku like #{params.search,jdbcType=CHAR} 
+	 or f.number like #{params.search,jdbcType=CHAR} ) 
+     </if> 
+     <if test="params.fromDate != null and params.endDate != null"> 
+      	and DATE_FORMAT(f.opttime,'%Y-%m-%d') &gt;=#{params.fromDate,jdbcType=DATE}
+   	 	and  DATE_FORMAT(f.opttime,'%Y-%m-%d') &lt;=#{params.endDate,jdbcType=DATE} 
+     </if>
+  </select>
+  
+  <select id="findById" resultType="java.util.Map" parameterType="java.lang.String" >
+   select w.name warehouse,u.name creator,a.*,ifnull(a.customer,c.name) customers  
+    from t_erp_outwh_form a 
+    LEFT JOIN  t_erp_warehouse w on a.warehouseid = w.id 
+	left join t_erp_customer c on c.id=a.purchaser
+	LEFT JOIN t_userinfo u on a.creator=u.id 
+    where a.id = #{id,jdbcType=CHAR};
+  </select>
+  
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_inwh_form
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_inwh_form
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.InWarehouseForm" >
+    insert into t_erp_inwh_form (id, number, auditor, creator, 
+      audittime, auditstatus, remark, 
+      opttime, operator)
+    values (#{id,jdbcType=CHAR}, #{number,jdbcType=CHAR}, #{auditor,jdbcType=CHAR}, #{creator,jdbcType=CHAR}, 
+      #{audittime,jdbcType=TIMESTAMP}, #{auditstatus,jdbcType=INTEGER}, #{remark,jdbcType=VARCHAR}, 
+      #{opttime,jdbcType=TIMESTAMP}, #{operator,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.InWarehouseForm" >
+    insert into t_erp_inwh_form
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="number != null" >
+        number,
+      </if>
+      <if test="auditor != null" >
+        auditor,
+      </if>
+      <if test="creator != null" >
+        creator,
+      </if>
+      <if test="audittime != null" >
+        audittime,
+      </if>
+      <if test="auditstatus != null" >
+        auditstatus,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="number != null" >
+        #{number,jdbcType=CHAR},
+      </if>
+      <if test="auditor != null" >
+        #{auditor,jdbcType=CHAR},
+      </if>
+      <if test="creator != null" >
+        #{creator,jdbcType=CHAR},
+      </if>
+      <if test="audittime != null" >
+        #{audittime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="auditstatus != null" >
+        #{auditstatus,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.InWarehouseForm" >
+    update t_erp_inwh_form
+    <set >
+      <if test="number != null" >
+        number = #{number,jdbcType=CHAR},
+      </if>
+      <if test="auditor != null" >
+        auditor = #{auditor,jdbcType=CHAR},
+      </if>
+      <if test="creator != null" >
+        creator = #{creator,jdbcType=CHAR},
+      </if>
+      <if test="audittime != null" >
+        audittime = #{audittime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="auditstatus != null" >
+        auditstatus = #{auditstatus,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="opttime != null" >
+        opttime = #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        operator = #{operator,jdbcType=CHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.InWarehouseForm" >
+    update t_erp_inwh_form
+    set number = #{number,jdbcType=CHAR},
+      auditor = #{auditor,jdbcType=CHAR},
+      creator = #{creator,jdbcType=CHAR},
+      audittime = #{audittime,jdbcType=TIMESTAMP},
+      auditstatus = #{auditstatus,jdbcType=INTEGER},
+      remark = #{remark,jdbcType=VARCHAR},
+      opttime = #{opttime,jdbcType=TIMESTAMP},
+      operator = #{operator,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>
