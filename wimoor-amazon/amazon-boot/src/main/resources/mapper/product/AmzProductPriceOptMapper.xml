@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductPriceOptMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductPriceOpt" >
+    <id column="pid" property="pid" jdbcType="CHAR" />
+    <id column="feed_submission_id" property="feedSubmissionId" jdbcType="CHAR" />
+    <result column="standardprice" property="standardprice" jdbcType="DECIMAL" />
+    <result column="saleprice" property="saleprice" jdbcType="DECIMAL" />
+    <result column="starttime" property="starttime" jdbcType="TIMESTAMP" />
+    <result column="endtime" property="endtime" jdbcType="TIMESTAMP" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    pid, feed_submission_id, standardprice, saleprice, starttime, endtime, opttime,ftype, operator
+  </sql>
+  
+  <select id="findProPriceByUser" parameterType="java.lang.String" resultType="java.util.Map" >
+  	select t.pid pid,t.standardprice price,t.feed_submission_id submissionid,
+	case when  f.feed_processing_status IS NULL then 
+	  case when que.process_log IS NOT NULL AND que.process_log LIKE '%Feed rejected%' then 'Error' ELSE 'waiting' END 
+	ELSE f.feed_processing_status END  	pricestatus,
+   case when  fs.name IS NULL then 
+	  case when que.process_log IS NOT NULL AND que.process_log LIKE '%Feed rejected%' then '排队失败' ELSE '排队中'    END 
+	ELSE fs.name END  	pricestatusname,
+	    u.name username,t.*
+  	 from t_amz_pdt_price_opt t 
+  	left join t_product_info i on i.id=t.pid
+  	left join t_amazon_auth a on a.id=i.amazonAuthId
+	LEFT JOIN t_amz_submitfeed_queue que ON que.id=t.feed_submission_id
+	left join t_amz_submitfeed f ON f.feed_submissionid=que.submitfeedid
+	left join t_erp_amazon_feedstatus fs on fs.status=f.feed_processing_status
+	left join t_userinfo u on u.id=t.operator
+	where  t.pid=#{pid,jdbcType=CHAR} and t.ftype =#{ftype,jdbcType=CHAR} 
+	order by t.opttime desc limit 10
+  </select>
+ 
+</mapper>

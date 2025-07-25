@@ -1,0 +1,1 @@
+package com.wimoor.sys.gc.constant;/** * 常量类 * */public interface BooleanConst {    String FALSE_STR = "false";    String TRUE_STE = "true";    boolean FALSE = false;    boolean TRUE = true;}

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvProductTargeNegativaMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sp.pojo.AmzAdvProductTargeNegativa" >
+    <id column="targetId" property="targetid" jdbcType="BIGINT" />
+    <result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <result column="adGroupId" property="adgroupid" jdbcType="BIGINT" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="expressionType" property="expressiontype" jdbcType="CHAR" />
+    <result column="expression" property="expression" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    targetId, campaignId, adGroupId, expressionType, expression, state, profileid, 
+    opttime
+  </sql>
+ <insert id="insertBatch"   parameterType="java.util.List">
+    replace into t_amz_adv_product_targe_negativa ( 
+          targetId, campaignId, adGroupId, expressionType, expression, state, profileid, 
+    opttime)
+    values 
+    <foreach collection ="list" item="adv" index= "index" separator =",">
+    (
+      #{adv.targetid,jdbcType=BIGINT},#{adv.campaignid,jdbcType=BIGINT}, #{adv.adgroupid,jdbcType=BIGINT},
+      #{adv.expressiontype,jdbcType=CHAR}, #{adv.expression,jdbcType=VARCHAR},
+      #{adv.state,jdbcType=CHAR},#{adv.profileid,jdbcType=BIGINT}, #{adv.opttime,jdbcType=TIMESTAMP}
+    )
+    </foreach>
+  </insert>
+  
+  <select id="getProductNegativaTargeList" resultType="java.util.Map" parameterType="java.util.Map" >
+   select t.adGroupId,t.campaignId,t.profileid,t.targetId id,t.state status,t.expression,t.expressionType,mk.name market,
+  			tk.remark,p.marketplaceId marketplaceid,a.groupid groupid,tg.name groupname,t.opttime,
+  			tc.name campaignName,tc.state campaignStatus,tgp.name adGroupName,tgp.state adGroupStatus  ,'SP' campaignType
+	    from t_amz_adv_product_targe_negativa t
+		left join t_amz_adv_profile p on t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_adgroups tgp on t.adGroupId = tgp.adGroupId and t.campaignId = tgp.campaignId and t.profileid = tgp.profileid  
+		left join t_amz_adv_remark tk on tk.targetId = t.targetId and tk.adgroupId = t.adGroupId and t.campaignId = tk.campaignId and p.id = tk.profileid and tk.adId = 0 and tk.keywordId = 0
+  		where a.shopid = #{shopid,jdbcType=CHAR}
+  		<if test="campaignid != null">
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="adGroupid != null">
+			and t.adGroupId = #{adGroupid,jdbcType=BIGINT}
+		</if>
+		<if test="adGroupName != null and adGroupName != ''">
+			and tgp.name like #{adGroupName,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and (tc.state = #{campaignStatus,jdbcType=CHAR} or tc.state = #{campaignStatusUppercase,jdbcType=CHAR})
+		</if>
+		<if test="targetingType != null">
+			and (tc.targetingType = #{targetingType,jdbcType=CHAR} or  tc.targetingType = #{targetingTypeUppercase,jdbcType=CHAR})
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus != 'runing' and adGroupsStatus != 'stoping'">
+			and (tgp.state = #{adGroupsStatus,jdbcType=CHAR} or tgp.state = #{adGroupsStatusUppercase,jdbcType=CHAR})
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'runing'">
+			and (tc.state = 'enabled' or tc.state = 'ENABLED')
+			and (tgp.state = 'enabled' or tgp.state = 'ENABLED')
+		</if>
+		<if test="adGroupsStatus != null and adGroupsStatus == 'stoping'">
+			and ((tgp.state = 'paused' or (tgp.state = 'enabled' and
+			(tc.state = 'paused' or tc.state = 'archived')))
+			or (
+			tgp.state = 'PAUSED' or (tgp.state = 'ENABLED' and
+			(tc.state = 'PAUSED' or tc.state = 'ARCHIVED'))
+			))
+		</if>
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+				and (t.state = #{state,jdbcType=CHAR} or t.state = #{stateUppercase,jdbcType=CHAR})
+		</if>
+		<if test="state != null and state == 'runing'">
+			and (t.state = 'enabled' or t.state = 'ENABLED')
+			and (tc.state = 'enabled' or tc.state = 'ENABLED')
+			and (tgp.state = 'enabled' or tgp.state = 'ENABLED')
+		</if>
+		<if test="state != null and state == 'stoping'">
+			 and (t.state = 'paused' or (t.state = 'enabled' and
+			(tc.state = 'paused' or tc.state = 'archived' or tgp.state = 'paused' or tgp.state = 'archived')))
+			or (
+			t.state = 'PAUSED' or (t.state = 'ENABLED' and
+			(tc.state = 'PAUSED' or tc.state = 'ARCHIVED' or tgp.state = 'PAUSED' or tgp.state = 'ARCHIVED'))
+			))
+			
+		</if>
+		<if test="state == null">
+				and (t.state = 'paused' or t.state = 'enabled' or t.state = 'PAUSED' or t.state = 'ENABLED')  
+		</if>
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		 <if test="portfolios != null ">
+			and  tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+	    <if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+  		<if test="search != null and search != '%%'">
+			and t.expression like #{search,jdbcType=CHAR}
+		</if>
+  </select>
+  
+   
+  
+</mapper>

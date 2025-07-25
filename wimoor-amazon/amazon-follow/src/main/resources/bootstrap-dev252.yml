@@ -1,0 +1,25 @@
+server:
+  port: 8094
+  servlet:
+    context-path: /amazonfollow
+spring:
+  application:
+    name: wimoor-amazon-follow
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.0.135:8848
+        namespace: prod_liufei
+        ip: 192.168.0.129
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: Properties
+        namespace: prod_liufei
+        # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
+ 

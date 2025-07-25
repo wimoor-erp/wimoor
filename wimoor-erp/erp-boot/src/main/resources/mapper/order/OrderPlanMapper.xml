@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.order.mapper.OrderPlanMapper" >
+    <select id="findByCondition" resultType="java.util.Map">
+        select
+            m.id,
+            m.name name,
+            m.issfg issfg,
+            p1.location image,
+            ifnull(m.boxnum,0) boxnum,
+            m.sku,
+            mn.mark notice,
+            m.addfee addfee,
+            case when mh.materialid is null then 0 else 1 end ishide,
+            ifnull(inv.fulfillable,0) fulfillable,
+            ifnull(inv.outbound,0) outbound,
+            ifnull(inv.inbound,0) inbound,
+            v.amount canAssembly,
+            v.inshelfamount canAssemblyShelf,
+            ifnull(inv.fulfillable,0) quantity,
+            ifnull(shelfinv.shelfqty,0) quantityShelf,
+            w.name warehousename,
+            item.quantity reallyamount,
+            item.quantity amount,
+            case when ifnull(inv.fulfillable,0)+ifnull(inv.inbound,0)>ifnull(plan.quantity,0)
+                then 0 else ifnull(plan.quantity,0)-ifnull(inv.fulfillable,0)-ifnull(inv.inbound,0) end as planamount,
+            ifnull(inv.fulfillable,0)+ifnull(inv.inbound,0) quantity,
+            plan.quantity needpurchase,
+            plan.planqty planqty,
+            m.issfg,
+            m.price,
+            m.delivery_cycle,
+            ifnull(dd.length,0)*ifnull(dd.width,0)*ifnull(dd.height,0) pkgcm3,
+            ifnull(dd.weight,0) pkgweight,
+            ifnull(bd.length,0)*ifnull(bd.width,0)*ifnull(bd.height,0) boxcm3,
+            ifnull(bd.weight,0) boxweight,
+            case when ifnull(plan.planqty,0)>0 or ifnull(item.quantity,0)>0 then 1 else 0 end as isplan
+           from (select ol.shopid,
+                     ifnull(ol.msku,ol.sku) sku,
+                     sum(ol.purchaseqty) quantity,
+                     sum(p.quantity) planqty
+                               from t_erp_order_listing ol
+                               left join t_erp_order_plan p on p.shopid=ol.shopid
+                               and p.warehouseid=ol.warehouseid
+                               and p.sku=ol.sku
+                where ol.shopid=#{param.shopid,jdbcType=CHAR}
+              group by ol.shopid,ifnull(ol.msku,ol.sku))  plan
+                 left join t_erp_material m on m.sku=plan.sku and m.shopid=plan.shopid and m.mtype=0 and m.isdelete=false
+                  left join t_picture p1 on p1.id=m.image
+                  left join t_dimensions dd on dd.id=m.pkgDimensions
+                  left join t_dimensions bd on bd.id=m.boxDimensions
+                  left join t_erp_material_mark mn on mn.materialid=m.id and mn.ftype='notice'
+                  left join t_erp_material_mark mh on mh.materialid=m.id and mh.ftype='phide'
+                  left join t_userinfo usi on usi.id=mn.operator
+                  left join t_erp_order_plan item on item.sku=m.sku and item.ftype=0  and item.warehouseid= #{param.warehouseid,jdbcType=CHAR}
+                  left join t_erp_warehouse w on w.id=  #{param.warehouseid,jdbcType=CHAR}
+                  left join (SELECT  e.mainmid,
+                                     min(FLOOR(case when canas>ifnull(inv.quantity,0)/(e.units)  then ifnull(inv.quantity,0)/(e.units) ELSE canas END)) amount,
+                                     min(FLOOR(case when canas>ifnull(case when ifnull(s.shelfqty,0)> ifnull(inv.quantity,0) then inv.quantity else  s.shelfqty end ,0)/(e.units)
+                                                        then ifnull(case when ifnull(s.shelfqty,0)> ifnull(inv.quantity,0) then inv.quantity else  s.shelfqty end,0)/(e.units) ELSE canas END)) inshelfamount
+                             FROM (
+                                      SELECT f.mainmid,e.materialid,
+                                             max(e.amount/f.amount) units,
+                                             SUM(f.amount-f.amount_handle) canas
+                                      from t_erp_assembly_form  f
+                                               left join t_erp_assembly_form_entry e on f.id=e.formid
+                                      WHERE f.warehouseid=#{param.warehouseid,jdbcType=CHAR} and f.shopid=#{param.shopid,jdbcType=CHAR}
+                                        and f.ftype='ass'
+                                        and (auditstatus=1 OR auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0))
+                                      GROUP BY  f.mainmid,e.materialid
+                                  ) e
+                                      left join t_erp_inventory inv on inv.materialid=e.materialid 	 and inv.warehouseid=#{param.warehouseid,jdbcType=CHAR} and inv.status='fulfillable'
+                                      left join (
+                                 select sum(quantity) shelfqty,materialid  from  t_erp_warehouse_shelf_inventory
+                                 where shopid=#{param.shopid,jdbcType=CHAR}  and  warehouseid= #{param.warehouseid,jdbcType=CHAR}
+                                 group by materialid
+                             ) s  on s.materialid=e.materialid
+                             group by mainmid) v on v.mainmid=m.id
+                  left join (
+            SELECT  i.materialid,
+                    sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+                    sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+                    sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+            from t_erp_inventory i
+            where i.shopid=#{param.shopid,jdbcType=CHAR}
+              and i.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+            group by i.shopid,warehouseid,i.materialid
+        )  inv on inv.materialid=m.id
+                  left join (
+            select sum(quantity) shelfqty,materialid
+            from  t_erp_warehouse_shelf_inventory
+            where shopid=#{param.shopid,jdbcType=CHAR}
+              and  warehouseid= #{param.warehouseid,jdbcType=CHAR}
+            group by materialid
+        ) shelfinv  on shelfinv.materialid=m.id
+           left join (
+            SELECT f.mainmid purchaseAssMainId,
+                   SUM(f.amount-f.amount_handle) purcanassembly
+            from t_erp_assembly_form  f
+            WHERE  f.shopid=#{param.shopid,jdbcType=CHAR}
+              and f.ftype='ass'
+              and (auditstatus=2) AND (f.amount>ifnull(f.amount_handle,0)) and f.createdate>DATE_sub(NOW(),INTERVAL 180 day)
+            GROUP BY  f.mainmid ) ass on  ass.purchaseAssMainId=m.id
+        where m.shopid=#{param.shopid,jdbcType=CHAR} and m.isdelete=false and m.mtype=0
+        <if test="param.searchtype=='sku'">
+            <if test="param.search!=null">
+                and m.sku like concat('%',#{param.search,jdbcType=VARCHAR},'%')
+            </if>
+        </if>
+        <if test="param.owner!=null and param.owner!=''">
+            and m.owner=#{param.owner,jdbcType=CHAR}
+        </if>
+        <if test="param.tags!=null">
+            and exists(select mid from t_erp_material_tags where mid=m.id and tagid in (
+            <if test="param.tags.size()==0">
+                '000'
+            </if>
+            <foreach collection="param.tags" item="tags" index="index" separator=",">
+                #{tags,jdbcType=CHAR}
+            </foreach>
+            ))
+        </if>
+
+        <if test="param.issfg==1">
+            and m.issfg = '1'
+        </if>
+        <if test="param.issfg==0">
+            and (m.issfg ='0' or m.issfg ='2')
+        </if>
+        <if test="param.remark!=null">
+            and mn.mark like #{param.remark,jdbcType=CHAR}
+        </if>
+        <if test='param.status2 =="shownormal"'>
+            and mh.ftype is null
+        </if>
+        <if test='param.status2 =="showhid"'>
+            and mh.ftype='phide'
+        </if>
+        <if test="param.name!=null">
+            and m.name like #{param.name,jdbcType=CHAR}
+        </if>
+        <if test="param.categoryid!=null">
+            and m.categoryid=#{param.categoryid,jdbcType=CHAR}
+        </if>
+        <if test="param.skulist!=null">
+            and m.sku in
+            <foreach collection="param.skulist" item="msku" index="i" open="(" separator="," close=" )">
+                #{msku,jdbcType=CHAR}
+            </foreach>
+        </if>
+    </select>
+    <select id="getPlanData" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT v.*,
+        ifnull(trans.name,v2.name) transtypename,
+        ifnull(ol.msalesavg,0) msalesavg,
+        ifnull(trans.id,v2.id) settranstype,
+        ifnull(ifnull(cy.stockingCycle,v2.stocking_cycle),3) stocking_cycle,
+        IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7) min_cycle,
+        IFNULL(v2.put_on_days,2) put_on_days,
+        IFNULL(ifnull(cy.first_leg_charges,v2.first_leg_days),30) first_leg_days,
+        (ifnull(v2.stocking_cycle,0)+IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7)+ifnull(v2.put_on_days,0)+ifnull(v2.first_leg_days,0))	shipday,
+        ifnull(i.quantity,0) + ifnull((select sum(e.amount)
+        from t_erp_dispatch_oversea_form  f
+        left join t_erp_dispatch_oversea_form_entry e on e.formid=f.id
+        where f.to_warehouseid=ww.id
+        and e.materialid=m.id
+        and f.auditstatus>0
+        and f.auditstatus&lt;4),0) fulfillable,
+        ww.id localwarehouseid,
+        m.delivery_cycle,
+        ifnull(ww.name,thirdwarehouse) localwarehousename
+        FROM
+        (SELECT
+        o.shopid,
+        o.country,
+        max(o.thirdparty_warehouseid) thirdparty_warehouseid,
+        o.sku,
+        max(w.name) thirdwarehouse,
+        b.local_warehouse_id  localwarehouseid,
+        SUM(case when o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) then o.quantity ELSE 0 END  ) sales30,
+        sum(case when o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 7 DAY) then o.quantity ELSE 0 END  ) sales7,
+        sum(case when o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 15 DAY) then o.quantity ELSE 0 END  ) sales15
+        from t_erp_order o
+        LEFT JOIN t_erp_thirdparty_warehouse w ON w.id=o.thirdparty_warehouseid
+        LEFT JOIN t_erp_order_platform p ON p.id=o.platform_id
+        LEFT JOIN t_erp_thirdparty_warehouse_bind b ON b.thirdparty_warehouse_id=w.id
+        WHERE  o.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.sku!=null">
+            and o.sku=#{param.sku,jdbcType=CHAR}
+        </if>
+        AND o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY)
+        GROUP BY o.shopid, o.country,b.local_warehouse_id,o.sku
+        ) v
+        LEFT JOIN t_erp_warehouse ww ON ww.id=v.localwarehouseid
+        left join t_erp_order_listing ol on ol.warehouseid=v.localwarehouseid and ol.sku=v.sku and ol.shopid=v.shopid and v.country=ol.country
+        LEFT JOIN t_erp_material m ON m.sku=ifnull(ol.msku,v.sku)  AND m.shopid=v.shopid AND m.isDelete=false
+        LEFT JOIN t_erp_inventory i ON i.warehouseid=v.localwarehouseid AND i.materialid=m.id AND i.shopid=m.shopid AND i.`status`='fulfillable'
+        left join t_erp_order_plan plan on plan.warehouseid=v.localwarehouseid AND plan.sku=v.sku AND plan.shopid=m.shopid AND plan.ftype=1
+        LEFT JOIN t_erp_order_shipcycle cy ON cy.warehouseid=v.localwarehouseid AND cy.sku=v.sku
+        LEFT JOIN t_erp_transtype trans ON trans.id=ifnull(cy.transtype ,1)
+        LEFT JOIN
+        (SELECT
+        t.name,t.id,
+        ifnull(m.market,'EU') country,
+        ifnull(c.stocking_cycle,3) stocking_cycle,
+        IFNULL(c.min_cycle,7) min_cycle,
+        IFNULL(c.put_on_days,2) put_on_days,
+        IFNULL(c.first_leg_days,30) first_leg_days
+        FROM
+        t_marketplace m
+        left JOIN   t_erp_oversea_cycle c ON c.country=m.market
+        AND c.shopid=#{param.shopid,jdbcType=CHAR}
+        AND c.transtype=1
+        LEFT JOIN t_erp_transtype t ON t.id=ifnull(c.transtype ,1)
+        ) v2 ON v2.country=v.country
+        UNION
+        SELECT
+        ol.shopid,
+        ol.country,
+        NULL thirdparty_warehouseid,
+        ol.sku,
+        ww.name thirdwarehouse,
+        ol.warehouseid  localwarehouseid,
+        0 sales30,
+        0 sales7,
+        0 sales15,
+        ifnull(trans.name,v2.name) transtypename,
+        ifnull(ol.msalesavg,0) msalesavg,
+        ifnull(trans.id,v2.id) settranstype,
+        ifnull(ifnull(cy.stockingCycle,v2.stocking_cycle),3) stocking_cycle,
+        IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7) min_cycle,
+        IFNULL(v2.put_on_days,2) put_on_days,
+        IFNULL(ifnull(cy.first_leg_charges,v2.first_leg_days),30) first_leg_days,
+        (ifnull(v2.stocking_cycle,0)+IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7)+ifnull(v2.put_on_days,0)+ifnull(v2.first_leg_days,0))	shipday,
+        i.quantity fulfillable,
+        ww.id localwarehouseid,
+        m.delivery_cycle,
+        ifnull(ww.name,thirdwarehouse) localwarehousename
+        FROM t_erp_order_listing ol
+        LEFT JOIN   (SELECT
+        o.shopid,
+        o.country,
+        max(o.thirdparty_warehouseid) thirdparty_warehouseid,
+        o.sku,
+        max(w.name) thirdwarehouse,
+        b.local_warehouse_id  localwarehouseid,
+        SUM(case when o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY) then o.quantity ELSE 0 END  ) sales30,
+        sum(case when o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 7 DAY) then o.quantity ELSE 0 END  ) sales7,
+        sum(case when o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 15 DAY) then o.quantity ELSE 0 END  ) sales15
+        FROM  t_erp_order o
+        LEFT JOIN t_erp_thirdparty_warehouse w ON w.id=o.thirdparty_warehouseid
+        LEFT JOIN t_erp_order_platform p ON p.id=o.platform_id
+        LEFT JOIN t_erp_thirdparty_warehouse_bind b ON b.thirdparty_warehouse_id=w.id
+        WHERE  o.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.sku!=null">
+            and o.sku=#{param.sku,jdbcType=CHAR}
+        </if>
+        AND o.purchase_date>=DATE_SUB(CURRENT_DATE(),INTERVAL 30 DAY)
+        GROUP BY o.shopid, o.country,b.local_warehouse_id,o.sku
+        ) v  on ol.warehouseid=v.localwarehouseid and ol.sku=v.sku and ol.shopid=v.shopid and v.country=ol.country
+        LEFT JOIN t_erp_warehouse ww ON ww.id=ol.warehouseid
+        LEFT JOIN t_erp_material m ON m.sku=ifnull(ol.msku,ol.sku)  AND m.shopid=ol.shopid AND m.isDelete=false
+        LEFT JOIN t_erp_inventory i ON i.warehouseid=ol.warehouseid AND i.materialid=m.id AND i.shopid=m.shopid AND i.`status`='fulfillable'
+        left join t_erp_order_plan plan on plan.warehouseid=ol.warehouseid AND plan.sku=ol.sku AND plan.shopid=m.shopid AND plan.ftype=1
+        LEFT JOIN t_erp_order_shipcycle cy ON cy.warehouseid=ol.warehouseid AND cy.sku=ol.sku
+        LEFT JOIN t_erp_transtype trans ON trans.id=ifnull(cy.transtype ,1)
+        LEFT JOIN
+        (SELECT
+        t.name,t.id,
+        ifnull(m.market,'EU') country,
+        ifnull(c.stocking_cycle,3) stocking_cycle,
+        IFNULL(c.min_cycle,7) min_cycle,
+        IFNULL(c.put_on_days,2) put_on_days,
+        IFNULL(c.first_leg_days,30) first_leg_days
+        FROM
+        t_marketplace m
+        left JOIN   t_erp_oversea_cycle c ON c.country=m.market
+        AND c.shopid=#{param.shopid,jdbcType=CHAR}
+        AND c.transtype=1
+        LEFT JOIN t_erp_transtype t ON t.id=ifnull(c.transtype ,1)
+        ) v2 ON v2.country=ol.country
+        WHERE v.sku IS NULL AND ol.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.sku!=null">
+            and ol.sku=#{param.sku,jdbcType=CHAR}
+        </if>
+    </select>
+
+    <select id="getExpandCountryData" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT ol.*,
+               ifnull(trans.name,v2.name) transtypename,
+               ifnull(trans.id,v2.id) settranstype,
+               ifnull(ifnull(cy.stockingCycle,v2.stocking_cycle),3) stocking_cycle,
+               IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7) min_cycle,
+               IFNULL(v2.put_on_days,2) put_on_days,
+               IFNULL(ifnull(cy.first_leg_charges,v2.first_leg_days),30) first_leg_days,
+               (ifnull(v2.stocking_cycle,0)+ifnull(v2.min_cycle,0)+ifnull(v2.put_on_days,0)+ifnull(v2.first_leg_days,0))	shipday,
+               ifnull(i.quantity,0)  fulfillable,
+                ifnull((select sum(e.amount)
+                from t_erp_dispatch_oversea_form  f
+                left join t_erp_dispatch_oversea_form_entry e on e.formid=f.id
+                where f.to_warehouseid=ww.id
+                and e.materialid=m.id
+                and f.auditstatus>0
+                and f.auditstatus&lt;4),0) inbound,
+               ww.id localwarehouseid,
+               m.delivery_cycle,
+               ifnull(ww.name,w.name) localwarehousename,
+               plan.quantity amount,
+               plan.quantity reallyamount,
+               ww.country mycountry
+        from    t_erp_order_listing ol
+                    left join t_erp_warehouse ww ON ww.id=ol.warehouseid
+                    LEFT JOIN t_erp_thirdparty_warehouse w ON w.id=ol.warehouseid
+                    LEFT JOIN t_erp_material m ON m.sku=ifnull(ol.msku,ol.sku)  AND m.shopid=ol.shopid AND m.isDelete=false
+                    LEFT JOIN t_erp_inventory i ON i.warehouseid=ol.warehouseid AND i.materialid=m.id AND i.shopid=m.shopid AND i.`status`='fulfillable'
+                    left join t_erp_order_plan plan on plan.warehouseid=ol.warehouseid  AND plan.sku=m.sku AND plan.shopid=m.shopid AND plan.ftype=1
+                    LEFT JOIN t_erp_order_shipcycle cy ON cy.warehouseid=ol.warehouseid  AND cy.sku=m.sku
+                    LEFT JOIN t_erp_transtype trans ON trans.id=ifnull(cy.transtype ,1)
+                    LEFT JOIN
+                (SELECT
+                     t.name,t.id,
+                     ifnull(m.market,'EU') country,
+                     ifnull(c.stocking_cycle,3) stocking_cycle,
+                     IFNULL(c.min_cycle,7) min_cycle,
+                     IFNULL(c.put_on_days,2) put_on_days,
+                     IFNULL(c.first_leg_days,30) first_leg_days
+                 FROM
+                     t_marketplace m
+                         left JOIN   t_erp_oversea_cycle c ON c.country=m.market
+                         AND c.shopid=#{param.shopid,jdbcType=CHAR}
+                         AND c.transtype=1
+                         LEFT JOIN t_erp_transtype t ON t.id=ifnull(c.transtype ,1)
+                ) v2 ON v2.country=ol.country
+        where ol.shopid=#{param.shopid,jdbcType=CHAR}
+          and ifnull(ol.msku,ol.sku)=#{param.sku,jdbcType=CHAR}
+            <if test="param.warehouseid!=null">
+                and ol.warehouseid=#{param.warehouseid,jdbcType=CHAR}
+            </if>
+        <if test="param.country!=null">
+            and ww.country=#{param.country,jdbcType=CHAR}
+        </if>
+
+    </select>
+    <select id="getPurchase" resultType="java.util.Map"  >
+        SELECT   p.location image,m.sku,m.name mname,c.name supplier,m.supplier supplierid,w.name warehousename,
+                 m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.id mid,
+                 DATE_ADD(now(), INTERVAL ifnull(m.delivery_cycle,0) day) deliverycycledate,i.quantity num,
+                 m.id materialid
+        FROM  t_erp_order_plan i
+                  left join t_erp_material m on m.sku=i.sku and m.shopid=i.shopid and m.isdelete=false
+                  left join t_erp_customer c on c.id=m.supplier
+                  left join t_erp_warehouse w on w.id=i.warehouseid
+                  left join ( SELECT  i.materialid,
+                                      sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+                                      sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+                                      sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+                              from t_erp_inventory i
+                              where  i.warehouseid=#{warehouseid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
+                              group by i.materialid
+        ) v on v.materialid=m.id
+        left join t_picture p on p.id=m.image
+        WHERE i.warehouseid=#{warehouseid,jdbcType=CHAR} and i.shopid=#{shopid,jdbcType=CHAR}
+    </select>
+
+    <select id="getShip" resultType="java.util.Map"  >
+        SELECT   p.location image,m.sku,m.name mname,c.name supplier,m.supplier supplierid,w.name warehousename,
+                 m.price,m.boxnum,i.*,v.inbound,v.outbound,v.fulfillable,m.issfg,m.id mid,
+                 DATE_ADD(now(), INTERVAL ifnull(m.delivery_cycle,0) day) deliverycycledate,i.quantity num,
+                 d.length boxlength,
+                 d.width boxwidth,
+                 d.height boxheight,
+                 d.weight boxweight,
+                 case when ifnull(d.width,0) > 0 and ifnull(d.height,0) > 0 and ifnull(d.length,0) > 0
+                          then  (d.width*d.height*d.length)/1000000 else 0 end volume,
+                 ifnull(dim.weight,0) weight,
+                 ifnull(i.quantity,0)*ifnull(m.price,0) price,
+                 ROUND(ifnull(dim.length,0)*ifnull(dim.width,0)*ifnull(dim.height,0)/5000.0,2) dimweight,
+                 case when ifnull(dim.width,0) > 0 and ifnull(dim.height,0) > 0 and ifnull(dim.length,0) > 0
+                          then  ROUND(ifnull(i.quantity,0)*(dim.width*dim.height*dim.length)/1000000.0,2)
+                      else 0 end totalvolume,
+                 ROUND(ifnull(dim.weight,0)*ifnull(i.quantity,0),2) totalweight,
+                 m.id materialid
+        FROM  t_erp_order_plan i
+         left join  t_erp_order_listing ol on i.shopid=ol.shopid
+            and i.warehouseid=ol.warehouseid
+            and i.sku=ol.sku
+       left join t_erp_material m on m.sku=ifnull(ol.msku,i.sku) and m.shopid=i.shopid and m.isdelete=false
+       left join t_erp_customer c on c.id=m.supplier
+       left join t_erp_warehouse w on w.id=i.warehouseid
+                  left join ( SELECT  i.materialid,
+                                      sum( case when substring_index(status,'_',1)='inbound' then quantity else 0 end ) inbound,
+                                      sum( case when substring_index(status,'_',1)='outbound' then quantity else 0 end ) outbound,
+                                      sum( case when substring_index(status,'_',1)='fulfillable' then quantity else 0 end ) fulfillable
+
+                              from t_erp_inventory i
+                                       left join t_erp_v3_purchase_plan_item p on p.materialid=i.materialid and p.warehouseid=i.warehouseid
+                              where p.planid=#{planid,jdbcType=CHAR} and p.shopid=#{shopid,jdbcType=CHAR}
+                                and i.shopid=#{shopid,jdbcType=CHAR} and p.batchnumber=#{batchnumber,jdbcType=CHAR}
+                              group by i.materialid
+        ) v on v.materialid=m.id
+                  left join t_picture p on p.id=m.image
+                  left join t_dimensions dim on dim.id=m.pkgDimensions
+                  left join t_dimensions d on d.id=m.boxDimensions
+        WHERE   i.shopid=#{shopid,jdbcType=CHAR} and i.ftype=1
+    </select>
+
+
+</mapper>

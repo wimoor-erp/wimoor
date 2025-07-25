@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.MaterialCategoryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.MaterialCategory" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="number" property="number" jdbcType="CHAR" />
+    <result column="color" property="color" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id,name, number, color, remark, opttime, operator
+  </sql>
+  <select id="findByCondition" resultMap="BaseResultMap" parameterType="java.lang.String">
+  	select * from t_erp_material_category c where shopid =#{shopid,jdbcType=CHAR}
+  	<if test="search != null">
+  		and (c.name like #{search,jdbcType=CHAR} or c.color like #{search,jdbcType=CHAR} )
+  	</if> 
+  </select>
+    <select id="findCategory" resultMap="BaseResultMap" parameterType="java.lang.String">
+	  	select distinct c.* from 
+	  	t_erp_material m 
+	  	left join t_erp_material_category c  on c.id=m.categoryid 
+	  	where m.shopid =#{shopid,jdbcType=CHAR} and c.shopid =#{shopid,jdbcType=CHAR}
+	  	and m.isdelete=0 and m.mtype=#{mtype,jdbcType=CHAR}
+  </select>
+  
+  <!-- <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.MaterialCategory" >
+    insert into t_erp_material_category (id, name, number, color, 
+      remark, opttime, operator
+      )
+    values (#{id,jdbcType=CHAR}, #{name,jdbcType=CHAR}, #{number,jdbcType=CHAR}, #{color,jdbcType=CHAR}, 
+      #{remark,jdbcType=VARCHAR}, #{opttime,jdbcType=TIMESTAMP}, #{operator,jdbcType=CHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.MaterialCategory" >
+    insert into t_erp_material_category
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="number != null" >
+        number,
+      </if>
+      <if test="color != null" >
+        color,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+      <if test="operator != null" >
+        operator,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=CHAR},
+      </if>
+      <if test="number != null" >
+        #{number,jdbcType=CHAR},
+      </if>
+      <if test="color != null" >
+        #{color,jdbcType=CHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

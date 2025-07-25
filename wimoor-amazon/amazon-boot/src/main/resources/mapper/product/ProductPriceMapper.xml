@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductPriceMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductPrice" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="MarketplaceId" property="marketplaceid" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="byday" property="byday" jdbcType="TIMESTAMP" />
+    <result column="ptype" property="ptype" jdbcType="CHAR" />
+    <result column="landed_amount" property="landedAmount" jdbcType="DECIMAL" />
+    <result column="landed_currency" property="landedCurrency" jdbcType="CHAR" />
+    <result column="listing_amount" property="listingAmount" jdbcType="DECIMAL" />
+    <result column="listing_currency" property="listingCurrency" jdbcType="CHAR" />
+    <result column="shipping_amount" property="shippingAmount" jdbcType="DECIMAL" />
+    <result column="shipping_currency" property="shippingCurrency" jdbcType="CHAR" />
+    <result column="isnewest" property="isnewest" jdbcType="BIT" />
+    <result column="fulfillmentChannel" property="fulfillmentchannel" jdbcType="CHAR" />
+    <result column="itemCondition" property="itemcondition" jdbcType="CHAR" />
+    <result column="itemSubCondition" property="itemsubcondition" jdbcType="CHAR" />
+    <result column="SellerId" property="sellerid" jdbcType="CHAR" />
+    <result column="SellerSKU" property="sellersku" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, MarketplaceId, asin, byday, ptype, landed_amount, landed_currency, listing_amount, 
+    listing_currency, shipping_amount, shipping_currency, isnewest, fulfillmentChannel, 
+    itemCondition, itemSubCondition, SellerId, SellerSKU
+  </sql>
+  
+   <select id="selectProductPriceHis"  parameterType="java.lang.String" resultType="java.lang.String" >
+  	SELECT DISTINCT p.id from t_product_price_his p 
+		left join t_amazon_auth a on a.sellerid = p.SellerId
+		left join t_product_info o on p.MarketplaceId=o.marketplaceid and o.amazonAuthId=a.id
+		where a.id=#{amazonAuthId,jdbcType=CHAR};
+  </select>
+  
+  <select id="findoneBypro"  parameterType="java.lang.String" resultMap="BaseResultMap" >
+  	select p.* from  t_product_price p 
+	left join t_product_info t on t.marketplaceid=p.MarketplaceId and p.SellerSKU=t.sku
+	and p.asin=t.asin  and p.isnewest=1
+	where p.SellerSKU=#{sku,jdbcType=CHAR} and p.MarketplaceId=#{marketplaceid,jdbcType=CHAR} 
+	and p.ptype='BUYP'  and p.asin=#{asin,jdbcType=CHAR}
+  </select>
+ 
+    <select id="findbyProductID" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    r.id, r.MarketplaceId, r.asin, r.byday, r.ptype, r.landed_amount, r.landed_currency, r.listing_amount, 
+    r.listing_currency, r.shipping_amount, r.shipping_currency, r.isnewest, r.fulfillmentChannel, 
+    r.itemCondition, r.itemSubCondition, r.SellerId, r.SellerSKU
+    from t_product_price r
+    left join t_product_info p on p.MarketplaceId=r.MarketplaceId and p.sku=r.SellerSKU
+    left join t_amazon_auth a on a.id=p.amazonAuthId 
+    where p.id = #{id,jdbcType=CHAR} and r.isnewest=true and a.sellerid=r.SellerId
+  </select>
+    <select id="selectByAsinMarketPlace" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_product_price
+    where asin = #{asin,jdbcType=CHAR} and marketplaceid=#{marketplaceid,jdbcType=CHAR}
+  </select>
+  <select id="selectBySkuAndSeller" resultMap="BaseResultMap" parameterType="java.lang.String">
+  	select * from t_product_price t where t.SellerSKU=#{sku,jdbcType=CHAR} and t.MarketplaceId=#{marketplaceid,jdbcType=CHAR}
+	and t.SellerId=#{sellerid,jdbcType=CHAR}
+  </select>
+
+  <insert id="insert" parameterType="com.wimoor.amazon.product.pojo.entity.ProductPrice" >
+    delete from t_product_price 
+    where   
+    SellerId=#{sellerid,jdbcType=CHAR}
+    and marketplaceid= #{marketplaceid,jdbcType=CHAR}
+    and SellerSKU= #{sellersku,jdbcType=CHAR}
+    and ptype=#{ptype,jdbcType=CHAR};
+    
+    insert into t_product_price (id, MarketplaceId, asin, 
+      byday, ptype, landed_amount, 
+      landed_currency, listing_amount, listing_currency, 
+      shipping_amount, shipping_currency, isnewest, 
+      fulfillmentChannel, itemCondition, itemSubCondition, 
+      SellerId, SellerSKU)
+    values (#{id,jdbcType=CHAR}, #{marketplaceid,jdbcType=CHAR}, #{asin,jdbcType=CHAR}, 
+      #{byday,jdbcType=TIMESTAMP}, #{ptype,jdbcType=CHAR}, #{landedAmount,jdbcType=DECIMAL}, 
+      #{landedCurrency,jdbcType=CHAR}, #{listingAmount,jdbcType=DECIMAL}, #{listingCurrency,jdbcType=CHAR}, 
+      #{shippingAmount,jdbcType=DECIMAL}, #{shippingCurrency,jdbcType=CHAR}, #{isnewest,jdbcType=BIT}, 
+      #{fulfillmentchannel,jdbcType=CHAR}, #{itemcondition,jdbcType=CHAR}, #{itemsubcondition,jdbcType=CHAR}, 
+      #{sellerid,jdbcType=CHAR}, #{sellersku,jdbcType=CHAR});
+      
+  </insert>
+  
+  <select id="priceQueue" resultType="com.wimoor.amazon.product.pojo.vo.ProductPriceVo"  parameterType="com.wimoor.amazon.product.pojo.dto.ProductPriceDTO">
+     SELECT g.name gname,m.name mname,i.name pname,i.sku,ifnull(p.location,p.url) image, o.standardprice,o.feed_submission_id feedid,f.feed_processing_status status,
+		s.name statusText,u.name operator,o.opttime,q.process_date successdate,i.fnsku,o.oldstandardprice oldstandardprice,o.ftype,o.saleprice
+		FROM t_amz_pdt_price_opt o
+		left join t_amz_submitfeed_queue  q ON q.id=o.feed_submission_id
+		LEFT JOIN t_product_info i ON  i.id=o.pid
+		left join t_product_in_opt op ON op.pid=i.id
+		LEFT JOIN t_picture p ON p.id=i.image
+		LEFT JOIN t_marketplace m ON m.marketplaceId=i.marketplaceid
+		LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		LEFT JOIN t_amz_submitfeed  f ON f.feed_submissionid=q.submitfeedid AND f.sellerid=a.sellerid
+		LEFT JOIN  t_erp_amazon_feedstatus s ON s.`status`=f.feed_processing_status
+		left join t_userinfo u on u.id=o.operator
+		WHERE  o.opttime>=#{param.startDate,jdbcType=TIMESTAMP} 
+		AND o.opttime &lt;=#{param.endDate,jdbcType=TIMESTAMP} 
+		and a.shop_id=#{param.shopid,jdbcType=CHAR} 
+		<if test="param.groupid!=null and param.groupid!=''">
+		   and g.id=#{param.groupid,jdbcType=CHAR} 
+		</if>
+		<if test="param.groupList !=null">
+				and a.groupid in(
+				<foreach collection="param.groupList" item="groupid" index="index" separator=",">
+					#{groupid,jdbcType=BIGINT} 
+				</foreach>
+				)
+		</if>
+		<if test="param.marketplaceid!=null and param.marketplaceid!=''">
+		   and i.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+		</if>
+		<if test="param.status!=null and param.status!=''">
+		   and f.feed_processing_status=#{param.status,jdbcType=CHAR} 
+		</if>
+		<if test="param.operator!=null and param.operator!=''">
+		   and o.operator=#{param.operator,jdbcType=CHAR} 
+		</if>
+		<if test="param.sku!=null and param.sku!=''">
+		   and i.sku=#{param.sku,jdbcType=CHAR} 
+		</if>
+		<if test="param.owner!=null">
+		   and op.owner=#{param.owner,jdbcType=CHAR}
+		</if>
+		<if test="param.search!=null">
+		   <if test="param.searchtype=='sku'">
+		       and i.sku like #{param.search,jdbcType=CHAR}
+		   </if>
+		   <if test="param.searchtype=='asin'">
+		       and i.asin like #{param.search,jdbcType=CHAR}
+		   </if>
+		   <if test="param.searchtype=='fnsku'">
+		       and i.fnsku like #{param.search,jdbcType=CHAR}
+		   </if>
+		</if>
+  </select>
+  
+</mapper>

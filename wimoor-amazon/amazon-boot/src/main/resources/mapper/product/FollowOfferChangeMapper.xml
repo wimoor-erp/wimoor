@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.FollowOfferChangeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.FollowOfferChange" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="sellerid" property="sellerid" jdbcType="CHAR" />
+    <result column="listing_price_amount" property="listingPriceAmount" jdbcType="DECIMAL" />
+    <result column="shiping_amount" property="shipingAmount" jdbcType="DECIMAL" />
+    <result column="currency" property="currency" jdbcType="CHAR" />
+    <result column="is_fulfilled_by_amazon" property="isFulfilledByAmazon" jdbcType="BIT" />
+    <result column="is_buy_box_winner" property="isBuyBoxWinner" jdbcType="BIT" />
+    <result column="is_featured_merchant" property="isFeaturedMerchant" jdbcType="BIT" />
+    <result column="is_prime" property="isPrime" jdbcType="BIT" />
+    <result column="is_national_prime" property="isNationalPrime" jdbcType="BIT" />
+    <result column="ships_domestically" property="shipsDomestically" jdbcType="BIT" />
+    <result column="findtime" property="findtime" jdbcType="TIMESTAMP" />
+    <result column="losttime" property="losttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, asin, marketplaceid, sellerid, listing_price_amount, shiping_amount, currency, 
+    is_fulfilled_by_amazon, is_buy_box_winner, is_featured_merchant, is_prime, is_national_prime, 
+    ships_domestically, findtime, losttime
+  </sql>
+   
+  <select id="selectOfferChangeBySellerAsin" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select * 
+	from t_amz_follow_offerchange tf
+	where tf.asin = #{asin,jdbcType=CHAR}
+		and tf.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+		and tf.sellerid = #{sellerid,jdbcType=CHAR}
+		and tf.losttime is null
+	order by tf.findtime desc limit 1
+  </select>
+  
+  <select id="selectOfferChangeByLost" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select * 
+	from t_amz_follow_offerchange tf
+	where tf.asin = #{asin,jdbcType=CHAR}
+		and tf.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+		and tf.sellerid = #{sellerid,jdbcType=CHAR}
+	order by tf.losttime desc limit 1
+  </select>
+  
+  <select id="selectAllForLostOffer" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  	select *
+	from t_amz_follow_offerchange tf
+	where   tf.asin = #{asin,jdbcType=CHAR}
+		and tf.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+  </select>
+  
+  <update id="updateForLostOfferForlostTime" parameterType="java.lang.String" >
+  	  update t_amz_follow_offerchange tf set tf.losttime = now() 
+  	  where tf.asin = #{asin,jdbcType=CHAR}
+		and tf.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+		and tf.sellerid = #{sellerid,jdbcType=CHAR}
+		and tf.losttime is null
+  </update>
+   
+    <select id="findByFollowID" resultType="java.util.Map" parameterType="java.lang.String" >
+  	SELECT oc.sellerid,IFNULL(CONVERT(o.name USING utf8),oc.sellerid) shopname,oc.listing_price_amount price,oc.shiping_amount,
+  	       oc.currency,oc.findtime,oc.losttime,m.point_name ,o.positive_feedback_rating,o.feedback_count,
+  	       oc.is_fulfilled_by_amazon,oc.is_buy_box_winner,oc.is_featured_merchant,oc.is_prime 
+		from t_amz_follow_offerchange oc 
+		left join t_amz_follow_offer o on oc.sellerid=o.sellerid and oc.marketplaceid =o.marketplaceid 
+		left join t_product_follow pf on oc.asin=pf.asin and oc.marketplaceid=pf.marketplaceid 
+		left join t_marketplace m on m.marketplaceId=oc.marketplaceid 
+	    where  pf.id=#{followid,jdbcType=CHAR}  and (oc.losttime is null or oc.losttime> DATE_SUB(NOW(),INTERVAL 3 month))
+	    order by IFNULL(oc.findtime,now()) desc,IFNULL(o.name,oc.sellerid) asc 
+	    <if test="mylimit != null" >
+	    limit ${mylimit}
+	    </if>
+	    ;
+  </select>
+  
+</mapper>

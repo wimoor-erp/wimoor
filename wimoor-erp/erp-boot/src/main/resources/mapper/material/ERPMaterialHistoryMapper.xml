@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.ERPMaterialHistoryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.ERPMaterialHistory" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <id column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="sku" property="sku" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="upc" property="upc" jdbcType="CHAR" />
+    <result column="brand" property="brand" jdbcType="CHAR" />
+    <result column="image" property="image" jdbcType="CHAR" />
+    <result column="itemDimensions" property="itemdimensions" jdbcType="CHAR" />
+    <result column="pkgDimensions" property="pkgdimensions" jdbcType="CHAR" />
+    <result column="boxDimensions" property="boxdimensions" jdbcType="CHAR" />
+    <result column="boxnum" property="boxnum" jdbcType="INTEGER" />
+    <result column="specification" property="specification" jdbcType="CHAR" />
+    <result column="supplier" property="supplier" jdbcType="CHAR" />
+    <result column="productCode" property="productcode" jdbcType="CHAR" />
+    <result column="delivery_cycle" property="deliveryCycle" jdbcType="INTEGER" />
+    <result column="assembly_time" property="assemblyTime" jdbcType="INTEGER" />
+    <result column="other_cost" property="otherCost" jdbcType="DECIMAL" />
+    <result column="MOQ" property="moq" jdbcType="INTEGER" />
+    <result column="purchaseUrl" property="purchaseurl" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="categoryid" property="categoryid" jdbcType="CHAR" />
+    <result column="issfg" property="issfg" jdbcType="CHAR" />
+    <result column="color" property="color" jdbcType="CHAR" />
+    <result column="owner" property="owner" jdbcType="CHAR" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="creator" property="creator" jdbcType="CHAR" />
+    <result column="parentid" property="parentid" jdbcType="CHAR" />
+    <result column="effectivedate" property="effectivedate" jdbcType="TIMESTAMP" />
+    <result column="isSmlAndLight" property="issmlandlight" jdbcType="BIT" />
+    <result column="assembly_time" property="assemblyTime" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, opttime, sku, name, shopid, upc, brand, image, itemDimensions, pkgDimensions, boxDimensions, boxnum,
+    specification, supplier, productCode, delivery_cycle, other_cost, MOQ, purchaseUrl, 
+    remark, categoryid, issfg, color, owner, operator, price, createdate, creator, parentid, 
+    effectivedate, isSmlAndLight,assembly_time
+  </sql>
+  <select id="selectProPriceHisById" parameterType="java.lang.String" resultType="java.util.Map">
+ 		select max(opttime) opttime,(totalpay/totalin) price from t_erp_purchase_form_entry where 
+		totalpay>0 AND inwhstatus=1 
+		AND paystatus=1 AND amount>0 
+		AND totalin>0  AND materialid=#{id,jdbcType=CHAR}
+		group by (totalpay/totalin)
+		order by opttime desc limit 3;
+  </select>
+  
+</mapper>

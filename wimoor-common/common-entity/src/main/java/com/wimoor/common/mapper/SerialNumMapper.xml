@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.common.mapper.SerialNumMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.common.pojo.entity.SerialNum" >
+    <result column="id" property="id" jdbcType="CHAR" />
+    <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="shopid" property="shopid" jdbcType="CHAR" />
+    <result column="seqno" property="seqno" jdbcType="INTEGER" />
+    <result column="prefix_date" property="prefixDate" jdbcType="DATE" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+  </resultMap>
+ <!--  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.SerialNum" >
+    insert into t_erp_serial_num (id, ftype, seqno, prefix_date, 
+      opttime)
+    values (#{id,jdbcType=CHAR}, #{ftype,jdbcType=CHAR}, #{seqno,jdbcType=DECIMAL}, #{prefixDate,jdbcType=DATE}, 
+      #{opttime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.SerialNum" >
+    insert into t_erp_serial_num
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="ftype != null" >
+        ftype,
+      </if>
+      <if test="seqno != null" >
+        seqno,
+      </if>
+      <if test="prefixDate != null" >
+        prefix_date,
+      </if>
+      <if test="opttime != null" >
+        opttime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="ftype != null" >
+        #{ftype,jdbcType=CHAR},
+      </if>
+      <if test="seqno != null" >
+        #{seqno,jdbcType=DECIMAL},
+      </if>
+      <if test="prefixDate != null" >
+        #{prefixDate,jdbcType=DATE},
+      </if>
+      <if test="opttime != null" >
+        #{opttime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert> -->
+</mapper>

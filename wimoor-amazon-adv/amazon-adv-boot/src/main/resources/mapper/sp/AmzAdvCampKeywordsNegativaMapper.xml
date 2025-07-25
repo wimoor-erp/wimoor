@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvCampKeywordsNegativaMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sp.pojo.AmzAdvCampKeywordsNegativa">
+		<id column="keywordId" property="keywordid" jdbcType="BIGINT" />
+		<result column="campaignId" property="campaignid" jdbcType="BIGINT" />
+		<result column="profileid" property="profileid" jdbcType="BIGINT" />
+		<result column="keywordText" property="keywordtext" jdbcType="CHAR" />
+		<result column="matchType" property="matchtype" jdbcType="CHAR" />
+		<result column="state" property="state" jdbcType="CHAR" />
+		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		campaignId, keywordId, keywordText, matchType, state, profileid, opttime
+	</sql>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		replace into t_amz_adv_campkeywords_negativa (
+			campaignId, keywordId, keywordText, matchType, state, profileid, opttime)
+		values
+		<foreach collection="list" item="adv" index="index" separator=",">
+			(
+			#{adv.campaignid,jdbcType=BIGINT},#{adv.keywordid,jdbcType=BIGINT},#{adv.keywordtext,jdbcType=CHAR},
+			#{adv.matchtype,jdbcType=CHAR},#{adv.state,jdbcType=CHAR},#{adv.profileid,jdbcType=BIGINT},
+			#{adv.opttime,jdbcType=TIMESTAMP}
+			)
+		</foreach>
+	</insert>
+
+	<select id="getCampaignNegativaKeywordsList" resultType="java.util.Map" parameterType="java.util.Map">
+		select CAST(t.campaignId AS CHAR) campaignId, CAST(t.profileid AS CHAR) profileid,
+			CAST(t.keywordId AS CHAR) id, t.keywordText,t.matchType,t.state status,mk.name market,
+			tk.remark,t.opttime, p.marketplaceId marketplaceid,a.groupid groupid,tg.name groupname,
+			tc.name campaignName,tc.state campaignStatus
+		from t_amz_adv_campkeywords_negativa t
+		left join t_amz_adv_profile p on
+		t.profileid = p.id
+		left join t_amz_adv_auth a on a.id=p.advauthId and a.disable = 0
+		left join t_amazon_group tg on tg.id = a.groupid
+		left join t_marketplace mk on mk.marketplaceId=p.marketplaceId
+		left join t_amz_adv_campaigns tc on t.campaignId = tc.campaignId and t.profileid = tc.profileid
+		left join t_amz_adv_remark tk on tk.keywordId = t.keywordId and t.campaignId = tk.campaignId and p.id = tk.profileid
+			and tk.adId = 0 and tk.adgroupId = 0 and tk.targetId = 0
+		where a.shopid = #{shopid,jdbcType=CHAR}
+		<if test="campaignid != null">
+			and t.campaignId = #{campaignid,jdbcType=BIGINT}
+		</if>
+		<if test="campaignName != null and campaignName != ''">
+			and tc.name like #{campaignName,jdbcType=CHAR}
+		</if>
+		<if test="profileid != null">
+			and t.profileid = #{profileid,jdbcType=BIGINT}
+		</if>
+		<if test="marketplaceid != null">
+			and p.marketplaceId= #{marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="portfolios != null ">
+			and tc.portfolioid = #{portfolios,jdbcType=BIGINT}
+		</if>
+		<if test="groupid != null">
+			and a.groupid = #{groupid,jdbcType=CHAR}
+		</if>
+		<if test="campaignStatus != null">
+			and (tc.state = #{campaignStatus,jdbcType=CHAR} or tc.state = #{campaignStatusUppercase,jdbcType=CHAR})
+		</if>
+		<if test="targetingType != null">
+			and (tc.targetingType = #{targetingType,jdbcType=CHAR} or  tc.targetingType = #{targetingTypeUppercase,jdbcType=CHAR})
+		</if>
+		<if test="state != null and state != 'runing' and state != 'stoping'">
+			and (t.state = #{state,jdbcType=CHAR} or  t.state = #{stateUppercase,jdbcType=CHAR})
+		</if>
+		<if test="state != null and state == 'runing'">
+			and (t.state = 'enabled' or t.state = 'ENABLED')
+			and (tc.state = 'enabled' or tc.state = 'ENABLED')
+		</if> 
+		<if test="state != null and state == 'stoping'">
+			and (t.state = 'paused' or (t.state = 'enabled' and
+			(tc.state = 'paused' or tc.state = 'archived')))
+			or (
+			t.state = 'PAUSED' or (t.state = 'ENABLED' and
+			(tc.state = 'PAUSED' or tc.state = 'ARCHIVED'))
+			))
+			
+		</if>
+		<if test="state == null">
+			and (t.state = 'paused' or t.state = 'enabled' or t.state = 'PAUSED' or t.state = 'ENABLED')  
+		</if>
+		<if test="name != null and name != ''">
+			and t.keywordText like #{name,jdbcType=CHAR}
+		</if>
+	</select>
+
+</mapper>
