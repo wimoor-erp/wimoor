@@ -1,0 +1,47 @@
+server:
+  port: 7091
+spring:
+  application:
+    name: seata-server
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: ${user.home}/logs/seata
+  extend:
+    logstash-appender:
+      destination: 127.0.0.1:4560
+    kafka-appender:
+      bootstrap-servers: 127.0.0.1:9092
+      topic: logback_to_logstash
+console:
+  user:
+    username: seata
+    password: seata
+seata:
+  config:
+    # support: nacos, consul, apollo, zk, etcd3
+    type: nacos # 指定配置中心为nacos
+    nacos:
+      server-addr: 127.0.0.1:8848  # nacos的ip端口
+      group: DEFAULT_GROUP	# 对应的组，默认为DEFAULT_GROUP
+      namespace: 
+      username: nacos
+      password: nacos
+      data-id: seataServer.properties # nacos中存放seata的配置文件，后面会提该文件的使用方式，相当于seata服务启动的时候需要注册到nacos，并使用nacos中的配置文件
+  # 注册中心与上述config同理
+  registry:
+    # support: nacos, eureka, redis, zk, consul, etcd3, sofa
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: 127.0.0.1:8848
+      namespace: 
+      group: DEFAULT_GROUP
+      cluster: default
+      username: nacos
+      password: nacos
+  security:
+    secretKey: SeataSecretKey0c382ef121d778043159209298fd40bf3850a017
+    tokenValidityInMilliseconds: 1800000
+    ignore:
+      urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/api/v1/auth/login

@@ -1,0 +1,34 @@
+config.photo-server=127.0.0.1
+config.photo-server-url= https://mywebsit.com
+
+aliyun.oss_endpoint= oss-cn-shenzhen.aliyuncs.com
+aliyun.accessKeyId= ABCD2eFg460hIJKGXpcVySDzk
+aliyun.accessKeySecret= AB4C5efIGRSDzeeGeGVrGJuWmRHQbE
+aliyun.bucketName= myBucketName-file
+aliyun.bucketPath= https://myBucketPath-file.oss-cn-diqu.aliyuncs.com
+
+spring.mvc.pathmatch.matching-strategy= ant_path_matcher
+mybatis-plus.global-config.db-config.field-strategy=ignored
+
+#minio.minio_endpoint=http://127.0.0.1:9000
+#minio.accessKeyId= admin
+#minio.accessKeySecret= password
+#minio.bucketName= wimoor-file
+#minio.bucketPath=http://127.0.0.1:9000/wimoor-file
+
+#ftp.ftpUserName=
+#ftp.ftpPassword=
+#ftp.ftpHost=
+
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=50MB
+spring.mvc.pathmatch.matching-strategy= ant_path_matcher
+mybatis-plus.global-config.db-config.field-strategy=ignored
+
+seata.application-id= ${spring.application.name}
+seata.enabled=false
+seata.tx-service-group=default_tx_group
+seata.data-source-proxy-mode=AT
+seata.enable-auto-data-source-proxy=false
+seata.service.vgroup-mapping.default_tx_group=default
+seata.service.default.grouplist=127.0.0.1:8091
