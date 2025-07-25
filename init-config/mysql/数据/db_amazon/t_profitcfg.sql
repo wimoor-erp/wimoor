@@ -1,0 +1,1 @@
+INSERT INTO `t_profitcfg` (`id`, `shop_id`, `isSystem`, `name`, `sales_channel`, `sellerPlan`, `shipmentStyle`, `isDefault`, `opttime`, `createtime`, `operator`, `creator`, `isdelete`, `oldid`) VALUES (26138972982277800, NULL, b'1', '系统默认利润计算方案', 'amz_fba', 'profession', 'manually', b'0', '2016-11-15 10:40:54', NULL, NULL, NULL, b'0', '89dffd39-babf-11e6-bab5-00e04c023f0e');

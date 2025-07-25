@@ -1,0 +1,28 @@
+spring:
+  datasource: 
+    type: com.alibaba.druid.pool.DruidDataSource
+    jdbc-url: jdbc:mysql://${mysql.host}:${mysql.port}/db_quote?allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai
+    username: ${mysql.username}
+    password: ${mysql.password}
+    primary: 
+      driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+      multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+      nacos:
+        enabled: true
+mybatis-plus:
+  global-config:
+      db-config:
+         update-strategy: IGNORED
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 600000
