@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.quote.ship.mapper.QuotationPriceMapper" >
+    <resultMap id="BaseResultMap" type="com.wimoor.quote.ship.pojo.entity.QuotationPrice" >
+        <result column="id" property="id" jdbcType="CHAR" />
+        <result column="buyerid" property="buyerid" jdbcType="CHAR" />
+        <result column="ftype" property="ftype" jdbcType="CHAR" />
+        <result column="status" property="status" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="selectQuoteInfo" resultType="java.util.Map" parameterType="java.lang.String">
+        SELECT SUBSTRING(t.number,3,8) createtime,
+        t.number `number`,t.shipmentid shipmentid,t.destination  destination,t.weight weight,
+        case when p.weight IS NULL then
+        case when t.weight>t.volume/IFNULL(s.base,5000) then t.weight ELSE t.volume/IFNULL(s.base,5000) END
+        ELSE p.weight end reaweight,t.volume volume,
+        o.id orderid,o.number onumber,us.id supplierid,
+        case when p.confirm=1 then concat(us.name,'(已中标)')
+        WHEN p.disabled=1 then concat(us.name,'(已放弃)')
+        else us.name end  supplier,
+        p.unitprice price, p.totalfee totalprice,p.tax,
+        t.remark remark,o.remark orderremark,p.remark priceremark,sh.shiped_date shipdate,sh.shipmentstatus outstatus,IFNULL(t.volume,0/1000000) cbm,
+        chan.name pricechannel,channel.name orderchannel,
+        case when p.id is not null and  p.shipmentid  is null then 'issummary' else 'isnormal' end sftype, p.disabled disabled,
+        (
+        SELECT COUNT(b.boxid) nums FROM t_shipment_box b WHERE b.shipmentid=ot.shipmentid
+        ) shipnums,
+        (
+        SELECT SUM(i.quantity) shipqty FROM t_shipment_item i WHERE i.shipmentid=ot.shipmentid
+        ) shipqty
+        FROM t_order o
+        LEFT JOIN  t_shipment_transchannel channel on channel.id=o.transchannel
+        LEFT JOIN t_order_shipment ot ON ot.orderid=o.id
+        LEFT JOIN  t_shipment t ON t.shipmentid=ot.shipmentid
+        LEFT JOIN t_order_supplier s ON s.orderid=o.id
+        LEFT JOIN t_user_supplier us ON us.id=s.supplierid
+        LEFT JOIN t_supplier_quotation_price p
+            ON o.id=p.orderid
+           AND p.supplierid=us.id
+           AND (p.shipmentid=ot.shipmentid
+               <if test="supplierid==null">
+               OR p.shipmentid IS NULL
+               </if>
+            )
+        LEFT JOIN db_amazon.t_erp_ship_v2_inboundshipment sh ON sh.shipment_confirmation_id=t.shipmentid
+        LEFT JOIN t_shipment_supplier_transchannel chan ON chan.id=p.supplier_channel
+        WHERE o.id=#{orderid,jdbcType=CHAR}
+        <if test="supplierid!=null">
+            and us.id=#{supplierid,jdbcType=CHAR}
+            and ot.shipmentid is not null
+        </if>
+    </select>
+
+
+</mapper>

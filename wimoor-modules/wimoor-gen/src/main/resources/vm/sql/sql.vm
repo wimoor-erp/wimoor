@@ -1,0 +1,21 @@
+-- 菜单 SQL
+insert into t_sys_menu (name, parent_id, apppath, path, component, icon, appicon, sort, visible, redirect, runui, runapp, gmt_create, gmt_modified, oldid)
+values('${functionName}', '${parentMenuId}', NULL, '${businessName}', '${moduleName}/${businessName}/index', '#', '', 1, 0, '', NULL, NULL, now(), null, null);
+-- 按钮父菜单ID
+SELECT @parentId := LAST_INSERT_ID();
+
+-- 按钮 SQL
+insert into t_sys_permission (name, menu_id, url_perm, btn_perm, gmt_create, gmt_modified)
+values('${functionName}查询', @parentId, NULL, '${permissionPrefix}:query', now(), null);
+
+insert into t_sys_permission (name, menu_id, url_perm, btn_perm, gmt_create, gmt_modified)
+values('${functionName}新增', @parentId, NULL, '${permissionPrefix}:add', now(), null);
+
+insert into t_sys_permission (name, menu_id, url_perm, btn_perm, gmt_create, gmt_modified)
+values('${functionName}修改', @parentId, NULL, '${permissionPrefix}:edit', now(), null);
+
+insert into t_sys_permission (name, menu_id, url_perm, btn_perm, gmt_create, gmt_modified)
+values('${functionName}删除', @parentId, NULL, '${permissionPrefix}:remove', now(), null);
+
+insert into t_sys_permission (name, menu_id, url_perm, btn_perm, gmt_create, gmt_modified)
+values('${functionName}导出', @parentId, NULL, '${permissionPrefix}:export', now(), null);

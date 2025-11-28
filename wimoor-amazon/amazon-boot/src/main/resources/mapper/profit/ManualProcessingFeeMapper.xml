@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.profit.mapper.ManualProcessingFeeMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.profit.pojo.entity.ManualProcessingFee" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="month" property="month" jdbcType="VARCHAR" />
+    <result column="manualProcessingFee" property="manualprocessingfee" jdbcType="DECIMAL" />
+    <result column="country" property="country" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, month, manualProcessingFee, country
+  </sql> 
+  
+  <select id="findByCountry" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_manual_processing_fee
+    where country = #{country,jdbcType=CHAR} or country='ALL'
+  </select>
+</mapper>

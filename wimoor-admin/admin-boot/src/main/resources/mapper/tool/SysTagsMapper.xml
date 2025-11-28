@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.sys.tool.mapper.SysTagsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.sys.tool.pojo.entity.SysTags">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="taggroupid" property="taggroupid" />
+        <result column="shopid" property="shopid" />
+        <result column="description" property="description" />
+        <result column="creator" property="creator" />
+        <result column="createtime" property="createtime" />
+        <result column="operator" property="operator" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+
+	<select id="list" resultMap="BaseResultMap" >
+        select a.*,b.name as dict_name from t_sys_tags a
+        left join t_sys_tags_groups b on a.taggroupid=b.id
+        where 1=1
+
+        <if test='tags.name != null and tags.name.trim() neq ""'>
+            and a.name like concat('%',#{tags.name},'%')
+        </if>
+        <if test='tags.taggroupid !=null and tags.taggroupid.trim() neq ""'>
+            and a.taggroupid = #{tags.taggroupid}
+        </if>
+        <if test='tags.status !=null'>
+            and a.status = #{tags.status}
+        </if>
+    </select>
+</mapper>

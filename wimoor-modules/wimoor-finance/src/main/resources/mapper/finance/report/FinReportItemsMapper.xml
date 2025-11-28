@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.report.mapper.FinReportItemsMapper">
+    
+    <resultMap type="com.wimoor.finance.report.domain.FinReportItems" id="FinReportItemsResult">
+        <result property="itemId"    column="item_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="templateId"    column="template_id"    />
+        <result property="itemCode"    column="item_code"    />
+        <result property="itemName"    column="item_name"    />
+        <result property="itemLevel"    column="item_level"    />
+        <result property="parentCode"    column="parent_code"    />
+        <result property="formulaType"    column="formula_type"    />
+        <result property="formulaContent"    column="formula_content"    />
+        <result property="lineNumber"    column="line_number"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="createdBy"    column="created_by"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="description"    column="description"    />
+        <result property="itemType"    column="item_type"    />
+        <result property="itemCategory"    column="item_category"    />
+        <result property="calculationRule"    column="calculation_rule"    />
+        <result property="dataSource"    column="data_source"    />
+        <result property="subjectCodes"    column="subject_codes"    />
+        <result property="amountType"    column="amount_type"    />
+        <result property="direction"    column="direction"    />
+        <result property="displayFormat"    column="display_format"    />
+        <result property="isShowZero"    column="is_show_zero"    />
+        <result property="isShow"    column="is_show"    />
+        <result property="isLeaf"    column="is_leaf"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectFinReportItemsVo">
+        select item_id, groupid, template_id, item_code, item_name, item_level, parent_code, formula_type, formula_content, line_number, created_time, created_by, updated_time, description, item_type, item_category, calculation_rule, data_source, subject_codes, amount_type, direction, display_format, is_show_zero, is_show, is_leaf, sort_order, status from fin_report_items
+    </sql>
+
+    <select id="selectFinReportItemsList" parameterType="com.wimoor.finance.report.domain.FinReportItems" resultMap="FinReportItemsResult">
+        <include refid="selectFinReportItemsVo"/>
+        <where>  
+            <if test="groupid != null "> and groupid = #{groupid}</if>
+            and template_id = #{templateId}
+            <if test="itemCode != null  and itemCode != ''"> and item_code = #{itemCode}</if>
+            <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
+            <if test="itemLevel != null "> and item_level = #{itemLevel}</if>
+            <if test="parentCode != null "> and parent_code = #{parentCode}</if>
+            <if test="formulaType != null "> and formula_type = #{formulaType}</if>
+            <if test="formulaContent != null  and formulaContent != ''"> and formula_content = #{formulaContent}</if>
+            <if test="lineNumber != null "> and line_number = #{lineNumber}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="createdBy != null  and createdBy != ''"> and created_by = #{createdBy}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="itemType != null "> and item_type = #{itemType}</if>
+            <if test="itemCategory != null "> and item_category = #{itemCategory}</if>
+            <if test="calculationRule != null "> and calculation_rule = #{calculationRule}</if>
+            <if test="dataSource != null "> and data_source = #{dataSource}</if>
+            <if test="subjectCodes != null  and subjectCodes != ''"> and subject_codes = #{subjectCodes}</if>
+            <if test="amountType != null "> and amount_type = #{amountType}</if>
+            <if test="direction != null "> and direction = #{direction}</if>
+            <if test="displayFormat != null  and displayFormat != ''"> and display_format = #{displayFormat}</if>
+            <if test="isShowZero != null "> and is_show_zero = #{isShowZero}</if>
+            <if test="isShow != null "> and is_show = #{isShow}</if>
+            <if test="isLeaf != null "> and is_leaf = #{isLeaf}</if>
+            <if test="sortOrder != null "> and sort_order = #{sortOrder}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinReportItemsByItemId" parameterType="Long" resultMap="FinReportItemsResult">
+        <include refid="selectFinReportItemsVo"/>
+        where item_id = #{itemId}
+    </select>
+
+    <insert id="insertFinReportItems" parameterType="com.wimoor.finance.report.domain.FinReportItems" useGeneratedKeys="true" keyProperty="itemId">
+        insert into fin_report_items
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="templateId != null">template_id,</if>
+            <if test="itemCode != null and itemCode != ''">item_code,</if>
+            <if test="itemName != null and itemName != ''">item_name,</if>
+            <if test="itemLevel != null">item_level,</if>
+            <if test="parentCode != null">parent_code,</if>
+            <if test="formulaType != null">formula_type,</if>
+            <if test="formulaContent != null">formula_content,</if>
+            <if test="lineNumber != null">line_number,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="createdBy != null and createdBy != ''">created_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="itemType != null">item_type,</if>
+            <if test="itemCategory != null">item_category,</if>
+            <if test="calculationRule != null">calculation_rule,</if>
+            <if test="dataSource != null">data_source,</if>
+            <if test="subjectCodes != null and subjectCodes != ''">subject_codes,</if>
+            <if test="amountType != null">amount_type,</if>
+            <if test="direction != null">direction,</if>
+            <if test="displayFormat != null and displayFormat != ''">display_format,</if>
+            <if test="isShowZero != null">is_show_zero,</if>
+            <if test="isShow != null">is_show,</if>
+            <if test="isLeaf != null">is_leaf,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="templateId != null">#{templateId},</if>
+            <if test="itemCode != null and itemCode != ''">#{itemCode},</if>
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+            <if test="itemLevel != null">#{itemLevel},</if>
+            <if test="parentCode != null">#{parentCode},</if>
+            <if test="formulaType != null">#{formulaType},</if>
+            <if test="formulaContent != null">#{formulaContent},</if>
+            <if test="lineNumber != null">#{lineNumber},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="itemType != null">#{itemType},</if>
+            <if test="itemCategory != null">#{itemCategory},</if>
+            <if test="calculationRule != null">#{calculationRule},</if>
+            <if test="dataSource != null">#{dataSource},</if>
+            <if test="subjectCodes != null and subjectCodes != ''">#{subjectCodes},</if>
+            <if test="amountType != null">#{amountType},</if>
+            <if test="direction != null">#{direction},</if>
+            <if test="displayFormat != null and displayFormat != ''">#{displayFormat},</if>
+            <if test="isShowZero != null">#{isShowZero},</if>
+            <if test="isShow != null">#{isShow},</if>
+            <if test="isLeaf != null">#{isLeaf},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinReportItems" parameterType="com.wimoor.finance.report.domain.FinReportItems">
+        update fin_report_items
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="templateId != null">template_id = #{templateId},</if>
+            <if test="itemCode != null and itemCode != ''">item_code = #{itemCode},</if>
+            <if test="itemName != null and itemName != ''">item_name = #{itemName},</if>
+            <if test="itemLevel != null">item_level = #{itemLevel},</if>
+            <if test="parentCode != null">parent_code = #{parentCode},</if>
+            <if test="formulaType != null">formula_type = #{formulaType},</if>
+            <if test="formulaContent != null">formula_content = #{formulaContent},</if>
+            <if test="lineNumber != null">line_number = #{lineNumber},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="createdBy != null and createdBy != ''">created_by = #{createdBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="itemType != null">item_type = #{itemType},</if>
+            <if test="itemCategory != null">item_category = #{itemCategory},</if>
+            <if test="calculationRule != null">calculation_rule = #{calculationRule},</if>
+            <if test="dataSource != null">data_source = #{dataSource},</if>
+            <if test="subjectCodes != null and subjectCodes != ''">subject_codes = #{subjectCodes},</if>
+            <if test="amountType != null">amount_type = #{amountType},</if>
+            <if test="direction != null">direction = #{direction},</if>
+            <if test="displayFormat != null and displayFormat != ''">display_format = #{displayFormat},</if>
+            <if test="isShowZero != null">is_show_zero = #{isShowZero},</if>
+            <if test="isShow != null">is_show = #{isShow},</if>
+            <if test="isLeaf != null">is_leaf = #{isLeaf},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where item_id = #{itemId}
+    </update>
+
+    <delete id="deleteFinReportItemsByItemId" parameterType="Long">
+        delete from fin_report_items where item_id = #{itemId}
+    </delete>
+
+    <delete id="deleteFinReportItemsByItemIds" parameterType="String">
+        delete from fin_report_items where item_id in 
+        <foreach item="itemId" collection="array" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+</mapper>

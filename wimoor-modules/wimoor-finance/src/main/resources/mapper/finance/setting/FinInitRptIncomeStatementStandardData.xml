@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinInitRptIncomeStatementStandardData">
+    <sql id="initSql">
+            -- 插入利润表模板
+            INSERT ignore INTO fin_report_templates (groupid, template_code, template_name, template_type, description, created_by)
+            VALUES (#{groupId}, 'INCOME_STATEMENT_STANDARD', '利润报告', 'INCOME_STATEMENT', '新会计准则标准利润表模板', 'system');
+
+            SET @income_template_id = LAST_INSERT_ID();
+
+            -- 初始化利润表项目
+            INSERT ignore INTO fin_report_items (groupid, template_id, item_code, item_name, parent_code, item_level, line_number, item_type, calculation_rule, formula_type, data_source, sort_order, is_leaf) VALUES
+            -- 营业收入
+            (#{groupId}, @income_template_id, 'INCOME', '营业收入', NULL, 1, NULL, 'INCOME', NULL, 'DIRECT', 'SUBJECT', 10, 0),
+            (#{groupId}, @income_template_id, 'INCOME_MAIN', '主营业务收入', 'INCOME', 2, 1, 'INCOME', '6001', 'DIRECT', 'SUBJECT', 20, 1),
+            (#{groupId}, @income_template_id, 'INCOME_OTHER', '其他业务收入', 'INCOME', 2, 2, 'INCOME', '6051', 'DIRECT', 'SUBJECT', 30, 1),
+            (#{groupId}, @income_template_id, 'INCOME_TOTAL', '营业收入', 'INCOME', 2, 3, 'INCOME', 'INCOME_MAIN+INCOME_OTHER', 'FORMULA', 'CALCULATED', 40, 1),
+
+            -- 营业成本
+            (#{groupId}, @income_template_id, 'COST', '营业成本', NULL, 1, NULL, 'COST', NULL, 'DIRECT', 'SUBJECT', 50, 0),
+            (#{groupId}, @income_template_id, 'COST_MAIN', '主营业务成本', 'COST', 2, 4, 'COST', '6401', 'DIRECT', 'SUBJECT', 60, 1),
+            (#{groupId}, @income_template_id, 'COST_OTHER', '其他业务成本', 'COST', 2, 5, 'COST', '6402', 'DIRECT', 'SUBJECT', 70, 1),
+            (#{groupId}, @income_template_id, 'COST_TOTAL', '营业成本', 'COST', 2, 6, 'COST', 'COST_MAIN+COST_OTHER', 'FORMULA', 'CALCULATED', 80, 1),
+
+            -- 税金及附加
+            (#{groupId}, @income_template_id, 'TAX_ADDITIONAL', '税金及附加', NULL, 1, 7, 'EXPENSE', '6403', 'DIRECT', 'SUBJECT', 90, 1),
+
+            -- 期间费用
+            (#{groupId}, @income_template_id, 'EXPENSE_PERIOD', '期间费用', NULL, 1, NULL, 'EXPENSE', NULL, 'DIRECT', 'SUBJECT', 100, 0),
+            (#{groupId}, @income_template_id, 'EXPENSE_SALES', '销售费用', 'EXPENSE_PERIOD', 2, 8, 'EXPENSE', '6601', 'DIRECT', 'SUBJECT', 110, 1),
+            (#{groupId}, @income_template_id, 'EXPENSE_MANAGE', '管理费用', 'EXPENSE_PERIOD', 2, 9, 'EXPENSE', '6602', 'DIRECT', 'SUBJECT', 120, 1),
+            (#{groupId}, @income_template_id, 'EXPENSE_FINANCE', '财务费用', 'EXPENSE_PERIOD', 2, 10, 'EXPENSE', '6603', 'DIRECT', 'SUBJECT', 130, 1),
+            (#{groupId}, @income_template_id, 'EXPENSE_PERIOD_TOTAL', '期间费用合计', 'EXPENSE_PERIOD', 2, 11, 'EXPENSE', 'EXPENSE_SALES+EXPENSE_MANAGE+EXPENSE_FINANCE', 'FORMULA', 'CALCULATED', 140, 1),
+
+            -- 资产减值损失
+            (#{groupId}, @income_template_id, 'LOSS_ASSET_IMPAIRMENT', '资产减值损失', NULL, 1, 12, 'EXPENSE', '6701', 'DIRECT', 'SUBJECT', 150, 1),
+
+            -- 公允价值变动收益
+            (#{groupId}, @income_template_id, 'INCOME_FAIR_VALUE', '公允价值变动收益', NULL, 1, 13, 'INCOME', '6101', 'DIRECT', 'SUBJECT', 160, 1),
+
+            -- 投资收益
+            (#{groupId}, @income_template_id, 'INCOME_INVESTMENT', '投资收益', NULL, 1, 14, 'INCOME', '6111', 'DIRECT', 'SUBJECT', 170, 1),
+
+            -- 营业利润
+            (#{groupId}, @income_template_id, 'PROFIT_OPERATING', '营业利润', NULL, 1, 15, 'INCOME', 'INCOME_TOTAL-COST_TOTAL-TAX_ADDITIONAL-EXPENSE_PERIOD_TOTAL-LOSS_ASSET_IMPAIRMENT+INCOME_FAIR_VALUE+INCOME_INVESTMENT', 'FORMULA', 'CALCULATED', 180, 1),
+
+            -- 营业外收支
+            (#{groupId}, @income_template_id, 'INCOME_EXPENSE_NON_OPERATING', '营业外收支', NULL, 1, NULL, 'INCOME', NULL, 'DIRECT', 'SUBJECT', 190, 0),
+            (#{groupId}, @income_template_id, 'INCOME_NON_OPERATING', '营业外收入', 'INCOME_EXPENSE_NON_OPERATING', 2, 16, 'INCOME', '6301', 'DIRECT', 'SUBJECT', 200, 1),
+            (#{groupId}, @income_template_id, 'EXPENSE_NON_OPERATING', '营业外支出', 'INCOME_EXPENSE_NON_OPERATING', 2, 17, 'EXPENSE', '6711', 'DIRECT', 'SUBJECT', 210, 1),
+            (#{groupId}, @income_template_id, 'INCOME_EXPENSE_NON_OPERATING_NET', '营业外收支净额', 'INCOME_EXPENSE_NON_OPERATING', 2, 18, 'INCOME', 'INCOME_NON_OPERATING-EXPENSE_NON_OPERATING', 'FORMULA', 'CALCULATED', 220, 1),
+
+            -- 利润总额
+            (#{groupId}, @income_template_id, 'PROFIT_TOTAL', '利润总额', NULL, 1, 19, 'INCOME', 'PROFIT_OPERATING+INCOME_EXPENSE_NON_OPERATING_NET', 'FORMULA', 'CALCULATED', 230, 1),
+
+            -- 所得税费用
+            (#{groupId}, @income_template_id, 'EXPENSE_INCOME_TAX', '所得税费用', NULL, 1, 20, 'EXPENSE', '6801', 'DIRECT', 'SUBJECT', 240, 1),
+
+            -- 净利润
+            (#{groupId}, @income_template_id, 'PROFIT_NET', '净利润', NULL, 1, 21, 'INCOME', 'PROFIT_TOTAL-EXPENSE_INCOME_TAX', 'FORMULA', 'CALCULATED', 250, 1),
+
+            -- 每股收益
+            (#{groupId}, @income_template_id, 'EPS', '每股收益', NULL, 1, NULL, 'INCOME', NULL, 'DIRECT', 'SUBJECT', 260, 0),
+            (#{groupId}, @income_template_id, 'EPS_BASIC', '基本每股收益', 'EPS', 2, 22, 'INCOME', 'CUSTOM:EPS_BASIC', 'CUSTOM', 'CALCULATED', 270, 1),
+            (#{groupId}, @income_template_id, 'EPS_DILUTED', '稀释每股收益', 'EPS', 2, 23, 'INCOME', 'CUSTOM:EPS_DILUTED', 'CUSTOM', 'CALCULATED', 280, 1);
+    </sql>
+</mapper>

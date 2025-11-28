@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inventory.mapper.InventoryDetailReportMapper">
+	<resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.InventoryDetailReport">
+		<id column="id" property="id" jdbcType="CHAR" />
+		<result column="sku" property="sku" jdbcType="CHAR" />
+		<result column="byday" property="byday" jdbcType="TIMESTAMP" />
+		<result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+		<result column="fnsku" property="fnsku" jdbcType="CHAR" />
+		<result column="asin" property="asin" jdbcType="CHAR" />
+		<result column="pcondition" property="pcondition" jdbcType="CHAR" />
+		<result column="your_price" property="yourPrice" jdbcType="DECIMAL" />
+		<result column="mfn_listing_exists" property="mfnListingExists" jdbcType="CHAR" />
+		<result column="mfn_fulfillable_quantity" property="mfnFulfillableQuantity" jdbcType="INTEGER" />
+		<result column="afn_listing_exists" property="afnListingExists" jdbcType="CHAR" />
+		<result column="afn_warehouse_quantity" property="afnWarehouseQuantity" jdbcType="INTEGER" />
+		<result column="afn_fulfillable_quantity" property="afnFulfillableQuantity" jdbcType="INTEGER" />
+		<result column="afn_unsellable_quantity" property="afnUnsellableQuantity" jdbcType="INTEGER" />
+		<result column="afn_reserved_quantity" property="afnReservedQuantity" jdbcType="INTEGER" />
+		<result column="afn_total_quantity" property="afnTotalQuantity" jdbcType="INTEGER" />
+		<result column="per_unit_volume" property="perUnitVolume" jdbcType="DECIMAL" />
+		<result column="afn_inbound_working_quantity" property="afnInboundWorkingQuantity" jdbcType="INTEGER" />
+		<result column="afn_inbound_shipped_quantity" property="afnInboundShippedQuantity" jdbcType="INTEGER" />
+		<result column="afn_inbound_receiving_quantity" property="afnInboundReceivingQuantity" jdbcType="INTEGER" />
+		<result column="afn_reserved_future_supply" property="afnReservedFutureSupply" jdbcType="INTEGER" />
+		<result column="afn_researching_quantity" property="afnResearchingQuantity" jdbcType="INTEGER" />
+		<result column="afn_future_supply_buyable" property="afnFutureSupplyBuyable" jdbcType="INTEGER" />
+		<result column="isnewest" property="isnewest" jdbcType="BIT" />
+		<result column="amazonAuthId" property="amazonAuthId" jdbcType="CHAR" />
+	</resultMap>
+	
+	 
+</mapper>

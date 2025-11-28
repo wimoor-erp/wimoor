@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeCacheMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeCache" id="FinCodeCacheResult">
+        <result property="id"    column="id"    />
+        <result property="cacheKey"    column="cache_key"    />
+        <result property="cacheValue"    column="cache_value"    />
+        <result property="ruleCode"    column="rule_code"    />
+        <result property="accountSetId"    column="account_set_id"    />
+        <result property="businessDate"    column="business_date"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="createdTime"    column="created_time"    />
+    </resultMap>
+
+    <sql id="selectFinCodeCacheVo">
+        select id, cache_key, cache_value, rule_code, account_set_id, business_date, expire_time, created_time from fin_code_cache
+    </sql>
+
+    <select id="selectFinCodeCacheList" parameterType="com.wimoor.finance.code.domain.FinCodeCache" resultMap="FinCodeCacheResult">
+        <include refid="selectFinCodeCacheVo"/>
+        <where>  
+            <if test="cacheKey != null  and cacheKey != ''"> and cache_key = #{cacheKey}</if>
+            <if test="cacheValue != null  and cacheValue != ''"> and cache_value = #{cacheValue}</if>
+            <if test="ruleCode != null  and ruleCode != ''"> and rule_code = #{ruleCode}</if>
+            <if test="accountSetId != null "> and account_set_id = #{accountSetId}</if>
+            <if test="businessDate != null "> and business_date = #{businessDate}</if>
+            <if test="expireTime != null "> and expire_time = #{expireTime}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeCacheById" parameterType="Long" resultMap="FinCodeCacheResult">
+        <include refid="selectFinCodeCacheVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeCache" parameterType="com.wimoor.finance.code.domain.FinCodeCache" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_cache
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cacheKey != null and cacheKey != ''">cache_key,</if>
+            <if test="cacheValue != null and cacheValue != ''">cache_value,</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code,</if>
+            <if test="accountSetId != null">account_set_id,</if>
+            <if test="businessDate != null">business_date,</if>
+            <if test="expireTime != null">expire_time,</if>
+            <if test="createdTime != null">created_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cacheKey != null and cacheKey != ''">#{cacheKey},</if>
+            <if test="cacheValue != null and cacheValue != ''">#{cacheValue},</if>
+            <if test="ruleCode != null and ruleCode != ''">#{ruleCode},</if>
+            <if test="accountSetId != null">#{accountSetId},</if>
+            <if test="businessDate != null">#{businessDate},</if>
+            <if test="expireTime != null">#{expireTime},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeCache" parameterType="com.wimoor.finance.code.domain.FinCodeCache">
+        update fin_code_cache
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cacheKey != null and cacheKey != ''">cache_key = #{cacheKey},</if>
+            <if test="cacheValue != null and cacheValue != ''">cache_value = #{cacheValue},</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code = #{ruleCode},</if>
+            <if test="accountSetId != null">account_set_id = #{accountSetId},</if>
+            <if test="businessDate != null">business_date = #{businessDate},</if>
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeCacheById" parameterType="Long">
+        delete from fin_code_cache where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeCacheByIds" parameterType="String">
+        delete from fin_code_cache where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

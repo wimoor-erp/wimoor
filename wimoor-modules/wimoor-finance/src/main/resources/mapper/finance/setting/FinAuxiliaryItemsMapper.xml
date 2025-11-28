@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinAuxiliaryItemsMapper">
+    
+    <resultMap type="com.wimoor.finance.setting.domain.FinAuxiliaryItems" id="FinAuxiliaryItemsResult">
+        <result property="itemId"    column="item_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="typeId"    column="type_id"    />
+        <result property="itemCode"    column="item_code"    />
+        <result property="itemName"    column="item_name"    />
+        <result property="status"    column="status"    />
+        <result property="createdTime"    column="created_time"    />
+    </resultMap>
+
+    <sql id="selectFinAuxiliaryItemsVo">
+        select item_id, groupid, type_id, item_code, item_name, status, created_time from fin_auxiliary_items
+    </sql>
+
+    <select id="selectFinAuxiliaryItemsList" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems" resultMap="FinAuxiliaryItemsResult">
+        <include refid="selectFinAuxiliaryItemsVo"/>
+        <where>  
+            <if test="itemCode != null  and itemCode != ''"> and item_code = #{itemCode}</if>
+            <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinAuxiliaryItemsByItemId" parameterType="Long" resultMap="FinAuxiliaryItemsResult">
+        <include refid="selectFinAuxiliaryItemsVo"/>
+        where item_id = #{itemId}
+    </select>
+
+    <insert id="insertFinAuxiliaryItems" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems" useGeneratedKeys="true" keyProperty="itemId">
+        insert into fin_auxiliary_items
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="typeId != null">type_id,</if>
+            <if test="itemCode != null and itemCode != ''">item_code,</if>
+            <if test="itemName != null and itemName != ''">item_name,</if>
+            <if test="status != null">status,</if>
+            <if test="createdTime != null">created_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="typeId != null">#{typeId},</if>
+            <if test="itemCode != null and itemCode != ''">#{itemCode},</if>
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinAuxiliaryItems" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems">
+        update fin_auxiliary_items
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="typeId != null">type_id = #{typeId},</if>
+            <if test="itemCode != null and itemCode != ''">item_code = #{itemCode},</if>
+            <if test="itemName != null and itemName != ''">item_name = #{itemName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+        </trim>
+        where item_id = #{itemId}
+    </update>
+
+    <delete id="deleteFinAuxiliaryItemsByItemId" parameterType="Long">
+        delete from fin_auxiliary_items where item_id = #{itemId}
+    </delete>
+
+    <delete id="deleteFinAuxiliaryItemsByItemIds" parameterType="String">
+        delete from fin_auxiliary_items where item_id in 
+        <foreach item="itemId" collection="array" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+</mapper>

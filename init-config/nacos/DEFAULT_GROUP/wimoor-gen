@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    jdbc-url: jdbc:mysql://${mysql.host}:${mysql.port}/db_finance?allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai
+    username: ${mysql.username}
+    password: ${mysql.password}
+    primary:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+  servlet:
+      multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+      nacos:
+        enabled: true
+mybatis:
+    # 搜索指定包别名
+    typeAliasesPackage: com.wimoor.gen
+    # 配置mapper的扫描，找到所有的mapper.xml映射文件
+    mapperLocations: classpath:mapper/**/*.xml
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 600000
+# 代码生成
+gen:
+  # 作者
+  author: wimoor
+  # 默认生成包路径 system 需改成自己的模块名称 如 system monitor tool
+  packageName: com.wimoor.finance
+  # 自动去除表前缀，默认是false
+  autoRemovePre: false
+  # 表前缀（生成类名不会包含表前缀，多个用逗号分隔）
+  tablePrefix: fin_
+  # 是否允许生成文件覆盖到本地（自定义路径），默认不允许
+  allowOverwrite: false
+# springdoc配置
+springdoc:
+  gatewayUrl: http://localhost:8080/${spring.application.name}
+  api-docs:
+    # 是否开启接口文档
+    enabled: true
+  info:
+    # 标题
+    title: '财务模块接口文档'
+    # 描述
+    description: '财务模块接口描述'
+    # 作者信息
+    contact:
+      name: wimoor
+      url: https://wimoor.com

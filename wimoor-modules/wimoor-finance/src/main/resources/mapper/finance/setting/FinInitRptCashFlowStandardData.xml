@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinInitRptCashFlowStandardData">
+    <sql id="initSql">
+            -- 插入现金流量表模板
+            INSERT ignore INTO fin_report_templates (groupid, template_code, template_name, template_type, description, created_by)
+            VALUES (#{groupId}, 'CASH_FLOW_STANDARD', '现金流量报告', 'CASH_FLOW', '新会计准则标准现金流量表模板', 'system');
+
+            SET @cash_flow_template_id = LAST_INSERT_ID();
+
+                    -- 初始化现金流量表项目
+            INSERT ignore INTO fin_report_items (groupid, template_id, item_code, item_name, parent_code, item_level, line_number, item_type, calculation_rule, formula_type, data_source, sort_order, is_leaf) VALUES
+                    -- 经营活动现金流
+                        (#{groupId}, @cash_flow_template_id, 'CASH_FLOW_OPERATING', '经营活动产生的现金流量', NULL, 1, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 10, 0),
+
+                        -- 经营活动现金流入
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_OPERATING', '经营活动现金流入', 'CASH_FLOW_OPERATING', 2, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 20, 0),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_SALES', '销售商品、提供劳务收到的现金', 'CASH_IN_OPERATING', 3, 1, 'CASH_FLOW', 'CUSTOM:CASH_IN_SALES', 'CUSTOM', 'CALCULATED', 30, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_TAX_REFUND', '收到的税费返还', 'CASH_IN_OPERATING', 3, 2, 'CASH_FLOW', 'CUSTOM:CASH_IN_TAX_REFUND', 'CUSTOM', 'CALCULATED', 40, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_OTHER_OPERATING', '收到其他与经营活动有关的现金', 'CASH_IN_OPERATING', 3, 3, 'CASH_FLOW', 'CUSTOM:CASH_IN_OTHER_OPERATING', 'CUSTOM', 'CALCULATED', 50, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_OPERATING_TOTAL', '经营活动现金流入小计', 'CASH_IN_OPERATING', 3, 4, 'CASH_FLOW', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 60, 1),
+
+                        -- 经营活动现金流出
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_OPERATING', '经营活动现金流出', 'CASH_FLOW_OPERATING', 2, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 70, 0),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_PURCHASE', '购买商品、接受劳务支付的现金', 'CASH_OUT_OPERATING', 3, 5, 'CASH_FLOW', 'CUSTOM:CASH_OUT_PURCHASE', 'CUSTOM', 'CALCULATED', 80, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_SALARY', '支付给职工以及为职工支付的现金', 'CASH_OUT_OPERATING', 3, 6, 'CASH_FLOW', 'CUSTOM:CASH_OUT_SALARY', 'CUSTOM', 'CALCULATED', 90, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_TAX', '支付的各项税费', 'CASH_OUT_OPERATING', 3, 7, 'CASH_FLOW', 'CUSTOM:CASH_OUT_TAX', 'CUSTOM', 'CALCULATED', 100, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_OTHER_OPERATING', '支付其他与经营活动有关的现金', 'CASH_OUT_OPERATING', 3, 8, 'CASH_FLOW', 'CUSTOM:CASH_OUT_OTHER_OPERATING', 'CUSTOM', 'CALCULATED', 110, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_OPERATING_TOTAL', '经营活动现金流出小计', 'CASH_OUT_OPERATING', 3, 9, 'CASH_FLOW', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 120, 1),
+
+                        -- 经营活动现金流量净额
+                        (#{groupId}, @cash_flow_template_id, 'CASH_FLOW_OPERATING_NET', '经营活动产生的现金流量净额', 'CASH_FLOW_OPERATING', 2, 10, 'CASH_FLOW', 'CASH_IN_OPERATING_TOTAL-CASH_OUT_OPERATING_TOTAL', 'FORMULA', 'CALCULATED', 130, 1),
+
+                        -- 投资活动现金流量
+                        (#{groupId}, @cash_flow_template_id, 'CASH_FLOW_INVESTING', '投资活动产生的现金流量', NULL, 1, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 140, 0),
+
+                        -- 投资活动现金流入
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_INVESTING', '投资活动现金流入', 'CASH_FLOW_INVESTING', 2, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 150, 0),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_INVEST_RECOVER', '收回投资收到的现金', 'CASH_IN_INVESTING', 3, 11, 'CASH_FLOW', 'CUSTOM:CASH_IN_INVEST_RECOVER', 'CUSTOM', 'CALCULATED', 160, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_INVEST_INCOME', '取得投资收益收到的现金', 'CASH_IN_INVESTING', 3, 12, 'CASH_FLOW', 'CUSTOM:CASH_IN_INVEST_INCOME', 'CUSTOM', 'CALCULATED', 170, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_ASSET_DISPOSE', '处置固定资产、无形资产收到的现金', 'CASH_IN_INVESTING', 3, 13, 'CASH_FLOW', 'CUSTOM:CASH_IN_ASSET_DISPOSE', 'CUSTOM', 'CALCULATED', 180, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_OTHER_INVESTING', '收到其他与投资活动有关的现金', 'CASH_IN_INVESTING', 3, 14, 'CASH_FLOW', 'CUSTOM:CASH_IN_OTHER_INVESTING', 'CUSTOM', 'CALCULATED', 190, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_INVESTING_TOTAL', '投资活动现金流入小计', 'CASH_IN_INVESTING', 3, 15, 'CASH_FLOW', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 200, 1),
+
+                        -- 投资活动现金流出
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_INVESTING', '投资活动现金流出', 'CASH_FLOW_INVESTING', 2, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 210, 0),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_INVEST', '购建固定资产、无形资产支付的现金', 'CASH_OUT_INVESTING', 3, 16, 'CASH_FLOW', 'CUSTOM:CASH_OUT_INVEST', 'CUSTOM', 'CALCULATED', 220, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_INVEST_PAY', '投资支付的现金', 'CASH_OUT_INVESTING', 3, 17, 'CASH_FLOW', 'CUSTOM:CASH_OUT_INVEST_PAY', 'CUSTOM', 'CALCULATED', 230, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_OTHER_INVESTING', '支付其他与投资活动有关的现金', 'CASH_OUT_INVESTING', 3, 18, 'CASH_FLOW', 'CUSTOM:CASH_OUT_OTHER_INVESTING', 'CUSTOM', 'CALCULATED', 240, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_INVESTING_TOTAL', '投资活动现金流出小计', 'CASH_OUT_INVESTING', 3, 19, 'CASH_FLOW', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 250, 1),
+
+                        -- 投资活动现金流量净额
+                        (#{groupId}, @cash_flow_template_id, 'CASH_FLOW_INVESTING_NET', '投资活动产生的现金流量净额', 'CASH_FLOW_INVESTING', 2, 20, 'CASH_FLOW', 'CASH_IN_INVESTING_TOTAL-CASH_OUT_INVESTING_TOTAL', 'FORMULA', 'CALCULATED', 260, 1),
+
+                        -- 筹资活动现金流量
+                        (#{groupId}, @cash_flow_template_id, 'CASH_FLOW_FINANCING', '筹资活动产生的现金流量', NULL, 1, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 270, 0),
+
+                        -- 筹资活动现金流入
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_FINANCING', '筹资活动现金流入', 'CASH_FLOW_FINANCING', 2, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 280, 0),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_INVEST_ABSORB', '吸收投资收到的现金', 'CASH_IN_FINANCING', 3, 21, 'CASH_FLOW', 'CUSTOM:CASH_IN_INVEST_ABSORB', 'CUSTOM', 'CALCULATED', 290, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_LOAN', '取得借款收到的现金', 'CASH_IN_FINANCING', 3, 22, 'CASH_FLOW', 'CUSTOM:CASH_IN_LOAN', 'CUSTOM', 'CALCULATED', 300, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_OTHER_FINANCING', '收到其他与筹资活动有关的现金', 'CASH_IN_FINANCING', 3, 23, 'CASH_FLOW', 'CUSTOM:CASH_IN_OTHER_FINANCING', 'CUSTOM', 'CALCULATED', 310, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_IN_FINANCING_TOTAL', '筹资活动现金流入小计', 'CASH_IN_FINANCING', 3, 24, 'CASH_FLOW', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 320, 1),
+
+                        -- 筹资活动现金流出
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_FINANCING', '筹资活动现金流出', 'CASH_FLOW_FINANCING', 2, NULL, 'CASH_FLOW', NULL, 'DIRECT', 'SUBJECT', 330, 0),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_LOAN_REPAY', '偿还债务支付的现金', 'CASH_OUT_FINANCING', 3, 25, 'CASH_FLOW', 'CUSTOM:CASH_OUT_LOAN_REPAY', 'CUSTOM', 'CALCULATED', 340, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_DIVIDEND', '分配股利、利润支付的现金', 'CASH_OUT_FINANCING', 3, 26, 'CASH_FLOW', 'CUSTOM:CASH_OUT_DIVIDEND', 'CUSTOM', 'CALCULATED', 350, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_INTEREST', '偿付利息支付的现金', 'CASH_OUT_FINANCING', 3, 27, 'CASH_FLOW', 'CUSTOM:CASH_OUT_INTEREST', 'CUSTOM', 'CALCULATED', 360, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_OTHER_FINANCING', '支付其他与筹资活动有关的现金', 'CASH_OUT_FINANCING', 3, 28, 'CASH_FLOW', 'CUSTOM:CASH_OUT_OTHER_FINANCING', 'CUSTOM', 'CALCULATED', 370, 1),
+                        (#{groupId}, @cash_flow_template_id, 'CASH_OUT_FINANCING_TOTAL', '筹资活动现金流出小计', 'CASH_OUT_FINANCING', 3, 29, 'CASH_FLOW', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 380, 1),
+
+                        -- 筹资活动现金流量净额
+                        (#{groupId}, @cash_flow_template_id, 'CASH_FLOW_FINANCING_NET', '筹资活动产生的现金流量净额', 'CASH_FLOW_FINANCING', 2, 30, 'CASH_FLOW', 'CASH_IN_FINANCING_TOTAL-CASH_OUT_FINANCING_TOTAL', 'FORMULA', 'CALCULATED', 390, 1),
+
+                        -- 汇率变动对现金的影响
+                        (#{groupId}, @cash_flow_template_id, 'CASH_EFFECT_EXCHANGE', '汇率变动对现金的影响', NULL, 1, 31, 'CASH_FLOW', 'CUSTOM:CASH_EFFECT_EXCHANGE', 'CUSTOM', 'CALCULATED', 400, 1),
+
+                        -- 现金及现金等价物净增加额
+                        (#{groupId}, @cash_flow_template_id, 'CASH_NET_INCREASE', '现金及现金等价物净增加额', NULL, 1, 32, 'CASH_FLOW', 'CASH_FLOW_OPERATING_NET+CASH_FLOW_INVESTING_NET+CASH_FLOW_FINANCING_NET+CASH_EFFECT_EXCHANGE', 'FORMULA', 'CALCULATED', 410, 1),
+
+                        -- 期初现金及现金等价物余额
+                        (#{groupId}, @cash_flow_template_id, 'CASH_BEGINNING', '期初现金及现金等价物余额', NULL, 1, 33, 'CASH_FLOW', 'CUSTOM:CASH_BEGINNING', 'CUSTOM', 'CALCULATED', 420, 1),
+
+                        -- 期末现金及现金等价物余额
+                        (#{groupId}, @cash_flow_template_id, 'CASH_ENDING', '期末现金及现金等价物余额', NULL, 1, 34, 'CASH_FLOW', 'CASH_BEGINNING+CASH_NET_INCREASE', 'FORMULA', 'CALCULATED', 430, 1);
+    </sql>
+</mapper>

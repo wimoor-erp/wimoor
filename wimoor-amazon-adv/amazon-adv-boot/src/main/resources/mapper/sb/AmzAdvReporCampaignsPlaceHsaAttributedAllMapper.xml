@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sb.dao.AmzAdvReporCampaignsPlaceHsaAttributedAllMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sb.pojo.AmzAdvReportCampaignsPlaceHsaAttributedAll" >
+    <id column="campaignId" property="campaignid" jdbcType="BIGINT" />
+    <id column="bydate" property="bydate" jdbcType="DATE" />
+    <result column="profileid" property="profileid" jdbcType="BIGINT" />
+    <result column="impressions" property="impressions" jdbcType="INTEGER" />
+    <result column="clicks" property="clicks" jdbcType="INTEGER" />
+    <result column="cost" property="cost" jdbcType="DECIMAL" />
+
+  </resultMap>
+
+</mapper>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PurchaseFormPaymentMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PurchaseFormPayment" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="formentryid" property="formentryid" jdbcType="VARCHAR" />
+    <result column="payprice" property="payprice" jdbcType="DECIMAL" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+    <result column="projectid" property="projectid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, formentryid, payprice, opttime, operator,projectid
+  </sql>
+  <select id="paymentReport" resultType="java.util.Map" >
+        select ifnull(e.paydate,pay.opttime) opttime,pay.payprice,form.number,entry.paystatus,entry.totalin,
+        form.createdate,m.sku,
+		p.location image,m.name mname,entry.amount purchases,w.name wname,c.name cname,
+		tp.name fee_type ,
+		pay.remark,
+		entry.orderprice,
+		pmd.name payment_method,entry.totalpay,
+		(entry.orderprice-entry.totalpay) need_pay,
+		u.name 
+		from t_erp_purchase_form_payment pay
+        left join t_erp_purchase_form_payment_method pmd on pmd.id=pay.payment_method
+		left join t_erp_fin_project tp on tp.id=pay.projectid  
+		left join t_erp_purchase_form_entry entry on entry.id=pay.formentryid
+		left join t_erp_purchase_form_entry_alibabainfo_ext e on e.entryid=pay.formentryid
+		left join t_erp_purchase_alibaba_settlement_order o on o.orderid=e.alibaba_orderid
+		left join t_erp_purchase_alibaba_settlement st on st.id=o.settlementid
+		left join t_userinfo u on u.id=pay.operator
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_purchase_form form on form.id=entry.formid 
+		left join t_erp_customer c on c.id=entry.supplier
+        left join t_picture p on p.id=m.image
+        left join t_erp_warehouse w on w.id=form.warehouseid
+	where  form.shopid=#{param.shopid,jdbcType=CHAR}   and pay.auditstatus=1
+	<if test="param.settlementid!=null">
+	  and o.settlementid=#{param.settlementid,jdbcType=CHAR}
+	  and st.acct=pay.acct
+	</if>
+	<if test="param.settlementid==null">
+		and entry.auditstatus>1 
+		<if test="param.datetype=='paydate'">
+		and pay.opttime &gt;=#{param.fromDate,jdbcType=DATE}
+	    and pay.opttime &lt;=#{param.endDate,jdbcType=DATE} 
+		</if>
+		<if test="param.datetype=='recdate'">
+		and e.paydate &gt;=#{param.fromDate,jdbcType=DATE}
+	    and e.paydate &lt;=#{param.endDate,jdbcType=DATE} 
+		</if>
+	   <if test="param.datetype=='countdate'">
+		and e.countdate &gt;=#{param.fromDate,jdbcType=DATE}
+	    and e.countdate &lt;=#{param.endDate,jdbcType=DATE} 
+		</if>
+	</if>
+    <if test="param.search!=null">
+    	<if test="param.searchtype!=null">
+    		<if test="param.searchtype=='sku'">
+    			and	m.sku like #{param.search,jdbcType=CHAR}
+    		</if>
+    		<if test="param.searchtype=='number'">
+    			 and (form.number like #{param.search,jdbcType=CHAR} )
+    		</if>
+    		<if test="param.searchtype=='orderid'">
+    			 and (o.orderid like #{param.search,jdbcType=CHAR} )
+    		</if>
+    	</if>
+     </if>
+ 		<if test="param.projectid!=null">
+    			 and   pay.projectid= #{param.projectid,jdbcType=CHAR} 
+   		</if>
+   		<if test="param.warehouseid!=null">
+    			 and   form.warehouseid= #{param.warehouseid,jdbcType=CHAR} 
+   		</if>
+   		<if test="param.supplierid!=null">
+    			 and   entry.supplier= #{param.supplierid,jdbcType=CHAR} 
+   		</if>
+   		<if test="param.paymethod!=null">
+    			 and   pay.payment_method= #{param.paymethod,jdbcType=CHAR} 
+   		</if>
+    	 
+  </select>
+<select id="paymentReportSummary" resultType="java.util.Map">
+          select sum(pay.payprice) totalpayprice,
+                 sum(entry.amount*entry.itemprice-entry.totalpay) totalneedpay ,
+                 sum(entry.orderprice) totalorderprice
+		from t_erp_purchase_form_payment pay
+		left join t_erp_purchase_form_entry entry on entry.id=pay.formentryid
+		left join t_erp_purchase_form_entry_alibabainfo_ext e on e.entryid=pay.formentryid
+		left join t_erp_purchase_alibaba_settlement_order o on o.orderid=e.alibaba_orderid
+		left join t_erp_purchase_alibaba_settlement st on st.id=o.settlementid
+		left join t_userinfo u on u.id=pay.operator
+		left join t_erp_material m on m.id=entry.materialid
+		left join t_erp_purchase_form form on form.id=entry.formid 
+	where  form.shopid=#{shopid,jdbcType=CHAR} and pay.auditstatus=1
+	<if test="settlementid!=null">
+	  and o.settlementid=#{settlementid,jdbcType=CHAR}
+	  and st.acct=pay.acct
+	</if>
+	<if test="settlementid==null">
+		and entry.auditstatus>1 
+		<if test="datetype=='paydate'">
+		and pay.opttime &gt;=#{fromDate,jdbcType=DATE}
+	    and pay.opttime &lt;=#{endDate,jdbcType=DATE} 
+		</if>
+		<if test="datetype=='recdate'">
+		and e.paydate &gt;=#{fromDate,jdbcType=DATE}
+	    and e.paydate &lt;=#{endDate,jdbcType=DATE} 
+		</if>
+		<if test="datetype=='countdate'">
+		and e.countdate &gt;=#{fromDate,jdbcType=DATE}
+	    and e.countdate &lt;=#{endDate,jdbcType=DATE} 
+		</if>
+	</if>
+    <if test="search!=null">
+    	<if test="searchtype!=null">
+    		<if test="searchtype=='sku'">
+    			and	m.sku like #{search,jdbcType=CHAR}
+    		</if>
+    		<if test="searchtype=='number'">
+    			 and  form.number like #{search,jdbcType=CHAR} 
+    		</if>
+    		<if test="searchtype=='number'">
+    			 and  form.number like #{search,jdbcType=CHAR} 
+    		</if>
+    		
+    	</if>
+     </if>
+     <if test="warehouseid!=null">
+    			 and   form.warehouseid= #{warehouseid,jdbcType=CHAR} 
+   		</if>
+     <if test="projectid!=null">
+    			 and   pay.projectid= #{projectid,jdbcType=CHAR} 
+   		</if>
+   		<if test="supplierid!=null">
+    			 and   entry.supplier= #{supplierid,jdbcType=CHAR} 
+   		</if>
+   		<if test="paymethod!=null">
+    			 and   pay.payment_method= #{paymethod,jdbcType=CHAR} 
+   		</if>
+</select>
+ 
+</mapper>

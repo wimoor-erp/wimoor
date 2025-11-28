@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.auth.mapper.MarketPriorityMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.auth.pojo.entity.MarketPriority" >
+    <id column="marketplaceid" property="marketplaceid" jdbcType="VARCHAR" />
+    <id column="groupid" property="groupid" jdbcType="CHAR" />
+    <result column="priority" property="priority" jdbcType="INTEGER" />
+    <result column="opttime" property="opttime" jdbcType="DATE" />
+    <result column="operator" property="operator" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    marketplaceid, priority, groupid,opttime,operator
+  </sql>
+  <select id="findMarketplaceByGroup" resultType="com.wimoor.amazon.auth.pojo.entity.Marketplace"  parameterType="java.lang.String">
+       SELECT * FROM ( select    case when m.region='EU' then 'EU' else m.marketplaceid end  marketplaceId, 
+		  	     max(case when m.region='EU' then 'EU' else m.market end)  market, 
+		  	     max(case when m.region='EU' then '欧洲' else m.name end)  name, 
+		  	     max(case when m.region='EU' then 'EU' else m.region_name end)  region_name, 
+		  	     max(case when m.region='EU' then 'EU' else  m.end_point end)  end_point, 
+  	             max(case when m.region='EU' then 'EU' else  m.region end)  region, 
+  	             max(case when m.region='EU' then 'EU' else  m.point_name end)  point_name, 
+  	             max(IFNULL(p.priority,m.findex))    findex 
+		from t_marketplace m
+		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
+		left join t_amazon_auth a on a.sellerid=s.sellerid
+		left join t_erp_market_priority p on  (p.marketplaceId = m.marketplaceId or p.marketplaceId=m.region ) and p.groupid=a.groupid
+		where a.groupid=#{groupid,jdbcType=CHAR} 
+			and s.disable=false 
+			and a.disable=false
+		 group by case when m.region='EU' then 'EU' else m.marketplaceid end  ) v
+		order by v.findex
+  </select>
+  
+  <!-- <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_market_priority
+    where marketplaceid = #{marketplaceid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_market_priority
+    where marketplaceid = #{marketplaceid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.MarketPriority" >
+    insert into t_erp_market_priority (marketplaceid, priority, groupid
+      )
+    values (#{marketplaceid,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{groupid,jdbcType=CHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.MarketPriority" >
+    insert into t_erp_market_priority
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="marketplaceid != null" >
+        marketplaceid,
+      </if>
+      <if test="priority != null" >
+        priority,
+      </if>
+      <if test="groupid != null" >
+        groupid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="marketplaceid != null" >
+        #{marketplaceid,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null" >
+        #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="groupid != null" >
+        #{groupid,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.MarketPriority" >
+    update t_erp_market_priority
+    <set >
+      <if test="priority != null" >
+        priority = #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="groupid != null" >
+        groupid = #{groupid,jdbcType=CHAR},
+      </if>
+    </set>
+    where marketplaceid = #{marketplaceid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.MarketPriority" >
+    update t_erp_market_priority
+    set priority = #{priority,jdbcType=INTEGER},
+      groupid = #{groupid,jdbcType=CHAR}
+    where marketplaceid = #{marketplaceid,jdbcType=VARCHAR}
+  </update> -->
+</mapper>

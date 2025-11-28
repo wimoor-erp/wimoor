@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.transparency.mapper.TransparencyTaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.transparency.pojo.entity.TransparencyTask">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="skuinfoid" column="skuinfoid" jdbcType="BIGINT"/>
+            <result property="gtin" column="gtin" jdbcType="CHAR"/>
+            <result property="count" column="count" jdbcType="INTEGER"/>
+            <result property="url" column="url" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="CHAR"/>
+            <result property="createtime" column="createtime" jdbcType="TIMESTAMP"/>
+            <result property="creator" column="creator" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,skuinfoid,gtin,count,url,status,
+        createtime,creator
+    </sql>
+    <select id="listTask" resultType="java.util.Map">
+        select t.sku,t.asin,t.gtin,t.authid,t.groupid,a.client_name,g.name groupname,tk.count,tk.url,tk.status,tk.id taskid,
+               tk.jobid,tk.createtime,
+             (   SELECT concat(COUNT(tc.taskid),'(',sum(case when tc.usetime then 1 else 0 end ),')')
+                   FROM t_amz_transparency_tcode tc
+                   WHERE tc.taskid=tk.id ) codenum
+        from t_amz_transparency_task tk
+        left join t_amz_transparency_skuinfo t on tk.skuinfoid=t.id
+        left join t_amz_transparency_authority a on a.client_id=t.authid
+        left join t_amazon_group g on g.id=t.groupid
+        where a.shopid=#{param.shopid,jdbcType=CHAR}
+        and t.disabled=false
+        <if test="param.groupid!=null">
+            and  t.groupid=#{param.groupid,jdbcType=CHAR}
+        </if>
+        <if test="param.authid!=null">
+            and  t.authid=#{param.authid,jdbcType=CHAR}
+        </if>
+        <if test="param.sku!=null">
+            and  t.sku like concat('%',#{param.sku,jdbcType=CHAR},'%')
+        </if>
+    </select>
+</mapper>

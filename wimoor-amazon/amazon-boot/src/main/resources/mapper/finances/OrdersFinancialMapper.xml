@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.finances.mapper.OrdersFinancialMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.OrdersFinancial">
+        <id column="id" property="id" />
+        <result column="amazon_order_id" property="amazonOrderId" />
+        <result column="order_item_id" property="orderItemId" />
+        <result column="sku" property="sku" />
+        <result column="currency" property="currency" />
+        <result column="ftype" property="ftype" />
+        <result column="amount" property="amount" />
+        <result column="opttime" property="opttime" />
+        <result column="marketplaceId" property="marketplaceId" />
+        <result column="posted_date" property="postedDate" />
+    </resultMap>
+
+</mapper>

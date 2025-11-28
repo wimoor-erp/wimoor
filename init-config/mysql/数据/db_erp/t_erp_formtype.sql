@@ -1,0 +1,9 @@
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('assembly', '加工', '组装单-含准备状态的出库入库');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('change', '换货', '换货单-含准备状态的出库入库');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('dispatch', '调库', '调库单-直接出库直接入库');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('dispatch-inner', '代料', '代料单');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('otherin', '其它入库', '其他入库单-直接入库');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('otherout', '其它出库', '其它出库单-直接出库');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('outstockform', '发货出库', '亚马逊发货');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('purchase', '采购', '采购单-含准备状态的出库入库');
+REPLACE INTO `t_erp_formtype` (`id`, `name`, `remark`) VALUES ('stocktaking', '盘点', '盘点');

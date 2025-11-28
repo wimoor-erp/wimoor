@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.voucher.mapper.FinVourchesFileMapper">
+    
+    <resultMap type="com.wimoor.finance.voucher.domain.FinVourchesFile" id="FinVourchesFileResult">
+        <result property="id"    column="id"    />
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="filePath"    column="file_path"    />
+        <result property="fileName"    column="file_name"    />
+        <result property="fileType"    column="file_type"    />
+        <result property="opttime"    column="opttime"    />
+    </resultMap>
+
+    <sql id="selectFinVourchesFileVo">
+        select id, voucher_id, groupid, file_path, file_name, file_type, opttime from fin_vourches_file
+    </sql>
+
+    <select id="selectFinVourchesFileList" parameterType="com.wimoor.finance.voucher.domain.FinVourchesFile" resultMap="FinVourchesFileResult">
+        <include refid="selectFinVourchesFileVo"/>
+        <where>  
+            <if test="voucherId != null  and voucherId != ''"> and vourcher_id = #{voucherId}</if>
+            <if test="groupid != null  and groupid != ''"> and groupid = #{groupid}</if>
+            <if test="filePath != null  and filePath != ''"> and file_path = #{filePath}</if>
+            <if test="fileName != null  and fileName != ''"> and file_name = #{fileName}</if>
+            <if test="fileType != null  and fileType != ''"> and file_type = #{fileType}</if>
+            <if test="opttime != null"> and opttime = #{opttime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinVourchesFileById" parameterType="String" resultMap="FinVourchesFileResult">
+        <include refid="selectFinVourchesFileVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectFinVourchesFileByVoucherId"  parameterType="com.wimoor.finance.voucher.domain.FinVouchers" resultMap="FinVourchesFileResult">
+        <include refid="selectFinVourchesFileVo"/>
+        where voucher_id = #{voucherId}
+    </select>
+
+    <insert id="insertFinVourchesFile" parameterType="com.wimoor.finance.voucher.domain.FinVourchesFile" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_vourches_file
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="voucherId != null">voucher_id,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="filePath != null">file_path,</if>
+            <if test="fileName != null">file_name,</if>
+            <if test="fileType != null">file_type,</if>
+            <if test="opttime != null">opttime,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="voucherId != null">#{voucherId},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="filePath != null">#{filePath},</if>
+            <if test="fileName != null">#{fileName},</if>
+            <if test="fileType != null">#{fileType},</if>
+            <if test="opttime != null">#{opttime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinVourchesFile" parameterType="com.wimoor.finance.voucher.domain.FinVourchesFile">
+        update fin_vourches_file
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="voucherId != null">voucher_id = #{voucherId},</if>
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileType != null">file_type = #{fileType},</if>
+            <if test="opttime != null">opttime = #{opttime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinVourchesFileById" parameterType="String">
+        delete from fin_vourches_file where id = #{id}
+    </delete>
+
+    <delete id="deleteFinVourchesFileByIds" parameterType="String">
+        delete from fin_vourches_file where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteFinVourchesFileByVoucherId" parameterType="com.wimoor.finance.voucher.domain.FinVouchers">
+        delete from fin_vourches_file where voucher_id = #{voucherId}
+    </delete>
+</mapper>

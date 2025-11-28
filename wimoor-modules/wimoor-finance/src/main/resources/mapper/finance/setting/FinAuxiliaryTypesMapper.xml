@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinAuxiliaryTypesMapper">
+    
+    <resultMap type="com.wimoor.finance.setting.domain.FinAuxiliaryTypes" id="FinAuxiliaryTypesResult">
+        <result property="typeId"    column="type_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="typeName"    column="type_name"    />
+        <result property="typeCode"    column="type_code"    />
+    </resultMap>
+
+    <sql id="selectFinAuxiliaryTypesVo">
+        select type_id, groupid, type_name, type_code from fin_auxiliary_types
+    </sql>
+
+    <select id="selectFinAuxiliaryTypesList" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryTypes" resultMap="FinAuxiliaryTypesResult">
+        <include refid="selectFinAuxiliaryTypesVo"/>
+        <where>  
+            <if test="typeName != null  and typeName != ''"> and type_name like concat('%', #{typeName}, '%')</if>
+            <if test="typeCode != null  and typeCode != ''"> and type_code = #{typeCode}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinAuxiliaryTypesByTypeId" parameterType="Long" resultMap="FinAuxiliaryTypesResult">
+        <include refid="selectFinAuxiliaryTypesVo"/>
+        where type_id = #{typeId}
+    </select>
+
+    <insert id="insertFinAuxiliaryTypes" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryTypes">
+        insert into fin_auxiliary_types
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="typeId != null">type_id,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="typeName != null and typeName != ''">type_name,</if>
+            <if test="typeCode != null and typeCode != ''">type_code,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="typeId != null">#{typeId},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="typeName != null and typeName != ''">#{typeName},</if>
+            <if test="typeCode != null and typeCode != ''">#{typeCode},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinAuxiliaryTypes" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryTypes">
+        update fin_auxiliary_types
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="typeName != null and typeName != ''">type_name = #{typeName},</if>
+            <if test="typeCode != null and typeCode != ''">type_code = #{typeCode},</if>
+        </trim>
+        where type_id = #{typeId}
+    </update>
+
+    <delete id="deleteFinAuxiliaryTypesByTypeId" parameterType="Long">
+        delete from fin_auxiliary_types where type_id = #{typeId}
+    </delete>
+
+    <delete id="deleteFinAuxiliaryTypesByTypeIds" parameterType="String">
+        delete from fin_auxiliary_types where type_id in 
+        <foreach item="typeId" collection="array" open="(" separator="," close=")">
+            #{typeId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeRuleVersionMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeRuleVersion" id="FinCodeRuleVersionResult">
+        <result property="id"    column="id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="ruleCode"    column="rule_code"    />
+        <result property="version"    column="version"    />
+        <result property="ruleTemplate"    column="rule_template"    />
+        <result property="ruleStructure"    column="rule_structure"    />
+        <result property="separator"    column="separator"    />
+        <result property="prefix"    column="prefix"    />
+        <result property="suffix"    column="suffix"    />
+        <result property="description"    column="description"    />
+        <result property="changeReason"    column="change_reason"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="createdBy"    column="created_by"    />
+    </resultMap>
+
+    <sql id="selectFinCodeRuleVersionVo">
+        select id, tenant_id, rule_code, version, rule_template, rule_structure, separator, prefix, suffix, description, change_reason, created_time, created_by from fin_code_rule_version
+    </sql>
+
+    <select id="selectFinCodeRuleVersionList" parameterType="com.wimoor.finance.code.domain.FinCodeRuleVersion" resultMap="FinCodeRuleVersionResult">
+        <include refid="selectFinCodeRuleVersionVo"/>
+        <where>  
+            <if test="groupid != null  and groupid != ''"> and groupid = #{groupid}</if>
+            <if test="ruleCode != null  and ruleCode != ''"> and rule_code = #{ruleCode}</if>
+            <if test="version != null "> and version = #{version}</if>
+            <if test="ruleTemplate != null  and ruleTemplate != ''"> and rule_template = #{ruleTemplate}</if>
+            <if test="ruleStructure != null  and ruleStructure != ''"> and rule_structure = #{ruleStructure}</if>
+            <if test="separator != null  and separator != ''"> and separator = #{separator}</if>
+            <if test="prefix != null  and prefix != ''"> and prefix = #{prefix}</if>
+            <if test="suffix != null  and suffix != ''"> and suffix = #{suffix}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="changeReason != null  and changeReason != ''"> and change_reason = #{changeReason}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="createdBy != null  and createdBy != ''"> and created_by = #{createdBy}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeRuleVersionById" parameterType="Long" resultMap="FinCodeRuleVersionResult">
+        <include refid="selectFinCodeRuleVersionVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeRuleVersion" parameterType="com.wimoor.finance.code.domain.FinCodeRuleVersion" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_rule_version
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">groupid,</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code,</if>
+            <if test="version != null">version,</if>
+            <if test="ruleTemplate != null">rule_template,</if>
+            <if test="ruleStructure != null and ruleStructure != ''">rule_structure,</if>
+            <if test="separator != null">separator,</if>
+            <if test="prefix != null">prefix,</if>
+            <if test="suffix != null">suffix,</if>
+            <if test="description != null">description,</if>
+            <if test="changeReason != null">change_reason,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="createdBy != null and createdBy != ''">created_by,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">#{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">#{ruleCode},</if>
+            <if test="version != null">#{version},</if>
+            <if test="ruleTemplate != null">#{ruleTemplate},</if>
+            <if test="ruleStructure != null and ruleStructure != ''">#{ruleStructure},</if>
+            <if test="separator != null">#{separator},</if>
+            <if test="prefix != null">#{prefix},</if>
+            <if test="suffix != null">#{suffix},</if>
+            <if test="description != null">#{description},</if>
+            <if test="changeReason != null">#{changeReason},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeRuleVersion" parameterType="com.wimoor.finance.code.domain.FinCodeRuleVersion">
+        update fin_code_rule_version
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">groupid = #{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code = #{ruleCode},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="ruleTemplate != null">rule_template = #{ruleTemplate},</if>
+            <if test="ruleStructure != null and ruleStructure != ''">rule_structure = #{ruleStructure},</if>
+            <if test="separator != null">separator = #{separator},</if>
+            <if test="prefix != null">prefix = #{prefix},</if>
+            <if test="suffix != null">suffix = #{suffix},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="changeReason != null">change_reason = #{changeReason},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="createdBy != null and createdBy != ''">created_by = #{createdBy},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeRuleVersionById" parameterType="Long">
+        delete from fin_code_rule_version where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeRuleVersionByIds" parameterType="String">
+        delete from fin_code_rule_version where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

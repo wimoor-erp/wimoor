@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.transparency.mapper.TransparencySkuinfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.transparency.pojo.entity.TransparencySkuinfo">
+            <result property="id" column="id" jdbcType="BIGINT"/>
+            <result property="gtin" column="gtin" jdbcType="CHAR"/>
+            <result property="groupid" column="groupid" jdbcType="BIGINT"/>
+            <result property="asin" column="asin" jdbcType="CHAR"/>
+            <result property="sku" column="sku" jdbcType="CHAR"/>
+            <result property="authid" column="authid" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,gtin,groupid,asin,sku,authid
+    </sql>
+    <select id="listSkuinfo" resultType="java.util.Map">
+        select t.*,a.client_name,g.name groupname,
+          ( SELECT concat(COUNT(tc.taskid),'(',sum(case when tc.usetime then 1 else 0 end ),')') FROM t_amz_transparency_tcode tc
+        LEFT JOIN t_amz_transparency_task tk ON tk.id=tc.taskid
+        WHERE tk.skuinfoid=t.id) codenum
+        from t_amz_transparency_skuinfo t
+        left join t_amz_transparency_authority a on a.client_id=t.authid
+        left join t_amazon_group g on g.id=t.groupid
+        where a.shopid=#{param.shopid,jdbcType=CHAR}
+          and t.disabled=false
+        <if test="param.groupid!=null">
+           and  t.groupid=#{param.groupid,jdbcType=CHAR}
+        </if>
+        <if test="param.authid!=null">
+            and  t.authid=#{param.authid,jdbcType=CHAR}
+        </if>
+        <if test="param.sku!=null">
+            and  t.sku like concat('%',#{param.sku,jdbcType=CHAR},'%')
+        </if>
+    </select>
+</mapper>

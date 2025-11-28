@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipV2InboundplanPalletMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inboundV2.pojo.entity.ShipV2InboundplanPallet">
+            <id property="id" column="id" />
+            <result property="shipmentid" column="shipmentid" />
+            <result property="length" column="length" />
+            <result property="width" column="width" />
+            <result property="height" column="height" />
+            <result property="dimUnit" column="dim_unit" />
+            <result property="weight" column="weight" />
+            <result property="weightUnit" column="weight_unit" />
+            <result property="num" column="num" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,shipmentid,length,width,height,dim_unit,
+        weight,weight_unit,num
+    </sql>
+</mapper>

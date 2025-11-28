@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinInitDataMapper">
+
+    <sql id="initFinCode">
+        -- 插入编码生成记录（示例）
+        INSERT ignore INTO fin_code_generate_log (generated_code, rule_code, rule_name, business_type, business_name,groupid, operator,generated_time)
+        VALUES ('100101', 'SUBJECT_4_2_2', '会计科目编码(4-2-2)', 'ASSET', '库存现金-人民币', #{groupId},'system',now()),
+        ('100102', 'SUBJECT_4_2_2', '会计科目编码(4-2-2)', 'ASSET', '库存现金-美元', #{groupId}, 'system',now()),
+        ('100201', 'SUBJECT_4_2_2', '会计科目编码(4-2-2)', 'ASSET', '银行存款-工商银行', #{groupId},'system',now());
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'SUBJECT_4_2_2', '会计科目编码(4-2-2)', 'SUBJECT', '{"level1_length":4,"level2_length":2,"level3_length":2}', '4-2-2', '.', NULL, NULL, 1, 0, 0, 0, 'NEVER', NULL, '标准会计科目编码规则，一级4位，二级2位，三级2位', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'SUBJECT_4_3_2', '会计科目编码(4-3-2)', 'SUBJECT', '{"level1_length":4,"level2_length":3,"level3_length":2}', '4-3-2', '.', NULL, NULL, 1, 0, 0, 0, 'NEVER', NULL, '扩展会计科目编码规则，一级4位，二级3位，三级2位', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'VOUCHER_DAILY', '凭证编号(日流水)', 'VOUCHER', '{"date_format":"yyyyMMdd","sequence_length":5}', 'YYYYMMDD+SEQ', NULL, 'V', NULL, 1, 0, 0, 0, 'DAILY', NULL, '按日重置的凭证编号规则', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'VOUCHER_MONTHLY', '凭证编号(月流水)', 'VOUCHER', '{"date_format":"yyyyMM","sequence_length":5}', 'YYYYMM+SEQ', NULL, 'V', NULL, 1, 0, 0, 0, 'MONTHLY', NULL, '按月重置的凭证编号规则', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'AUX_DEPT', '部门编码', 'AUXILIARY', '{"type_prefix":"DEPT","sequence_length":4}', 'TYPE+SEQ', NULL, NULL, NULL, 1, 0, 0, 0, 'NEVER', NULL, '部门辅助核算编码规则', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'AUX_EMP', '员工编码', 'AUXILIARY', '{"type_prefix":"EMP","sequence_length":5}', 'TYPE+SEQ', NULL, NULL, NULL, 1, 0, 0, 0, 'NEVER', NULL, '员工辅助核算编码规则', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'AUX_CUST', '客户编码', 'AUXILIARY', '{"type_prefix":"CUST","sequence_length":6}', 'TYPE+SEQ', NULL, NULL, NULL, 1, 0, 0, 0, 'NEVER', NULL, '客户辅助核算编码规则', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'AUX_SUPP', '供应商编码', 'AUXILIARY', '{"type_prefix":"SUPP","sequence_length":6}', 'TYPE+SEQ', NULL, NULL, NULL, 1, 0, 0, 0, 'NEVER', NULL, '供应商辅助核算编码规则', 1, now(), now(), NULL, NULL);
+        INSERT ignore  INTO `fin_code_rule` ( `groupid`, `rule_code`, `rule_name`, `rule_type`, `rule_template`, `rule_structure`, `separator`, `prefix`, `suffix`, `auto_increment`, `current_value`, `min_length`, `max_length`, `reset_frequency`, `last_reset_time`, `description`, `status`, `created_time`, `updated_time`, `created_by`, `updated_by`) VALUES ( #{groupId}, 'ASSET_YEAR', '固定资产编码(年)', 'ASSET', '{"date_format":"yyyy","sequence_length":4}', 'FA+YYYY+SEQ', NULL, 'FA', NULL, 1, 0, 0, 0, 'NEVER', NULL, '固定资产编码规则，按年生成', 1, now(), now(), NULL, NULL);
+
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'SUBJECT_4_2_2', 'SUBJECT',now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'SUBJECT_4_3_2', 'SUBJECT', now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'VOUCHER_DAILY', 'VOUCHER', now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'VOUCHER_MONTHLY', 'VOUCHER', now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'AUX_DEPT', 'AUXILIARY', now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'AUX_EMP', 'AUXILIARY', now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'AUX_CUST', 'AUXILIARY',now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'AUX_SUPP', 'AUXILIARY',now());
+        INSERT ignore  INTO `fin_code_rule_category` ( `groupid`, `rule_code`, `category_code`, `created_time`) VALUES ( #{groupId}, 'ASSET_YEAR', 'ASSET',now());
+
+        INSERT ignore  INTO `fin_code_rule_param` ( `groupid`, `rule_code`, `param_key`, `param_value`, `param_type`, `param_order`, `required`, `description`, `status`, `created_time`, `updated_time`) VALUES ( #{groupId}, 'SUBJECT_4_2_2', 'subject_type', '', 'STRING', 1, 1, '科目类型: ASSET-资产, LIABILITY-负债, EQUITY-权益, COST-成本, INCOME-损益', 1, now(), now());
+        INSERT ignore  INTO `fin_code_rule_param` ( `groupid`, `rule_code`, `param_key`, `param_value`, `param_type`, `param_order`, `required`, `description`, `status`, `created_time`, `updated_time`) VALUES ( #{groupId}, 'SUBJECT_4_2_2', 'parent_code', '', 'STRING', 2, 0, '父级科目编码，为空表示一级科目', 1, now(), now());
+        INSERT ignore  INTO `fin_code_rule_param` ( `groupid`, `rule_code`, `param_key`, `param_value`, `param_type`, `param_order`, `required`, `description`, `status`, `created_time`, `updated_time`) VALUES ( #{groupId}, 'VOUCHER_DAILY', 'voucher_type', 'GENERAL', 'STRING', 1, 0, '凭证类型: GENERAL-记账, PAYMENT-付款, RECEIPT-收款', 1, now(), now());
+        INSERT ignore  INTO `fin_code_rule_param` ( `groupid`, `rule_code`, `param_key`, `param_value`, `param_type`, `param_order`, `required`, `description`, `status`, `created_time`, `updated_time`) VALUES ( #{groupId}, 'AUX_DEPT', 'dept_level', '1', 'NUMBER', 1, 0, '部门级别', 1, now(), now());
+
+
+
+    </sql>
+    <sql id="initFinAuxiliaryTypes">
+        INSERT IGNORE INTO fin_auxiliary_types
+            (groupid, type_code, type_name)
+            VALUES
+            -- 组织架构类
+            (#{groupId}, 'DEPT', '部门'),
+        (#{groupId}, 'EMPLOYEE', '员工'),
+        (#{groupId}, 'COST_CENTER', '成本中心'),
+        -- 业务伙伴类
+        (#{groupId}, 'CUSTOMER', '客户'),
+        (#{groupId}, 'SUPPLIER', '供应商'),
+        -- 项目管理类
+        (#{groupId}, 'PROJECT', '项目'),
+        (#{groupId}, 'CONTRACT', '合同'),
+        -- 财务核算类
+        (#{groupId}, 'BANK_ACCOUNT', '银行账户'),
+        (#{groupId}, 'CASH_FLOW_ITEM', '现金流量项目');
+    </sql>
+</mapper>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeGenerateLogMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeGenerateLog" id="FinCodeGenerateLogResult">
+        <result property="id"    column="id"    />
+        <result property="generatedCode"    column="generated_code"    />
+        <result property="ruleCode"    column="rule_code"    />
+        <result property="ruleName"    column="rule_name"    />
+        <result property="businessType"    column="business_type"    />
+        <result property="businessName"    column="business_name"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="parentCode"    column="parent_code"    />
+        <result property="customParams"    column="custom_params"    />
+        <result property="generatedTime"    column="generated_time"    />
+        <result property="operator"    column="operator"    />
+        <result property="ipAddress"    column="ip_address"    />
+        <result property="userAgent"    column="user_agent"    />
+    </resultMap>
+
+    <sql id="selectFinCodeGenerateLogVo">
+        select id, generated_code, rule_code, rule_name, business_type, business_name, tenant_id, parent_code, custom_params, generated_time, operator, ip_address, user_agent from fin_code_generate_log
+    </sql>
+
+    <select id="selectFinCodeGenerateLogList" parameterType="com.wimoor.finance.code.domain.FinCodeGenerateLog" resultMap="FinCodeGenerateLogResult">
+        <include refid="selectFinCodeGenerateLogVo"/>
+        <where>  
+            <if test="generatedCode != null  and generatedCode != ''"> and generated_code = #{generatedCode}</if>
+            <if test="ruleCode != null  and ruleCode != ''"> and rule_code = #{ruleCode}</if>
+            <if test="ruleName != null  and ruleName != ''"> and rule_name like concat('%', #{ruleName}, '%')</if>
+            <if test="businessType != null  and businessType != ''"> and business_type = #{businessType}</if>
+            <if test="businessName != null  and businessName != ''"> and business_name like concat('%', #{businessName}, '%')</if>
+            <if test="groupid != null "> and groupid = #{groupid}</if>
+            <if test="parentCode != null  and parentCode != ''"> and parent_code = #{parentCode}</if>
+            <if test="customParams != null  and customParams != ''"> and custom_params = #{customParams}</if>
+            <if test="generatedTime != null "> and generated_time = #{generatedTime}</if>
+            <if test="operator != null  and operator != ''"> and operator = #{operator}</if>
+            <if test="ipAddress != null  and ipAddress != ''"> and ip_address = #{ipAddress}</if>
+            <if test="userAgent != null  and userAgent != ''"> and user_agent = #{userAgent}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeGenerateLogById" parameterType="Long" resultMap="FinCodeGenerateLogResult">
+        <include refid="selectFinCodeGenerateLogVo"/>
+        where id = #{id}
+    </select>
+    <select id="findMaxSequence" resultType="java.lang.Long">
+        select max(cast(substring(generated_code, #{length} + 1, #{i}) as unsigned)) as max_seq
+        from fin_code_generate_log
+        where groupid = #{groupid}
+        and subject = #{subject}
+        and type_prefix = #{typePrefix}
+    </select>
+    <select id="existsByGeneratedCode" resultType="java.lang.Integer">
+        select count(*) from fin_code_generate_log
+        where groupid = #{groupid}
+        and generated_code = #{generatedCode}
+    </select>
+    <select id="findByRuleCodeOrderByGeneratedTimeDesc"
+            resultType="com.wimoor.finance.code.domain.FinCodeGenerateLog">
+        select * from fin_code_generate_log
+        where groupid = #{groupid}
+            <if test="ruleCode != null and ruleCode != ''">
+              and rule_code = #{ruleCode}
+            </if>
+        order by generated_time desc
+    </select>
+    <select id="findByAccountSetIdOrderByGeneratedTimeDesc"
+            resultType="com.wimoor.finance.code.domain.FinCodeGenerateLog">
+        select * from fin_code_generate_log
+        where groupid = #{groupid}
+        order by generated_time desc
+    </select>
+
+
+    <insert id="insertFinCodeGenerateLog" parameterType="com.wimoor.finance.code.domain.FinCodeGenerateLog" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_generate_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="generatedCode != null and generatedCode != ''">generated_code,</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code,</if>
+            <if test="ruleName != null">rule_name,</if>
+            <if test="businessType != null and businessType != ''">business_type,</if>
+            <if test="businessName != null and businessName != ''">business_name,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="parentCode != null">parent_code,</if>
+            <if test="customParams != null">custom_params,</if>
+            <if test="generatedTime != null">generated_time,</if>
+            <if test="operator != null and operator != ''">operator,</if>
+            <if test="ipAddress != null">ip_address,</if>
+            <if test="userAgent != null">user_agent,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="generatedCode != null and generatedCode != ''">#{generatedCode},</if>
+            <if test="ruleCode != null and ruleCode != ''">#{ruleCode},</if>
+            <if test="ruleName != null">#{ruleName},</if>
+            <if test="businessType != null and businessType != ''">#{businessType},</if>
+            <if test="businessName != null and businessName != ''">#{businessName},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="parentCode != null">#{parentCode},</if>
+            <if test="customParams != null">#{customParams},</if>
+            <if test="generatedTime != null">#{generatedTime},</if>
+            <if test="operator != null and operator != ''">#{operator},</if>
+            <if test="ipAddress != null">#{ipAddress},</if>
+            <if test="userAgent != null">#{userAgent},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeGenerateLog" parameterType="com.wimoor.finance.code.domain.FinCodeGenerateLog">
+        update fin_code_generate_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="generatedCode != null and generatedCode != ''">generated_code = #{generatedCode},</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code = #{ruleCode},</if>
+            <if test="ruleName != null">rule_name = #{ruleName},</if>
+            <if test="businessType != null and businessType != ''">business_type = #{businessType},</if>
+            <if test="businessName != null and businessName != ''">business_name = #{businessName},</if>
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="parentCode != null">parent_code = #{parentCode},</if>
+            <if test="customParams != null">custom_params = #{customParams},</if>
+            <if test="generatedTime != null">generated_time = #{generatedTime},</if>
+            <if test="operator != null and operator != ''">operator = #{operator},</if>
+            <if test="ipAddress != null">ip_address = #{ipAddress},</if>
+            <if test="userAgent != null">user_agent = #{userAgent},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeGenerateLogById" parameterType="Long">
+        delete from fin_code_generate_log where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeGenerateLogByIds" parameterType="String">
+        delete from fin_code_generate_log where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

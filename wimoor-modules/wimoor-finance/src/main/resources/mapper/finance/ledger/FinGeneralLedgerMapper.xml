@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.ledger.mapper.FinGeneralLedgerMapper">
+    
+    <resultMap type="com.wimoor.finance.ledger.domain.FinGeneralLedger" id="FinGeneralLedgerResult">
+        <result property="ledgerId"    column="ledger_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="period"    column="period"    />
+        <result property="beginBalance"    column="begin_balance"    />
+        <result property="beginDirection"    column="begin_direction"    />
+        <result property="debitTotal"    column="debit_total"    />
+        <result property="creditTotal"    column="credit_total"    />
+        <result property="endBalance"    column="end_balance"    />
+        <result property="endDirection"    column="end_direction"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinGeneralLedgerVo">
+        select ledger_id, groupid, subject_id, period, begin_balance, begin_direction, debit_total, credit_total, end_balance, end_direction, created_time, updated_time from fin_general_ledger
+    </sql>
+
+    <select id="selectFinGeneralLedgerList" parameterType="com.wimoor.finance.ledger.domain.FinGeneralLedger" resultMap="FinGeneralLedgerResult">
+        <include refid="selectFinGeneralLedgerVo"/>
+        <where>  
+             and groupid = #{groupid}
+            <if test="subjectId != null  and subjectId != ''"> and subject_id = #{subjectId}</if>
+            <if test="period != null  and period != ''"> and period = #{period}</if>
+            <if test="beginBalance != null "> and begin_balance = #{beginBalance}</if>
+            <if test="beginDirection != null "> and begin_direction = #{beginDirection}</if>
+            <if test="debitTotal != null "> and debit_total = #{debitTotal}</if>
+            <if test="creditTotal != null "> and credit_total = #{creditTotal}</if>
+            <if test="endBalance != null "> and end_balance = #{endBalance}</if>
+            <if test="endDirection != null "> and end_direction = #{endDirection}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+
+    <select id="selectList" parameterType="com.wimoor.finance.ledger.domain.dto.FinLedgerDTO" resultType="java.util.Map">
+        select fgl.ledger_id ledgerId,
+               fgl.groupid,
+               fgl.subject_id subjectId,
+               s.subject_name  subjectName,
+               fgl.period,
+               fgl.begin_balance beginBalance,
+               fgl.begin_direction beginDirection,
+               fgl.debit_total debitTotal, fgl.credit_total creditTotal,
+               fgl.end_balance endBalance, fgl.end_direction endDirection,
+               fgl.created_time createdTime,
+               fgl.updated_time
+        from fin_general_ledger fgl
+        left join fin_accounting_subjects s on s.subject_id=fgl.subject_id
+        <where>
+            and fgl.groupid = #{groupid}
+            <if test="subjectId != null  and subjectId != ''"> and fgl.subject_id = #{subjectId}</if>
+            <if test="period != null  and period != ''"> and fgl.period = #{period}</if>
+        </where>
+    </select>
+
+
+    <select id="selectFinGeneralLedgerByLedgerId" parameterType="Long" resultMap="FinGeneralLedgerResult">
+        <include refid="selectFinGeneralLedgerVo"/>
+        where ledger_id = #{ledgerId}
+    </select>
+
+    <select id="selectBySubjectAndPeriod" resultMap="FinGeneralLedgerResult">
+        <include refid="selectFinGeneralLedgerVo"/>
+        where subject_id = #{subjectId} and period = #{period} and groupid = #{groupid}
+    </select>
+
+    <select id="selectBySubjectCodeAndPeriod" resultMap="FinGeneralLedgerResult">
+        select d.ledger_id, d.groupid, d.subject_id, d.period, d.begin_balance, d.begin_direction,
+               d.debit_total, d.credit_total, d.end_balance, d.end_direction, d.created_time, d.updated_time
+        from fin_general_ledger d
+        left join fin_accounting_subjects s on d.subject_id = s.subject_id and d.groupid = s.groupid
+        where s.subject_code = #{subjectCode} and d.period = #{period} and d.groupid = #{groupid}
+    </select>
+
+    <select id="selectBalanceSummaryByType" resultType="java.util.Map">
+        select d.subject_id, d.period, d.begin_balance, d.begin_direction,
+               d.debit_total, d.credit_total, d.end_balance, d.end_direction
+        from fin_general_ledger d
+        where d.groupid = #{groupid} and d.period = #{period}
+    </select>
+    <select id="getAllSubjectBalance" resultType="java.util.Map">
+        select s.subject_code subjectCode,
+               s.subject_name subjectName,
+               s.subject_level subjectLevel,
+               s.subject_type subjectType,
+               d.period,
+               d.begin_balance beginBalance,
+               d.begin_direction beginDirection,
+               d.debit_total debitTotal,
+               d.credit_total creditTotal,
+               d.end_balance endBalance,
+               d.end_direction endDirection
+        from fin_accounting_subjects s
+        left join fin_general_ledger d on s.subject_id=d.subject_id and s.groupid=d.groupid   and d.period = #{period}
+        where s.groupid = #{groupid}
+    </select>
+
+
+    <insert id="insertFinGeneralLedger" parameterType="com.wimoor.finance.ledger.domain.FinGeneralLedger" useGeneratedKeys="true" keyProperty="ledgerId">
+        insert into fin_general_ledger
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="subjectId != null">subject_id,</if>
+            <if test="period != null and period != ''">period,</if>
+            <if test="beginBalance != null">begin_balance,</if>
+            <if test="beginDirection != null">begin_direction,</if>
+            <if test="debitTotal != null">debit_total,</if>
+            <if test="creditTotal != null">credit_total,</if>
+            <if test="endBalance != null">end_balance,</if>
+            <if test="endDirection != null">end_direction,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="subjectId != null">#{subjectId},</if>
+            <if test="period != null and period != ''">#{period},</if>
+            <if test="beginBalance != null">#{beginBalance},</if>
+            <if test="beginDirection != null">#{beginDirection},</if>
+            <if test="debitTotal != null">#{debitTotal},</if>
+            <if test="creditTotal != null">#{creditTotal},</if>
+            <if test="endBalance != null">#{endBalance},</if>
+            <if test="endDirection != null">#{endDirection},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinGeneralLedger" parameterType="com.wimoor.finance.ledger.domain.FinGeneralLedger">
+        update fin_general_ledger
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="subjectId != null">subject_id = #{subjectId},</if>
+            <if test="period != null and period != ''">period = #{period},</if>
+            <if test="beginBalance != null">begin_balance = #{beginBalance},</if>
+            <if test="beginDirection != null">begin_direction = #{beginDirection},</if>
+            <if test="debitTotal != null">debit_total = #{debitTotal},</if>
+            <if test="creditTotal != null">credit_total = #{creditTotal},</if>
+            <if test="endBalance != null">end_balance = #{endBalance},</if>
+            <if test="endDirection != null">end_direction = #{endDirection},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where ledger_id = #{ledgerId}
+    </update>
+
+    <delete id="deleteFinGeneralLedgerByLedgerId" parameterType="Long">
+        delete from fin_general_ledger where ledger_id = #{ledgerId}
+    </delete>
+
+    <delete id="deleteFinGeneralLedgerByLedgerIds" parameterType="String">
+        delete from fin_general_ledger where ledger_id in 
+        <foreach item="ledgerId" collection="array" open="(" separator="," close=")">
+            #{ledgerId}
+        </foreach>
+    </delete>
+    <delete id="deleteByPeriod">
+        delete from fin_general_ledger where groupid = #{groupid} and period = #{period}
+    </delete>
+
+    <select id="selectByPeriod" resultMap="FinGeneralLedgerResult">
+        <include refid="selectFinGeneralLedgerVo"/>
+        where groupid = #{groupid} and period = #{period}
+    </select>
+</mapper>

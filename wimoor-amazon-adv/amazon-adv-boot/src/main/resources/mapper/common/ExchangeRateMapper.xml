@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.common.dao.ExchangeRateMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.common.pojo.ExchangeRate" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="symbol" property="symbol" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="utctime" property="utctime" jdbcType="TIMESTAMP" />
+    <result column="volume" property="volume" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, price, symbol, type, utctime, volume
+  </sql>
+
+	<select id="selectByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_exchangerate
+		where name like #{name,jdbcType=VARCHAR}
+		limit 1
+	</select>
+	<select id="selectMineByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+	     te.id, te.name, ifnull(tc.price,te.price) price, te.symbol, te.type, te.utctime, te.volume
+		from t_exchangerate te 
+		left join  t_exchangerate_customer tc on te.name=tc.name and tc.shopid = #{shopid,jdbcType=CHAR}
+		where te.name like #{name,jdbcType=VARCHAR}
+		limit 1
+	</select>
+ 
+	<delete id="deleteAll">
+		delete from t_exchangerate
+	</delete>
+
+	<select id="getExchangeRateLimit" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from (SELECT DISTINCT e.* from t_marketplace m
+		left join t_exchangerate e on e.`name`=m.currency
+		where e.id is not null and e.`name`!='CNY') v  
+		order by v.findex
+	</select>
+  
+  
+<!-- 
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_exchangerate
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from t_exchangerate
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+    <delete id="deleteAll"  >
+    delete from t_exchangerate
+  </delete>
+  <insert id="insert" parameterType="com.plum.frame.pojo.ExchangeRate" >
+    insert into t_exchangerate (id, name, price, 
+      symbol, type, utctime, 
+      volume)
+    values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL}, 
+      #{symbol,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{utctime,jdbcType=TIMESTAMP}, 
+      #{volume,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.plum.frame.pojo.ExchangeRate" >
+    insert into t_exchangerate
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="price != null" >
+        price,
+      </if>
+      <if test="symbol != null" >
+        symbol,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="utctime != null" >
+        utctime,
+      </if>
+      <if test="volume != null" >
+        volume,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="symbol != null" >
+        #{symbol,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="utctime != null" >
+        #{utctime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="volume != null" >
+        #{volume,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.plum.frame.pojo.ExchangeRate" >
+    update t_exchangerate
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        price = #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="symbol != null" >
+        symbol = #{symbol,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="utctime != null" >
+        utctime = #{utctime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="volume != null" >
+        volume = #{volume,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.plum.frame.pojo.ExchangeRate" >
+    update t_exchangerate
+    set name = #{name,jdbcType=VARCHAR},
+      price = #{price,jdbcType=DECIMAL},
+      symbol = #{symbol,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      utctime = #{utctime,jdbcType=TIMESTAMP},
+      volume = #{volume,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  -->
+</mapper>

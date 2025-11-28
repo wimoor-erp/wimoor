@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.voucher.mapper.FinVoucherModifyLogMapper">
+    
+    <resultMap type="com.wimoor.finance.voucher.domain.FinVoucherModifyLog" id="FinVoucherModifyLogResult">
+        <result property="logId"    column="log_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="modifyType"    column="modify_type"    />
+        <result property="beforeData"    column="before_data"    />
+        <result property="afterData"    column="after_data"    />
+        <result property="modifyBy"    column="modify_by"    />
+        <result property="modifyTime"    column="modify_time"    />
+        <result property="reason"    column="reason"    />
+    </resultMap>
+
+    <sql id="selectFinVoucherModifyLogVo">
+        select log_id, groupid, voucher_id, modify_type, before_data, after_data, modify_by, modify_time, reason from fin_voucher_modify_log
+    </sql>
+
+    <select id="selectFinVoucherModifyLogList" parameterType="com.wimoor.finance.voucher.domain.FinVoucherModifyLog" resultMap="FinVoucherModifyLogResult">
+        <include refid="selectFinVoucherModifyLogVo"/>
+        <where>  
+            <if test="groupid != null  and groupid != ''"> and groupid = #{groupid}</if>
+            <if test="voucherId != null  and voucherId != ''"> and voucher_id = #{voucherId}</if>
+            <if test="modifyType != null "> and modify_type = #{modifyType}</if>
+            <if test="beforeData != null  and beforeData != ''"> and before_data = #{beforeData}</if>
+            <if test="afterData != null  and afterData != ''"> and after_data = #{afterData}</if>
+            <if test="modifyBy != null  and modifyBy != ''"> and modify_by = #{modifyBy}</if>
+            <if test="modifyTime != null "> and modify_time = #{modifyTime}</if>
+            <if test="reason != null  and reason != ''"> and reason = #{reason}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinVoucherModifyLogByLogId" parameterType="String" resultMap="FinVoucherModifyLogResult">
+        <include refid="selectFinVoucherModifyLogVo"/>
+        where log_id = #{logId}
+    </select>
+
+    <insert id="insertFinVoucherModifyLog" parameterType="com.wimoor.finance.voucher.domain.FinVoucherModifyLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into fin_voucher_modify_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">groupid,</if>
+            <if test="voucherId != null and voucherId != ''">voucher_id,</if>
+            <if test="modifyType != null">modify_type,</if>
+            <if test="beforeData != null">before_data,</if>
+            <if test="afterData != null">after_data,</if>
+            <if test="modifyBy != null and modifyBy != ''">modify_by,</if>
+            <if test="modifyTime != null">modify_time,</if>
+            <if test="reason != null">reason,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">#{groupid},</if>
+            <if test="voucherId != null and voucherId != ''">#{voucherId},</if>
+            <if test="modifyType != null">#{modifyType},</if>
+            <if test="beforeData != null">#{beforeData},</if>
+            <if test="afterData != null">#{afterData},</if>
+            <if test="modifyBy != null and modifyBy != ''">#{modifyBy},</if>
+            <if test="modifyTime != null">#{modifyTime},</if>
+            <if test="reason != null">#{reason},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinVoucherModifyLog" parameterType="com.wimoor.finance.voucher.domain.FinVoucherModifyLog">
+        update fin_voucher_modify_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">groupid = #{groupid},</if>
+            <if test="voucherId != null and voucherId != ''">voucher_id = #{voucherId},</if>
+            <if test="modifyType != null">modify_type = #{modifyType},</if>
+            <if test="beforeData != null">before_data = #{beforeData},</if>
+            <if test="afterData != null">after_data = #{afterData},</if>
+            <if test="modifyBy != null and modifyBy != ''">modify_by = #{modifyBy},</if>
+            <if test="modifyTime != null">modify_time = #{modifyTime},</if>
+            <if test="reason != null">reason = #{reason},</if>
+        </trim>
+        where log_id = #{logId}
+    </update>
+
+    <delete id="deleteFinVoucherModifyLogByLogId" parameterType="String">
+        delete from fin_voucher_modify_log where log_id = #{logId}
+    </delete>
+
+    <delete id="deleteFinVoucherModifyLogByLogIds" parameterType="String">
+        delete from fin_voucher_modify_log where log_id in 
+        <foreach item="logId" collection="array" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+    </delete>
+</mapper>

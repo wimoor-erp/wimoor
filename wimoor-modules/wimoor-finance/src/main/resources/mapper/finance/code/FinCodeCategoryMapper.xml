@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeCategoryMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeCategory" id="FinCodeCategoryResult">
+        <result property="id"    column="id"    />
+        <result property="categoryCode"    column="category_code"    />
+        <result property="categoryName"    column="category_name"    />
+        <result property="parentCategoryCode"    column="parent_category_code"    />
+        <result property="categoryLevel"    column="category_level"    />
+        <result property="description"    column="description"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="status"    column="status"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinCodeCategoryVo">
+        select id, category_code, category_name, parent_category_code, category_level, description, sort_order, status, created_time, updated_time from fin_code_category
+    </sql>
+
+    <select id="selectFinCodeCategoryList" parameterType="com.wimoor.finance.code.domain.FinCodeCategory" resultMap="FinCodeCategoryResult">
+        <include refid="selectFinCodeCategoryVo"/>
+        <where>  
+            <if test="categoryCode != null  and categoryCode != ''"> and category_code = #{categoryCode}</if>
+            <if test="categoryName != null  and categoryName != ''"> and category_name like concat('%', #{categoryName}, '%')</if>
+            <if test="parentCategoryCode != null  and parentCategoryCode != ''"> and parent_category_code = #{parentCategoryCode}</if>
+            <if test="categoryLevel != null "> and category_level = #{categoryLevel}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="sortOrder != null "> and sort_order = #{sortOrder}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeCategoryById" parameterType="Long" resultMap="FinCodeCategoryResult">
+        <include refid="selectFinCodeCategoryVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeCategory" parameterType="com.wimoor.finance.code.domain.FinCodeCategory" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="categoryCode != null and categoryCode != ''">category_code,</if>
+            <if test="categoryName != null and categoryName != ''">category_name,</if>
+            <if test="parentCategoryCode != null">parent_category_code,</if>
+            <if test="categoryLevel != null">category_level,</if>
+            <if test="description != null">description,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="categoryCode != null and categoryCode != ''">#{categoryCode},</if>
+            <if test="categoryName != null and categoryName != ''">#{categoryName},</if>
+            <if test="parentCategoryCode != null">#{parentCategoryCode},</if>
+            <if test="categoryLevel != null">#{categoryLevel},</if>
+            <if test="description != null">#{description},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeCategory" parameterType="com.wimoor.finance.code.domain.FinCodeCategory">
+        update fin_code_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryCode != null and categoryCode != ''">category_code = #{categoryCode},</if>
+            <if test="categoryName != null and categoryName != ''">category_name = #{categoryName},</if>
+            <if test="parentCategoryCode != null">parent_category_code = #{parentCategoryCode},</if>
+            <if test="categoryLevel != null">category_level = #{categoryLevel},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeCategoryById" parameterType="Long">
+        delete from fin_code_category where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeCategoryByIds" parameterType="String">
+        delete from fin_code_category where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

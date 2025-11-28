@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.common.mapper.ExchangeRateMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.common.pojo.entity.ExchangeRate" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="symbol" property="symbol" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="utctime" property="utctime" jdbcType="TIMESTAMP" />
+    <result column="volume" property="volume" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, price, symbol, type, utctime, volume
+  </sql>
+
+	<select id="selectByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from t_exchangerate
+		where name like #{name,jdbcType=VARCHAR}
+		limit 1
+	</select>
+	<select id="selectMineByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+	     te.id, te.name, ifnull(tc.price,te.price) price, te.symbol, te.type, te.utctime, te.volume
+		from t_exchangerate te 
+		left join  t_exchangerate_customer tc on te.name=tc.name and tc.shopid = #{shopid,jdbcType=CHAR}
+		where te.name like #{name,jdbcType=VARCHAR}
+		limit 1
+	</select>
+ 
+	<delete id="deleteAll">
+		delete from t_exchangerate
+	</delete>
+
+	<select id="getExchangeRateLimit" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT * FROM (SELECT DISTINCT e.*,case when e.name='EUR' then 4 else m.findex END findex from t_marketplace m 
+			left join t_exchangerate e on e.`name`=m.currency 
+			where e.id is not NULL 
+			and e.`name`!='CNY' 
+			) v
+		order by v.findex
+	</select>
+  
+   
+</mapper>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.voucher.mapper.FinVoucherEntriesMapper">
+
+    <resultMap type="com.wimoor.finance.voucher.domain.FinVoucherEntries" id="FinVoucherEntriesResult">
+        <result property="entryId"    column="entry_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="entryNo"    column="entry_no"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="debitAmount"    column="debit_amount"    />
+        <result property="creditAmount"    column="credit_amount"    />
+        <result property="summary"    column="summary"    />
+        <result property="auxiliaryType"    column="auxiliary_type"    />
+        <result property="auxiliaryId"    column="auxiliary_id"    />
+        <result property="createdTime"    column="created_time"    />
+    </resultMap>
+
+    <sql id="selectFinVoucherEntriesVo">
+        select entry_id, groupid, voucher_id, entry_no, subject_id, debit_amount, credit_amount, summary, auxiliary_type, auxiliary_id, created_time from fin_voucher_entries
+    </sql>
+
+    <select id="selectFinVoucherEntriesList" parameterType="com.wimoor.finance.voucher.domain.FinVoucherEntries" resultMap="FinVoucherEntriesResult">
+        <include refid="selectFinVoucherEntriesVo"/>
+        <where>
+            <if test="groupid != null "> and groupid = #{groupid}</if>
+            <if test="voucherId != null "> and voucher_id = #{voucherId}</if>
+            <if test="entryNo != null "> and entry_no = #{entryNo}</if>
+            <if test="subjectId != null  and subjectId != ''"> and subject_id = #{subjectId}</if>
+            <if test="debitAmount != null "> and debit_amount = #{debitAmount}</if>
+            <if test="creditAmount != null "> and credit_amount = #{creditAmount}</if>
+            <if test="summary != null  and summary != ''"> and summary = #{summary}</if>
+            <if test="auxiliaryType != null "> and auxiliary_type = #{auxiliaryType}</if>
+            <if test="auxiliaryId != null "> and auxiliary_id = #{auxiliaryId}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+        </where>
+    </select>
+
+    <select id="selectFinVoucherEntriesByEntryId" parameterType="Long" resultMap="FinVoucherEntriesResult">
+        <include refid="selectFinVoucherEntriesVo"/>
+        where entry_id = #{entryId}
+    </select>
+
+    <insert id="insertFinVoucherEntries" parameterType="com.wimoor.finance.voucher.domain.FinVoucherEntries" useGeneratedKeys="true" keyProperty="entryId">
+        insert into fin_voucher_entries
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="voucherId != null">voucher_id,</if>
+            <if test="entryNo != null">entry_no,</if>
+            <if test="subjectId != null">subject_id,</if>
+            <if test="debitAmount != null">debit_amount,</if>
+            <if test="creditAmount != null">credit_amount,</if>
+            <if test="summary != null">summary,</if>
+            <if test="auxiliaryType != null">auxiliary_type,</if>
+            <if test="auxiliaryId != null">auxiliary_id,</if>
+            <if test="createdTime != null">created_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="voucherId != null">#{voucherId},</if>
+            <if test="entryNo != null">#{entryNo},</if>
+            <if test="subjectId != null">#{subjectId},</if>
+            <if test="debitAmount != null">#{debitAmount},</if>
+            <if test="creditAmount != null">#{creditAmount},</if>
+            <if test="summary != null">#{summary},</if>
+            <if test="auxiliaryType != null">#{auxiliaryType},</if>
+            <if test="auxiliaryId != null">#{auxiliaryId},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateFinVoucherEntries" parameterType="com.wimoor.finance.voucher.domain.FinVoucherEntries">
+        update fin_voucher_entries
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="voucherId != null">voucher_id = #{voucherId},</if>
+            <if test="entryNo != null">entry_no = #{entryNo},</if>
+            <if test="subjectId != null">subject_id = #{subjectId},</if>
+            <if test="debitAmount != null">debit_amount = #{debitAmount},</if>
+            <if test="creditAmount != null">credit_amount = #{creditAmount},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="auxiliaryType != null">auxiliary_type = #{auxiliaryType},</if>
+            <if test="auxiliaryId != null">auxiliary_id = #{auxiliaryId},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+        </trim>
+        where entry_id = #{entryId}
+    </update>
+
+    <delete id="deleteFinVoucherEntriesByEntryId" parameterType="Long">
+        delete from fin_voucher_entries where entry_id = #{entryId}
+    </delete>
+
+    <delete id="deleteFinVoucherEntriesByEntryIds" parameterType="String">
+        delete from fin_voucher_entries where entry_id in
+        <foreach item="entryId" collection="array" open="(" separator="," close=")">
+            #{entryId}
+        </foreach>
+    </delete>
+     <delete id="deleteFinVoucherEntriesByVoucherId" parameterType="com.wimoor.finance.voucher.domain.FinVouchers">
+        delete from fin_voucher_entries where voucher_id = #{voucherId} and groupid = #{groupid}
+    </delete>
+    <delete id="deleteByVoucherId" parameterType="Long">
+        delete from fin_voucher_entries where voucher_id = #{voucherId}
+    </delete>
+
+    <select id="selectByVoucherId" parameterType="Long" resultMap="FinVoucherEntriesResult">
+        <include refid="selectFinVoucherEntriesVo"/>
+        where voucher_id = #{voucherId}
+    </select>
+</mapper>
+

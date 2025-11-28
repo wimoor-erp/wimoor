@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.transparency.mapper.TransparencyAuthorityMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.transparency.pojo.entity.TransparencyAuthority">
+            <id property="clientId" column="client_id" jdbcType="CHAR"/>
+            <result property="clientSecret" column="client_secret" jdbcType="CHAR"/>
+            <result property="shopid" column="shopid" jdbcType="BIGINT"/>
+            <result property="token" column="token" jdbcType="CHAR"/>
+            <result property="expiry" column="expiry" jdbcType="TIMESTAMP"/>
+            <result property="clientName" column="client_name" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        client_id,client_secret,shopid,token,expiry,client_name
+    </sql>
+</mapper>

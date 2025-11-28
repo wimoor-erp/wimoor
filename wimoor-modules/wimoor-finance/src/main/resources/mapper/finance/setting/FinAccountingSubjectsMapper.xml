@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinAccountingSubjectsMapper">
+    
+    <resultMap type="com.wimoor.finance.setting.domain.FinAccountingSubjects" id="FinAccountingSubjectsResult">
+        <result property="subjectId"    column="subject_id"    />
+        <result property="subjectCode"    column="subject_code"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="subjectName"    column="subject_name"    />
+        <result property="subjectLevel"    column="subject_level"    />
+        <result property="parentCode"    column="parent_code"    />
+        <result property="subjectType"    column="subject_type"    />
+        <result property="direction"    column="direction"    />
+        <result property="isLeaf"    column="is_leaf"    />
+        <result property="status"    column="status"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinAccountingSubjectsVo">
+        select subject_id, subject_code, groupid, subject_name, subject_level, parent_code, subject_type, direction, is_leaf, status, created_time, updated_time from fin_accounting_subjects
+    </sql>
+
+    <select id="selectFinAccountingSubjectsList" parameterType="com.wimoor.finance.setting.domain.FinAccountingSubjects" resultMap="FinAccountingSubjectsResult">
+        <include refid="selectFinAccountingSubjectsVo"/>
+        <where>
+            and groupid = #{groupid}
+            <if test="subjectCode != null  and subjectCode != ''"> and subject_code = #{subjectCode}</if>
+            <if test="subjectName != null  and subjectName != ''"> and subject_name like concat('%', #{subjectName}, '%')</if>
+            <if test="subjectLevel != null "> and subject_level = #{subjectLevel}</if>
+            <if test="parentCode != null  and parentCode != ''"> and parent_code = #{parentCode}</if>
+            <if test="subjectType != null "> and subject_type = #{subjectType}</if>
+            <if test="direction != null "> and direction = #{direction}</if>
+            <if test="isLeaf != null "> and is_leaf = #{isLeaf}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+
+    <select id="selectFinAccountingSubjectsBySubjectId" parameterType="String" resultMap="FinAccountingSubjectsResult">
+        <include refid="selectFinAccountingSubjectsVo"/>
+        where subject_id = #{subjectId}
+    </select>
+
+
+    <insert id="insertFinAccountingSubjects" parameterType="com.wimoor.finance.setting.domain.FinAccountingSubjects">
+        insert into fin_accounting_subjects
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="subjectId != null">subject_id,</if>
+            <if test="subjectCode != null">subject_code,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="subjectName != null and subjectName != ''">subject_name,</if>
+            <if test="subjectLevel != null">subject_level,</if>
+            <if test="parentCode != null">parent_code,</if>
+            <if test="subjectType != null">subject_type,</if>
+            <if test="direction != null">direction,</if>
+            <if test="isLeaf != null">is_leaf,</if>
+            <if test="status != null">status,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="subjectId != null">#{subjectId},</if>
+            <if test="subjectCode != null">#{subjectCode},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="subjectName != null and subjectName != ''">#{subjectName},</if>
+            <if test="subjectLevel != null">#{subjectLevel},</if>
+            <if test="parentCode != null">#{parentCode},</if>
+            <if test="subjectType != null">#{subjectType},</if>
+            <if test="direction != null">#{direction},</if>
+            <if test="isLeaf != null">#{isLeaf},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+        </trim>
+    </insert>
+
+
+
+    <update id="updateFinAccountingSubjects" parameterType="com.wimoor.finance.setting.domain.FinAccountingSubjects">
+        update fin_accounting_subjects
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="subjectCode != null">subject_code = #{subjectCode},</if>
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="subjectName != null and subjectName != ''">subject_name = #{subjectName},</if>
+            <if test="subjectLevel != null">subject_level = #{subjectLevel},</if>
+            <if test="parentCode != null">parent_code = #{parentCode},</if>
+            <if test="subjectType != null">subject_type = #{subjectType},</if>
+            <if test="direction != null">direction = #{direction},</if>
+            <if test="isLeaf != null">is_leaf = #{isLeaf},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where subject_id = #{subjectId}
+    </update>
+
+    <delete id="deleteFinAccountingSubjectsBySubjectId" parameterType="String">
+        delete from fin_accounting_subjects where subject_id = #{subjectId}
+    </delete>
+
+    <delete id="deleteFinAccountingSubjectsBySubjectIds" parameterType="String">
+        delete from fin_accounting_subjects where subject_id in
+        <foreach item="subjectId" collection="array" open="(" separator="," close=")">
+            #{subjectId}
+        </foreach>
+    </delete>
+
+    <resultMap id="SubjectBalanceDTOMap" type="com.wimoor.finance.ledger.domain.dto.SubjectBalanceDTO">
+        <result column="subject_code" property="subjectCode" />
+        <result column="subject_name" property="subjectName" />
+        <result column="subject_type" property="subjectType" />
+        <result column="direction" property="direction" />
+        <result column="begin_balance" property="beginBalance" />
+        <result column="begin_direction" property="beginDirection" />
+        <result column="debit_total" property="debitTotal" />
+        <result column="credit_total" property="creditTotal" />
+        <result column="end_balance" property="endBalance" />
+        <result column="end_direction" property="endDirection" />
+    </resultMap>
+
+
+
+    <select id="selectByTenantIdAndSubjectCode" resultMap="FinAccountingSubjectsResult">
+        SELECT subject_id, subject_code, groupid, subject_name, subject_level,
+               parent_code, subject_type, direction, is_leaf, status,
+               created_time, updated_time
+        FROM fin_accounting_subjects
+        WHERE groupid = #{groupid}
+          AND subject_code = #{subjectCode}
+          AND status = 1
+    </select>
+
+    <select id="selectByTenantIdAndStatus" resultMap="FinAccountingSubjectsResult">
+        SELECT subject_id, subject_code, groupid, subject_name, subject_level,
+               parent_code, subject_type, direction, is_leaf, status,
+               created_time, updated_time
+        FROM fin_accounting_subjects
+        WHERE groupid = #{groupid}
+          AND status = 1
+        ORDER BY subject_code
+    </select>
+
+    <select id="selectByTenantIdAndSubjectCodes" resultMap="FinAccountingSubjectsResult">
+        SELECT subject_id, subject_code, groupid, subject_name, subject_level,
+        parent_code, subject_type, direction, is_leaf, status,
+        created_time, updated_time
+        FROM fin_accounting_subjects
+        WHERE groupid = #{groupid}
+        AND subject_code IN
+        <foreach collection="subjectCodes" item="code" open="(" close=")" separator=",">
+            #{code}
+        </foreach>
+        AND status = 1
+        ORDER BY subject_code
+    </select>
+
+    <select id="selectByTenantIdAndSubjectCodeLike" resultMap="FinAccountingSubjectsResult">
+        SELECT subject_id, subject_code, groupid, subject_name, subject_level,
+               parent_code, subject_type, direction, is_leaf, status,
+               created_time, updated_time
+        FROM fin_accounting_subjects
+        WHERE groupid = #{groupid}
+          AND subject_code LIKE #{subjectCodePattern}
+          AND status = 1
+        ORDER BY subject_code
+    </select>
+
+    <select id="selectByTenantIdAndParentCode" resultMap="FinAccountingSubjectsResult">
+        SELECT subject_id, subject_code, groupid, subject_name, subject_level,
+               parent_code, subject_type, direction, is_leaf, status,
+               created_time, updated_time
+        FROM fin_accounting_subjects
+        WHERE groupid = #{groupid}
+          AND parent_code = #{parentCode}
+          AND status = 1
+        ORDER BY subject_code
+    </select>
+
+
+    <insert id="initFin" parameterType="java.lang.String">
+        <include refid="com.wimoor.finance.setting.mapper.FinInitAccountingSubjectsData.initSql"/>
+        <include refid="com.wimoor.finance.setting.mapper.FinInitDataMapper.initFinAuxiliaryTypes"/>
+        <include refid="com.wimoor.finance.setting.mapper.FinInitDataMapper.initFinCode"/>
+        <include refid="com.wimoor.finance.setting.mapper.FinInitRptBalanceSheetStandardData.initSql" />
+        <include refid="com.wimoor.finance.setting.mapper.FinInitRptIncomeStatementStandardData.initSql" />
+        <include refid="com.wimoor.finance.setting.mapper.FinInitRptCashFlowStandardData.initSql" />
+        <include refid="com.wimoor.finance.setting.mapper.FinInitRptEquityChangeStandardData.initSql" />
+    </insert>
+</mapper>

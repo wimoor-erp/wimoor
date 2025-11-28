@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeRuleCategoryMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeRuleCategory" id="FinCodeRuleCategoryResult">
+        <result property="id"    column="id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="ruleCode"    column="rule_code"    />
+        <result property="categoryCode"    column="category_code"    />
+        <result property="createdTime"    column="created_time"    />
+    </resultMap>
+
+    <sql id="selectFinCodeRuleCategoryVo">
+        select id, groupid, rule_code, category_code, created_time from fin_code_rule_category
+    </sql>
+
+    <select id="selectFinCodeRuleCategoryList" parameterType="com.wimoor.finance.code.domain.FinCodeRuleCategory" resultMap="FinCodeRuleCategoryResult">
+        <include refid="selectFinCodeRuleCategoryVo"/>
+        <where>  
+            <if test="groupid != null "> and groupid = #{groupid}</if>
+            <if test="ruleCode != null  and ruleCode != ''"> and rule_code = #{ruleCode}</if>
+            <if test="categoryCode != null  and categoryCode != ''"> and category_code = #{categoryCode}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeRuleCategoryById" parameterType="Long" resultMap="FinCodeRuleCategoryResult">
+        <include refid="selectFinCodeRuleCategoryVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeRuleCategory" parameterType="com.wimoor.finance.code.domain.FinCodeRuleCategory" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_rule_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code,</if>
+            <if test="categoryCode != null and categoryCode != ''">category_code,</if>
+            <if test="createdTime != null">created_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="ruleCode != null and ruleCode != ''">#{ruleCode},</if>
+            <if test="categoryCode != null and categoryCode != ''">#{categoryCode},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeRuleCategory" parameterType="com.wimoor.finance.code.domain.FinCodeRuleCategory">
+        update fin_code_rule_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code = #{ruleCode},</if>
+            <if test="categoryCode != null and categoryCode != ''">category_code = #{categoryCode},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeRuleCategoryById" parameterType="Long">
+        delete from fin_code_rule_category where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeRuleCategoryByIds" parameterType="String">
+        delete from fin_code_rule_category where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
