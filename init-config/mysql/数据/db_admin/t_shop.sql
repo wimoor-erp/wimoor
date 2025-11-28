@@ -1,1 +1,0 @@
-REPLACE INTO `t_shop` (`id`, `name`, `remark`, `invitecode`, `fromcode`, `oldid`, `boss_email`) VALUES (26138972975530053, 'admin', NULL, '2K6QRT', NULL, '22251d5f-f970-11e6-bd71-00e04c023f0e', NULL);

@@ -1,4 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.wimoor.common.mybatisplus.MybatisPlusConfig,\
-  com.wimoor.common.mybatisplus.MyMetaObjectHandler
-
