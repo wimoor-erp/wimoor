@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeRuleRelationMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeRuleRelation" id="FinCodeRuleRelationResult">
+        <result property="id"    column="id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="parentRuleCode"    column="parent_rule_code"    />
+        <result property="childRuleCode"    column="child_rule_code"    />
+        <result property="relationType"    column="relation_type"    />
+        <result property="conditionExpression"    column="condition_expression"    />
+        <result property="priority"    column="priority"    />
+        <result property="status"    column="status"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinCodeRuleRelationVo">
+        select id, groupid, parent_rule_code, child_rule_code, relation_type, condition_expression, priority, status, created_time, updated_time from fin_code_rule_relation
+    </sql>
+
+    <select id="selectFinCodeRuleRelationList" parameterType="com.wimoor.finance.code.domain.FinCodeRuleRelation" resultMap="FinCodeRuleRelationResult">
+        <include refid="selectFinCodeRuleRelationVo"/>
+        <where>  
+            <if test="groupid != null "> and groupid = #{groupid}</if>
+            <if test="parentRuleCode != null  and parentRuleCode != ''"> and parent_rule_code = #{parentRuleCode}</if>
+            <if test="childRuleCode != null  and childRuleCode != ''"> and child_rule_code = #{childRuleCode}</if>
+            <if test="relationType != null  and relationType != ''"> and relation_type = #{relationType}</if>
+            <if test="conditionExpression != null  and conditionExpression != ''"> and condition_expression = #{conditionExpression}</if>
+            <if test="priority != null "> and priority = #{priority}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeRuleRelationById" parameterType="Long" resultMap="FinCodeRuleRelationResult">
+        <include refid="selectFinCodeRuleRelationVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeRuleRelation" parameterType="com.wimoor.finance.code.domain.FinCodeRuleRelation" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_rule_relation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="parentRuleCode != null and parentRuleCode != ''">parent_rule_code,</if>
+            <if test="childRuleCode != null and childRuleCode != ''">child_rule_code,</if>
+            <if test="relationType != null and relationType != ''">relation_type,</if>
+            <if test="conditionExpression != null">condition_expression,</if>
+            <if test="priority != null">priority,</if>
+            <if test="status != null">status,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="parentRuleCode != null and parentRuleCode != ''">#{parentRuleCode},</if>
+            <if test="childRuleCode != null and childRuleCode != ''">#{childRuleCode},</if>
+            <if test="relationType != null and relationType != ''">#{relationType},</if>
+            <if test="conditionExpression != null">#{conditionExpression},</if>
+            <if test="priority != null">#{priority},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeRuleRelation" parameterType="com.wimoor.finance.code.domain.FinCodeRuleRelation">
+        update fin_code_rule_relation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="parentRuleCode != null and parentRuleCode != ''">parent_rule_code = #{parentRuleCode},</if>
+            <if test="childRuleCode != null and childRuleCode != ''">child_rule_code = #{childRuleCode},</if>
+            <if test="relationType != null and relationType != ''">relation_type = #{relationType},</if>
+            <if test="conditionExpression != null">condition_expression = #{conditionExpression},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeRuleRelationById" parameterType="Long">
+        delete from fin_code_rule_relation where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeRuleRelationByIds" parameterType="String">
+        delete from fin_code_rule_relation where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

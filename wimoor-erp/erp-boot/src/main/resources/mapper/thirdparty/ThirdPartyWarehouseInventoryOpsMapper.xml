@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.thirdparty.mapper.ThirdPartyWarehouseInventoryMapperOps" >
+
+  <select id="findByDto" resultType="java.util.Map" parameterType="com.wimoor.erp.thirdparty.pojo.dto.ThirdpartyWarehouseInvDTO">
+    select i.*,p.location image from t_erp_thirdparty_inventory_ops i
+    left join t_erp_material m on m.sku=i.sku and m.shopid=i.shopid and m.isdelete=0
+    left join t_picture p on p.id=m.image
+    where i.shopid=#{shopid} and i.api=#{api}  and houseid=#{houseid}
+      <if test="sku!=null and sku!=''">
+        and i.sku like CONCAT('%',#{sku},'%')
+      </if>
+
+  </select>
+
+
+</mapper>

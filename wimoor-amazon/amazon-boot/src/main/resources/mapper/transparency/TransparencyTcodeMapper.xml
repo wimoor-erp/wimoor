@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.transparency.mapper.TransparencyTcodeMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.transparency.pojo.entity.TransparencyTcode">
+            <id property="taskid" column="taskid" jdbcType="BIGINT"/>
+            <id property="tcode" column="tcode" jdbcType="CHAR"/>
+            <result property="createtime" column="createtime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        taskid,tcode,createtime
+    </sql>
+    <select id="listTcode" resultType="java.util.Map">
+            select t.sku,t.asin,t.gtin,t.authid,t.groupid,
+                   a.client_name,g.name groupname,
+                   tk.count,tk.url,tk.status,tc.tcode,tc.usetime,tc.taskid,
+                   tc.type_of_codes,tc.createtime,tc.jobid
+            from t_amz_transparency_tcode tc
+            left join t_amz_transparency_task tk on tk.id=tc.taskid
+            left join t_amz_transparency_skuinfo t on tk.skuinfoid=t.id
+            left join t_amz_transparency_authority a on a.client_id=t.authid
+            left join t_amazon_group g on g.id=t.groupid
+            where a.shopid=#{param.shopid,jdbcType=CHAR}
+            and t.disabled=false
+            <if test="param.groupid!=null">
+                and  t.groupid=#{param.groupid,jdbcType=CHAR}
+            </if>
+            <if test="param.authid!=null">
+                and  t.authid=#{param.authid,jdbcType=CHAR}
+            </if>
+            <if test="param.sku!=null">
+                and  t.sku like concat('%',#{param.sku,jdbcType=CHAR},'%')
+            </if>
+            <if test="param.status!=null and param.status=='used'">
+                and  tc.usetime is not null
+            </if>
+            <if test="param.status!=null and param.status=='unused'">
+                and  tc.usetime is  null
+            </if>
+            <if test="param.taskid!=null">
+                and  tc.taskid =#{param.taskid,jdbcType=CHAR}
+            </if>
+            <if test="param.tcodelist!=null">
+                and  tc.tcode in
+                <foreach collection="param.tcodelist" item="tcode" index="index" open="(" close=")" separator=",">
+                    #{tcode,jdbcType=CHAR}
+                </foreach>
+            </if>
+    </select>
+</mapper>

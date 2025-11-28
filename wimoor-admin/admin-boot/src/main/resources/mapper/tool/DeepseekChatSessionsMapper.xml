@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.sys.tool.mapper.DeepseekChatSessionsMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.sys.tool.pojo.entity.DeepseekChatSessions">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="userid" column="userid" jdbcType="VARCHAR"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="model" column="model" jdbcType="VARCHAR"/>
+            <result property="systemPrompt" column="system_prompt" jdbcType="VARCHAR"/>
+            <result property="totalMessages" column="total_messages" jdbcType="INTEGER"/>
+            <result property="totalTokens" column="total_tokens" jdbcType="INTEGER"/>
+            <result property="createtime" column="createtime" jdbcType="TIMESTAMP"/>
+            <result property="opttime" column="opttime" jdbcType="TIMESTAMP"/>
+            <result property="isActive" column="is_active" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userid,title,model,system_prompt,total_messages,
+        total_tokens,createtime,opttime,is_active
+    </sql>
+</mapper>

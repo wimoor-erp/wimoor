@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInfoStatusDefineMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInfoStatusDefine" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="shopid" property="shopid" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="CHAR" />
+    <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
+    <result column="issystem" property="issystem" jdbcType="BIT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="operator" property="operator" jdbcType="BIGINT" />
+    <result column="creator" property="creator" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, shopid, name, opttime, createtime, operator, creator, remark
+  </sql>
+  <select id="getProStatusByShop" parameterType="java.lang.String" resultType="com.wimoor.amazon.product.pojo.entity.ProductInfoStatusDefine" >
+    select * from t_product_info_status_define t where t.shopid=#{shopid,jdbcType=CHAR} 
+     or t.issystem=1 order by t.opttime desc
+  </select>
+   <select id="selectStatusTotalCount" parameterType="java.lang.String" resultType="java.lang.Integer" >
+		  SELECT count(t.pid) nums FROM t_product_in_opt t
+		LEFT JOIN t_product_info i ON i.id=t.pid
+		LEFT JOIN t_amazon_auth a ON a.id=i.amazonAuthId
+		 WHERE t.`status` =#{id,jdbcType=CHAR}
+		 AND a.shop_id=#{shopid,jdbcType=CHAR}
+ </select>
+ <select id="selectStatusDefineByPid" resultMap="BaseResultMap" parameterType="java.lang.String" >
+		SELECT t.* FROM t_product_info_status_define t
+		LEFT JOIN t_product_in_opt o ON o.`status`=t.id 
+		WHERE (t.shopid=#{shopid,jdbcType=CHAR} or t.shopid is null) AND  o.pid=#{pid,jdbcType=CHAR}
+ </select>
+</mapper>

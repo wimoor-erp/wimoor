@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.inventory.mapper.InventoryReportHisMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.amazon.inventory.pojo.entity.InventoryReportHis" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <id column="byday" property="byday" jdbcType="DATE" />
+    <result column="sku" property="sku" jdbcType="CHAR" />
+    <result column="marketplaceid" property="marketplaceid" jdbcType="CHAR" />
+    <result column="fnsku" property="fnsku" jdbcType="CHAR" />
+    <result column="asin" property="asin" jdbcType="CHAR" />
+    <result column="pcondition" property="pcondition" jdbcType="CHAR" />
+    <result column="your_price" property="yourPrice" jdbcType="DECIMAL" />
+    <result column="mfn_listing_exists" property="mfnListingExists" jdbcType="CHAR" />
+    <result column="mfn_fulfillable_quantity" property="mfnFulfillableQuantity" jdbcType="INTEGER" />
+    <result column="afn_listing_exists" property="afnListingExists" jdbcType="CHAR" />
+    <result column="afn_warehouse_quantity" property="afnWarehouseQuantity" jdbcType="INTEGER" />
+    <result column="afn_fulfillable_quantity" property="afnFulfillableQuantity" jdbcType="INTEGER" />
+    <result column="afn_unsellable_quantity" property="afnUnsellableQuantity" jdbcType="INTEGER" />
+    <result column="afn_reserved_quantity" property="afnReservedQuantity" jdbcType="INTEGER" />
+    <result column="afn_total_quantity" property="afnTotalQuantity" jdbcType="INTEGER" />
+    <result column="per_unit_volume" property="perUnitVolume" jdbcType="DECIMAL" />
+    <result column="afn_inbound_working_quantity" property="afnInboundWorkingQuantity" jdbcType="INTEGER" />
+    <result column="afn_inbound_shipped_quantity" property="afnInboundShippedQuantity" jdbcType="INTEGER" />
+    <result column="afn_inbound_receiving_quantity" property="afnInboundReceivingQuantity" jdbcType="INTEGER" />
+    <result column="afn_reserved_future_supply" property="afnReservedFutureSupply" jdbcType="INTEGER" />
+	<result column="afn_researching_quantity" property="afnResearchingQuantity" jdbcType="INTEGER" />
+	<result column="afn_future_supply_buyable" property="afnFutureSupplyBuyable" jdbcType="INTEGER" />
+    <result column="isnewest" property="isnewest" jdbcType="BIT" />
+    <result column="amazonAuthId" property="amazonauthid" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, byday, sku, marketplaceid, fnsku, asin, pcondition, your_price, mfn_listing_exists, 
+    mfn_fulfillable_quantity, afn_listing_exists, afn_warehouse_quantity, afn_fulfillable_quantity, 
+    afn_unsellable_quantity, afn_reserved_quantity, afn_total_quantity, per_unit_volume, 
+    afn_inbound_working_quantity, afn_inbound_shipped_quantity, afn_inbound_receiving_quantity, 
+   afn_reserved_future_supply,afn_researching_quantity,afn_future_supply_buyable,isnewest,amazonAuthId
+  </sql>
+  
+  <select id="selectBySkuMarketplace" parameterType="java.util.Map" resultMap="BaseResultMap" >
+   	    <if test="skuasin!=null">
+		  	<foreach collection ="skuasin.entrySet()" index="key" item="value"  open="" close="" separator =" union ">
+		  		select t.id,t.byday,t.afn_total_quantity,t.sku  
+		  		from t_inventory_report_his t
+		  		left join t_amazon_auth a on a.id=t.amazonAuthId
+		  		where t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		  			 and a.shop_id = #{shopid,jdbcType=CHAR}
+		             and t.sku =#{key,jdbcType=CHAR}
+			 	    <if test="groupid!=null">
+					and a.groupid=#{groupid,jdbcType=CHAR} 
+					</if>
+					<if test="amazonAuthId!=null">
+					 and t.amazonAuthId=#{amazonAuthId,jdbcType=CHAR} 
+					</if>
+					and t.asin =#{value} 
+					and t.byday &gt;= #{byday,jdbcType=CHAR} 
+			    </foreach>
+	    </if>
+	      <if test="skuasin==null">
+		  		select t.id,t.byday,t.afn_total_quantity,t.sku  
+		  		from t_inventory_report_his t
+		  		left join t_amazon_auth a on a.id=t.amazonAuthId
+		  		where t.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+		  			 and a.shop_id = #{shopid,jdbcType=CHAR}
+		             and t.sku =#{sku,jdbcType=CHAR}
+			 	    <if test="groupid!=null">
+					and a.groupid=#{groupid,jdbcType=CHAR} 
+					</if>
+	                <if test="amazonAuthId!=null">
+					 and t.amazonAuthId=#{amazonAuthId,jdbcType=CHAR} 
+					</if>
+					and t.byday &gt;= #{byday,jdbcType=CHAR} 
+	 
+	    </if>
+  </select>
+  
+  
+	<select id="getFBAInvDayDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select v.* from ( select t.sku,max(concat('FBA-',ifnull(w.name,'欧洲'))) warehouse
+		<if test="param.fieldlist != null">
+			,
+			<foreach collection="param.fieldlist" item="str" index="i" open=" " separator="," close=" ">
+				<if test="str != null">
+					sum(case when t.byday =#{str.byday,jdbcType=CHAR} then ifnull(t.afn_warehouse_quantity,0) else 0 end ) #{str.field,jdbcType=CHAR}
+				</if>
+			</foreach>
+		</if>
+		from t_inventory_report_his t
+		left join t_amazon_auth a on a.id = t.amazonAuthId
+		left join t_marketplace w on w.marketplaceid=t.marketplaceid  
+		where a.shop_id = #{param.shopid,jdbcType=CHAR} 
+			and t.byday &gt;=#{param.beginDate,jdbcType=CHAR}
+			and t.byday &lt;=#{param.endDate,jdbcType=CHAR}
+		<if test="param.groupid != null">
+			and a.groupid=#{param.groupid,jdbcType=CHAR}
+		</if>
+		<if test="param.warehouse != null">
+			and t.marketplaceid=#{param.warehouse,jdbcType=CHAR}
+		</if>
+		<if test="param.sku != null">
+			and t.sku like #{param.sku,jdbcType=CHAR}
+		</if>
+		group by t.sku,t.marketplaceid) v
+	</select>
+
+	<select id="getFBAInvDayTotal" parameterType="java.util.Map" resultType="java.util.Map">
+		select count(t.sku) vsku
+		<if test="fieldlist != null">
+			,
+			<foreach collection="fieldlist" item="str" index="i" open=" " separator="," close=" ">
+				<if test="str != null">
+					sum(case when t.byday =#{str.byday,jdbcType=CHAR} then ifnull(t.afn_warehouse_quantity,0) else 0 end ) #{str.byday,jdbcType=CHAR}
+				</if>
+			</foreach>
+		</if>
+		from t_inventory_report_his t
+		left join t_amazon_auth a on a.id = t.amazonAuthId
+		where a.shop_id = #{shopid,jdbcType=CHAR} 
+			and t.byday &gt;=#{beginDate,jdbcType=CHAR}
+			and t.byday &lt;=#{endDate,jdbcType=CHAR}
+		<if test="groupid != null">
+			and a.groupid=#{groupid,jdbcType=CHAR}
+		</if>
+		<if test="warehouse != null">
+			and t.marketplaceid=#{warehouse,jdbcType=CHAR}
+		</if>
+		<if test="sku != null">
+			and t.sku like #{sku,jdbcType=CHAR}
+		</if>
+	</select>
+
+</mapper>

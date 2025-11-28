@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceReportMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoiceReport">
+        <id column="order_id" property="orderId" />
+        <result column="order_item_id" property="orderItemId" />
+        <result column="purchase_date" property="purchaseDate" />
+        <result column="payments_date" property="paymentsDate" />
+        <result column="buyer_email" property="buyerEmail" />
+        <result column="buyer_name" property="buyerName" />
+        <result column="buyer_phone_number" property="buyerPhoneNumber" />
+        <result column="sku" property="sku" />
+        <result column="quantity_purchased" property="quantityPurchased" />
+        <result column="currency" property="currency" />
+        <result column="item_price" property="itemPrice" />
+        <result column="item_tax" property="itemTax" />
+        <result column="shipping_price" property="shippingPrice" />
+        <result column="shipping_tax" property="shippingTax" />
+        <result column="ship_service_level" property="shipServiceLevel" />
+        <result column="recipient_name" property="recipientName" />
+        <result column="ship_address_1" property="shipAddress1" />
+        <result column="ship_address_2" property="shipAddress2" />
+        <result column="ship_address_3" property="shipAddress3" />
+        <result column="ship_city" property="shipCity" />
+        <result column="ship_state" property="shipState" />
+        <result column="ship_postal_code" property="shipPostalCode" />
+        <result column="ship_country" property="shipCountry" />
+        <result column="ship_phone_number" property="shipPhoneNumber" />
+        <result column="delivery_start_date" property="deliveryStartDate" />
+        <result column="delivery_end_date" property="deliveryEndDate" />
+        <result column="delivery_time_zone" property="deliveryTimeZone" />
+        <result column="delivery_instructions" property="deliveryInstructions" />
+        <result column="is_business_order" property="isBusinessOrder" />
+        <result column="price_designation" property="priceDesignation" />
+        <result column="is_iba" property="isIba" />
+        <result column="amazonAuthId" property="amazonAuthId" />
+        <result column="refreshtime" property="refreshtime" />
+    </resultMap>
+    
+     <select id="selectOrderList" resultType="com.wimoor.amazon.orders.pojo.vo.AmazonOrdersVo" parameterType="com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO">
+		select 
+		    t.purchase_date buydate,
+	        'Invoice' itemstatus,
+		    t.order_id orderid,
+		    g.id groupid,
+			t.item_price itemprice,
+			t.quantity_purchased quantity,
+			ifnull(p.location,p.url) image,
+			t.sku,
+			t.asin,
+			g.name groupname,
+			m.color,
+			info.name,
+			CONCAT(t.sku,'_',t.amazon_order_id) id,
+			t.sales_channel market,
+			t.currency,
+			t.ship_service_level shipservice,
+			t.ship_city city,
+			t.shipping_price shipfee, 
+			au.id authid,
+			ord.remark remark,
+			t.is_business_order isbusiness,
+			mt.marketplaceId,mt.name marketname,
+			case when q.submitfeedid is null and ord.feed_queueid is not null then '排队中' 
+			else case when ord.feed_queueid is null then '未上传' else '已上传' end end  feedstatus
+		from t_amz_orders_invoice_report t
+		left join t_amazon_auth au on au.id=t.amazonAuthId
+		left join t_amazon_group g on au.groupid=g.id
+		left join t_marketplace mt on mt.point_name=t.sales_channel
+		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId  and info.marketplaceid=mt.marketplaceId
+		left join t_picture p on p.id=info.image
+		left join t_product_in_opt opt on opt.pid=info.id
+		left join t_erp_material m on m.sku=ifnull(opt.msku,t.sku) and m.shopid=au.shop_id and m.isDelete = 0
+		left join t_orders_remark ord on ord.amazon_order_id=t.order_id
+		left join t_amz_submitfeed_queue q on q.id=ord.feed_queueid
+		where 1=1
+			<if test="dto.orderid==null">
+			  and t.purchase_date >=#{dto.startDate,jdbcType=TIMESTAMP}
+			  and t.purchase_date &lt;=#{dto.endDate,jdbcType=TIMESTAMP}
+		   </if>
+		 <if test="dto.amazonAuthId!=null">
+			and t.amazonAuthId=#{dto.amazonAuthId,jdbcType=CHAR}
+		</if>
+		<if test="dto.color!=null  and dto.color!='all'">
+			and m.color=#{dto.color,jdbcType=CHAR}
+		</if>
+		<if test="dto.pointname!=null and dto.pointname!='all'">
+			and t.sales_channel=#{dto.pointname,jdbcType=CHAR}
+		</if>
+		<if test="dto.groupid!=null">
+			and au.groupid=#{dto.groupid,jdbcType=BIGINT}
+		</if>
+		<if test="dto.isbusiness!=null and dto.isbusiness!='all'">
+			and IFNULL(t.is_business_order,'false') =#{dto.isbusiness,jdbcType=CHAR}
+		</if>
+		<if test="dto.sku!=null">
+			and t.sku=#{dto.sku,jdbcType=CHAR}
+		</if>
+		<if test="dto.asin!=null">
+			and t.asin=#{dto.asin,jdbcType=CHAR}
+		</if>
+		<if test="dto.orderid!=null">
+			and t.order_id=#{dto.orderid,jdbcType=CHAR}
+		</if>
+	</select> 
+
+</mapper>

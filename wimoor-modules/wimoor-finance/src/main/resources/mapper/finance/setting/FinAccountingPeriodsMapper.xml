@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinAccountingPeriodsMapper">
+    
+    <resultMap type="com.wimoor.finance.setting.domain.FinAccountingPeriods" id="FinAccountingPeriodsResult">
+        <result property="periodId"    column="period_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="periodCode"    column="period_code"    />
+        <result property="periodName"    column="period_name"    />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"    column="end_date"    />
+        <result property="periodStatus"    column="period_status"    />
+        <result property="isCurrent"    column="is_current"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="closeTime"    column="close_time"    />
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectFinAccountingPeriodsVo">
+        select period_id, groupid, period_code,
+               period_name, start_date, end_date, period_status,
+               is_current, created_time, close_time,remark
+        from fin_accounting_periods
+    </sql>
+
+    <select id="selectFinAccountingPeriodsList" parameterType="com.wimoor.finance.setting.domain.FinAccountingPeriods" resultMap="FinAccountingPeriodsResult">
+        <include refid="selectFinAccountingPeriodsVo"/>
+        <where>
+            and groupid=#{groupid}
+            <if test="periodCode != null  and periodCode != ''"> and period_code = #{periodCode}</if>
+            <if test="periodName != null  and periodName != ''"> and period_name like concat('%', #{periodName}, '%')</if>
+            <if test="startDate != null "> and start_date = #{startDate}</if>
+            <if test="endDate != null "> and end_date = #{endDate}</if>
+            <if test="periodStatus != null "> and period_status = #{periodStatus}</if>
+            <if test="isCurrent != null "> and is_current = #{isCurrent}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinAccountingPeriodsByPeriodId" parameterType="Long" resultMap="FinAccountingPeriodsResult">
+        <include refid="selectFinAccountingPeriodsVo"/>
+        where period_id = #{periodId}
+    </select>
+    <select id="selectByPeriod" resultMap="FinAccountingPeriodsResult">
+        <include refid="selectFinAccountingPeriodsVo"/>
+        where period_code = #{period} and groupid=#{groupid}
+    </select>
+    <select id="selectOpenPeriods" resultMap="FinAccountingPeriodsResult">
+        <include refid="selectFinAccountingPeriodsVo"/>
+        where period_status = 1 and groupid=#{groupid}
+    </select>
+    <select id="selectSubsequentClosedPeriods"  resultMap="FinAccountingPeriodsResult" parameterType="java.lang.String">
+        <include refid="selectFinAccountingPeriodsVo"/>
+        where period_code > #{period} and period_status = 3 and groupid=#{groupid}
+    </select>
+
+    <insert id="insertFinAccountingPeriods" parameterType="com.wimoor.finance.setting.domain.FinAccountingPeriods" useGeneratedKeys="true" keyProperty="periodId">
+        insert into fin_accounting_periods
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="periodCode != null and periodCode != ''">period_code,</if>
+            <if test="periodName != null and periodName != ''">period_name,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="periodStatus != null">period_status,</if>
+            <if test="isCurrent != null">is_current,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="closeTime != null">close_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="periodCode != null and periodCode != ''">#{periodCode},</if>
+            <if test="periodName != null and periodName != ''">#{periodName},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="periodStatus != null">#{periodStatus},</if>
+            <if test="isCurrent != null">#{isCurrent},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="closeTime != null">#{closeTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinAccountingPeriods" parameterType="com.wimoor.finance.setting.domain.FinAccountingPeriods">
+        update fin_accounting_periods
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="periodCode != null and periodCode != ''">period_code = #{periodCode},</if>
+            <if test="periodName != null and periodName != ''">period_name = #{periodName},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="periodStatus != null">period_status = #{periodStatus},</if>
+            <if test="isCurrent != null">is_current = #{isCurrent},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="closeTime != null">close_time = #{closeTime},</if>
+        </trim>
+        where period_id = #{periodId}
+    </update>
+    <update id="updatePeriodStatus">
+        update fin_accounting_periods
+        set period_status = #{periodStatus},close_time = case when  #{periodStatus} = 3 then now() else null end
+        where period_code = #{period} and groupid=#{groupid}
+    </update>
+
+    <delete id="deleteFinAccountingPeriodsByPeriodId" parameterType="Long">
+        delete from fin_accounting_periods where period_id = #{periodId}
+    </delete>
+
+    <delete id="deleteFinAccountingPeriodsByPeriodIds" parameterType="String">
+        delete from fin_accounting_periods where period_id in 
+        <foreach item="periodId" collection="array" open="(" separator="," close=")">
+            #{periodId}
+        </foreach>
+    </delete>
+</mapper>

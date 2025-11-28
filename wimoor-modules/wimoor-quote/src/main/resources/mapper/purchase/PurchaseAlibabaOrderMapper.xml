@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.quote.purchase.mapper.PurchaseAlibabaOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.quote.purchase.pojo.entity.PurchaseAlibabaOrder">
+            <result property="id" column="id" />
+            <result property="sellerid" column="sellerID" />
+            <result property="buyerid" column="buyerID" />
+            <result property="price" column="price" />
+            <result property="entryid" column="entryid" />
+            <result property="remark" column="remark" />
+            <result property="createtime" column="createtime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,sellerID,buyerID,price,entryid,remark,
+        createtime
+    </sql>
+
+
+
+
+
+    <select id="findByCondition"  resultType="java.util.Map" parameterType="java.lang.String">
+        SELECT t.id,t.formid,t.createtime,t.sellerID,t.buyerID,t.buyerothername,
+               t.price ,t.remark,b.phone buyerphone,b.name buyername,b.mobile buyermobile,b.companyName buyercompany,
+               s.name suppliername,s.phone supplierphone,
+               s.mobile suppliermobile,s.companyName suppliercompany,s.email supplieremail,e.audittime
+                FROM t_purchase_alibaba_order t
+                 LEFT JOIN t_purchase_alibaba_buyer b ON t.buyerID=b.id
+                 LEFT JOIN t_purchase_order_entry e ON e.orderid=t.id
+                 LEFT JOIN t_purchase_alibaba_seller s ON s.id=t.sellerID
+                 WHERE t.sysbuyerid=#{buyerid,jdbcType=CHAR}
+            and e.audittime &gt;= #{fromDate,jdbcType=TIMESTAMP}
+            and e.audittime &lt;= #{toDate,jdbcType=TIMESTAMP}
+            <if test="search != null and search != ''">
+                and (
+                  s.name like #{search,jdbcType=CHAR}
+                or b.name like #{search,jdbcType=CHAR}
+                )
+            </if>
+    </select>
+
+
+</mapper>

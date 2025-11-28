@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.ProductInReviewMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.ProductInReview">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="asin" column="asin" jdbcType="CHAR"/>
+            <result property="marketplaceid" column="marketplaceid" jdbcType="CHAR"/>
+            <result property="starofrate" column="starofrate" jdbcType="FLOAT"/>
+            <result property="reviewnum" column="reviewnum" jdbcType="INTEGER"/>
+            <result property="starofrate1" column="starofrate_1" jdbcType="FLOAT"/>
+            <result property="starofrate2" column="starofrate_2" jdbcType="FLOAT"/>
+            <result property="starofrate3" column="starofrate_3" jdbcType="FLOAT"/>
+            <result property="starofrate4" column="starofrate_4" jdbcType="FLOAT"/>
+            <result property="starofrate5" column="starofrate_5" jdbcType="FLOAT"/>
+            <result property="negative" column="negative" jdbcType="BIT"/>
+            <result property="positivereview" column="positiveReview" jdbcType="CHAR"/>
+            <result property="criticalreview" column="criticalReview" jdbcType="CHAR"/>
+            <result property="refreshtime" column="refreshtime" jdbcType="TIMESTAMP"/>
+            <result property="refreshnum" column="refreshnum" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,asin,marketplaceid,starofrate,reviewnum,starofrate_1,
+        starofrate_2,starofrate_3,starofrate_4,starofrate_5,negative,
+        positiveReview,criticalReview,refreshtime,refreshnum
+    </sql>
+</mapper>

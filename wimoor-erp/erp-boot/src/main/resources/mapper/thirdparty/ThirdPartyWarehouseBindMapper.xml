@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.thirdparty.mapper.ThirdPartyWarehouseBindMapper" >
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.thirdparty.pojo.entity.ThirdPartyWarehouseBind" >
+        <result column="thirdpartyWarehouseId" property="thirdparty_warehouse_id" jdbcType="VARCHAR" />
+        <result column="localWarehouseId" property="local_warehouse_id" jdbcType="VARCHAR" />
+        <result column="operator" property="operator" jdbcType="VARCHAR" />
+        <result column="opttime" property="opttime" jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List" >
+        thirdparty_warehouse_id, local_warehouse_id, operator, opttime
+    </sql>
+    <select id="findByConditon" resultType="java.util.Map" parameterType="java.lang.String">
+        SELECT b.thirdparty_warehouse_id thirdpartyWarehouseId,
+               b.local_warehouse_id localWarehouseId,
+               tw.`name` thirdpartyname,
+               lw.`name` localname
+        from t_erp_thirdparty_warehouse_bind b
+        LEFT JOIN t_erp_thirdparty_warehouse tw ON tw.id=b.thirdparty_warehouse_id
+        LEFT JOIN t_erp_warehouse lw ON lw.id=b.local_warehouse_id
+        WHERE lw.shopid=#{shopid,jdbcType=CHAR}
+        <if test="thirdpartyWarehouseId!=null and thirdpartyWarehouseId!=''">
+            and b.thirdparty_warehouse_id=#{thirdpartyWarehouseId,jdbcType=CHAR}
+        </if>
+        <if test="localWarehouseId!=null and localWarehouseId!=''">
+            and b.local_warehouse_id=#{localWarehouseId,jdbcType=CHAR}
+        </if>
+    </select>
+
+</mapper>

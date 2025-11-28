@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinInitRptEquityChangeStandardData">
+    <sql id="initSql">
+        -- 插入所有者权益变动表模板
+        INSERT ignore INTO fin_report_templates (groupid, template_code, template_name, template_type, description, created_by)
+        VALUES (#{groupId}, 'EQUITY_CHANGE_STANDARD', '所有者权益变动报告', 'EQUITY_CHANGE', '新会计准则标准所有者权益变动表模板', 'system');
+
+        SET @equity_template_id = LAST_INSERT_ID();
+
+-- 初始化所有者权益变动表项目
+        INSERT ignore INTO fin_report_items (groupid, template_id, item_code, item_name, parent_code, item_level, line_number, item_type, calculation_rule, formula_type, data_source, sort_order, is_leaf) VALUES
+            -- 项目列
+            (#{groupId}, @equity_template_id, 'EQUITY_ITEMS', '项目', NULL, 1, NULL, 'EQUITY', NULL, 'DIRECT', 'CONSTANT', 10, 0),
+            (#{groupId}, @equity_template_id, 'EQUITY_CAPITAL', '实收资本', 'EQUITY_ITEMS', 2, 1, 'EQUITY', '3001', 'DIRECT', 'SUBJECT', 20, 1),
+            (#{groupId}, @equity_template_id, 'EQUITY_RESERVE_CAPITAL', '资本公积', 'EQUITY_ITEMS', 2, 2, 'EQUITY', '3002', 'DIRECT', 'SUBJECT', 30, 1),
+            (#{groupId}, @equity_template_id, 'EQUITY_RESERVE_SURPLUS', '盈余公积', 'EQUITY_ITEMS', 2, 3, 'EQUITY', '3101', 'DIRECT', 'SUBJECT', 40, 1),
+            (#{groupId}, @equity_template_id, 'EQUITY_RETAINED', '未分配利润', 'EQUITY_ITEMS', 2, 4, 'EQUITY', '3104', 'DIRECT', 'SUBJECT', 50, 1),
+            (#{groupId}, @equity_template_id, 'EQUITY_TOTAL', '所有者权益合计', 'EQUITY_ITEMS', 2, 5, 'EQUITY', 'EQUITY_CAPITAL+EQUITY_RESERVE_CAPITAL+EQUITY_RESERVE_SURPLUS+EQUITY_RETAINED', 'FORMULA', 'CALCULATED', 60, 1),
+
+            -- 上年年末余额
+            (#{groupId}, @equity_template_id, 'BALANCE_PRIOR_YEAR', '上年年末余额', NULL, 1, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 70, 0),
+            (#{groupId}, @equity_template_id, 'BALANCE_CAPITAL_PRIOR', '实收资本(上年)', 'BALANCE_PRIOR_YEAR', 2, 1, 'EQUITY', 'CUSTOM:BALANCE_CAPITAL_PRIOR', 'CUSTOM', 'CALCULATED', 80, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RESERVE_CAPITAL_PRIOR', '资本公积(上年)', 'BALANCE_PRIOR_YEAR', 2, 2, 'EQUITY', 'CUSTOM:BALANCE_RESERVE_CAPITAL_PRIOR', 'CUSTOM', 'CALCULATED', 90, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RESERVE_SURPLUS_PRIOR', '盈余公积(上年)', 'BALANCE_PRIOR_YEAR', 2, 3, 'EQUITY', 'CUSTOM:BALANCE_RESERVE_SURPLUS_PRIOR', 'CUSTOM', 'CALCULATED', 100, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RETAINED_PRIOR', '未分配利润(上年)', 'BALANCE_PRIOR_YEAR', 2, 4, 'EQUITY', 'CUSTOM:BALANCE_RETAINED_PRIOR', 'CUSTOM', 'CALCULATED', 110, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_TOTAL_PRIOR', '所有者权益合计(上年)', 'BALANCE_PRIOR_YEAR', 2, 5, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 120, 1),
+
+            -- 本年年初余额
+            (#{groupId}, @equity_template_id, 'BALANCE_CURRENT_YEAR', '本年年初余额', NULL, 1, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 130, 0),
+            (#{groupId}, @equity_template_id, 'BALANCE_CAPITAL_CURRENT', '实收资本(年初)', 'BALANCE_CURRENT_YEAR', 2, 1, 'EQUITY', 'BALANCE_CAPITAL_PRIOR', 'DIRECT', 'CALCULATED', 140, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RESERVE_CAPITAL_CURRENT', '资本公积(年初)', 'BALANCE_CURRENT_YEAR', 2, 2, 'EQUITY', 'BALANCE_RESERVE_CAPITAL_PRIOR', 'DIRECT', 'CALCULATED', 150, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RESERVE_SURPLUS_CURRENT', '盈余公积(年初)', 'BALANCE_CURRENT_YEAR', 2, 3, 'EQUITY', 'BALANCE_RESERVE_SURPLUS_PRIOR', 'DIRECT', 'CALCULATED', 160, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RETAINED_CURRENT', '未分配利润(年初)', 'BALANCE_CURRENT_YEAR', 2, 4, 'EQUITY', 'BALANCE_RETAINED_PRIOR', 'DIRECT', 'CALCULATED', 170, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_TOTAL_CURRENT', '所有者权益合计(年初)', 'BALANCE_CURRENT_YEAR', 2, 5, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 180, 1),
+
+            -- 本年增减变动金额
+            (#{groupId}, @equity_template_id, 'CHANGE_CURRENT_YEAR', '本年增减变动金额', NULL, 1, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 190, 0),
+
+            -- 净利润
+            (#{groupId}, @equity_template_id, 'CHANGE_PROFIT_NET', '净利润', 'CHANGE_CURRENT_YEAR', 2, 1, 'EQUITY', 'PROFIT_NET', 'DIRECT', 'CALCULATED', 200, 1),
+
+            -- 直接计入所有者权益的利得和损失
+            (#{groupId}, @equity_template_id, 'CHANGE_DIRECT_EQUITY', '直接计入所有者权益的利得和损失', 'CHANGE_CURRENT_YEAR', 2, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 210, 0),
+            (#{groupId}, @equity_template_id, 'CHANGE_FAIR_VALUE', '可供出售金融资产公允价值变动净额', 'CHANGE_DIRECT_EQUITY', 3, 2, 'EQUITY', 'CUSTOM:CHANGE_FAIR_VALUE', 'CUSTOM', 'CALCULATED', 220, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_DIRECT_EQUITY_OTHER', '其他', 'CHANGE_DIRECT_EQUITY', 3, 3, 'EQUITY', 'CUSTOM:CHANGE_DIRECT_EQUITY_OTHER', 'CUSTOM', 'CALCULATED', 230, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_DIRECT_EQUITY_TOTAL', '小计', 'CHANGE_DIRECT_EQUITY', 3, 4, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 240, 1),
+
+            -- 所有者投入和减少资本
+            (#{groupId}, @equity_template_id, 'CHANGE_CAPITAL_INOUT', '所有者投入和减少资本', 'CHANGE_CURRENT_YEAR', 2, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 250, 0),
+            (#{groupId}, @equity_template_id, 'CHANGE_CAPITAL_IN', '所有者投入资本', 'CHANGE_CAPITAL_INOUT', 3, 5, 'EQUITY', 'CUSTOM:CHANGE_CAPITAL_IN', 'CUSTOM', 'CALCULATED', 260, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_CAPITAL_REDUCE', '股份支付计入所有者权益的金额', 'CHANGE_CAPITAL_INOUT', 3, 6, 'EQUITY', 'CUSTOM:CHANGE_CAPITAL_REDUCE', 'CUSTOM', 'CALCULATED', 270, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_CAPITAL_INOUT_TOTAL', '小计', 'CHANGE_CAPITAL_INOUT', 3, 7, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 280, 1),
+
+            -- 利润分配
+            (#{groupId}, @equity_template_id, 'CHANGE_PROFIT_DISTRIBUTION', '利润分配', 'CHANGE_CURRENT_YEAR', 2, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 290, 0),
+            (#{groupId}, @equity_template_id, 'CHANGE_SURPLUS_EXTRACT', '提取盈余公积', 'CHANGE_PROFIT_DISTRIBUTION', 3, 8, 'EQUITY', 'CUSTOM:CHANGE_SURPLUS_EXTRACT', 'CUSTOM', 'CALCULATED', 300, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_DIVIDEND', '对所有者（或股东）的分配', 'CHANGE_PROFIT_DISTRIBUTION', 3, 9, 'EQUITY', 'CUSTOM:CHANGE_DIVIDEND', 'CUSTOM', 'CALCULATED', 310, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_PROFIT_DISTRIBUTION_TOTAL', '小计', 'CHANGE_PROFIT_DISTRIBUTION', 3, 10, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 320, 1),
+
+            -- 所有者权益内部结转
+            (#{groupId}, @equity_template_id, 'CHANGE_INTERNAL_TRANSFER', '所有者权益内部结转', 'CHANGE_CURRENT_YEAR', 2, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 330, 0),
+            (#{groupId}, @equity_template_id, 'CHANGE_CAPITAL_SURPLUS', '资本公积转增资本', 'CHANGE_INTERNAL_TRANSFER', 3, 11, 'EQUITY', 'CUSTOM:CHANGE_CAPITAL_SURPLUS', 'CUSTOM', 'CALCULATED', 340, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_INTERNAL_TRANSFER_OTHER', '其他', 'CHANGE_INTERNAL_TRANSFER', 3, 12, 'EQUITY', 'CUSTOM:CHANGE_INTERNAL_TRANSFER_OTHER', 'CUSTOM', 'CALCULATED', 350, 1),
+            (#{groupId}, @equity_template_id, 'CHANGE_INTERNAL_TRANSFER_TOTAL', '小计', 'CHANGE_INTERNAL_TRANSFER', 3, 13, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 360, 1),
+
+            -- 本年年末余额
+            (#{groupId}, @equity_template_id, 'BALANCE_ENDING', '本年年末余额', NULL, 1, NULL, 'EQUITY', NULL, 'DIRECT', 'SUBJECT', 370, 0),
+            (#{groupId}, @equity_template_id, 'BALANCE_CAPITAL_ENDING', '实收资本(年末)', 'BALANCE_ENDING', 2, 1, 'EQUITY', 'BALANCE_CAPITAL_CURRENT+CHANGE_CAPITAL_INOUT_TOTAL+CHANGE_INTERNAL_TRANSFER_TOTAL', 'FORMULA', 'CALCULATED', 380, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RESERVE_CAPITAL_ENDING', '资本公积(年末)', 'BALANCE_ENDING', 2, 2, 'EQUITY', 'BALANCE_RESERVE_CAPITAL_CURRENT+CHANGE_DIRECT_EQUITY_TOTAL+CHANGE_CAPITAL_INOUT_TOTAL-CHANGE_INTERNAL_TRANSFER_TOTAL', 'FORMULA', 'CALCULATED', 390, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RESERVE_SURPLUS_ENDING', '盈余公积(年末)', 'BALANCE_ENDING', 2, 3, 'EQUITY', 'BALANCE_RESERVE_SURPLUS_CURRENT+CHANGE_SURPLUS_EXTRACT', 'FORMULA', 'CALCULATED', 400, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_RETAINED_ENDING', '未分配利润(年末)', 'BALANCE_ENDING', 2, 4, 'EQUITY', 'BALANCE_RETAINED_CURRENT+CHANGE_PROFIT_NET-CHANGE_PROFIT_DISTRIBUTION_TOTAL', 'FORMULA', 'CALCULATED', 410, 1),
+            (#{groupId}, @equity_template_id, 'BALANCE_TOTAL_ENDING', '所有者权益合计(年末)', 'BALANCE_ENDING', 2, 5, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 'CALCULATED', 420, 1);
+    </sql>
+</mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.report.mapper.FinReportTemplatesMapper">
+    
+    <resultMap type="com.wimoor.finance.report.domain.FinReportTemplates" id="FinReportTemplatesResult">
+        <result property="templateId"    column="template_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="templateName"    column="template_name"    />
+        <result property="templateType"    column="template_type"    />
+        <result property="templateCode"    column="template_code"    />
+        <result property="status"    column="status"    />
+        <result property="createdTime"    column="created_time"    />
+    </resultMap>
+
+    <sql id="selectFinReportTemplatesVo">
+        select template_id, groupid, template_name, template_type, template_code, description, status, created_time from fin_report_templates
+    </sql>
+
+    <select id="selectFinReportTemplatesList" parameterType="com.wimoor.finance.report.domain.FinReportTemplates" resultMap="FinReportTemplatesResult">
+        <include refid="selectFinReportTemplatesVo"/>
+        <where>  
+             and groupid = #{groupid}
+            <if test="templateName != null  and templateName != ''"> and template_name like concat('%', #{templateName}, '%')</if>
+            <if test="description != null  and description != ''"> and description like concat('%', #{description}, '%')</if>
+            <if test="templateType != null "> and template_type = #{templateType}</if>
+            <if test="templateCode != null  and templateCode != ''"> and template_code = #{templateCode}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinReportTemplatesByTemplateId" parameterType="Long" resultMap="FinReportTemplatesResult">
+        <include refid="selectFinReportTemplatesVo"/>
+        where template_id = #{templateId}
+    </select>
+
+    <insert id="insertFinReportTemplates" parameterType="com.wimoor.finance.report.domain.FinReportTemplates" useGeneratedKeys="true" keyProperty="templateId">
+        insert into fin_report_templates
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="templateName != null and templateName != ''">template_name,</if>
+            <if test="templateType != null">template_type,</if>
+            <if test="templateCode != null and templateCode != ''">template_code,</if>
+            <if test="status != null">status,</if>
+            <if test="description != null">description,</if>
+            <if test="createdTime != null">created_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="templateName != null and templateName != ''">#{templateName},</if>
+            <if test="templateType != null">#{templateType},</if>
+            <if test="templateCode != null and templateCode != ''">#{templateCode},</if>
+            <if test="status != null">#{status},</if>
+            <if test="description != null">#{description},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinReportTemplates" parameterType="com.wimoor.finance.report.domain.FinReportTemplates">
+        update fin_report_templates
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="templateName != null and templateName != ''">template_name = #{templateName},</if>
+            <if test="templateType != null">template_type = #{templateType},</if>
+            <if test="templateCode != null and templateCode != ''">template_code = #{templateCode},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+        </trim>
+        where template_id = #{templateId}
+    </update>
+
+    <delete id="deleteFinReportTemplatesByTemplateId" parameterType="Long">
+        delete from fin_report_templates where template_id = #{templateId}
+    </delete>
+
+    <delete id="deleteFinReportTemplatesByTemplateIds" parameterType="String">
+        delete from fin_report_templates where template_id in 
+        <foreach item="templateId" collection="array" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+</mapper>

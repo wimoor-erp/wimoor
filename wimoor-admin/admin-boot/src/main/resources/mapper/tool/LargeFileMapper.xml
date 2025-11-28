@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.sys.tool.mapper.LargeFileMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.sys.tool.pojo.entity.LargeFile">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
+            <result property="opttime" column="opttime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,location,opttime
+    </sql>
+</mapper>

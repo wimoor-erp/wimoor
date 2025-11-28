@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.stock.mapper.ErpDispatchOverseaTransMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.ErpDispatchOverseaTrans">
+        <id column="id" property="id" />
+        <result column="formid" property="formid" />
+        <result column="company" property="company" />
+        <result column="channel" property="channel" />
+        <result column="singleprice" property="singleprice" />
+        <result column="transweight" property="transweight" />
+        <result column="wunit" property="wunit" />
+        <result column="otherfee" property="otherfee" />
+        <result column="ordernum" property="ordernum" />
+        <result column="opttime" property="opttime" />
+        <result column="operator" property="operator" />
+        <result column="remark" property="remark" />
+        <result column="arrivalTime" property="arrivalTime" />
+        <result column="outarrtime" property="outarrtime" />
+        <result column="inarrtime" property="inarrtime" />
+        <result column="wtype" property="wtype" />
+        <result column="transtype" property="transtype" />
+    </resultMap>
+    <select id="getInfo" resultType="java.util.Map">
+        SELECT t.*,c.name companyname,s.channame,ch.name channeltype ,ty.name transtypename
+        from t_erp_dispatch_oversea_trans t
+                 left JOIN t_erp_ship_transdetail  s ON s.id=t.channel
+                 LEFT JOIN t_erp_ship_transcompany c ON c.id=s.company
+                 LEFT JOIN t_erp_ship_transchannel ch ON ch.id=s.channel
+                 LEFT JOIN t_erp_transtype ty ON ty.id=s.transtype
+        where t.formid=#{id,jdbcType=CHAR}
+    </select>
+
+
+    <select id="transFeeSharedDetail" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT f.number, m.sku,e.amount qty,
+        tc.name shipcompany, td.channame ,
+        IFNULL(pp.location,pp.url) location,
+        f.auditstatus, u.name ownername, u2.name optname,
+        w.name warehouse, m.name,
+        f.createdate opttime, mp.name towarehousename,
+        trans.transweight,
+        d.length length,d.width width,d.height height,d.weight weight,
+        trans.wunit  fwunit,
+        round((case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000))
+        then d.weight*e.amount
+        else (d.length*d.width*d.height/ifnull(td.drate,5000))*e.amount
+        end
+        ),2) skuweight,
+        (trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0)) shipfee,
+        round(  (trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+        (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*e.amount else (d.length*d.width*d.height/ifnull(td.drate,5000))*e.amount  end)
+        /
+        (
+        SELECT
+        sum(case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight*e2.amount else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))*e2.amount  end)
+        FROM t_erp_dispatch_oversea_form_entry e2
+        LEFT JOIN t_erp_dispatch_oversea_form f2 ON  f2.id=e2.formid
+        LEFT JOIN t_erp_material m2 ON m2.id=e2.materialid
+        LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+        left join t_erp_dispatch_oversea_trans trd  on trd.formid=f2.id
+        left join t_erp_ship_transdetail trans2 on trd.channel=trans2.id and trans2.company=trd.company
+        WHERE f2.id=f.id
+        and f2.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.endDate!=null">
+            and f2.createdate &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+            and f2.createdate &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+        </if>
+        ),2
+        ) skufee
+        FROM t_erp_dispatch_oversea_form_entry e
+        LEFT JOIN t_erp_dispatch_oversea_form f ON  f.id=e.formid
+        LEFT JOIN t_erp_dispatch_oversea_trans trans ON trans.formid =f.id
+        LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+        LEFT JOIN t_erp_ship_transcompany tc ON tc.id=td.company
+        left join t_erp_warehouse w on w.id=f.from_warehouseid
+        LEFT JOIN t_erp_warehouse mp ON mp.id=f.to_warehouseid
+        LEFT JOIN t_erp_material m ON m.id=e.materialid
+        LEFT JOIN t_picture pp on pp.id=m.image
+        left join t_userinfo u on u.id=m.owner
+        left join t_userinfo u2 on u2.id=trans.operator
+        LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+        WHERE f.shopid=#{param.shopid,jdbcType=CHAR}
+        AND trans.transweight>0
+        <if test="param.endDate!=null">
+            and f.createdate &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+            and f.createdate &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+        </if>
+        <if test="param.warehouseid!=null">
+            and f.from_warehouseid= #{param.warehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.towarehouseid!=null">
+            and f.to_warehouseid= #{param.towarehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.search!=null">
+            and (m.sku like #{param.search,jdbcType=CHAR})
+        </if>
+        <if test="param.company!=null">
+            and trans.company= #{param.company,jdbcType=CHAR}
+        </if>
+        <if test="param.channel!=null">
+            and trans.channel= #{param.channel,jdbcType=CHAR}
+        </if>
+        <if test="param.number!=null">
+            and f.number= #{param.number,jdbcType=CHAR}
+        </if>
+
+
+    </select>
+
+    <select id="transFeeShared" resultType="java.util.Map" parameterType="java.util.Map">
+        select sku,qty,name,location,sku msku,ownername,skufee,round(skufee/qty,2) avgfee
+        from
+        (
+        SELECT  max(m.sku) sku ,sum(e.amount) qty,
+        max(IFNULL(pp.location,pp.url)) location,
+        max(u.name) ownername,
+        max(m.name) name,
+        sum(round(  (trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+        (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*e.amount else (d.length*d.width*d.height/ifnull(td.drate,5000))*e.amount  end)
+        /
+        (
+        SELECT
+        sum(case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight*e2.amount else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))*e2.amount  end)
+        FROM t_erp_dispatch_oversea_form_entry e2
+        LEFT JOIN t_erp_dispatch_oversea_form f2 ON  f2.id=e2.formid
+        LEFT JOIN t_erp_material m2 ON m2.id=e2.materialid
+        LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+        left join t_erp_dispatch_oversea_trans trd  on trd.formid=f2.id
+        left join t_erp_ship_transdetail trans2 on trd.channel=trans2.id and trans2.company=trd.company
+        WHERE f2.id=f.id
+        and f2.shopid=#{param.shopid,jdbcType=CHAR}
+        <if test="param.endDate!=null">
+            and f2.createdate &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+            and f2.createdate &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+        </if>
+        ),2
+        )) skufee
+        FROM t_erp_dispatch_oversea_form_entry e
+        LEFT JOIN t_erp_dispatch_oversea_form f ON  f.id=e.formid
+        LEFT JOIN t_erp_dispatch_oversea_trans trans ON trans.formid =f.id
+        LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+        LEFT JOIN t_erp_ship_transcompany tc ON tc.id=td.company
+        left join t_erp_warehouse w on w.id=f.from_warehouseid
+        LEFT JOIN t_erp_warehouse mp ON mp.id=f.to_warehouseid
+        LEFT JOIN t_erp_material m ON m.id=e.materialid
+        LEFT JOIN t_picture pp on pp.id=m.image
+        left join t_userinfo u on u.id=m.owner
+        left join t_userinfo u2 on u2.id=trans.operator
+        LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+        WHERE f.shopid=#{param.shopid,jdbcType=CHAR}
+        AND trans.transweight>0
+        <if test="param.endDate!=null">
+            and f.createdate &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+            and f.createdate &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+        </if>
+        <if test="param.warehouseid!=null">
+            and f.from_warehouseid= #{param.warehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.towarehouseid!=null">
+            and f.to_warehouseid= #{param.towarehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.search!=null">
+            and (m.sku like #{param.search,jdbcType=CHAR})
+        </if>
+        <if test="param.company!=null">
+            and trans.company= #{param.company,jdbcType=CHAR}
+        </if>
+        <if test="param.channel!=null">
+            and trans.channel= #{param.channel,jdbcType=CHAR}
+        </if>
+        <if test="param.number!=null">
+            and f.number= #{param.number,jdbcType=CHAR}
+        </if>
+        GROUP BY e.materialid) v
+    </select>
+
+
+    <select id="transFeeSharedWeek" resultType="java.util.Map" parameterType="java.util.Map">
+        select
+        sku,
+        qty,
+        name,
+        opttime,
+        location,
+        sku msku,
+        ownername,
+        opttime opttime2,
+        skufee,
+        round(skufee/qty,2) avgfee
+        from
+        (
+        SELECT  DATE_SUB(f.createdate,INTERVAL WEEKDAY(f.createdate) + 0 DAY) opttime,
+                max(m.sku) sku ,
+                sum(e.amount) qty,
+                max(IFNULL(pp.location,pp.url)) location,
+                max(u.name) ownername,
+                max(m.name) name,
+                sum(round(  (trans.singleprice*trans.transweight+IFNULL(trans.otherfee,0))*
+                (case when d.weight>(d.length*d.width*d.height/ifnull(td.drate,5000)) then d.weight*e.amount else (d.length*d.width*d.height/ifnull(td.drate,5000))*e.amount  end)
+                /
+                (
+                SELECT
+                sum(case when d2.weight>(d2.length*d2.width*d2.height/ifnull(trans2.drate,5000)) then d2.weight*e2.amount else (d2.length*d2.width*d2.height/ifnull(trans2.drate,5000))*e2.amount  end)
+                FROM t_erp_dispatch_oversea_form_entry e2
+                LEFT JOIN t_erp_dispatch_oversea_form f2 ON  f2.id=e2.formid
+                LEFT JOIN t_erp_material m2 ON m2.id=e2.materialid
+                LEFT JOIN t_dimensions d2 ON d2.id=m2.pkgDimensions
+                left join t_erp_dispatch_oversea_trans trd  on trd.formid=f2.id
+                left join t_erp_ship_transdetail trans2 on trd.channel=trans2.id and trans2.company=trd.company
+                WHERE f2.id=f.id
+                and f2.shopid=#{param.shopid,jdbcType=CHAR}
+                <if test="param.endDate!=null">
+                    and f2.createdate &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+                    and f2.createdate &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+                </if>
+                ),2
+                )) skufee
+        FROM t_erp_dispatch_oversea_form_entry e
+        LEFT JOIN t_erp_dispatch_oversea_form f ON  f.id=e.formid
+        LEFT JOIN t_erp_dispatch_oversea_trans trans ON trans.formid =f.id
+        LEFT JOIN t_erp_ship_transdetail td ON td.id=trans.channel AND td.company=trans.company
+        LEFT JOIN t_erp_ship_transcompany tc ON tc.id=td.company
+        left join t_erp_warehouse w on w.id=f.from_warehouseid
+        LEFT JOIN t_erp_warehouse mp ON mp.id=f.to_warehouseid
+        LEFT JOIN t_erp_material m ON m.id=e.materialid
+        LEFT JOIN t_picture pp on pp.id=m.image
+        left join t_userinfo u on u.id=m.owner
+        left join t_userinfo u2 on u2.id=trans.operator
+        LEFT JOIN t_dimensions d ON d.id=m.pkgDimensions
+        WHERE f.shopid=#{param.shopid,jdbcType=CHAR}
+        AND trans.transweight>0
+        <if test="param.endDate!=null">
+            and f.createdate &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
+            and f.createdate &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+        </if>
+        <if test="param.warehouseid!=null">
+            and f.from_warehouseid= #{param.warehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.towarehouseid!=null">
+            and f.to_warehouseid= #{param.towarehouseid,jdbcType=CHAR}
+        </if>
+        <if test="param.search!=null">
+            and (m.sku like #{param.search,jdbcType=CHAR})
+        </if>
+        <if test="param.company!=null">
+            and trans.company= #{param.company,jdbcType=CHAR}
+        </if>
+        <if test="param.channel!=null">
+            and trans.channel= #{param.channel,jdbcType=CHAR}
+        </if>
+        <if test="param.number!=null">
+            and f.number= #{param.number,jdbcType=CHAR}
+        </if>
+        GROUP BY e.materialid ,DATE_SUB(f.createdate,INTERVAL WEEKDAY(f.createdate) + 0 DAY)
+        ) v
+    </select>
+
+</mapper>

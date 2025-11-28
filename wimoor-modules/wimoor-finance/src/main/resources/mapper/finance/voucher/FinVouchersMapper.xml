@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.voucher.mapper.FinVouchersMapper">
+    
+    <resultMap type="com.wimoor.finance.voucher.domain.FinVouchers" id="FinVouchersResult">
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="voucherNo"    column="voucher_no"    />
+        <result property="voucherDate"    column="voucher_date"    />
+        <result property="attachmentCount"    column="attachment_count"    />
+        <result property="totalAmount"    column="total_amount"    />
+        <result property="voucherStatus"    column="voucher_status"    />
+        <result property="preparerBy"    column="preparer_by"    />
+        <result property="auditorBy"    column="auditor_by"    />
+        <result property="postTime"    column="post_time"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinVouchersVo">
+        select voucher_id, groupid, voucher_no, voucher_date, attachment_count, total_amount, voucher_status, preparer_by, auditor_by, post_time, created_time, updated_time from fin_vouchers
+    </sql>
+
+    <resultMap id="FinVoucherEntriesItemResult" type="com.wimoor.finance.voucher.domain.FinVouchers">
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="voucherNo"    column="voucher_no"    />
+        <result property="voucherType"    column="voucher_type"    />
+        <result property="voucherDate"    column="voucher_date"    />
+        <result property="attachmentCount"    column="attachment_count"    />
+        <result property="totalAmount"    column="total_amount"    />
+        <result property="voucherStatus"    column="voucher_status"    />
+        <result property="preparerBy"    column="preparer_by"    />
+        <result property="auditorBy"    column="auditor_by"    />
+        <result property="postTime"    column="post_time"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <!-- 一对多关系：一个凭证有多个分录 -->
+        <collection  property="entries"
+                     ofType="com.wimoor.finance.voucher.domain.FinVoucherEntries"
+                     column="{voucherId=voucher_id,groupid=groupid}"
+                     select="selectFinVoucherEntriesList"
+        />
+        <collection property="files"
+                     ofType="com.wimoor.finance.voucher.domain.FinVourchesFile"
+                     column="{voucherId=voucher_id,groupid=groupid}"
+                     select="selectFinVourchesFileList"
+        />
+    </resultMap>
+    <resultMap type="com.wimoor.finance.voucher.domain.FinVoucherEntries" id="FinVoucherEntriesResult">
+        <result property="entryId"    column="entry_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="entryNo"    column="entry_no"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="debitAmount"    column="debit_amount"    />
+        <result property="creditAmount"    column="credit_amount"    />
+        <result property="subjectName"    column="subject_name"    />
+        <result property="summary"    column="summary"    />
+        <result property="auxiliaryType"    column="auxiliary_type"    />
+        <result property="auxiliaryId"    column="auxiliary_id"    />
+        <result property="createdTime"    column="created_time"    />
+    </resultMap>
+    <resultMap id="FinVourchesFileResult" type="com.wimoor.finance.voucher.domain.FinVourchesFile">
+        <result property="id"    column="id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="voucherId"    column="voucher_id"    />
+        <result property="fileName"    column="file_name"    />
+        <result property="fileType"    column="file_type"    />
+        <result property="filePath"    column="file_path"    />
+        <result property="opttime"    column="opttime"    />
+    </resultMap>
+    <select id="selectFinVourchesFileList" parameterType="com.wimoor.finance.voucher.domain.FinVourchesFile" resultMap="FinVourchesFileResult">
+        select f.id,
+               f.groupid,
+               f.voucher_id,
+               f.file_name,
+               f.file_type,
+               f.file_path,
+               f.opttime
+        from fin_vourches_file f
+        <where>
+            <if test="groupid != null "> and f.groupid = #{groupid}</if>
+            <if test="voucherId != null "> and f.voucher_id = #{voucherId}</if>
+        </where>
+    </select>
+    <select id="selectFinVoucherEntriesList" parameterType="com.wimoor.finance.voucher.domain.FinVoucherEntries" resultMap="FinVoucherEntriesResult">
+        select e.entry_id,
+               e.groupid,
+               e.voucher_id,
+               e.entry_no,
+               e.subject_id,
+               e.debit_amount,
+               e.credit_amount,
+               e.summary,
+               e.auxiliary_type,
+               e.auxiliary_id,
+               e.created_time,
+               s.subject_name
+        from fin_voucher_entries e
+        left join fin_accounting_subjects s on e.subject_id = s.subject_id and e.groupid = s.groupid
+        <where>
+            <if test="groupid != null "> and e.groupid = #{groupid}</if>
+            <if test="voucherId != null "> and e.voucher_id = #{voucherId}</if>
+        </where>
+    </select>
+    <select id="selectFinVouchersList" parameterType="com.wimoor.finance.voucher.domain.dto.FinVoucherDTO" resultMap="FinVoucherEntriesItemResult">
+        SELECT
+        v.voucher_id,
+        v.groupid,
+        v.voucher_type,
+        v.voucher_no,
+        v.voucher_date,
+        v.attachment_count,
+        v.total_amount,
+        v.voucher_status,
+        v.preparer_by,
+        v.auditor_by,
+        v.post_time,
+        v.created_time,
+        v.updated_time
+        FROM fin_vouchers v
+        <where>
+             and v.groupid = #{groupid}
+            <if test="startDate != null "> and v.voucher_date &gt;= #{startDate}</if>
+            <if test="endDate != null "> and v.voucher_date &lt;= #{endDate}</if>
+            <if test="voucherId != null "> and v.voucher_id = #{voucherId}</if>
+            <if test="voucherNo != null "> and v.voucher_no = #{voucherNo}</if>
+            <if test="entryNo != null "> and o.entry_no = #{entryNo}</if>
+            <if test="subjectId != null  and subjectId != ''">
+                and exists(
+                select 1 from  fin_voucher_entries e
+                where e.voucher_id = v.voucher_id
+                and e.groupid = v.groupid
+                and e.subject_id = #{subjectId}
+                )
+            </if>
+            <if test="summary != null  and summary != ''">
+                and exists(
+                select 1 from  fin_voucher_entries e
+                where e.voucher_id = v.voucher_id
+                and e.groupid = v.groupid
+                and e.summary = #{summary}
+                )
+            </if>
+            <if test="auditorBy != null "> and v.auditor_by = #{auditorBy}</if>
+            <if test="preparerBy != null "> and v.preparer_by = #{preparerBy}</if>
+            <if test="createdTime != null "> and v.created_time = #{createdTime}</if>
+        </where>
+    </select>
+
+    
+    <select id="selectFinVouchersByVoucherId" parameterType="Long" resultMap="FinVouchersResult">
+        <include refid="selectFinVouchersVo"/>
+        where voucher_id = #{voucherId}
+    </select>
+
+    <select id="selectNextVoucherNo" parameterType="com.wimoor.finance.voucher.domain.FinVouchers" resultType="String">
+        SELECT  LPAD(COALESCE(MAX(CAST(SUBSTRING(voucher_no, 1) AS UNSIGNED)), 0) + 1, 3, '0')
+                    AS next_voucher_no
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+            AND YEAR(voucher_date) = YEAR(#{voucherDate})
+          AND MONTH(voucher_date) = MONTH(#{voucherDate})
+          AND voucher_type=#{voucherType}
+    </select>
+
+    <insert id="insertFinVouchers" parameterType="com.wimoor.finance.voucher.domain.FinVouchers" useGeneratedKeys="true" keyProperty="voucherId">
+        insert into fin_vouchers
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="voucherType != null">voucher_type,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="voucherNo != null and voucherNo != ''">voucher_no,</if>
+            <if test="voucherDate != null">voucher_date,</if>
+            <if test="attachmentCount != null">attachment_count,</if>
+            <if test="totalAmount != null">total_amount,</if>
+            <if test="voucherStatus != null">voucher_status,</if>
+            <if test="preparerBy != null">preparer_by,</if>
+            <if test="auditorBy != null">auditor_by,</if>
+            <if test="postTime != null">post_time,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="voucherType != null">#{voucherType},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="voucherNo != null and voucherNo != ''">#{voucherNo},</if>
+            <if test="voucherDate != null">#{voucherDate},</if>
+            <if test="attachmentCount != null">#{attachmentCount},</if>
+            <if test="totalAmount != null">#{totalAmount},</if>
+            <if test="voucherStatus != null">#{voucherStatus},</if>
+            <if test="preparerBy != null">#{preparerBy},</if>
+            <if test="auditorBy != null">#{auditorBy},</if>
+            <if test="postTime != null">#{postTime},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinVouchers" parameterType="com.wimoor.finance.voucher.domain.FinVouchers">
+        update fin_vouchers
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="voucherType != null">voucher_type = #{voucherType},</if>
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="voucherNo != null and voucherNo != ''">voucher_no = #{voucherNo},</if>
+            <if test="voucherDate != null">voucher_date = #{voucherDate},</if>
+            <if test="attachmentCount != null">attachment_count = #{attachmentCount},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="voucherStatus != null">voucher_status = #{voucherStatus},</if>
+            <if test="preparerBy != null">preparer_by = #{preparerBy},</if>
+            <if test="auditorBy != null">auditor_by = #{auditorBy},</if>
+            <if test="postTime != null">post_time = #{postTime},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where voucher_id = #{voucherId}
+    </update>
+
+    <delete id="deleteFinVouchersByVoucherId" parameterType="Long">
+        delete from fin_vouchers where voucher_id = #{voucherId}
+    </delete>
+
+    <delete id="deleteFinVouchersByVoucherIds" parameterType="String">
+        delete from fin_vouchers where voucher_id in 
+        <foreach item="voucherId" collection="array" open="(" separator="," close=")">
+            #{voucherId}
+        </foreach>
+    </delete>
+
+    <resultMap id="VoucherWithEntriesMap" type="com.wimoor.finance.voucher.domain.FinVouchers">
+        <id column="voucher_id" property="voucherId"/>
+        <result column="groupid" property="groupid"/>
+        <result column="voucher_type" property="voucherType"/>
+        <result column="voucher_no" property="voucherNo"/>
+        <result column="voucher_date" property="voucherDate"/>
+        <result column="voucher_status" property="voucherStatus"/>
+        <result column="preparer_by" property="preparerBy"/>
+        <result column="auditor_by" property="auditorBy"/>
+        <result column="total_amount" property="totalAmount"/>
+        <collection property="entries" ofType="com.wimoor.finance.voucher.domain.FinVoucherEntries">
+            <id property="entryId"    column="entry_id"    />
+            <result column="groupid" property="groupid"/>
+            <result column="voucher_id" property="voucherId"/>
+            <result column="entry_no" property="entryNo"/>
+            <result column="subject_id" property="subjectId"/>
+            <result column="debit_amount" property="debitAmount"/>
+            <result column="credit_amount" property="creditAmount"/>
+            <result column="summary" property="summary"/>
+            <result column="auxiliary_type" property="auxiliaryType"/>
+            <result column="auxiliary_id" property="auxiliaryId"/>
+        </collection>
+
+    </resultMap>
+
+    <select id="selectVoucherWithEntries" resultMap="VoucherWithEntriesMap">
+        SELECT
+            v.*,
+            e.entry_id, e.entry_no, e.subject_id, e.debit_amount, e.credit_amount,
+            e.summary, e.auxiliary_type, e.auxiliary_id
+        FROM fin_vouchers v
+                 LEFT JOIN fin_voucher_entries e ON v.voucher_id = e.voucher_id
+        WHERE v.voucher_id = #{voucherId}
+        ORDER BY e.entry_no
+    </select>
+
+    <select id="selectVouchersForPosting" resultType="com.wimoor.finance.voucher.domain.FinVouchers">
+        SELECT *
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+          AND voucher_status = #{voucherStatus}
+        ORDER BY voucher_date, voucher_no
+    </select>
+    <select id="selectVouchersModifiedAfterClosing" resultType="com.wimoor.finance.voucher.domain.FinVouchers">
+        SELECT *
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+          AND period = #{period}
+          AND updated_time > #{closeTime}
+    </select>
+    <select id="countVouchersByPeriod" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+          AND period = #{period}
+    </select>
+    <select id="countUnpostedVouchers" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+          AND period = #{period}
+          AND voucher_status in (0,1,2)
+    </select>
+    <select id="selectVouchersByPeriod" resultType="com.wimoor.finance.voucher.domain.FinVouchers">
+        SELECT *
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+          AND period = #{period}
+    </select>
+    <select id="selectVoucherSummaryByPeriod" resultType="java.util.Map">
+        SELECT
+            period,
+            COUNT(*) AS totalVouchers,
+            SUM(CASE WHEN voucher_status = 2 THEN 1 ELSE 0 END) AS postedVouchers,
+            SUM(CASE WHEN voucher_status IN (0,1,2) THEN 1 ELSE 0 END) AS unpostedVouchers,
+            SUM(total_amount) AS totalAmount
+        FROM fin_vouchers
+        WHERE groupid = #{groupid}
+          AND period = #{period}
+    </select>
+    <select id="countProfitTransferVouchers" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT v.voucher_id)
+        FROM fin_vouchers v
+                 INNER JOIN fin_voucher_entries e ON v.voucher_id = e.voucher_id
+        WHERE v.groupid = #{groupid}
+          AND DATE_FORMAT(v.voucher_date, '%Y%m') = #{period}
+          AND v.voucher_status IN (2, 3) -- 已审核、已过账
+          AND e.subject_id IN (
+            SELECT subject_id FROM fin_accounting_subjects s
+            WHERE groupid = v.groupid
+              AND (s.subject_code = '3103' OR s.subject_code LIKE '6%' OR s.subject_code LIKE '5%') -- 主要损益科目
+              AND status = 1
+        )
+          AND (e.summary LIKE '%结转%' OR e.summary LIKE '%转入%' OR e.summary LIKE '%转出%')
+    </select>
+    <select id="selectProfitTransferVouchers" resultMap="VoucherWithEntriesMap">
+        SELECT DISTINCT v.*, e.entry_id, e.entry_no, e.subject_id, e.debit_amount, e.credit_amount,
+                        e.summary, e.auxiliary_type, e.auxiliary_id
+        FROM fin_vouchers v
+                 INNER JOIN fin_voucher_entries e ON v.voucher_id = e.voucher_id
+        WHERE v.groupid = #{groupid}
+          AND DATE_FORMAT(v.voucher_date, '%Y%m') = #{period}
+          AND v.voucher_status IN (2, 3) -- 已审核、已过账
+          AND e.subject_id IN (
+            SELECT subject_id FROM fin_accounting_subjects
+            WHERE groupid = v.groupid
+              AND (subject_code = '3103' OR subject_code LIKE '6%' OR subject_code LIKE '5%') -- 主要损益科目
+              AND status = 1
+        )
+          AND (e.summary LIKE '%结转%' OR e.summary LIKE '%转入%' OR e.summary LIKE '%转出%')
+        ORDER BY v.voucher_date, v.voucher_no
+    </select>
+</mapper>
+

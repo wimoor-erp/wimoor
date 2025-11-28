@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.adv.sd.dao.AmzAdvReportAdgroupsSDAttributedAllMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.adv.sd.pojo.AmzAdvReportAdgroupsSDAttributedAll">
+            <id property="adgroupid" column="adGroupId" />
+            <id property="bydate" column="bydate" />
+            <result property="addtocart" column="addToCart" />
+            <result property="addtocartclicks" column="addToCartClicks" />
+            <result property="addtocartrate" column="addToCartRate" />
+            <result property="addtocartviews" column="addToCartViews" />
+            <result property="addtolist" column="addToList" />
+            <result property="addtolistfromclicks" column="addToListFromClicks" />
+            <result property="addtolistfromviews" column="addToListFromViews" />
+            <result property="qualifiedborrows" column="qualifiedBorrows" />
+            <result property="qualifiedborrowsfromclicks" column="qualifiedBorrowsFromClicks" />
+            <result property="qualifiedborrowsfromviews" column="qualifiedBorrowsFromViews" />
+            <result property="royaltyqualifiedborrows" column="royaltyQualifiedBorrows" />
+            <result property="royaltyqualifiedborrowsfromclicks" column="royaltyQualifiedBorrowsFromClicks" />
+            <result property="royaltyqualifiedborrowsfromviews" column="royaltyQualifiedBorrowsFromViews" />
+            <result property="bidoptimization" column="bidOptimization" />
+            <result property="brandedsearches" column="brandedSearches" />
+            <result property="brandedsearchesclicks" column="brandedSearchesClicks" />
+            <result property="brandedsearchesviews" column="brandedSearchesViews" />
+            <result property="brandedsearchrate" column="brandedSearchRate" />
+            <result property="campaignbudgetcurrencycode" column="campaignBudgetCurrencyCode" />
+            <result property="detailpageviews" column="detailPageViews" />
+            <result property="detailpageviewsclicks" column="detailPageViewsClicks" />
+            <result property="ecpaddtocart" column="eCPAddToCart" />
+            <result property="ecpbrandsearch" column="eCPBrandSearch" />
+            <result property="impressionsviews" column="impressionsViews" />
+            <result property="newtobrandpurchases" column="newToBrandPurchases" />
+            <result property="newtobrandpurchasesclicks" column="newToBrandPurchasesClicks" />
+            <result property="newtobrandsales" column="newToBrandSales" />
+            <result property="newtobrandsalesclicks" column="newToBrandSalesClicks" />
+            <result property="newtobrandunitssold" column="newToBrandUnitsSold" />
+            <result property="newtobrandunitssoldclicks" column="newToBrandUnitsSoldClicks" />
+            <result property="purchases" column="purchases" />
+            <result property="purchasesclicks" column="purchasesClicks" />
+            <result property="purchasespromotedclicks" column="purchasesPromotedClicks" />
+            <result property="sales" column="sales" />
+            <result property="salesclicks" column="salesClicks" />
+            <result property="salespromotedclicks" column="salesPromotedClicks" />
+            <result property="unitssold" column="unitsSold" />
+            <result property="unitssoldclicks" column="unitsSoldClicks" />
+            <result property="videocompleteviews" column="videoCompleteViews" />
+            <result property="videofirstquartileviews" column="videoFirstQuartileViews" />
+            <result property="videomidpointviews" column="videoMidpointViews" />
+            <result property="videothirdquartileviews" column="videoThirdQuartileViews" />
+            <result property="videounmutes" column="videoUnmutes" />
+            <result property="viewabilityrate" column="viewabilityRate" />
+            <result property="viewclickthroughrate" column="viewClickThroughRate" />
+            <result property="opttime" column="opttime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        adGroupId,bydate,addToCart,addToCartClicks,addToCartRate,addToCartViews,
+        addToList,addToListFromClicks,addToListFromViews,qualifiedBorrows,qualifiedBorrowsFromClicks,
+        qualifiedBorrowsFromViews,royaltyQualifiedBorrows,royaltyQualifiedBorrowsFromClicks,royaltyQualifiedBorrowsFromViews,bidOptimization,
+        brandedSearches,brandedSearchesClicks,brandedSearchesViews,brandedSearchRate,campaignBudgetCurrencyCode,
+        detailPageViews,detailPageViewsClicks,eCPAddToCart,eCPBrandSearch,impressionsViews,
+        newToBrandPurchases,newToBrandPurchasesClicks,newToBrandSales,newToBrandSalesClicks,newToBrandUnitsSold,
+        newToBrandUnitsSoldClicks,purchases,purchasesClicks,purchasesPromotedClicks,sales,
+        salesClicks,salesPromotedClicks,unitsSold,unitsSoldClicks,videoCompleteViews,
+        videoFirstQuartileViews,videoMidpointViews,videoThirdQuartileViews,videoUnmutes,viewabilityRate,
+        viewClickThroughRate,opttime
+    </sql>
+</mapper>

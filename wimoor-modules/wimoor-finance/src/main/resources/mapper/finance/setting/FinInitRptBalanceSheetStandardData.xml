@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinInitRptBalanceSheetStandardData">
+    <sql id="initSql">
+                -- 初始化资产负债表模板
+                INSERT ignore INTO fin_report_templates (groupid, template_code, template_name, template_type, description, created_by)
+        VALUES (#{groupId}, 'BALANCE_SHEET_STANDARD', '资产负债报告', 'BALANCE_SHEET', '新会计准则标准资产负债表模板', 'system');
+
+                -- 获取模板ID
+                SET @template_id = LAST_INSERT_ID();
+
+            -- 初始化资产负债表项目
+        INSERT ignore INTO fin_report_items (groupid, template_id, item_code, item_name, parent_code, item_level, line_number, item_type, calculation_rule, formula_type, sort_order, is_leaf) VALUES
+                                    -- 资产部分
+                                    (#{groupId}, @template_id, 'ASSET', '资产', NULL, 1, NULL, 'ASSET', NULL, 'DIRECT', 10, 0),
+                (#{groupId}, @template_id, 'ASSET_CURRENT', '流动资产', 'ASSET', 2, NULL, 'ASSET', 'CUSTOM:ASSET_CURRENT', 'CUSTOM', 20, 0),
+                (#{groupId}, @template_id, 'ASSET_CASH', '货币资金', 'ASSET_CURRENT', 3, 1, 'ASSET', '1001+1002+1012', 'FORMULA', 30, 1),
+                (#{groupId}, @template_id, 'ASSET_FINANCIAL', '交易性金融资产', 'ASSET_CURRENT', 3, 2, 'ASSET', '1101', 'DIRECT', 40, 1),
+                (#{groupId}, @template_id, 'ASSET_BILLS', '应收票据', 'ASSET_CURRENT', 3, 3, 'ASSET', '1121', 'DIRECT', 50, 1),
+                (#{groupId}, @template_id, 'ASSET_RECEIVABLE', '应收账款', 'ASSET_CURRENT', 3, 4, 'ASSET', '1122-1231', 'FORMULA', 60, 1),
+                (#{groupId}, @template_id, 'ASSET_PREPAY', '预付款项', 'ASSET_CURRENT', 3, 5, 'ASSET', '1123', 'DIRECT', 70, 1),
+                (#{groupId}, @template_id, 'ASSET_INVENTORY', '存货', 'ASSET_CURRENT', 3, 6, 'ASSET', '1401+1403+1405+1406+1408+1411-1471', 'FORMULA', 80, 1),
+                (#{groupId}, @template_id, 'ASSET_CURRENT_OTHER', '其他流动资产', 'ASSET_CURRENT', 3, 7, 'ASSET', 'CUSTOM:ASSET_CURRENT_OTHER', 'CUSTOM', 90, 1),
+                (#{groupId}, @template_id, 'ASSET_CURRENT_TOTAL', '流动资产合计', 'ASSET_CURRENT', 3, 8, 'ASSET', 'SUM(CHILDREN)', 'CALCULATED', 100, 1),
+
+                (#{groupId}, @template_id, 'ASSET_NON_CURRENT', '非流动资产', 'ASSET', 2, NULL, 'ASSET', 'CUSTOM:ASSET_NON_CURRENT', 'CUSTOM', 110, 0),
+                (#{groupId}, @template_id, 'ASSET_LONG_INVEST', '长期股权投资', 'ASSET_NON_CURRENT', 3, 9, 'ASSET', '1511', 'DIRECT', 120, 1),
+                (#{groupId}, @template_id, 'ASSET_FIXED', '固定资产', 'ASSET_NON_CURRENT', 3, 10, 'ASSET', '1601-1602-1603', 'FORMULA', 130, 1),
+                (#{groupId}, @template_id, 'ASSET_CONSTRUCTION', '在建工程', 'ASSET_NON_CURRENT', 3, 11, 'ASSET', '1604', 'DIRECT', 140, 1),
+                (#{groupId}, @template_id, 'ASSET_INTANGIBLE', '无形资产', 'ASSET_NON_CURRENT', 3, 12, 'ASSET', '1701-1702-1703', 'FORMULA', 150, 1),
+                (#{groupId}, @template_id, 'ASSET_DEFERRED', '长期待摊费用', 'ASSET_NON_CURRENT', 3, 13, 'ASSET', '1801', 'DIRECT', 160, 1),
+                (#{groupId}, @template_id, 'ASSET_NON_CURRENT_OTHER', '其他非流动资产', 'ASSET_NON_CURRENT', 3, 14, 'ASSET', 'CUSTOM:ASSET_NON_CURRENT_OTHER', 'CUSTOM', 170, 1),
+                (#{groupId}, @template_id, 'ASSET_NON_CURRENT_TOTAL', '非流动资产合计', 'ASSET_NON_CURRENT', 3, 15, 'ASSET', 'SUM(CHILDREN)', 'CALCULATED', 180, 1),
+
+                (#{groupId}, @template_id, 'ASSET_TOTAL', '资产总计', 'ASSET', 2, 16, 'ASSET', 'ASSET_CURRENT_TOTAL+ASSET_NON_CURRENT_TOTAL', 'FORMULA', 190, 1),
+
+                -- 负债和所有者权益部分
+                (#{groupId}, @template_id, 'LIABILITY_EQUITY', '负债和所有者权益', NULL, 1, NULL, 'LIABILITY', NULL, 'DIRECT', 200, 0),
+                (#{groupId}, @template_id, 'LIABILITY', '负债', 'LIABILITY_EQUITY', 2, NULL, 'LIABILITY', NULL, 'DIRECT', 210, 0),
+                (#{groupId}, @template_id, 'LIABILITY_CURRENT', '流动负债', 'LIABILITY', 3, NULL, 'LIABILITY', 'CUSTOM:LIABILITY_CURRENT', 'CUSTOM', 220, 0),
+                (#{groupId}, @template_id, 'LIABILITY_SHORT_LOAN', '短期借款', 'LIABILITY_CURRENT', 4, 17, 'LIABILITY', '2001', 'DIRECT', 230, 1),
+                (#{groupId}, @template_id, 'LIABILITY_BILLS', '应付票据', 'LIABILITY_CURRENT', 4, 18, 'LIABILITY', '2201', 'DIRECT', 240, 1),
+                (#{groupId}, @template_id, 'LIABILITY_PAYABLE', '应付账款', 'LIABILITY_CURRENT', 4, 19, 'LIABILITY', '2202', 'DIRECT', 250, 1),
+                (#{groupId}, @template_id, 'LIABILITY_ADVANCE', '预收款项', 'LIABILITY_CURRENT', 4, 20, 'LIABILITY', '2203', 'DIRECT', 260, 1),
+                (#{groupId}, @template_id, 'LIABILITY_SALARY', '应付职工薪酬', 'LIABILITY_CURRENT', 4, 21, 'LIABILITY', '2211', 'DIRECT', 270, 1),
+                (#{groupId}, @template_id, 'LIABILITY_TAX', '应交税费', 'LIABILITY_CURRENT', 4, 22, 'LIABILITY', '2221', 'DIRECT', 280, 1),
+                (#{groupId}, @template_id, 'LIABILITY_CURRENT_OTHER', '其他流动负债', 'LIABILITY_CURRENT', 4, 23, 'LIABILITY', 'CUSTOM:LIABILITY_CURRENT_OTHER', 'CUSTOM', 290, 1),
+                (#{groupId}, @template_id, 'LIABILITY_CURRENT_TOTAL', '流动负债合计', 'LIABILITY_CURRENT', 4, 24, 'LIABILITY', 'SUM(CHILDREN)', 'CALCULATED', 300, 1),
+
+                (#{groupId}, @template_id, 'LIABILITY_NON_CURRENT', '非流动负债', 'LIABILITY', 3, NULL, 'LIABILITY', 'CUSTOM:LIABILITY_NON_CURRENT', 'CUSTOM', 310, 0),
+                (#{groupId}, @template_id, 'LIABILITY_LONG_LOAN', '长期借款', 'LIABILITY_NON_CURRENT', 4, 25, 'LIABILITY', '2501', 'DIRECT', 320, 1),
+                (#{groupId}, @template_id, 'LIABILITY_BONDS', '应付债券', 'LIABILITY_NON_CURRENT', 4, 26, 'LIABILITY', '2502', 'DIRECT', 330, 1),
+                (#{groupId}, @template_id, 'LIABILITY_NON_CURRENT_OTHER', '其他非流动负债', 'LIABILITY_NON_CURRENT', 4, 27, 'LIABILITY', 'CUSTOM:LIABILITY_NON_CURRENT_OTHER', 'CUSTOM', 340, 1),
+                (#{groupId}, @template_id, 'LIABILITY_NON_CURRENT_TOTAL', '非流动负债合计', 'LIABILITY_NON_CURRENT', 4, 28, 'LIABILITY', 'SUM(CHILDREN)', 'CALCULATED', 350, 1),
+
+                (#{groupId}, @template_id, 'LIABILITY_TOTAL', '负债合计', 'LIABILITY', 3, 29, 'LIABILITY', 'LIABILITY_CURRENT_TOTAL+LIABILITY_NON_CURRENT_TOTAL', 'FORMULA', 360, 1),
+
+                (#{groupId}, @template_id, 'EQUITY', '所有者权益', 'LIABILITY_EQUITY', 2, NULL, 'EQUITY', NULL, 'DIRECT', 370, 0),
+                (#{groupId}, @template_id, 'EQUITY_CAPITAL', '实收资本', 'EQUITY', 3, 30, 'EQUITY', '3001', 'DIRECT', 380, 1),
+                (#{groupId}, @template_id, 'EQUITY_RESERVE', '资本公积', 'EQUITY', 3, 31, 'EQUITY', '3002', 'DIRECT', 390, 1),
+                (#{groupId}, @template_id, 'EQUITY_SURPLUS', '盈余公积', 'EQUITY', 3, 32, 'EQUITY', '3101', 'DIRECT', 400, 1),
+                (#{groupId}, @template_id, 'EQUITY_RETAINED', '未分配利润', 'EQUITY', 3, 33, 'EQUITY', '3104', 'DIRECT', 410, 1),
+                (#{groupId}, @template_id, 'EQUITY_OTHER', '其他所有者权益', 'EQUITY', 3, 34, 'EQUITY', 'CUSTOM:EQUITY_OTHER', 'CUSTOM', 420, 1),
+                (#{groupId}, @template_id, 'EQUITY_TOTAL', '所有者权益合计', 'EQUITY', 3, 35, 'EQUITY', 'SUM(CHILDREN)', 'CALCULATED', 430, 1),
+
+                (#{groupId}, @template_id, 'LIABILITY_EQUITY_TOTAL', '负债和所有者权益总计', 'LIABILITY_EQUITY', 2, 36, 'LIABILITY', 'LIABILITY_TOTAL+EQUITY_TOTAL', 'FORMULA', 440, 1);
+        </sql>
+</mapper>

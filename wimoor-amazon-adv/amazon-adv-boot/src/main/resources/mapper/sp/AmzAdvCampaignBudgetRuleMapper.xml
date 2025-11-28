@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.adv.sp.dao.AmzAdvCampaignBudgetRuleMapper">
+	  
+	  
+	  
+	   <select id="listRules" resultType="java.util.Map" parameterType="java.util.List">
+        SELECT
+           r.campaignid,GROUP_CONCAT(s.name) rulename
+        FROM t_amz_adv_campaign_budget_rule r
+        left join t_amz_adv_budget_rules s on s.rule_id=r.rule_id
+        where r.campaignid  IN
+        <foreach collection='mylist' item='myitem' open='(' separator=',' close=')'>
+            #{myitem.id,jdbcType=CHAR}
+        </foreach>
+        group by r.campaignid 
+        
+    </select>
+	  
+	  
+</mapper>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeRuleAuditMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeRuleAudit" id="FinCodeRuleAuditResult">
+        <result property="id"    column="id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="ruleCode"    column="rule_code"    />
+        <result property="operationType"    column="operation_type"    />
+        <result property="operationDetail"    column="operation_detail"    />
+        <result property="oldValue"    column="old_value"    />
+        <result property="newValue"    column="new_value"    />
+        <result property="operationTime"    column="operation_time"    />
+        <result property="operator"    column="operator"    />
+        <result property="ipAddress"    column="ip_address"    />
+    </resultMap>
+
+    <sql id="selectFinCodeRuleAuditVo">
+        select id, groupid, rule_code, operation_type, operation_detail, old_value, new_value, operation_time, operator, ip_address from fin_code_rule_audit
+    </sql>
+
+    <select id="selectFinCodeRuleAuditList" parameterType="com.wimoor.finance.code.domain.FinCodeRuleAudit" resultMap="FinCodeRuleAuditResult">
+        <include refid="selectFinCodeRuleAuditVo"/>
+        <where>  
+            <if test="tenantId != null "> and tenant_id = #{tenantId}</if>
+            <if test="ruleCode != null  and ruleCode != ''"> and rule_code = #{ruleCode}</if>
+            <if test="operationType != null  and operationType != ''"> and operation_type = #{operationType}</if>
+            <if test="operationDetail != null  and operationDetail != ''"> and operation_detail = #{operationDetail}</if>
+            <if test="oldValue != null  and oldValue != ''"> and old_value = #{oldValue}</if>
+            <if test="newValue != null  and newValue != ''"> and new_value = #{newValue}</if>
+            <if test="operationTime != null "> and operation_time = #{operationTime}</if>
+            <if test="operator != null  and operator != ''"> and operator = #{operator}</if>
+            <if test="ipAddress != null  and ipAddress != ''"> and ip_address = #{ipAddress}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeRuleAuditById" parameterType="Long" resultMap="FinCodeRuleAuditResult">
+        <include refid="selectFinCodeRuleAuditVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeRuleAudit" parameterType="com.wimoor.finance.code.domain.FinCodeRuleAudit" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_rule_audit
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code,</if>
+            <if test="operationType != null and operationType != ''">operation_type,</if>
+            <if test="operationDetail != null">operation_detail,</if>
+            <if test="oldValue != null">old_value,</if>
+            <if test="newValue != null">new_value,</if>
+            <if test="operationTime != null">operation_time,</if>
+            <if test="operator != null and operator != ''">operator,</if>
+            <if test="ipAddress != null">ip_address,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">#{ruleCode},</if>
+            <if test="operationType != null and operationType != ''">#{operationType},</if>
+            <if test="operationDetail != null">#{operationDetail},</if>
+            <if test="oldValue != null">#{oldValue},</if>
+            <if test="newValue != null">#{newValue},</if>
+            <if test="operationTime != null">#{operationTime},</if>
+            <if test="operator != null and operator != ''">#{operator},</if>
+            <if test="ipAddress != null">#{ipAddress},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeRuleAudit" parameterType="com.wimoor.finance.code.domain.FinCodeRuleAudit">
+        update fin_code_rule_audit
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code = #{ruleCode},</if>
+            <if test="operationType != null and operationType != ''">operation_type = #{operationType},</if>
+            <if test="operationDetail != null">operation_detail = #{operationDetail},</if>
+            <if test="oldValue != null">old_value = #{oldValue},</if>
+            <if test="newValue != null">new_value = #{newValue},</if>
+            <if test="operationTime != null">operation_time = #{operationTime},</if>
+            <if test="operator != null and operator != ''">operator = #{operator},</if>
+            <if test="ipAddress != null">ip_address = #{ipAddress},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeRuleAuditById" parameterType="Long">
+        delete from fin_code_rule_audit where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeRuleAuditByIds" parameterType="String">
+        delete from fin_code_rule_audit where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.stock.mapper.OutWarehouseFormEntryMapper" >
+  <resultMap id="BaseResultMap" type="com.wimoor.erp.stock.pojo.entity.OutWarehouseFormEntry" >
+    <id column="id" property="id" jdbcType="CHAR" />
+    <result column="formid" property="formid" jdbcType="CHAR" />
+    <result column="materialid" property="materialid" jdbcType="CHAR" />
+    <result column="amount" property="amount" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, formid, materialid, warehouseid, amount
+  </sql>
+  
+  <select id="selectByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
+    select m.sku sku, a.*
+    from t_erp_outwh_form_entry a 
+    left join t_erp_material m on a.materialid = m.id
+    where formid = #{formid,jdbcType=CHAR}
+  </select>
+  
+   <select id="findFormDetailByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
+    select m.sku sku,m.name,c.name supplier,IFNULL(p.location,p.url) image,i.fulfillable fulfillable, a.* 
+    from t_erp_outwh_form_entry a 
+    left join t_erp_outwh_form fm on fm.id=a.formid
+    left join t_erp_material m on a.materialid = m.id 
+    left join t_erp_customer c on c.id=m.supplier
+	left join t_picture p on m.image=p.id
+	left join ( select shopid,warehouseid,materialid , 
+			      sum( case when  status='inbound' then quantity else 0 end ) inbound,
+			      sum( case when  status='outbound' then quantity else 0 end ) outbound,
+			      sum( case when  status='fulfillable' then quantity else 0 end ) fulfillable
+					 from t_erp_inventory group by shopid,warehouseid,materialid
+					) i  on i.materialid=m.id  and i.warehouseid=fm.warehouseid
+		  and i.shopid=fm.shopid
+	    where a.formid = #{formid,jdbcType=CHAR}
+  </select>
+  
+  <delete id="deleteByFormid" parameterType="java.lang.String">
+  	delete from t_erp_outwh_form_entry where formid = #{formid,jdbcType=CHAR}
+  </delete>
+  <select id="findFormEntryByFormid" resultType="java.util.Map" parameterType="java.lang.String">
+  		select t.*,m.sku sku from t_erp_outwh_form_entry t
+  		left join t_erp_material m on m.id=t.materialid
+  		where t.formid=#{formid,jdbcType=CHAR}
+  </select>
+    <select id="findLast" resultType="java.util.Map" parameterType="java.lang.String">
+  		 SELECT 
+		  SUM(case when f.createdate>= adddate(now(), INTERVAL -7 DAY) then e.amount ELSE 0 END) LAST7,
+		  SUM(e.amount) LAST30
+		 from t_erp_outwh_form_entry e
+		LEFT JOIN t_erp_outwh_form f ON f.id=e.formid
+		WHERE e.materialid= #{materialid,jdbcType=CHAR}
+		AND f.warehouseid= #{warehouseid,jdbcType=CHAR}
+		and f.shopid=#{shopid,jdbcType=CHAR}
+		AND f.createdate>=  adddate(now(), INTERVAL -30 day)
+  </select>
+ 
+<!--   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_erp_inwh_form_entry
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_erp_inwh_form_entry
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.wimoor.erp.pojo.entity.InWarehouseFormEntry" >
+    insert into t_erp_inwh_form_entry (id, formid, materialid, 
+      warehouseid, amount)
+    values (#{id,jdbcType=CHAR}, #{formid,jdbcType=CHAR}, #{materialid,jdbcType=CHAR}, 
+      #{warehouseid,jdbcType=CHAR}, #{amount,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wimoor.erp.pojo.entity.InWarehouseFormEntry" >
+    insert into t_erp_inwh_form_entry
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="formid != null" >
+        formid,
+      </if>
+      <if test="materialid != null" >
+        materialid,
+      </if>
+      <if test="warehouseid != null" >
+        warehouseid,
+      </if>
+      <if test="amount != null" >
+        amount,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="formid != null" >
+        #{formid,jdbcType=CHAR},
+      </if>
+      <if test="materialid != null" >
+        #{materialid,jdbcType=CHAR},
+      </if>
+      <if test="warehouseid != null" >
+        #{warehouseid,jdbcType=CHAR},
+      </if>
+      <if test="amount != null" >
+        #{amount,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wimoor.erp.pojo.entity.InWarehouseFormEntry" >
+    update t_erp_inwh_form_entry
+    <set >
+      <if test="formid != null" >
+        formid = #{formid,jdbcType=CHAR},
+      </if>
+      <if test="materialid != null" >
+        materialid = #{materialid,jdbcType=CHAR},
+      </if>
+      <if test="warehouseid != null" >
+        warehouseid = #{warehouseid,jdbcType=CHAR},
+      </if>
+      <if test="amount != null" >
+        amount = #{amount,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wimoor.erp.pojo.entity.InWarehouseFormEntry" >
+    update t_erp_inwh_form_entry
+    set formid = #{formid,jdbcType=CHAR},
+      materialid = #{materialid,jdbcType=CHAR},
+      warehouseid = #{warehouseid,jdbcType=CHAR},
+      amount = #{amount,jdbcType=INTEGER}
+    where id = #{id,jdbcType=CHAR}
+  </update> -->
+</mapper>

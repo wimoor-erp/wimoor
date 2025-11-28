@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.erp.purchase.alibaba.mapper.ErpPurchaseAlibabaOrderReceiverinfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.alibaba.pojo.entity.ErpPurchaseAlibabaOrderReceiverinfo">
+        <result column="orderid" property="orderid" />
+        <result column="toArea" property="toArea" />
+        <result column="toDivisionCode" property="toDivisionCode" />
+        <result column="toFullName" property="toFullName" />
+        <result column="toMobile" property="toMobile" />
+        <result column="toPost" property="toPost" />
+    </resultMap>
+
+</mapper>

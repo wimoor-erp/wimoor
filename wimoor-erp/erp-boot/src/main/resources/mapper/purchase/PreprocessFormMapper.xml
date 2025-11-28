@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.purchase.mapper.PreprocessFormMapper" >
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.purchase.pojo.entity.PreprocessForm" >
+        <result column="id" property="id" jdbcType="CHAR" />
+        <result column="shopid" property="shopid" jdbcType="CHAR" />
+        <result column="warehouseid" property="warehouseid" jdbcType="CHAR" />
+    </resultMap>
+  
+    <select id="getPreprocessFormList" resultType="java.util.Map" parameterType="com.wimoor.erp.purchase.pojo.dto.PreprocessFormListDTO">
+        select t.*, u.name creatorname,u2.name operatorname ,w.name warehousename
+        from t_erp_preprocessing_form t
+        left join t_erp_warehouse w on w.id=t.warehouseid
+        left join t_userinfo u on u.id=t.creator
+        left join t_userinfo u2 on u2.id=t.operator
+        where t.shopid=#{param.shopid, jdbcType=CHAR} and t.warehouseid=#{param.warehouseid, jdbcType=CHAR}
+        and t.ftype=#{param.ftype, jdbcType=INTEGER}
+    </select>
+
+
+    <select id="findSummaryInfo"  resultType="com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo"  parameterType="java.util.List">
+        SELECT  sum(t.amount) sumshipped,
+        sum(t.amount) sumQuantity,
+        max(w.name) warehouse,
+        max(w.id) warehouseid,
+        group_concat(DISTINCT form.number) shipmentid,
+        max(form.shopid) shopid,
+        MAX(t.preprocessingid) checkinv
+        FROM t_erp_purchase_form_receive  t
+        LEFT JOIN t_erp_purchase_form_entry f ON f.id=t.formentryid
+        LEFT JOIN t_erp_purchase_form form ON form.id=f.formid
+        left join t_erp_warehouse w on w.id=t.warehouseid
+        WHERE t.id IN (
+        <foreach collection="list" item="recid" index="field_list" open="" separator="," close="">
+            #{recid,jdbcType=CHAR}
+        </foreach>
+        )
+    </select>
+
+    <select id="findItemListByRecids"  resultType="com.wimoor.erp.ship.pojo.dto.ShipInboundItemVo"  parameterType="java.util.List">
+        SELECT f.*,m.name,IFNULL(p.location,p.url) image,e.materialid,f.amount QuantityShipped,f.amount quantity,
+        ifnull(
+        (select sum(iv.quantity) from t_erp_inventory iv
+        where  iv.materialid=m.id
+        and iv.warehouseid=f.warehouseid
+        and iv.`status`='fulfillable'
+        )
+        ,0) invquantity,
+
+        ifnull(
+        ( select sum(iv2.quantity) from   t_erp_inventory iv2
+        where iv2.materialid=m.id
+        and iv2.warehouseid=f.warehouseid
+        and iv2.status like 'outbound_%'
+        ),0) outbound,
+            m.sku msku,
+            '' sellersku
+        FROM t_erp_purchase_form_receive f
+        left join t_erp_purchase_form_entry e on e.id=f.formentryid
+        LEFT JOIN t_erp_material m ON m.id=e.materialid and m.isDelete = 0
+        LEFT JOIN t_picture p ON p.id=m.image
+        WHERE f.id IN (
+        <foreach collection="list" item="formid" index="field_list" open="" separator="," close="">
+            #{formid,jdbcType=CHAR}
+        </foreach>
+        )
+
+    </select>
+</mapper>

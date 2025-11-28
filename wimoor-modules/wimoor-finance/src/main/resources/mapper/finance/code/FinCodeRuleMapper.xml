@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.code.mapper.FinCodeRuleMapper">
+    
+    <resultMap type="com.wimoor.finance.code.domain.FinCodeRule" id="FinCodeRuleResult">
+        <result property="id"    column="id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="ruleCode"    column="rule_code"    />
+        <result property="ruleName"    column="rule_name"    />
+        <result property="ruleType"    column="rule_type"    />
+        <result property="ruleTemplate"    column="rule_template"    />
+        <result property="ruleStructure"    column="rule_structure"    />
+        <result property="separator"    column="separator"    />
+        <result property="prefix"    column="prefix"    />
+        <result property="suffix"    column="suffix"    />
+        <result property="autoIncrement"    column="auto_increment"    />
+        <result property="currentValue"    column="current_value"    />
+        <result property="minLength"    column="min_length"    />
+        <result property="maxLength"    column="max_length"    />
+        <result property="resetFrequency"    column="reset_frequency"    />
+        <result property="lastResetTime"    column="last_reset_time"    />
+        <result property="description"    column="description"    />
+        <result property="status"    column="status"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="createdBy"    column="created_by"    />
+        <result property="updatedBy"    column="updated_by"    />
+    </resultMap>
+
+    <sql id="selectFinCodeRuleVo">
+        select id, tenant_id, rule_code, rule_name, rule_type, rule_template, rule_structure, separator, prefix, suffix, auto_increment, current_value, min_length, max_length, reset_frequency, last_reset_time, description, status, created_time, updated_time, created_by, updated_by from fin_code_rule
+    </sql>
+
+    <select id="selectFinCodeRuleList" parameterType="com.wimoor.finance.code.domain.FinCodeRule" resultMap="FinCodeRuleResult">
+        <include refid="selectFinCodeRuleVo"/>
+        <where>  
+            <if test="groupid != null "> and groupid = #{groupid}</if>
+            <if test="ruleCode != null  and ruleCode != ''"> and rule_code = #{ruleCode}</if>
+            <if test="ruleName != null  and ruleName != ''"> and rule_name like concat('%', #{ruleName}, '%')</if>
+            <if test="ruleType != null  and ruleType != ''"> and rule_type = #{ruleType}</if>
+            <if test="ruleTemplate != null  and ruleTemplate != ''"> and rule_template = #{ruleTemplate}</if>
+            <if test="ruleStructure != null  and ruleStructure != ''"> and rule_structure = #{ruleStructure}</if>
+            <if test="separator != null  and separator != ''"> and separator = #{separator}</if>
+            <if test="prefix != null  and prefix != ''"> and prefix = #{prefix}</if>
+            <if test="suffix != null  and suffix != ''"> and suffix = #{suffix}</if>
+            <if test="autoIncrement != null "> and auto_increment = #{autoIncrement}</if>
+            <if test="currentValue != null "> and current_value = #{currentValue}</if>
+            <if test="minLength != null "> and min_length = #{minLength}</if>
+            <if test="maxLength != null "> and max_length = #{maxLength}</if>
+            <if test="resetFrequency != null  and resetFrequency != ''"> and reset_frequency = #{resetFrequency}</if>
+            <if test="lastResetTime != null "> and last_reset_time = #{lastResetTime}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+            <if test="createdBy != null  and createdBy != ''"> and created_by = #{createdBy}</if>
+            <if test="updatedBy != null  and updatedBy != ''"> and updated_by = #{updatedBy}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinCodeRuleById" parameterType="Long" resultMap="FinCodeRuleResult">
+        <include refid="selectFinCodeRuleVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinCodeRule" parameterType="com.wimoor.finance.code.domain.FinCodeRule" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_code_rule
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">groupid,</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code,</if>
+            <if test="ruleName != null and ruleName != ''">rule_name,</if>
+            <if test="ruleType != null and ruleType != ''">rule_type,</if>
+            <if test="ruleTemplate != null">rule_template,</if>
+            <if test="ruleStructure != null and ruleStructure != ''">rule_structure,</if>
+            <if test="separator != null">separator,</if>
+            <if test="prefix != null">prefix,</if>
+            <if test="suffix != null">suffix,</if>
+            <if test="autoIncrement != null">auto_increment,</if>
+            <if test="currentValue != null">current_value,</if>
+            <if test="minLength != null">min_length,</if>
+            <if test="maxLength != null">max_length,</if>
+            <if test="resetFrequency != null">reset_frequency,</if>
+            <if test="lastResetTime != null">last_reset_time,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="updatedBy != null">updated_by,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null">#{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">#{ruleCode},</if>
+            <if test="ruleName != null and ruleName != ''">#{ruleName},</if>
+            <if test="ruleType != null and ruleType != ''">#{ruleType},</if>
+            <if test="ruleTemplate != null">#{ruleTemplate},</if>
+            <if test="ruleStructure != null and ruleStructure != ''">#{ruleStructure},</if>
+            <if test="separator != null">#{separator},</if>
+            <if test="prefix != null">#{prefix},</if>
+            <if test="suffix != null">#{suffix},</if>
+            <if test="autoIncrement != null">#{autoIncrement},</if>
+            <if test="currentValue != null">#{currentValue},</if>
+            <if test="minLength != null">#{minLength},</if>
+            <if test="maxLength != null">#{maxLength},</if>
+            <if test="resetFrequency != null">#{resetFrequency},</if>
+            <if test="lastResetTime != null">#{lastResetTime},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCodeRule" parameterType="com.wimoor.finance.code.domain.FinCodeRule">
+        update fin_code_rule
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="ruleCode != null and ruleCode != ''">rule_code = #{ruleCode},</if>
+            <if test="ruleName != null and ruleName != ''">rule_name = #{ruleName},</if>
+            <if test="ruleType != null and ruleType != ''">rule_type = #{ruleType},</if>
+            <if test="ruleTemplate != null">rule_template = #{ruleTemplate},</if>
+            <if test="ruleStructure != null and ruleStructure != ''">rule_structure = #{ruleStructure},</if>
+            <if test="separator != null">separator = #{separator},</if>
+            <if test="prefix != null">prefix = #{prefix},</if>
+            <if test="suffix != null">suffix = #{suffix},</if>
+            <if test="autoIncrement != null">auto_increment = #{autoIncrement},</if>
+            <if test="currentValue != null">current_value = #{currentValue},</if>
+            <if test="minLength != null">min_length = #{minLength},</if>
+            <if test="maxLength != null">max_length = #{maxLength},</if>
+            <if test="resetFrequency != null">reset_frequency = #{resetFrequency},</if>
+            <if test="lastResetTime != null">last_reset_time = #{lastResetTime},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinCodeRuleById" parameterType="Long">
+        delete from fin_code_rule where id = #{id}
+    </delete>
+
+    <delete id="deleteFinCodeRuleByIds" parameterType="String">
+        delete from fin_code_rule where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="findByStatus" parameterType="java.lang.Long" resultType="com.wimoor.finance.code.domain.FinCodeRule">
+        -- 1. 查询所有启用的编码规则
+        SELECT rule_code, rule_name, rule_type, rule_structure, description
+        FROM fin_code_rule
+        WHERE status = #{status} and groupid = #{groupid}
+        ORDER BY rule_type, rule_code;
+    </select>
+    <select id="findByRuleTypeAndStatus" parameterType="java.lang.String" resultType="com.wimoor.finance.code.domain.FinCodeRule">
+        -- 2. 查询指定类型的编码规则
+        SELECT rule_code, rule_name, rule_type, rule_structure, description
+        FROM fin_code_rule
+        WHERE rule_type = #{ruleType} and status = #{status} and groupid = #{groupid}
+        ORDER BY rule_code;
+    </select>
+    <select id="findByRuleCode" parameterType="java.lang.String" resultType="com.wimoor.finance.code.domain.FinCodeRule">
+        -- 3. 查询指定编码规则
+        SELECT id, tenant_id, rule_code, rule_name, rule_type, rule_template, rule_structure,
+               separator, prefix, suffix, auto_increment, current_value, min_length, max_length,
+               reset_frequency, last_reset_time, description, status,
+               created_time, updated_time, created_by, updated_by
+        FROM fin_code_rule
+        WHERE rule_code = #{ruleCode} and groupid = #{groupid}
+    </select>
+     <select id="findByTenantIdAndRuleTypeAndStatus" parameterType="java.lang.String" resultType="com.wimoor.finance.code.domain.FinCodeRule">
+        -- 4. 查询租户下指定规则类型和状态的编码规则列表
+        SELECT id, tenant_id, rule_code, rule_name, rule_type, rule_template, rule_structure,
+               separator, prefix, suffix, auto_increment, current_value, min_length, max_length,
+               reset_frequency, last_reset_time, description, status,
+               created_time, updated_time, created_by, updated_by
+        FROM fin_code_rule
+        WHERE groupid = #{groupid} and rule_type = #{ruleType} and status = #{status}
+        ORDER BY rule_code;
+    </select>
+</mapper>

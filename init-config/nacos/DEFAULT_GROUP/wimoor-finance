@@ -1,0 +1,52 @@
+spring:
+  datasource:
+    dynamic:
+      datasource:
+          # 主库数据源
+          master:
+            driver-class-name: com.mysql.cj.jdbc.Driver
+            url: jdbc:mysql://${mysql.host}:${mysql.port}/db_finance?allowMultiQueries=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&serverTimezone=Asia/Shanghai&connectTimeout=60000&socketTimeout=60000&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true
+            username: ${mysql.username}
+            password: ${mysql.password}
+          # 从库数据源
+          # slave:
+            # username:
+            # password:
+            # url:
+            # driver-class-name:
+  servlet:
+      multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+      nacos:
+        enabled: true
+mybatis:
+    # 搜索指定包别名
+    typeAliasesPackage: com.wimoor.finance
+    # 配置mapper的扫描，找到所有的mapper.xml映射文件
+    mapperLocations: classpath:mapper/**/*.xml
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 600000
+# springdoc配置
+springdoc:
+  gatewayUrl: http://localhost:8080/${spring.application.name}
+  api-docs:
+    # 是否开启接口文档
+    enabled: true
+  info:
+    # 标题
+    title: '财务模块接口文档'
+    # 描述
+    description: '财务模块接口描述'
+    # 作者信息
+    contact:
+      name: wimoor
+      url: https://wimoor.com
