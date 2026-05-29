@@ -43,7 +43,8 @@ INSERT IGNORE INTO `t_sys_permission` (`id`, `name`, `menu_id`, `url_perm`, `btn
 	(1697437139805315073, '修改单据数量', 70, 'GET:/erp/api/v1/assembly/changeAssAmount', 'erp:po:ass:update', '2023-09-01 10:32:06', '2023-09-01 10:32:06'),
 	(1697438074115891202, '终止单据', 70, 'GET:/erp/api/v1/assembly/stopAssemblyEvent', 'erp:po:ass:stop', '2023-09-01 10:35:48', '2023-09-01 10:35:48'),
 	(1697438074115891203, '查看产品信息', 1012151, 'POST:/quote/api/v1/quote/supplier/addsupplier', 'erp:pi:list:item', '2023-09-01 10:35:48', '2023-09-01 10:35:48'),
-	(1697438074115891205, '查看物流连接', 1012153, 'POST:/quote/api/v1/quote/supplier/addsupplier', 'erp:pi:supplier:link', '2023-09-01 10:35:48', '2023-09-01 10:35:48');
+	(1697438074115891205, '查看物流连接', 1012153, 'POST:/quote/api/v1/quote/supplier/addsupplier', 'erp:pi:supplier:link', '2023-09-01 10:35:48', '2023-09-01 10:35:48'),
+	(1697438074115891206, '编辑Listing信息', 98, 'POST:/erp/api/v1/material/listing/save', 'erp:material:listing:edit', '2026-05-28 00:00:00', '2026-05-28 00:00:00');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
