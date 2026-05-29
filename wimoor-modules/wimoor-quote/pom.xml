@@ -12,7 +12,7 @@
 	<name>wimoor-quote</name>
 	<description>for wimoor sso-client </description>
 	<properties>
-		<spring.shiro.version>1.6.0</spring.shiro.version>
+		<spring.shiro.version>1.13.0</spring.shiro.version>
         <wimoor.version>2.0.0</wimoor.version>
 	</properties>
 	<dependencies>
@@ -145,8 +145,8 @@
         <!--      mydependency  -->
         <!--mysql-->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
         </dependency>
 
         <dependency>
@@ -174,13 +174,13 @@
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-ehcache</artifactId>
-            <version>1.4.0</version>
+            <version>1.13.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
-            <version>1.4.0</version>
+            <version>1.13.0</version>
         </dependency>
         <dependency>
             <groupId>sxjd</groupId>
@@ -253,13 +253,13 @@
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-ehcache</artifactId>
-            <version>1.4.0</version>
+            <version>1.13.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
-            <version>1.4.0</version>
+            <version>1.13.0</version>
         </dependency>
 
 
@@ -281,7 +281,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.9</version>
+            <version>1.10.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.zxing</groupId>

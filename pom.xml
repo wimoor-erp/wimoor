@@ -30,15 +30,20 @@
 		<spring-cloud-alibaba.version>2021.0.5.0</spring-cloud-alibaba.version>
 		<druid.version>1.2.4</druid.version>
 		<mybatis-plus.version>3.4.3</mybatis-plus.version>
-		<lombok.version>1.18.18</lombok.version>
+		<lombok.version>1.18.30</lombok.version>
 		<okhttp3.version>4.10.0</okhttp3.version>
-		<javax-validator.version>1.1.0.Final</javax-validator.version>
-		<hutool.version>5.8.5</hutool.version>
+		<javax-validator.version>2.0.1.Final</javax-validator.version>
+		<hutool.version>5.8.26</hutool.version>
 		<spring-cloud-starter-seata.version>2021.0.5.0</spring-cloud-starter-seata.version>
 		<poi.version>4.1.2</poi.version>
 		<fastjson.version>2.0.57</fastjson.version>
 		<fastjson2.version>2.0.57</fastjson2.version>
 		<fasterjson.version>2.19.4</fasterjson.version>
+		<!-- CVE Security Fixes -->
+		<tomcat.version>9.0.106</tomcat.version>
+		<logback.version>1.2.13</logback.version>
+		<snakeyaml.version>1.33</snakeyaml.version>
+		<spring-framework.version>5.3.39</spring-framework.version>
 	</properties>
 
 	<dependencies>
@@ -99,9 +104,9 @@
 				<version>${okhttp3.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>mysql</groupId>
-				<artifactId>mysql-connector-java</artifactId>
-				<version>8.0.33</version>
+				<groupId>com.mysql</groupId>
+				<artifactId>mysql-connector-j</artifactId>
+				<version>8.4.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.mybatis.spring.boot</groupId>
@@ -144,6 +149,57 @@
 				<groupId>cn.hutool</groupId>
 				<artifactId>hutool-all</artifactId>
 				<version>${hutool.version}</version>
+			</dependency>
+			<!-- CVE Security Fix managed versions -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>1.10.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>1.27.0</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-fileupload</groupId>
+				<artifactId>commons-fileupload</artifactId>
+				<version>1.6.0</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>2.17.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jsoup</groupId>
+				<artifactId>jsoup</artifactId>
+				<version>1.17.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.jettison</groupId>
+				<artifactId>jettison</artifactId>
+				<version>1.5.4</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>1.11.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk15on</artifactId>
+				<version>1.70</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>1.78</version>
+			</dependency>
+			<dependency>
+				<groupId>io.minio</groupId>
+				<artifactId>minio</artifactId>
+				<version>8.6.0</version>
 			</dependency>
 		</dependencies>
 

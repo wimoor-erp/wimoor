@@ -12,7 +12,7 @@
 	<description> for amazon</description>
 	<properties>
 		<java.version>1.8</java.version>
-		<spring.shiro.version>1.6.0</spring.shiro.version>
+		<spring.shiro.version>1.13.0</spring.shiro.version>
         <wimoor.version>2.0.0</wimoor.version>
 	</properties>
 	<dependencies>
@@ -84,7 +84,7 @@
 		 <dependency>
      		<groupId>org.bouncycastle</groupId>
   			<artifactId>bcprov-jdk15on</artifactId>
-     		<version>1.54</version>
+     		<version>1.70</version>
 		 </dependency>
  		<!-- 以上3个是itextjar包 -->
  		<!-- zxing生成二维码 -->
@@ -116,7 +116,7 @@
 		<dependency>
 		    <groupId>org.jsoup</groupId>
 		    <artifactId>jsoup</artifactId>
-		    <version>1.10.2</version>
+		    <version>1.17.2</version>
 		</dependency>	
 		    <!--网页解析 -->
 	   <dependency>
@@ -184,6 +184,12 @@
 		<dependency>
 			<groupId>com.wimoor</groupId>
 			<artifactId>wimoor-api-quote</artifactId>
+			<version>${wimoor.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.wimoor</groupId>
+			<artifactId>wimoor-api-amazon</artifactId>
 			<version>${wimoor.version}</version>
 			<scope>compile</scope>
 		</dependency>

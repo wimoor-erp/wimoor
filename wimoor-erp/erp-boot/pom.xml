@@ -14,7 +14,7 @@
 	<description>for wimoor sso-client </description>
 	<properties>
 		<java.version>1.8</java.version>
-		<spring.shiro.version>1.6.0</spring.shiro.version>
+		<spring.shiro.version>1.13.0</spring.shiro.version>
         <wimoor.version>2.0.0</wimoor.version>
 	</properties>
 	<dependencies>
@@ -164,6 +164,15 @@
 		    <groupId>com.wimoor</groupId>
 		    <artifactId>admin-api</artifactId>
 		    <version>${wimoor.version}</version>
+		 </dependency>
+		  <dependency>
+		    <groupId>com.wimoor</groupId>
+		    <artifactId>wimoor-api-amazon</artifactId>
+		    <version>${wimoor.version}</version>
+		 </dependency>
+		 <dependency>
+		    <groupId>org.jsoup</groupId>
+		    <artifactId>jsoup</artifactId>
 		 </dependency>
     </dependencies>
 

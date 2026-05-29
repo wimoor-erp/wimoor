@@ -13,7 +13,7 @@
 	<description> for amazon adv</description>
 	<properties>
 		<java.version>1.8</java.version>
-		<spring.shiro.version>1.6.0</spring.shiro.version>
+		<spring.shiro.version>1.13.0</spring.shiro.version>
         <wimoor.version>2.0.0</wimoor.version>
 	</properties>
 	<dependencies>
@@ -112,8 +112,8 @@
 			</dependency>
  
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
         </dependency>
 	     <dependency>
 	           <groupId>com.alibaba</groupId>
@@ -145,7 +145,7 @@
 		 <dependency>
      		<groupId>org.bouncycastle</groupId>
   			<artifactId>bcprov-jdk15on</artifactId>
-     		<version>1.54</version>
+     		<version>1.70</version>
 		 </dependency>
         <!--lombok用来简化实体类：需要安装lombok插件-->
         <dependency>
@@ -193,7 +193,7 @@
 		<dependency>
 		    <groupId>org.jsoup</groupId>
 		    <artifactId>jsoup</artifactId>
-		    <version>1.10.2</version>
+		    <version>1.17.2</version>
 		</dependency>	
 			<dependency>
 			    <groupId>org.springframework.boot</groupId>
@@ -209,7 +209,7 @@
 		<dependency>
 		    <groupId>commons-io</groupId>
 		    <artifactId>commons-io</artifactId>
-		    <version>2.4</version>
+		    <version>2.17.0</version>
 		</dependency>
 		
 		<dependency>
@@ -218,16 +218,11 @@
 	        <version>1.4</version>
         </dependency>
         
-        <!-- log4j -->
-	<dependency>
-		<groupId>log4j</groupId>
-		<artifactId>log4j</artifactId>
-		<version>1.2.17</version>
-	</dependency>
-	<dependency>
-		<groupId>org.apache.logging.log4j</groupId>
-		<artifactId>log4j-core</artifactId>
-	</dependency>
+		 <!-- log4j legacy removed: use log4j2 via Spring Boot -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
 		 <!--swagger3-->
 		 <dependency>
 		    <groupId>io.springfox</groupId>
