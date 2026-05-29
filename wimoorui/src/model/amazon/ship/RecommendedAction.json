@@ -1,0 +1,19 @@
+{
+ "":"无",
+ "Edit listing":"编辑产品",
+ "Advertise listing":"广告推广",
+ "NoExcessInventory":"无多余库存",
+ "GoToRestock":"请备货",
+ "Create Outlet deal":"创建特卖",
+ "Create sale":"促销",
+ "GoToStranded":"滞留仓库",
+ "AlreadyOnAdvertisedCampaign":"已在广告活动中",
+ "Create removal order":"创建移除订单",
+ "SendToFBA":"补货",
+ "Lower price":"降价",
+ "Improve keywords":"改善关键词",
+ "CreateShippingPlan":"创建发货计划",
+ "NoRestockExcessActionRequired":"无需补货",
+ "AlreadyOnReducedSale":"已经降价",
+ "PendingAutoRemoval":"待自动删除"
+}

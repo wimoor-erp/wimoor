@@ -1,0 +1,21 @@
+{
+ "SHIPPED":"已发货",
+ "IN_TRANSIT":"运输中",
+ "DELIVERED":"已抵达",
+ "CHECKED_IN":"已到货",
+ "RECEIVING":"接收中",
+ "CLOSED":"已完成",
+ "DELETED":"已删除",
+ 
+ "WORKING":"已提交",
+ "ESTIMATING":"评估中",
+ "ESTIMATED":"已评估",
+ "ERROR_ON_ESTIMATING":"评估失败",
+ "CONFIRMING":"确认中",
+ "CONFIRMED":"已确认",
+ "ERROR_ON_CONFIRMING":"确认失败",
+ "VOIDING":"取消中",
+ "VOIDED":"已取消",
+ "ERROR_IN_VOIDING":"取消失败",
+ "ERROR":"错误"
+}

@@ -1,0 +1,18 @@
+# Java modules (not needed for Go build)
+wimoor-admin/
+wimoor-amazon/
+wimoor-amazon-adv/
+wimoor-api/
+wimoor-common/
+wimoor-erp/
+wimoor-gateway/
+wimoor-modules/
+
+# Other
+.git/
+init-config/
+docs/
+*.jar
+*.class
+target/
+node_modules/

@@ -1,0 +1,26 @@
+[{
+	  "id":"1",
+	  "name":"FEPITO 15 Pcs Artificial Succulent Plants Green Unpotted Faux Flower Succulents Mini Echeveria Picks Bulk Stems for Home Indoor Fairy Garden Decorations",
+	  "children": [{
+		 "id":"6", 
+		 "name":"测试SKU"
+	  },
+	  {
+	  		 "id":"7", 
+	  		 "name":"子产品SKU"
+	  }
+	  ]
+},
+
+
+{
+	"id":"2",
+	"name":"test"
+},
+{
+	"id":"3"
+},
+{
+	"id":"4"
+}
+]

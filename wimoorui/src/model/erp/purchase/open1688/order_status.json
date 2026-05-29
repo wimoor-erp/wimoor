@@ -1,0 +1,17 @@
+{
+	"waitbuyerpay":{"name":"等待买家付款","simple":"待付款","color":"text-orange"},
+	"waitsellersend":{"name":"等待卖家发货","simple":"待发货","color":"text-orange"},
+	"waitbuyerreceive":{"name":"等待买家收货","simple":"待收货","color":"text-primary"},
+	"confirm_goods":{"name":"已收货","simple":"已收货","color":"text-green"},
+	"success":{"name":"交易成功","simple":"成功","color":"text-green"},
+	"cancel":{"name":"交易取消","simple":"取消","color":"text-gray"},
+	"terminated":{"name":"交易终止","simple":"终止","color":"text-gray"},
+	"":{"name":"其他状态","simple":"其他","color":"text-red"},
+	"waitselleragree":{"name":"等待卖家同意","simple":"待同意","color":"text-orange"},
+	"waitbuyermodify":{"name":"待买家修改","simple":"待修改","color":"text-orange"},
+	"waitbuyersend":{"name":"等待买家退货","simple":"待退货","color":"text-orange"},
+	"waitsellerreceive":{"name":"等待卖家确认收货","simple":"待确认","color":"text-green"},
+	"refundsuccess":{"name":"退款成功","simple":"退款","color":"text-gray"},
+	"refundclose":{"name":"退款失败","simple":"退失败","color":"text-red"}
+
+}

@@ -1,0 +1,16 @@
+[
+{"value":"ADULT","name":"成人用品","description":"显示可能具有冒犯性的内容，例如亵渎或裸露的内容。"},
+{"value":"BABY","name":"儿童用品","description":"专为三岁或三岁以下的儿童制作，包装切口大于一平方英寸。"	},
+{"value":"FC_PROVIDED","name":"专供","description":"配送中心已定义准备类型。此值由亚马逊提供，不能用作输入。"},	
+{"value":"FRAGILE","name":"易碎品",	"description":"玻璃或其他易碎品，或玻璃容器中的液体。"},
+{"value":"GRANULAR","name":"粉末颗粒","description":"由粉末、颗粒或颗粒材料制成。"},
+{"value":"HANGER","name":"晾衣架","description":"由布或织物制成，用于挂在衣架上。"},	
+{"value":"LIQUID","name":"液体","description":"液体或粘稠物，无双密封。"},	
+{"value":"PERFORATED","name":"穿孔","description":"采用带有穿孔开口的包装。"},		
+{"value":"SET","name":"批发","description":"将多个商品作为一个单位出售。"},		
+{"value":"SHARP","name":"锋利","description":"锋利且容易暴露，尚未放入保护包装中。"},		
+{"value":"SMALL","name":"小件","description":"最长边小于 2 1/8 英寸（信用卡宽度）。"},		
+{"value":"TEXTILE","name":"纺织品","description":"由布或织物制成，可能会因污垢、灰尘、湿气或液体而损坏。"},		
+{"value":"UNKNOWN","name":"未知","description":"发现未知的准备类别，需要更新。此值由亚马逊提供，不能用作输入。"},		
+{"value":"NONE","name":"无需预处理","description":"不需要准备。"}
+]

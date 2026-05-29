@@ -28,6 +28,11 @@ target
 .apt_generated_tests
 *.classpath
 
+# Frontend (wimoorui) build artifacts and dependencies
+wimoorui/node_modules/
+wimoorui/dist/
+wimoorui/dist-ssr/
+wimoorui/*.local
 
 .DS_Store
 node_modules/
@@ -52,3 +57,7 @@ selenium-debug.log
 package-lock.json
 yarn.lock
 
+.codex/
+.cursor/
+.github/pms
+pms

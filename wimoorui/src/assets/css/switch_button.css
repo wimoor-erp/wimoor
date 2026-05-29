@@ -1,0 +1,27 @@
+	.sw-tab{
+		display:flex;
+		background-color:#f5f5f5;
+		padding:2px;
+		border-radius:2px;
+	}
+	.sw-item{
+		flex-grow:1;
+		font-size:14px;
+		color:#999;
+		text-align:center;
+		line-height:32px;
+		border-radius:2px;
+		cursor: pointer;
+	}
+	.sw-item:hover{
+		color: #333;
+	}
+	.sw-active{
+		background:#fff;
+		color:#ff6700;
+		font-weight:700;
+	}
+.sw-active:hover{
+	background:#fff9f4;
+	color:#ff6700;
+}

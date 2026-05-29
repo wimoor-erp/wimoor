@@ -1,0 +1,45 @@
+{
+  "name": "wimoorui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "@hoc-element/affix": "^1.0.0",
+    "@icon-park/vue-next": "^1.4.2",
+    "@vueup/vue-quill": "^1.2.0",
+    "axios": "^1.11.0",
+    "core-js": "^3.45.1",
+    "echarts": "^6.0.0",
+    "element-plus": "^2.11.1",
+    "file-saver": "^2.0.5",
+    "highlight.js": "^11.11.1",
+    "jquery": "^3.7.1",
+    "js-cookie": "^3.0.5",
+    "marked": "^16.2.1",
+    "marked-highlight": "^2.2.2",
+    "mitt": "^3.0.1",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1",
+    "vue3-print-nb": "^0.1.4",
+    "vuedraggable": "^4.1.0",
+    "vuex": "^4.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "fast-glob": "^3.3.3",
+    "sass-embedded": "^1.93.3",
+    "terser": "^5.44.0",
+    "unplugin-auto-import": "^20.2.0",
+    "unplugin-vue-setup-extend-plus": "^1.0.1",
+    "vite": "^7.1.2",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-svg-icons": "^2.0.1"
+  }
+}
