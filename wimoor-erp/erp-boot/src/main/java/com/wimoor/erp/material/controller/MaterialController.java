@@ -1700,4 +1700,81 @@ public class MaterialController {
 			iMaterialService.saveCustoms(user,list);
 			return Result.success();
 		}
+
+		// === 分模块保存接口 ===
+
+		@ApiOperation("保存基本信息（独立模块）")
+		@SystemControllerLog("产品基本信息修改")
+		@PostMapping(value="/saveBaseInfo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		@Transactional
+		public Result<Map<String, Object>> saveBaseInfoAction(String infostr,
+				@RequestParam(value="file",required=false) MultipartFile file,
+				@RequestParam(value="pkgfile",required=false) MultipartFile pkgfile) {
+			UserInfo userinfo = UserInfoContext.get();
+			ObjectMapper mapper = new ObjectMapper();
+			MaterialInfoVO vo = null;
+			try {
+				vo = mapper.readValue(infostr, MaterialInfoVO.class);
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			Material material = iMaterialService.saveBaseInfoOnly(vo, file, pkgfile, userinfo);
+			Map<String, Object> maps = new HashMap<String, Object>();
+			maps.put("id", material.getId());
+			return Result.success(maps);
+		}
+
+		@ApiOperation("保存组合信息（独立模块）")
+		@SystemControllerLog("产品组合信息修改")
+		@PostMapping("/saveAssembly")
+		@Transactional
+		public Result<?> saveAssemblyAction(@RequestBody MaterialInfoVO vo) {
+			UserInfo user = UserInfoContext.get();
+			if(vo.getMaterial() == null || vo.getMaterial().getId() == null) {
+				throw new BizException("产品ID不能为空");
+			}
+			iMaterialService.saveAssemblyInfo(vo.getMaterial().getId(), vo, user);
+			return Result.success();
+		}
+
+		@ApiOperation("保存采购/供应商信息（独立模块）")
+		@SystemControllerLog("产品采购信息修改")
+		@PostMapping("/saveSupplier")
+		@Transactional
+		public Result<?> saveSupplierAction(@RequestBody MaterialInfoVO vo) {
+			UserInfo user = UserInfoContext.get();
+			if(vo.getMaterial() == null || vo.getMaterial().getId() == null) {
+				throw new BizException("产品ID不能为空");
+			}
+			iMaterialService.saveSupplierInfo(vo.getMaterial().getId(), vo.getSupplierList(), user);
+			return Result.success();
+		}
+
+		@ApiOperation("保存规格尺寸信息（独立模块）")
+		@SystemControllerLog("产品规格信息修改")
+		@PostMapping("/saveSpecs")
+		@Transactional
+		public Result<?> saveSpecsAction(@RequestBody MaterialInfoVO vo) {
+			UserInfo user = UserInfoContext.get();
+			if(vo.getMaterial() == null || vo.getMaterial().getId() == null) {
+				throw new BizException("产品ID不能为空");
+			}
+			iMaterialService.saveSpecsInfo(vo.getMaterial().getId(), vo, user);
+			return Result.success();
+		}
+
+		@ApiOperation("保存辅料关联信息（独立模块）")
+		@SystemControllerLog("产品辅料信息修改")
+		@PostMapping("/saveConsumable")
+		@Transactional
+		public Result<?> saveConsumableAction(@RequestBody MaterialInfoVO vo) {
+			UserInfo user = UserInfoContext.get();
+			if(vo.getMaterial() == null || vo.getMaterial().getId() == null) {
+				throw new BizException("产品ID不能为空");
+			}
+			iMaterialService.saveConsumableInfo(vo.getMaterial().getId(), vo.getConsumableList(), user);
+			return Result.success();
+		}
 }

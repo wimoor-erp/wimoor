@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.amazon.product.mapper.AmzProductMediaMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.AmzProductMedia">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="shopid" property="shopid" jdbcType="VARCHAR"/>
+        <result column="authority_id" property="authorityId" jdbcType="VARCHAR"/>
+        <result column="marketplace_id" property="marketplaceId" jdbcType="VARCHAR"/>
+        <result column="sku" property="sku" jdbcType="VARCHAR"/>
+        <result column="asin" property="asin" jdbcType="VARCHAR"/>
+        <result column="media_type" property="mediaType" jdbcType="TINYINT"/>
+        <result column="variant" property="variant" jdbcType="VARCHAR"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="url" property="url" jdbcType="VARCHAR"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="width" property="width" jdbcType="INTEGER"/>
+        <result column="height" property="height" jdbcType="INTEGER"/>
+        <result column="sync_time" property="syncTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, shopid, authority_id, marketplace_id, sku, asin, media_type, variant,
+        sort_order, url, location, width, height, sync_time, create_time
+    </sql>
+
+    <select id="selectBySku" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_amz_product_media
+        WHERE authority_id = #{authorityId}
+          AND marketplace_id = #{marketplaceId}
+          AND sku = #{sku}
+        ORDER BY sort_order ASC
+    </select>
+
+    <delete id="deleteBySku">
+        DELETE FROM t_amz_product_media
+        WHERE authority_id = #{authorityId}
+          AND marketplace_id = #{marketplaceId}
+          AND sku = #{sku}
+    </delete>
+
+</mapper>

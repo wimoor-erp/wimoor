@@ -100,6 +100,8 @@ public class ProductListingsItemServiceImpl implements IProductListingsItemServi
 	@Autowired
 	@Lazy
 	IProductInReviewService iProductInReviewService;
+	@Autowired(required = false)
+	private IAmzProductMediaService amzProductMediaService;
 	@Override
 	public Item captureListMatchingProduct(AmazonAuthority amazonAuthority, String sku, List<String> marketplaces,String issueLocale, List<String> includedData ) {
 		// TODO Auto-generated method stub
@@ -268,12 +270,29 @@ public class ProductListingsItemServiceImpl implements IProductListingsItemServi
 					    		String manufacturer =product.getManufacturer()!=null?product.getManufacturer():"";
 					    		product.setManufacturer(manufacturer+"-i");
 					    	}
+				    	}				    	} catch (Exception e) {
+				    		e.printStackTrace();
+				    	}				    	// product-media-management: 同步主图到 t_amz_product_media（预留后续扩展 PT01~PT08）
+				    	try {
+				    		if (amzProductMediaService != null && summary.getMainImage() != null && summary.getMainImage().getLink() != null) {
+				    			com.wimoor.amazon.product.pojo.entity.AmzProductMedia m = new com.wimoor.amazon.product.pojo.entity.AmzProductMedia();
+				    			m.setAuthorityId(amazonAuthority.getId());
+				    			m.setMarketplaceId(summary.getMarketplaceId());
+				    			m.setSku(result.getSku());
+				    			m.setAsin(summary.getAsin());
+				    			m.setVariant("MAIN");
+				    			m.setMediaType(0);
+				    			m.setSortOrder(0);
+				    			m.setUrl(summary.getMainImage().getLink());
+				    			if (summary.getMainImage().getWidth() != null) m.setWidth(summary.getMainImage().getWidth());
+				    			if (summary.getMainImage().getHeight() != null) m.setHeight(summary.getMainImage().getHeight());
+				    			java.util.List<com.wimoor.amazon.product.pojo.entity.AmzProductMedia> list = new java.util.ArrayList<>();
+				    			list.add(m);
+				    			amzProductMediaService.replaceForSku(amazonAuthority.getShopId(), amazonAuthority.getId(), summary.getMarketplaceId(), result.getSku(), summary.getAsin(), list);
+				    		}
+				    	} catch (Exception ex) {
+				    		ex.printStackTrace();
 				    	}
-				    	
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 		            if( (product.getAsin()==null&&summary.getAsin()!=null)
 		            		||(product.getName()==null&&summary.getItemName()!=null)
 		            		||(!product.getSku().equals(result.getSku()))

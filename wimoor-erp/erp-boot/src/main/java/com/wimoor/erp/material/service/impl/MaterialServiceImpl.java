@@ -1946,4 +1946,92 @@ public Map<String, Object> getRealityPrice(String materialid){
 		return this.baseMapper.getCountrys();
 	}
 
+	// === 分模块保存方法实现 ===
+
+	@Override
+	@CacheEvict(value = { "materialListCache","inventoryByMskuCache" }, allEntries = true)
+	public Material saveBaseInfoOnly(MaterialInfoVO vo, MultipartFile file, MultipartFile pkgfile, UserInfo user) throws ERPBizException {
+		if(vo == null || vo.getMaterial() == null) {
+			throw new ERPBizException("填入数据参数异常！");
+		}
+		if(vo.getMaterial().getSku() != null) {
+			vo.getMaterial().setSku(vo.getMaterial().getSku().trim());
+		}
+		Material material = saveBaseInfo(vo, file, pkgfile, user);
+		saveTags(vo, material, user);
+		return material;
+	}
+
+	@Override
+	@CacheEvict(value = { "materialListCache","inventoryByMskuCache" }, allEntries = true)
+	public void saveAssemblyInfo(String materialId, MaterialInfoVO vo, UserInfo user) {
+		Material material = this.getById(materialId);
+		if(material == null) {
+			throw new ERPBizException("产品不存在！");
+		}
+		vo.setMaterial(new MaterialVO());
+		vo.getMaterial().setId(materialId);
+		vo.getMaterial().setIssfg(material.getIssfg());
+		saveMaterialAssembly(vo, material);
+	}
+
+	@Override
+	@CacheEvict(value = { "materialListCache","inventoryByMskuCache" }, allEntries = true)
+	public void saveSupplierInfo(String materialId, List<MaterialSupplierVO> supplierList, UserInfo user) {
+		Material material = this.getById(materialId);
+		if(material == null) {
+			throw new ERPBizException("产品不存在！");
+		}
+		iIMaterialSupplierService.saveOrUpdateSupplier(supplierList, user, materialId, material);
+	}
+
+	@Override
+	@CacheEvict(value = { "materialListCache","inventoryByMskuCache" }, allEntries = true)
+	public void saveSpecsInfo(String materialId, MaterialInfoVO vo, UserInfo user) {
+		Material material = this.getById(materialId);
+		if(material == null) {
+			throw new ERPBizException("产品不存在！");
+		}
+		DimensionsInfo itemdim = saveItemDim(vo);
+		DimensionsInfo pkgdim = savePkgDim(vo);
+		DimensionsInfo boxdim = saveBoxDim(vo);
+		// 更新 material 的 dim 关联
+		if(itemdim != null) {
+			material.setItemdimensions(itemdim.getId());
+		} else {
+			material.setItemdimensions(null);
+		}
+		if(pkgdim != null) {
+			material.setPkgdimensions(pkgdim.getId());
+		} else {
+			material.setPkgdimensions(null);
+		}
+		if(boxdim != null) {
+			material.setBoxdimensions(boxdim.getId());
+		} else {
+			material.setBoxdimensions(null);
+		}
+		if(vo.getMaterial() != null && vo.getMaterial().getBoxnum() != null) {
+			material.setBoxnum(vo.getMaterial().getBoxnum());
+		}
+		this.baseMapper.updateById(material);
+	}
+
+	@Override
+	@CacheEvict(value = { "materialListCache","inventoryByMskuCache" }, allEntries = true)
+	public void saveConsumableInfo(String materialId, List<MaterialConsumableVO> consumableList, UserInfo user) {
+		Material material = this.getById(materialId);
+		if(material == null) {
+			throw new ERPBizException("产品不存在！");
+		}
+		if(consumableList != null) {
+			for(MaterialConsumableVO item : consumableList) {
+				if(item.getAmount().floatValue() < 0.000001) {
+					throw new ERPBizException("辅料数量必须大于0！");
+				}
+			}
+		}
+		saveMaterialConsumable(consumableList, user, materialId);
+	}
+
 }

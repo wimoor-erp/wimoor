@@ -24,6 +24,7 @@ import com.wimoor.erp.material.pojo.entity.MaterialCategory;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialInfoVO;
+import com.wimoor.erp.material.pojo.vo.MaterialSupplierVO;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
 
 public interface IMaterialService extends IService<Material> {
@@ -136,4 +137,20 @@ public interface IMaterialService extends IService<Material> {
 	void saveCustoms(UserInfo user, List<MaterialCustoms> list);
 
     List<Map<String, Object>> getCountrys();
+
+    // === 分模块保存方法 ===
+    /** 保存基本信息（material 主表 + 图片 + 标签 + 尺寸） */
+    Material saveBaseInfoOnly(MaterialInfoVO vo, MultipartFile file, MultipartFile pkgfile, UserInfo user) throws ERPBizException;
+
+    /** 保存组合（组装）信息 */
+    void saveAssemblyInfo(String materialId, MaterialInfoVO vo, UserInfo user);
+
+    /** 保存采购/供应商信息 */
+    void saveSupplierInfo(String materialId, List<MaterialSupplierVO> supplierList, UserInfo user);
+
+    /** 保存规格尺寸信息 */
+    void saveSpecsInfo(String materialId, MaterialInfoVO vo, UserInfo user);
+
+    /** 保存辅料关联信息 */
+    void saveConsumableInfo(String materialId, List<MaterialConsumableVO> consumableList, UserInfo user);
 }

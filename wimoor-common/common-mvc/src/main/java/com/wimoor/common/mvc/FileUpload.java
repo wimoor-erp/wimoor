@@ -40,6 +40,8 @@ public class FileUpload   {
 				value=value.replace(storageService.getBucketName()+"/", storageService.getBucketPath()+"/");
 			}else if(storageLargeService.getBucketName()!=null&&value.contains( storageLargeService.getBucketName()+"/")){
 				value=value.replace(storageLargeService.getBucketName()+"/", storageLargeService.getBucketPath()+"/");
+			}else if(value.startsWith("media/")){
+				value=storageService.getBucketPath()+"/"+value;
 			}
 		}else{
 			value=storageService.getBucketPath()+"/sys/photos/noimg.png";

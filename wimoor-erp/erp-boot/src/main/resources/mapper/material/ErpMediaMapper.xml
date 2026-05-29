@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.ErpMediaMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.ErpMedia">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="shopid" property="shopid" jdbcType="VARCHAR"/>
+        <result column="media_type" property="mediaType" jdbcType="TINYINT"/>
+        <result column="usage_type" property="usageType" jdbcType="SMALLINT"/>
+        <result column="source" property="source" jdbcType="TINYINT"/>
+        <result column="url" property="url" jdbcType="VARCHAR"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="thumb_location" property="thumbLocation" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="width" property="width" jdbcType="INTEGER"/>
+        <result column="height" property="height" jdbcType="INTEGER"/>
+        <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
+        <result column="duration" property="duration" jdbcType="INTEGER"/>
+        <result column="content_type" property="contentType" jdbcType="VARCHAR"/>
+        <result column="md5" property="md5" jdbcType="CHAR"/>
+        <result column="process_status" property="processStatus" jdbcType="TINYINT"/>
+        <result column="process_task_id" property="processTaskId" jdbcType="VARCHAR"/>
+        <result column="creator" property="creator" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="MediaWithRefResultMap" type="com.wimoor.erp.material.mapper.ErpMediaMapper$ErpMediaWithRef"
+               extends="BaseResultMap">
+        <result column="ref_id" property="refId" jdbcType="VARCHAR"/>
+        <result column="ref_material_id" property="materialId" jdbcType="VARCHAR"/>
+        <result column="ref_type" property="refType" jdbcType="TINYINT"/>
+        <result column="pic_class" property="picClass" jdbcType="TINYINT"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="is_main" property="isMain" jdbcType="TINYINT"/>
+        <result column="platform" property="platform" jdbcType="VARCHAR"/>
+        <result column="marketplace_id" property="marketplaceId" jdbcType="VARCHAR"/>
+        <result column="slot_position" property="slotPosition" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, shopid, media_type, usage_type, source, url, location, thumb_location,
+        name, width, height, file_size, duration, content_type, md5,
+        process_status, process_task_id, creator, create_time, update_time
+    </sql>
+
+    <select id="selectByMd5" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_erp_media
+        WHERE shopid = #{shopid} AND md5 = #{md5}
+        LIMIT 1
+    </select>
+
+    <select id="selectByMaterialId" resultMap="MediaWithRefResultMap">
+        SELECT
+            m.id, m.shopid, m.media_type, m.usage_type, m.source, m.url, m.location, m.thumb_location,
+            m.name, m.width, m.height, m.file_size, m.duration, m.content_type, m.md5,
+            m.process_status, m.process_task_id, m.creator, m.create_time, m.update_time,
+            r.id AS ref_id,
+            r.material_id AS ref_material_id,
+            r.ref_type, r.pic_class, r.sort_order, r.is_main, r.platform, r.marketplace_id, r.slot_position
+        FROM t_erp_media_ref r
+        INNER JOIN t_erp_media m ON m.id = r.media_id
+        WHERE r.material_id = #{materialId}
+        <if test="refType != null">
+            AND r.ref_type = #{refType}
+        </if>
+        ORDER BY r.is_main DESC, r.sort_order ASC, r.create_time ASC
+    </select>
+
+</mapper>

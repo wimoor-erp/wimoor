@@ -25,10 +25,13 @@ public class MyStringJsonSerializer extends JsonSerializer<String> {
 	public void serialize(String value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
 		if (value != null) {
-			if(gen.getOutputContext().getCurrentName()!=null)
-				if("image".equals(gen.getOutputContext().getCurrentName())||
-				   "location".equals(gen.getOutputContext().getCurrentName())) {
+			if(gen.getOutputContext().getCurrentName()!=null) {
+				String fieldName = gen.getOutputContext().getCurrentName();
+				if("image".equals(fieldName)||
+				   "location".equals(fieldName)||
+				   "thumbLocation".equals(fieldName)) {
 				    value=fileUpload.getPictureImage(value);
+				}
 			}
 		} 
 		gen.writeString(value);

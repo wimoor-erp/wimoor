@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wimoor.erp.material.mapper.ErpMediaRefMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.erp.material.pojo.entity.ErpMediaRef">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="media_id" property="mediaId" jdbcType="VARCHAR"/>
+        <result column="material_id" property="materialId" jdbcType="VARCHAR"/>
+        <result column="shopid" property="shopid" jdbcType="VARCHAR"/>
+        <result column="ref_type" property="refType" jdbcType="TINYINT"/>
+        <result column="pic_class" property="picClass" jdbcType="TINYINT"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="is_main" property="isMain" jdbcType="TINYINT"/>
+        <result column="platform" property="platform" jdbcType="VARCHAR"/>
+        <result column="marketplace_id" property="marketplaceId" jdbcType="VARCHAR"/>
+        <result column="slot_position" property="slotPosition" jdbcType="VARCHAR"/>
+        <result column="creator" property="creator" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, media_id, material_id, shopid, ref_type, pic_class, sort_order, is_main,
+        platform, marketplace_id, slot_position, creator, create_time
+    </sql>
+
+    <select id="selectByMediaId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_erp_media_ref
+        WHERE media_id = #{mediaId}
+    </select>
+
+    <select id="selectMainByMaterial" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM t_erp_media_ref
+        WHERE material_id = #{materialId}
+          AND ref_type = #{refType}
+          AND is_main = 1
+        LIMIT 1
+    </select>
+
+</mapper>
