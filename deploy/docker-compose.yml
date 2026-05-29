@@ -1,0 +1,226 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: wimoor-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3306:3306"
+    volumes:
+      - wimoor-mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --character-set-client-handshake=FALSE
+      --init-connect='SET NAMES utf8mb4'
+      --max_connections=500
+      --lower_case_table_names=1
+      --innodb-strict-mode=0
+    networks:
+      - wimoor-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  redis:
+    image: redis:7.0
+    container_name: wimoor-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass 123456
+    volumes:
+      - wimoor-redis-data:/data
+    networks:
+      - wimoor-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "123456", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  nacos:
+    image: nacos/nacos-server:v2.3.0
+    platform: linux/amd64
+    container_name: wimoor-nacos
+    environment:
+      MODE: standalone
+      PREFER_HOST_MODE: hostname
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: "123456"
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_DB_PARAM: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      JVM_XMS: 256m
+      JVM_XMX: 512m
+      JVM_XMN: 128m
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - wimoor-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.gateway
+    image: wimoor-gateway-go:latest
+    container_name: wimoor-gateway
+    ports:
+      - "8099:8099"
+    environment:
+      REDIS_ADDR: wimoor-redis:6379
+      REDIS_PASSWORD: "123456"
+      ADMIN_TARGET: http://wimoor-admin:8100
+      ERP_TARGET: http://wimoor-erp:8101
+      AMAZON_TARGET: http://wimoor-amazon:8102
+      AMAZONADV_TARGET: http://wimoor-amazon-adv:8103
+      MDATA_TARGET: http://wimoor-data:8104
+      FINANCE_TARGET: http://wimoor-finance:8106
+      QUOTE_TARGET: http://host.docker.internal:8500
+      CODE_TARGET: http://host.docker.internal:8800
+    networks:
+      - wimoor-net
+    depends_on:
+      redis:
+        condition: service_healthy
+      admin:
+        condition: service_started
+      erp:
+        condition: service_started
+      amazon:
+        condition: service_started
+      amazon-adv:
+        condition: service_started
+      data:
+        condition: service_started
+      finance:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8099/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+
+  admin:
+    image: wimoor-admin:latest
+    container_name: wimoor-admin
+    ports:
+      - "8100:8100"
+    environment:
+      NACOS_SERVER_ADDR: wimoor-nacos:8848
+      NACOS_NAMESPACE: public
+      APP_NAME: wimoor-admin
+    networks:
+      - wimoor-net
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: on-failure
+
+  erp:
+    image: wimoor-erp:latest
+    container_name: wimoor-erp
+    ports:
+      - "8101:8101"
+    environment:
+      NACOS_SERVER_ADDR: wimoor-nacos:8848
+      NACOS_NAMESPACE: public
+      APP_NAME: wimoor-erp
+    networks:
+      - wimoor-net
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: on-failure
+
+  amazon:
+    image: wimoor-amazon:latest
+    container_name: wimoor-amazon
+    ports:
+      - "8102:8102"
+    environment:
+      NACOS_SERVER_ADDR: wimoor-nacos:8848
+      NACOS_NAMESPACE: public
+      APP_NAME: wimoor-amazon
+    networks:
+      - wimoor-net
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: on-failure
+
+  amazon-adv:
+    image: wimoor-amazon-adv:latest
+    container_name: wimoor-amazon-adv
+    ports:
+      - "8103:8103"
+    environment:
+      NACOS_SERVER_ADDR: wimoor-nacos:8848
+      NACOS_NAMESPACE: public
+      APP_NAME: wimoor-amazon-adv
+    networks:
+      - wimoor-net
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: on-failure
+
+  finance:
+    image: wimoor-finance:latest
+    container_name: wimoor-finance
+    ports:
+      - "8106:8106"
+    environment:
+      NACOS_SERVER_ADDR: wimoor-nacos:8848
+      NACOS_NAMESPACE: public
+      APP_NAME: wimoor-finance
+    networks:
+      - wimoor-net
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: on-failure
+
+  data:
+    image: wimoor-data:latest
+    container_name: wimoor-data
+    ports:
+      - "8104:8104"
+    environment:
+      NACOS_SERVER_ADDR: wimoor-nacos:8848
+      NACOS_NAMESPACE: public
+      APP_NAME: wimoor-data
+    networks:
+      - wimoor-net
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  wimoor-mysql-data:
+  wimoor-redis-data:
+
+networks:
+  wimoor-net:
+    driver: bridge

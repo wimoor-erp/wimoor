@@ -1,0 +1,25 @@
+FROM amazoncorretto:17-alpine3.21-jdk
+
+# 创建日志目录（容器内路径，应用写日志到此处）
+# logback-spring.xml 中 LOG_HOME=/logs/${APP_NAME}，需要预创建各服务子目录
+RUN mkdir -p /logs/wimoor-admin /logs/wimoor-erp /logs/wimoor-amazon \
+    /logs/wimoor-amazon-adv /logs/wimoor-data /logs/wimoor-finance /logs/wimoor-quote
+
+# 创建工作目录
+WORKDIR /app
+
+# 从构建参数获取JAR文件路径（相对于项目根目录）
+ARG JAR_FILE
+COPY deploy/app.jar app.jar
+
+# 容器时区（Corretto Alpine 自带 tzdata，直接设置 TZ 即可）
+ENV TZ=Asia/Shanghai
+
+# JVM 参数：适配 Java 17 的模块系统
+ENV JAVA_OPTS="-Xms256m -Xmx768m \
+  --add-opens=java.base/java.lang=ALL-UNNAMED \
+  --add-opens=java.base/java.util=ALL-UNNAMED \
+  --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+  --add-opens=java.base/java.util.concurrent=ALL-UNNAMED"
+
+ENTRYPOINT ["sh", "-c", "export NACOS_IP=$(hostname -i) && java $JAVA_OPTS -jar /app/app.jar"]

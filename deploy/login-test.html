@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wimoor ERP - 登录测试</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #1565c0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .logo { text-align: center; margin-bottom: 32px; }
+    .logo h1 { color: #1565c0; font-size: 28px; font-weight: 700; }
+    .logo p { color: #666; font-size: 13px; margin-top: 6px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 14px; color: #333; margin-bottom: 6px; font-weight: 500; }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus { border-color: #1565c0; }
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: #1565c0;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn-login:hover { background: #0d47a1; }
+    .btn-login:disabled { background: #aaa; cursor: not-allowed; }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+    .alert-error { background: #fdecea; color: #c62828; border: 1px solid #f5c6cb; }
+    .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c3e6cb; }
+    .user-info {
+      display: none;
+      text-align: center;
+    }
+    .user-info .avatar {
+      width: 64px; height: 64px;
+      background: #1565c0;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 28px;
+    }
+    .user-info h2 { color: #333; margin-bottom: 8px; }
+    .user-info p { color: #666; font-size: 13px; margin-bottom: 4px; }
+    .token-box {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 16px;
+      font-size: 12px;
+      word-break: break-all;
+      color: #555;
+    }
+    .token-box span { font-weight: 600; color: #333; }
+    .api-links { margin-top: 16px; text-align: center; }
+    .api-links a {
+      color: #1565c0;
+      font-size: 13px;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    .api-links a:hover { text-decoration: underline; }
+    .btn-logout {
+      margin-top: 16px;
+      padding: 8px 24px;
+      background: white;
+      color: #1565c0;
+      border: 1.5px solid #1565c0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .hint { font-size: 12px; color: #999; margin-top: 16px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">
+      <h1>🌐 Wimoor ERP</h1>
+      <p>跨境电商 ERP 管理系统 — 本地测试登录</p>
+    </div>
+
+    <div id="loginForm">
+      <div id="alertBox" class="alert"></div>
+      <div class="form-group">
+        <label>账号（邮箱）</label>
+        <input type="email" id="account" value="admin@wimoor.com" placeholder="请输入账号">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="password" value="wimoor123" placeholder="请输入密码">
+      </div>
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">登 录</button>
+      <p class="hint">Gateway: http://localhost:8099 &nbsp;|&nbsp; Admin: http://localhost:8100</p>
+    </div>
+
+    <div id="userInfo" class="user-info">
+      <div class="avatar">✓</div>
+      <h2 id="userName"></h2>
+      <p id="userAccount"></p>
+      <p id="userRole"></p>
+      <div class="token-box">
+        <span>Session Token:</span><br>
+        <span id="sessionToken"></span>
+      </div>
+      <div class="api-links">
+        <a href="http://localhost:8099/admin/swagger-ui/index.html" target="_blank">📋 Admin Swagger</a>
+        <a href="http://localhost:8848/nacos" target="_blank">⚙️ Nacos 控制台</a>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <script>
+    const GATEWAY = 'http://localhost:8099';
+
+    async function doLogin() {
+      const account = document.getElementById('account').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const alertBox = document.getElementById('alertBox');
+
+      if (!account || !password) {
+        showAlert('error', '请输入账号和密码');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '登录中...';
+      alertBox.style.display = 'none';
+
+      try {
+        const resp = await fetch(`${GATEWAY}/admin/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account, password })
+        });
+        const data = await resp.json();
+
+        if (data.code === 200 && data.data) {
+          const user = data.data;
+          document.getElementById('userName').textContent =
+            (user.userinfo && user.userinfo.name) || user.account;
+          document.getElementById('userAccount').textContent = '账号：' + user.account;
+          document.getElementById('userRole').textContent = '类型：' + (user.usertype || 'user');
+          document.getElementById('sessionToken').textContent = user.session || '-';
+
+          document.getElementById('loginForm').style.display = 'none';
+          document.getElementById('userInfo').style.display = 'block';
+
+          // 保存 session 供后续 API 请求使用
+          sessionStorage.setItem('wimoor_session', user.session);
+          sessionStorage.setItem('wimoor_account', user.account);
+        } else {
+          showAlert('error', '登录失败：' + (data.msg || '未知错误'));
+        }
+      } catch (e) {
+        showAlert('error', '请求失败，请检查服务是否正常运行：' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '登 录';
+      }
+    }
+
+    function doLogout() {
+      sessionStorage.removeItem('wimoor_session');
+      sessionStorage.removeItem('wimoor_account');
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('userInfo').style.display = 'none';
+    }
+
+    function showAlert(type, msg) {
+      const box = document.getElementById('alertBox');
+      box.className = 'alert alert-' + type;
+      box.textContent = msg;
+      box.style.display = 'block';
+    }
+
+    // 支持回车键登录
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    // 检查已有 session
+    const existingSession = sessionStorage.getItem('wimoor_session');
+    if (existingSession) {
+      const account = sessionStorage.getItem('wimoor_account') || '';
+      document.getElementById('userName').textContent = account;
+      document.getElementById('userAccount').textContent = '账号：' + account;
+      document.getElementById('sessionToken').textContent = existingSession;
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('userInfo').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

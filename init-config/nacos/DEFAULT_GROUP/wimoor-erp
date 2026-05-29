@@ -12,8 +12,8 @@ spring:
       driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
       multipart:
-            max-file-size: 10MB
-            max-request-size: 100MB
+            max-file-size: 500MB
+            max-request-size: 500MB
   cloud:
     loadbalancer:
       ribbon:
