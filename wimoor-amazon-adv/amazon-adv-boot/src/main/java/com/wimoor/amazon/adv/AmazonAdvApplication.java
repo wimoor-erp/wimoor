@@ -1,4 +1,4 @@
-package com.wimoor;
+package com.wimoor.amazon.adv;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,7 +15,7 @@ import tk.mybatis.spring.annotation.MapperScan;
  
 
 @SpringBootApplication(scanBasePackages ={"com.wimoor.amazon.adv.*"})
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.wimoor"})
 @EnableCaching
 @EnableDiscoveryClient
 @EnableScheduling
