@@ -13,6 +13,7 @@
     <modules>
         <module>wimoor-api-quote</module>
         <module>wimoor-api-amazon</module>
+        <module>wimoor-api-admin</module>
     </modules>
 
 </project>

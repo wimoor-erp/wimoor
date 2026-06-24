@@ -23,6 +23,8 @@ public class AmazonRegionVO {
 	   String sellerauth;
 	   @ApiModelProperty(value = "授权时间")
 	   Date time;
+		@ApiModelProperty(value = "广告授权时间")
+		Date advtime;
 	   @ApiModelProperty(value = "广告授权AuthID")
 	   String advid;
 	   @ApiModelProperty(value = "店铺授权AuthID")

@@ -1,12 +1,11 @@
 package com.wimoor.amazon.profit.mapper;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ibatis.annotations.Mapper;
-
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
+import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
+import java.util.Map;
 @Mapper
 public interface ProfitConfigMapper  extends BaseMapper<ProfitConfig> {
 	
@@ -25,4 +24,6 @@ public interface ProfitConfigMapper  extends BaseMapper<ProfitConfig> {
 	ProfitConfig findSystemProfitCfg();
 
 	ProfitConfig findDefaultPlanIdByGroup(String groupid);
+
+    ProfitConfig findFinDefaultPlanIdByGroup(String groupid);
 }

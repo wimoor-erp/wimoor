@@ -1,20 +1,6 @@
 package com.wimoor.amazon.inbound.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.inbound.pojo.dto.ShipInboundShipmenSummaryDTO;
 import com.wimoor.amazon.inbound.service.IShipInboundTransService;
@@ -23,10 +9,21 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
  
 
 @Api(tags = "物流渠道接口")
@@ -86,6 +83,12 @@ public class ShipTransCompanyController  {
 			param.put("channel", channel);
 		} else {
 			param.put("channel", null);
+		}
+		param.put("ftype", dto.getFtype());
+		if(StrUtil.isNotEmpty(dto.getDatetype())){
+			param.put("datetype", dto.getDatetype());
+		}else{
+			param.put("datetype", "shipdate");
 		}
 		IPage<Map<String, Object>> pagelist = shipInboundTransService.getShipmentFeeReport(dto.getPage(),param);
 		return Result.success(pagelist);
@@ -199,6 +202,12 @@ public class ShipTransCompanyController  {
 			String isShip =dto.getIsShip();
 			params.put("shopid", shopid);
 			params.put("isShip", isShip);
+			params.put("ftype", dto.getFtype());
+			if(StrUtil.isNotEmpty(dto.getDatetype())){
+				params.put("datetype", dto.getDatetype());
+			}else{
+				params.put("datetype", "shipdate");
+			}
 			shipInboundTransService.setShipmentFeeReport(workbook, params);
 			workbook.write(fOut);
 			workbook.close();
@@ -261,6 +270,11 @@ public class ShipTransCompanyController  {
 			param.put("channel", null);
 		}
 		param.put("ftype", dto.getFtype());
+		if(StrUtil.isNotEmpty(dto.getDatetype())){
+			param.put("datetype", dto.getDatetype());
+		}else{
+			param.put("datetype", "shipdate");
+		}
 		IPage<Map<String, Object>> pagelist = shipInboundTransService.getShipmentFeeDetailReport(dto.getPage(),param);
 		return Result.success(pagelist);
 	}
@@ -314,6 +328,11 @@ public class ShipTransCompanyController  {
 			params.put("shopid", shopid);
 			params.put("isShip", isShip);
 			params.put("ftype", dto.getFtype());
+			if(StrUtil.isNotEmpty(dto.getDatetype())){
+				params.put("datetype", dto.getDatetype());
+			}else{
+				params.put("datetype", "shipdate");
+			}
 			shipInboundTransService.setShipmentFeeDetailReport(workbook, params);
 			workbook.write(fOut);
 			workbook.close();

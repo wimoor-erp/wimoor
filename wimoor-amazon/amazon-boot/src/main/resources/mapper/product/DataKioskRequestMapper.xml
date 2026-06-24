@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.product.mapper.DataKioskRequestMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.product.pojo.entity.DataKioskRequest">
+            <result property="amazonauthid" column="amazonauthid" />
+            <result property="marketplaceid" column="marketplaceid" />
+            <result property="lastupdate" column="lastupdate" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,amazonauthid,marketplaceid,beginDate,endDate,queryId,
+        dataDocumentId,documentUrl,lastupdate
+    </sql>
+    <select id="getDocId" resultType="com.wimoor.amazon.product.pojo.entity.DataKioskRequest">
+        SELECT query_id queryId,query_id id, amazonauthid,marketplaceid,begin_date beginDate,end_date endDate,
+               data_document_id dataDocumentId,document_url documentUrl,lastupdate from t_amz_data_kiosk_request
+        where status=0 or data_document_id is null limit 20
+    </select>
+
+    <select id="getDocument" resultType="com.wimoor.amazon.product.pojo.entity.DataKioskRequest">
+        select query_id queryId,query_id id,amazonauthid,marketplaceid,begin_date beginDate,end_date endDate,
+               data_document_id dataDocumentId,document_url documentUrl,lastupdate from t_amz_data_kiosk_request
+        where (status=1 or status=2) and data_document_id is not null limit 20
+    </select>
+</mapper>

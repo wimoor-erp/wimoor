@@ -1,20 +1,6 @@
 package com.wimoor.amazon.profit.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.math.Calculator;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -27,35 +13,23 @@ import com.wimoor.amazon.profit.mapper.IndividualFeeMapper;
 import com.wimoor.amazon.profit.mapper.PrepServiceFeeMapper;
 import com.wimoor.amazon.profit.mapper.VariableClosingFeeMapper;
 import com.wimoor.amazon.profit.pojo.dto.ProfitQuery;
-import com.wimoor.amazon.profit.pojo.entity.FBALabelingFee;
-import com.wimoor.amazon.profit.pojo.entity.FBASipp;
-import com.wimoor.amazon.profit.pojo.entity.FixedClosingFee;
-import com.wimoor.amazon.profit.pojo.entity.IndividualFee;
-import com.wimoor.amazon.profit.pojo.entity.ProductTier;
-import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
-import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
-import com.wimoor.amazon.profit.pojo.entity.ReferralFee;
-import com.wimoor.amazon.profit.pojo.entity.VariableClosingFee;
+import com.wimoor.amazon.profit.pojo.entity.*;
 import com.wimoor.amazon.profit.pojo.vo.CostDetail;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
-import com.wimoor.amazon.profit.service.IFBASippService;
-import com.wimoor.amazon.profit.service.IFbaFormatService;
-import com.wimoor.amazon.profit.service.IFbaLabelingFeeService;
-import com.wimoor.amazon.profit.service.IInplaceFeeFormatService;
-import com.wimoor.amazon.profit.service.IInventoryStorageFeeService;
-import com.wimoor.amazon.profit.service.IOutBoundWeightFormatService;
-import com.wimoor.amazon.profit.service.IProductFormatService;
-import com.wimoor.amazon.profit.service.IProductTierService;
-import com.wimoor.amazon.profit.service.IProfitCfgService;
-import com.wimoor.amazon.profit.service.IProfitService;
-import com.wimoor.amazon.profit.service.IReferralFeeService;
+import com.wimoor.amazon.profit.service.*;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.StringFormat;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.util.SpringUtil;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.math.Calculator;
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.*;
 
 @Service("profitService")  
 public class ProfitServiceImpl implements IProfitService{
@@ -570,8 +544,8 @@ public class ProfitServiceImpl implements IProfitService{
 			String productTierName = null;
 			BigDecimal outboundWeight = new BigDecimal("0");
 			BigDecimal FBA = new BigDecimal("0");
-			isSmlAndLight=checkLight(country,isSmlAndLight,price);
-			if (isSmlAndLight && Arrays.asList(smlAndLightCountry).contains(country)) {
+			isSmlAndLight=checkLight(country,isSmlAndLight,price,type);
+			if (isSmlAndLight && Arrays.asList(smlAndLightCountry).contains(country)&&!"EFN".equals(profitConfigCountry.getFenpeiType())) {
 				productTierId = profitServiceX.determineSmlProductTier(country, inputDimensionnew, isMedia);// 公用方法
 				if (productTierId != null) {
 					ProductTier productTier = productTierService.selectByPKey(productTierId);
@@ -625,28 +599,57 @@ public class ProfitServiceImpl implements IProfitService{
 		}
 		return result;
 	}
-	public boolean checkLight(String country, Boolean isSmlAndLight, BigDecimal price) {
-		// TODO Auto-generated method stub
-			if(country==null||price==null) {
-				return false;
-			}
-			if(country.equals("UK")) {
+	public boolean checkLight(String country, Boolean isSmlAndLight, BigDecimal price,String typename) {
+		if(country==null||price==null) {
+			return false;
+		}
+		boolean isSpecialType = false;
+		if(typename!=null) {
+			String typenameLower = typename.toLowerCase();
+			isSpecialType = typenameLower.contains("beauty") 
+				|| typenameLower.contains("personal care")
+				|| typenameLower.contains("health")
+				|| typenameLower.contains("Business")
+				|| typenameLower.contains("industrial")
+				|| typenameLower.contains("scientific")
+				|| typenameLower.contains("office")
+				|| typenameLower.contains("food")
+				|| typenameLower.contains("books")
+				|| typenameLower.contains("amazon device accessories")
+				|| typenameLower.contains("kitchen");
+		}
+		if(country.equals("UK")) {
+			if(isSpecialType) {
 				return new BigDecimal("10").compareTo(price)>=0;
-			}else if(country.equals("DE")) {
+			}
+			return new BigDecimal("20").compareTo(price)>=0;
+		}else if(country.equals("DE")) {
+			if(isSpecialType) {
 				return new BigDecimal("11").compareTo(price)>=0;
-			}else if(("FR,IT,NL,ES").contains(country)) {
-				return new BigDecimal("12").compareTo(price)>=0;
-			}else if(country.equals("SE")) {
-				return new BigDecimal("140").compareTo(price)>=0;
-			}else if(country.equals("PL")) {
-				return new BigDecimal("55").compareTo(price)>=0;
-			}else if(country.equals("US")) {
-				return new BigDecimal("10").compareTo(price)>=0;
-			}else if(country.equals("CA")) {
-				return new BigDecimal("14").compareTo(price)>0;
-			}else {
-				return isSmlAndLight!=null?isSmlAndLight:false;
 			}
+			return new BigDecimal("20").compareTo(price)>=0;
+		}else if(("FR,IT,NL,ES,BE,IE").contains(country)) {
+			if(isSpecialType) {
+				return new BigDecimal("12").compareTo(price)>=0;
+			}
+			return new BigDecimal("20").compareTo(price)>=0;
+		}else if(country.equals("SE")) {
+			if(isSpecialType) {
+				return new BigDecimal("140").compareTo(price)>=0;
+			}
+			return new BigDecimal("230").compareTo(price)>=0;
+		}else if(country.equals("PL")) {
+			if(isSpecialType) {
+				return new BigDecimal("55").compareTo(price)>=0;
+			}
+			return new BigDecimal("85").compareTo(price)>=0;
+		}else if(country.equals("US")) {
+			return new BigDecimal("10").compareTo(price)>=0;
+		}else if(country.equals("CA")) {
+			return new BigDecimal("14").compareTo(price)>0;
+		}else {
+			return isSmlAndLight!=null?isSmlAndLight:false;
+		}
 	}
 
 	Map<String, BigDecimal> individualFeeMap = new HashMap<String, BigDecimal>();
@@ -922,7 +925,7 @@ public class ProfitServiceImpl implements IProfitService{
 		if (inputDimension_amz == null || inputDimension_local==null)
 			return null;
 		// 对用户输入的长宽高重新排序
-		isSmlAndLight=checkLight(country,isSmlAndLight,price);
+		isSmlAndLight=checkLight(country,isSmlAndLight,price,type);
 		initDimensionSort(inputDimension_amz);
 		initDimensionSort(inputDimension_local);
 
@@ -933,7 +936,7 @@ public class ProfitServiceImpl implements IProfitService{
 		costDetail.setCurrency(fcurrency);//符号简写，如：$
 		////采购成本
 		String to = getCurrencyUnit(country);
-		cost = this.exchangeRateHandlerService.changeCurrencyByLocal(currency, to, cost);//单位转换
+		cost = this.exchangeRateHandlerService.changeCurrencyByLocal(profitcfg.getShopId(),currency, to, cost);//单位转换
 		costDetail.setPurchase(cost);
 		
 		ProfitConfigCountry profitConfigX = profitcfg.getProfitConfigCountry(country);//得到各个国家的利润方案
@@ -1127,7 +1130,7 @@ public class ProfitServiceImpl implements IProfitService{
 		if(inputDimension_local == null||fbaFee==null) {
 			return null;
 		}
-		isSmlAndLight=checkLight(country,isSmlAndLight,price);
+		isSmlAndLight=checkLight(country,isSmlAndLight,price,ref.getType());
 		InputDimensions inputDimensionNew = new InputDimensions();
 		inputDimensionNew.setLength(new ItemMeasure(fbaFee.getLongestSide(), getDimUnit(country)));
 		inputDimensionNew.setWidth(new ItemMeasure(fbaFee.getMedianSide(), getDimUnit(country)));
@@ -1151,7 +1154,7 @@ public class ProfitServiceImpl implements IProfitService{
 		costDetail.setCurrency(fcurrency);//符号简写，如：$
 		////采购成本
 		String to = getCurrencyUnit(country);
-		cost = this.exchangeRateHandlerService.changeCurrencyByLocal(currency, to, cost);//单位转换
+		cost = this.exchangeRateHandlerService.changeCurrencyByLocal(profitCfgAll.getShopId(),currency, to, cost);//单位转换
 		costDetail.setPurchase(cost);
 		
 		ProfitConfigCountry profitConfigX = profitCfgAll.getProfitConfigCountry(country);//得到各个国家的利润方案
@@ -1383,7 +1386,7 @@ public class ProfitServiceImpl implements IProfitService{
 			///////////如果是轻小项目，重新计算FBA费//////////////
 			if(profitcfg!=null) {
 				ProfitConfigCountry cfgcountry = profitcfg.getProfitConfigCountry(costDetail.getCountry());
-				isSmlAndLight=this.checkLight(costDetail.getCountry(), isSmlAndLight, price);
+				isSmlAndLight=this.checkLight(costDetail.getCountry(), isSmlAndLight, price,ref.getType());
 				if (isSmlAndLight && Arrays.asList(smlAndLightCountry).contains(costDetail.getCountry())) {
 					IProfitService profitServiceX = null;
 					try {

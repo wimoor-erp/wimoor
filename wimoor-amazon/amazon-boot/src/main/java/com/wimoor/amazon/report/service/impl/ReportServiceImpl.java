@@ -1,35 +1,12 @@
 package com.wimoor.amazon.report.service.impl;
 
- 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.zip.GZIPInputStream;
 
-import okhttp3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.api.ReportsApi;
 import com.amazon.spapi.client.ApiCallback;
 import com.amazon.spapi.client.ApiException;
-import com.amazon.spapi.model.reports.CreateReportResponse;
-import com.amazon.spapi.model.reports.CreateReportSpecification;
-import com.amazon.spapi.model.reports.Report;
-import com.amazon.spapi.model.reports.ReportDocument;
-import com.amazon.spapi.model.reports.ReportOptions;
+import com.amazon.spapi.model.reports.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.mapper.AmazonGroupMapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
@@ -44,8 +21,15 @@ import com.wimoor.amazon.report.service.IReportRequestTypeService;
 import com.wimoor.amazon.report.service.IReportService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
+import okhttp3.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.zip.GZIPInputStream;
 
 @Service("reportCaptureService")
 public abstract class ReportServiceImpl  implements IReportService {
@@ -169,6 +153,13 @@ public abstract class ReportServiceImpl  implements IReportService {
 	   */
 	  public String download(AmazonAuthority amazonAuthority,String url, String compressionAlgorithm,ReportRequestRecord record) throws IOException, IllegalArgumentException, ExecutionException, InterruptedException {
 	    // Execute the signed request.
+		  ReportRequestRecord recorddb = iReportRequestRecordService.getById(record.getId());
+		  if(recorddb.isIsrun()
+				  ||"treat".equals(recorddb.getReportProcessingStatus())
+				  ||"success".equals(recorddb.getReportProcessingStatus())
+				  ||!recorddb.getIsnewest()){
+			  return "skip";
+		  }
 	    OkHttpClient.Builder builder = new OkHttpClient.Builder();
 	    // 设置连接超时时间为10秒
 	    builder.connectTimeout(300, TimeUnit.MINUTES);

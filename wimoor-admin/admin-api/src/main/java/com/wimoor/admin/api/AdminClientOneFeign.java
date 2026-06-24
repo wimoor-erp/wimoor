@@ -1,25 +1,20 @@
 package com.wimoor.admin.api;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.wimoor.admin.pojo.dto.SysEmailDTO;
 import com.wimoor.admin.pojo.dto.SysUserRoleDTO;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
- 
 @Component
 @FeignClient(value = "wimoor-admin")
 public interface AdminClientOneFeign {
@@ -52,9 +47,6 @@ public interface AdminClientOneFeign {
     @RequestMapping("admin/api/v1/users/sysrole/verifyAccount")
     public Result<UserInfo> verifyAccountAction(@RequestParam("account")String account,@RequestParam("password")String password);
     
-	@GetMapping("/admin/api/v1/users/sysrole/userid/{userid}")
-	public Result<UserInfo> getUserAllByUserId(@PathVariable String userid);
-	
     @PostMapping("/admin/api/v1/email/sendBoss")
     public Result<?> sendBoss(@RequestBody SysEmailDTO dto);
 
@@ -67,5 +59,9 @@ public interface AdminClientOneFeign {
     @GetMapping("/admin/api/v1/dict-items/select_list/{typeCode}")
     public Result<?> listType(@PathVariable String typeCode);
 
+    @PostMapping(value ="/admin/api/v1/file/upload/{type}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<?> uploadFile(@PathVariable("type") String type,@RequestPart("file") MultipartFile file) ;
 
+    @GetMapping(value ="/admin/api/v1/file/delete/{type}")
+    public Result<?> deleteFile(@PathVariable("type") String type,@RequestParam("path")String path);
 }

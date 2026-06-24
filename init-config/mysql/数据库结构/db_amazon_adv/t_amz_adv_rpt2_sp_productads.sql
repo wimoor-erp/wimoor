@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_productads` (
   `clicks` int DEFAULT NULL,
   `cost` decimal(10,2) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
-  PRIMARY KEY (`bydate`,`adId`),
-  KEY `profileid_campaignId_adGroupId` (`profileid`,`campaignId`,`adGroupId`)
+  PRIMARY KEY (`bydate`,`adId`) USING BTREE,
+  KEY `profileid_campaignId_adGroupId` (`profileid`,`campaignId`,`adGroupId`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

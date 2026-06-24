@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `fin_vourches_file` (
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `vourcher_id_location` (`voucher_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='凭证附件表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='凭证附件表';
 
 -- 数据导出被取消选择。
 

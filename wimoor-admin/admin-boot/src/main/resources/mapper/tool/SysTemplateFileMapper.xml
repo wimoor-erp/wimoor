@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.sys.tool.mapper.SysTemplateFileMapper">
+
+
+    <select id="selectRecordByShop" resultType="java.util.Map" parameterType="java.lang.String" >
+        select * from t_sys_template_file where (shopid=#{shopid,jdbcType=CHAR} or shopid is null)
+    </select>
+    <select id="findByNameAndShopid" resultType="com.wimoor.sys.tool.pojo.entity.SysTemplateFile" parameterType="java.lang.String">
+        select * from t_sys_template_file
+        where shopid=#{shopid,jdbcType=CHAR} and filename=#{filename,jdbcType=CHAR}
+    </select>
+</mapper>

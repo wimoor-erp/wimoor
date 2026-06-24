@@ -1,24 +1,23 @@
 package com.wimoor.erp.material.pojo.vo;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
 import com.wimoor.erp.common.pojo.entity.ErpBaseEntity;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventoryOptRecordVo;
 import com.wimoor.erp.warehouse.pojo.vo.WarehouseShelfInventoryVo;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
  
 
 /**
@@ -70,6 +69,10 @@ public class MaterialVO  extends ErpBaseEntity{
 	@Size(min=0,max=40,message="品牌的长度不能超过40个字符")
     @TableField(value = "brand")
     private String brand;
+
+    @ApiModelProperty(value = "单位")
+    @TableField(value = "unit")
+    private String unit;
     
     private String brandid;
     
@@ -105,6 +108,10 @@ public class MaterialVO  extends ErpBaseEntity{
     @ApiModelProperty(value = "vat税率")
     @TableField(value="vatrate")
     private Float vatrate;
+    
+    @ApiModelProperty(value = "退税率")
+    @TableField(value="drawback_rate")
+    private Float drawbackRate;
     
     @ApiModelProperty(value = "产品编码")
 	@Size( max=36,message="编码的长度不能超过36个字符")
@@ -156,7 +163,12 @@ public class MaterialVO  extends ErpBaseEntity{
     @ApiModelProperty(value = "价格")
     @TableField(value="price")
     private BigDecimal price;
-    
+
+
+    @JsonProperty("isAssPrice")
+    private Boolean isAssPrice;
+
+
     @ApiModelProperty(value = "价格")
     @TableField(value="price_wavg")
     private BigDecimal priceWavg;
@@ -194,9 +206,16 @@ public class MaterialVO  extends ErpBaseEntity{
     @TableField(value = "mtype")
     private Integer mtype;
     
+    @ApiModelProperty(value = "店铺ID")
+    @TableField(value = "groupid")
+    private String groupid;
+
+    @TableField(exist=false)
+    private String groupname;
+    
     @TableField(exist=false)
     private String category;
-    
+
     @TableField(exist=false)
     private String ownername;
     

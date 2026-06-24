@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `fin_report_items` (
   `formula_type` varchar(20) COLLATE utf8mb4_bin DEFAULT 'DIRECT' COMMENT '公式类型：DIRECT-直接取值, FORMULA-公式计算, CUSTOM-自定义, CALCULATED-自动计算',
   `formula_content` text COLLATE utf8mb4_bin COMMENT '公式内容',
   `data_source` varchar(50) COLLATE utf8mb4_bin DEFAULT 'SUBJECT' COMMENT '数据来源：SUBJECT-会计科目, CUSTOM-自定义, CALCULATED-计算, CONSTANT-常量',
-  `subject_codes` varchar(200) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '关联科目编码（多个用逗号分隔）',
+  `subject_codes` varchar(2000) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '关联科目编码（多个用逗号分隔）',
   `amount_type` varchar(20) COLLATE utf8mb4_bin DEFAULT 'END_BALANCE' COMMENT '金额类型：END_BALANCE-期末余额, BEGIN_BALANCE-期初余额, DEBIT_TOTAL-借方发生额, CREDIT_TOTAL-贷方发生额',
   `direction` tinyint DEFAULT NULL COMMENT '金额方向：1-正数, -1-负数, NULL-自动判断',
   `display_format` varchar(50) COLLATE utf8mb4_bin DEFAULT 'NORMAL' COMMENT '显示格式：NORMAL-正常, BOLD-加粗, ITALIC-斜体, UNDERLINE-下划线',
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `fin_report_items` (
   KEY `idx_sort_order` (`sort_order`),
   KEY `idx_status` (`status`),
   KEY `idx_tenant_id` (`groupid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5584 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='报表项目表';
+) ENGINE=InnoDB AUTO_INCREMENT=1573 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='报表项目表';
 
 -- 数据导出被取消选择。
 

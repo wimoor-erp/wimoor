@@ -28,6 +28,30 @@
 		<result column="isnewest" property="isnewest" jdbcType="BIT" />
 		<result column="amazonAuthId" property="amazonAuthId" jdbcType="CHAR" />
 	</resultMap>
-	
-	 
+	<insert id="insertBatch">
+		INSERT INTO t_amz_rpt_inventory_detail
+		(`id`, `authid`, `byday`, `bytime`, `fnsku`, `asin`, `msku`, `country`,
+		`eventType`, `referenceID`, `fulfillmentCenter`, `disposition`,
+		`reason`, `quantity`, `reconciledQuantity`, `unreconciledQuantity`, `refreshtime`)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.id}, #{item.authid}, #{item.byday}, #{item.bytime},
+			#{item.fnsku}, #{item.asin}, #{item.msku}, #{item.country},
+			#{item.eventType}, #{item.referenceID}, #{item.fulfillmentCenter},
+			#{item.disposition}, #{item.reason}, #{item.quantity},
+			#{item.reconciledQuantity}, #{item.unreconciledQuantity}, #{item.refreshtime})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		`bytime` = VALUES(`bytime`),
+		`fnsku` = VALUES(`fnsku`),
+		`asin` = VALUES(`asin`),
+		`country` = VALUES(`country`),
+		`reason` = VALUES(`reason`),
+		`quantity` = VALUES(`quantity`),
+		`reconciledQuantity` = VALUES(`reconciledQuantity`),
+		`unreconciledQuantity` = VALUES(`unreconciledQuantity`),
+		`refreshtime` = VALUES(`refreshtime`)
+	</insert>
+
+
 </mapper>

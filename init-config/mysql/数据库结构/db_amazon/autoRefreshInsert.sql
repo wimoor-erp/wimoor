@@ -30,7 +30,20 @@ INSERT ignore into t_amz_product_refresh
 		AND i.invalid=0  
 		AND a.createtime>DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
 		AND r.pid IS NULL ;
-		
+
+UPDATE (SELECT  pid,MAX(opttime) opttime from t_amz_product_price_record   
+       where enddate>=DATE_SUB(NOW(),INTERVAL 1 DAY) AND enddate<NOW() GROUP BY pid) v
+LEFT JOIN t_amz_product_price_record r ON r.pid=v.pid and r.opttime=v.opttime
+LEFT JOIN t_product_in_opt o ON o.pid=r.pid
+LEFT JOIN t_amz_product_refresh i ON i.pid=o.pid
+SET i.price_refresh_time=null
+ WHERE  i.pid IS NOT NULL 	;
+  
+update t_amz_product_price_record r
+LEFT JOIN t_product_in_opt o ON o.pid=r.pid
+LEFT JOIN t_amz_product_refresh i ON i.pid=o.pid
+SET i.price_refresh_time=null
+ WHERE r.enddate>=DATE_SUB(NOW(),INTERVAL 1 DAY) AND r.enddate<NOW() AND i.pid IS NOT NULL 	;
 
 delete from t_report_requestrecord WHERE reportType IN(
 'GET_FBA_FULFILLMENT_LONGTERM_STORAGE_FEE_CHARGES_DATA',

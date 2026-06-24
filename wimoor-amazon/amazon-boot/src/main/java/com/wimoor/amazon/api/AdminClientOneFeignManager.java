@@ -6,15 +6,20 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import com.wimoor.admin.api.AdminClientOneFeign;
 import com.wimoor.admin.pojo.dto.SysEmailDTO;
 import com.wimoor.admin.pojo.dto.SysUserRoleDTO;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 
- 
 @Component
 public class AdminClientOneFeignManager {
 	@Autowired
@@ -66,5 +71,15 @@ public class AdminClientOneFeignManager {
     public void sendBoss(SysEmailDTO dto) {
 		 adminClientOneFeign.sendBoss(dto);
     }
+
+
+	public String uploadFile(String type, MultipartFile file) {
+		Result<?> result= adminClientOneFeign.uploadFile(type, file);
+		return result.getData().toString();
+	}
+
+	public void deleteFile( String type,String path){
+		adminClientOneFeign.deleteFile(type, path);
+	}
     
 }

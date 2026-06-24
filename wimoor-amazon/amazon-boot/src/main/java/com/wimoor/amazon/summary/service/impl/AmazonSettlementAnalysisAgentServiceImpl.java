@@ -1,16 +1,7 @@
 package com.wimoor.amazon.summary.service.impl;
 
 
- 
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
@@ -18,12 +9,7 @@ import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
-import com.wimoor.amazon.finances.mapper.AmzSettlementAccReportMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryDayMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryMonthMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementSummaryReturnsMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
+import com.wimoor.amazon.finances.mapper.*;
 import com.wimoor.amazon.finances.pojo.dto.FinDataMonthDTO;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
 import com.wimoor.amazon.finances.service.IAmzSettlementSKUShareService;
@@ -33,8 +19,12 @@ import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
 import com.wimoor.amazon.summary.service.IAmazonSettlementAnalysisService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.ProgressHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
+import java.util.*;
  
  
 @Service("amazonSettlementAnalysisAgentService")  
@@ -66,6 +56,8 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 	IAmzSettlementSKUShareService iAmzSettlementSKUShareService;
 	@Autowired
 	IAmzSettlementSummarySkuMonthService iAmzSettlementSummarySkuMonthService;
+
+	SimpleDateFormat formatYYYYMM = new SimpleDateFormat("YYYY-MM");
 //////////////////////////AmzSettlementReportSummaryDay end////////////////
     public void checkSummaryDataByManual(List<Map<String, Object>> list){
 		for(Map<String,Object> map:list) {
@@ -82,35 +74,35 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 		Map<String,List<Map<String,Object>>> authMap=new HashMap<String,List<Map<String,Object>>>();
 		for(Map<String,Object> map:list) {
 			List<Map<String,Object>> item=authMap.get(map.get("amazonauthid").toString());
-			if(item==null) {
+			if(null == item) {
 				item=new ArrayList<Map<String,Object>>();
 				authMap.put(map.get("amazonauthid").toString(),item);
 			}
 			item.add(map);
 		}
 		for(Map.Entry<String,List<Map<String,Object>>> entry:authMap.entrySet()){
-			String amazonauthid=entry.getKey();
+			String amazonAuthId=entry.getKey();
 			List<Map<String,Object>> mlist=entry.getValue();
 			for(Map<String,Object> map:mlist) {
 				AmzSettlementAccReport item = amzSettlementAccReportMapper.selectById(map.get("settlement_id").toString());
 				this.confirm(item);
 				item.setSumtime(new Date());
 				if(item.getMarketplaceName()!=null&&item.getSettlementStartDate()!=null){
-					String monthkey=item.getMarketplaceName()+"#"+item.getSettlementStartDate().format(DateTimeFormatter.ofPattern("YYYY-MM"));
-					month.add(monthkey);
+					String monthKey=item.getMarketplaceName()+"#"+formatYYYYMM.format(item.getSettlementStartDate());
+					month.add(monthKey);
 				}
 				if(item.getSettlementEndDate()!=null&&item.getMarketplaceName()!=null){
-					String monthkey2=item.getMarketplaceName()+"#"+item.getSettlementEndDate().format(DateTimeFormatter.ofPattern("YYYY-MM"));
-					month.add(monthkey2);
+					String monthKey2=item.getMarketplaceName()+"#"+formatYYYYMM.format(item.getSettlementEndDate());
+					month.add(monthKey2);
 				}
 				amzSettlementAccReportMapper.updateById(item);
 			}
-			for(String monthkey:month){
-				String[] keys=monthkey.split("#");
-				String marketname=keys[0];
-				String monthitme=keys[1];
+			for(String monthKey:month){
+				String[] keys=monthKey.split("#");
+				String marketName=keys[0];
+				String monthTime=keys[1];
 				try {
-					iAmzSettlementSummarySkuMonthService.summaryMonthly(amazonauthid,marketname,GeneralUtil.getDatez(monthitme+"-01") );
+					iAmzSettlementSummarySkuMonthService.summaryMonthly(amazonAuthId,marketName,GeneralUtil.getDatez(monthTime+"-01") );
 				}catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -166,11 +158,11 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 					this.confirm(item);
 					item.setSumtime(new Date());
 					if(item.getMarketplaceName()!=null&&item.getSettlementStartDate()!=null){
-						String monthkey=item.getMarketplaceName()+"#"+item.getSettlementStartDate().format(DateTimeFormatter.ofPattern("YYYY-MM"));
+						String monthkey=item.getMarketplaceName()+"#"+formatYYYYMM.format(item.getSettlementStartDate());
 						month.add(monthkey);
 					}
 					if(item.getSettlementEndDate()!=null&&item.getMarketplaceName()!=null){
-						String monthkey2=item.getMarketplaceName()+"#"+item.getSettlementEndDate().format(DateTimeFormatter.ofPattern("YYYY-MM"));
+						String monthkey2=item.getMarketplaceName()+"#"+formatYYYYMM.format(item.getSettlementEndDate());
 						month.add(monthkey2);
 					}
 					amzSettlementAccReportMapper.updateById(item);
@@ -210,7 +202,7 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 						AmzSettlementAccReport item=list.get(i);
 						iAmzSettlementSKUShareService.shareFee(item.getSettlementId());
 						item.setSumtime(new Date());
-						String monthkey=item.getMarketplaceName()+"#"+item.getSettlementStartDate().format(DateTimeFormatter.ofPattern("YYYY-MM"));
+						String monthkey=item.getMarketplaceName()+"#"+formatYYYYMM.format(item.getSettlementStartDate());
 						month.add(monthkey);
 						System.out.println(monthkey+"    time:"+new Date());
 						amzSettlementAccReportMapper.updateById(item);
@@ -323,8 +315,8 @@ public   class AmazonSettlementAnalysisAgentServiceImpl implements IAmazonSettle
 		       		 k++;
 		       		 Double progress  =rate+(k/list.size())*9.00;
 		       		 progressHelper.setProgress(progress.intValue());
-		       		 month.add(item.getSettlementStartDate().format( DateTimeFormatter.ofPattern("YYYY-MM")));
-		       		 month.add(item.getSettlementEndDate().format( DateTimeFormatter.ofPattern("YYYY-MM")));
+		       		 month.add(formatYYYYMM.format(item.getSettlementStartDate()));
+		       		 month.add(formatYYYYMM.format(item.getSettlementEndDate()));
 		       	 }
 		       	
 		        }else {

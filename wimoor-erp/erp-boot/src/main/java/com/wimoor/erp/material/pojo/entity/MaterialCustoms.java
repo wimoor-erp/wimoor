@@ -1,15 +1,14 @@
 package com.wimoor.erp.material.pojo.entity;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @ApiModel(value="MaterialCustoms对象", description="产品报关表")
@@ -45,6 +44,18 @@ public class MaterialCustoms {
 	@TableField(value= "materialcn")
 	private String materialcn;
 
+	@ApiModelProperty(value = "单位")
+	@TableField(value= "unit")
+	private String unit;
+
+	@ApiModelProperty(value = "子单位")
+	@TableField(value= "unit2")
+	private String unit2;
+
+	@ApiModelProperty(value = "子单位比例")
+	@TableField(value= "unitrate")
+	private BigDecimal unitrate;
+
 	@ApiModelProperty(value = "用途")
 	@TableField(value= "application")
     private String application;
@@ -52,10 +63,14 @@ public class MaterialCustoms {
 	@ApiModelProperty(value = "链接")
 	@TableField(value= "url")
     private String url;
-	
+
 	@ApiModelProperty(value = "产品报关英文名")
 	@TableField(value= "ename")
-    private String ename;
+	private String ename;
+
+	@ApiModelProperty(value = "海关申报要素")
+	@TableField(value= "elements")
+    private String elements;
 
 	@ApiModelProperty(value = "产品报关中文名")
 	@TableField(value= "cname")

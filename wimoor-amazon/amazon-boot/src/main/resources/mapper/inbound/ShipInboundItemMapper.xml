@@ -37,7 +37,7 @@
 		AND p.shopid=#{shopid,jdbcType=CHAR} AND p.warehouseid=#{warehouseid,jdbcType=CHAR}) +
 		(SELECT ifnull(SUM(IFNULL(i2.confirm_quantity,i2.quantity)),0) FROM t_erp_ship_v2_inbounditem i2
 		LEFT JOIN t_erp_ship_v2_inboundplan f ON f.id=i2.formid
-		WHERE f.auditstatus>=2 AND f.auditstatus &lt;=7 AND i2.msku=#{msku,jdbcType=CHAR}
+		WHERE (f.auditstatus>=2 AND f.auditstatus &lt;=7 or f.auditstatus =10) AND i2.msku=#{msku,jdbcType=CHAR}
 		AND f.shopid=#{shopid,jdbcType=CHAR} AND f.warehouseid=#{warehouseid,jdbcType=CHAR} )
 	</select>
 	

@@ -13,7 +13,7 @@
 
 	<description>for wimoor sso-client </description>
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>9</java.version>
 		<spring.shiro.version>1.6.0</spring.shiro.version>
         <wimoor.version>2.0.0</wimoor.version>
 	</properties>

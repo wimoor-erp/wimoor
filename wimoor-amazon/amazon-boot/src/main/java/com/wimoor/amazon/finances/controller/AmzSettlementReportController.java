@@ -1,25 +1,6 @@
 package com.wimoor.amazon.finances.controller;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
@@ -35,18 +16,32 @@ import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
 import com.wimoor.amazon.finances.service.IAmzFinAccountService;
 import com.wimoor.amazon.finances.service.IAmzSettlementAccReportService;
 import com.wimoor.amazon.finances.service.IAmzSettlementReportService;
+import com.wimoor.amazon.finances.service.impl.AmzSettlementReportServiceImpl;
 import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.pojo.entity.BasePageQuery;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
-
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Api(tags = "亚马逊账期接口")
 @RestController
@@ -589,7 +584,7 @@ public class AmzSettlementReportController {
 			if (user.isLimit(UserLimitDataType.operations)) {
 				map.put("myself", user.getId());
 			}
-			if (StrUtil.isEmpty(datetype) ) {
+			if (StrUtil.isNotEmpty(datetype) && "sett".equals(datetype)) {
 			    map.put("datetype", null);
 			}else {
 				map.put("datetype", datetype);
@@ -1053,7 +1048,258 @@ public class AmzSettlementReportController {
 			map.put("market", market);
 			return Result.success(map);
 		}
-		
+	@PostMapping("/downloadList")
+	public void downDataExcelByRateAction(@RequestBody Map<String,Object> param, HttpServletResponse response)  {
+		// 创建新的Excel工作薄
+		SXSSFWorkbook workbook = new SXSSFWorkbook();
+		// 将数据写入Excel
+		UserInfo user = UserInfoContext.get();
+		Date fromDate = GeneralUtil.getDate(param.get("fromDate"));
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(fromDate);
+		calendar.set(Calendar.DATE, 1);
+		calendar.set(Calendar.HOUR_OF_DAY  , 0);
+		calendar.set(Calendar.MINUTE  , 0);
+		calendar.set(Calendar.SECOND  , 0);
+		param.put("fromDate",GeneralUtil.formatDate(calendar.getTime()));
+		calendar.add(Calendar.MONTH, 1);
+		calendar.add(Calendar.DATE  , -1);
+		param.put("endDate",GeneralUtil.formatDate(calendar.getTime())+" 23:59:59");
+		if(fromDate==null){
+			throw new BizException("查询日期不能为空");
+		}
+		calendar.setTime(fromDate);
+		calendar.set(Calendar.DATE, 1);
+		calendar.set(Calendar.HOUR_OF_DAY  , 0);
+		calendar.set(Calendar.MINUTE  , 0);
+		calendar.set(Calendar.SECOND  , 0);
+		param.put("fromDate",GeneralUtil.formatDate(calendar.getTime()));
+		calendar.add(Calendar.MONTH, 1);
+		calendar.add(Calendar.DATE  , -1);
+		param.put("shopid",user.getCompanyid());
+		param.put("endDate",GeneralUtil.formatDate(calendar.getTime())+" 23:59:59");
+		String groupid=param.get("groupid")!=null?param.get("groupid").toString():null;
+		String marketplaceid=param.get("marketplaceid")!=null?param.get("marketplaceid").toString():null;
+		param.put("marketplaceid",marketplaceid);
+		if(StrUtil.isNotBlank(groupid)&& StrUtil.isNotBlank(marketplaceid)){
+			AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+			if (auth!=null){
+				param.put("amazonauthid", auth.getId());
+			}
+		}
+		List<Map<String, Object>>  page = iAmzSettlementReportService.findSettlementSummarySku(param);
+		getDownloadList(workbook, page);
+		try {
+			response.setContentType("application/force-download");// 设置强制下载不打开
+			response.addHeader("Content-Disposition", "attachment;fileName=CommodityRevenueFinRate" + System.currentTimeMillis() + ".xlsx");// 设置文件名
+			ServletOutputStream fOut = response.getOutputStream();
+			workbook.write(fOut);
+			workbook.close();
+			fOut.flush();
+			fOut.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public void getDownloadList(SXSSFWorkbook workbook, List<Map<String,Object>> list) {
+		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
+		titlemap.put("sku", "SKU");
+		titlemap.put("asin", "ASIN");
+		titlemap.put("groupname", "店铺");
+		titlemap.put("marketname", "站点");
+		titlemap.put("ownername", "负责人名字");
+		titlemap.put("principal", "销售额(含税)");
+		titlemap.put("principalWithoutTax", "销售额");
+		titlemap.put("sales", "销量");
+		titlemap.put("order_amount", "订单量");
+		titlemap.put("refundsales", "退款数量");
+		titlemap.put("refund", "退货金额");
+		titlemap.put("fbafee", "FBA费");
+		titlemap.put("digital", "数字服务费");
+		titlemap.put("commission", "佣金");
+		titlemap.put("reimbursement", "赔偿金");
+		titlemap.put("skuStorageFee", "仓储费");
+		titlemap.put("rpt_adv_spend_fee", "广告费");
+		titlemap.put("fin_sum_fee", "其他费用");
+		titlemap.put("price", "采购成本");
+		titlemap.put("avgprice", "平均售价");
+		titlemap.put("profit", "利润");
+		titlemap.put("profitRate", "利润率");
+
+		if (list.size() > 0 && list != null) {
+			Sheet sheet = workbook.createSheet("sheet1");
+			// 在索引0的位置创建行（最顶端的行）
+			Row trow = sheet.createRow(0);
+			Cell cell = null;
+			Object[] titlearray = titlemap.keySet().toArray();
+			for (int i = 0; i < titlearray.length; i++) {
+				cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
+				Object value = titlemap.get(titlearray[i].toString());
+				cell.setCellValue(value.toString());
+			}
+			for (int i = 0; i < list.size(); i++) {
+				Row row = sheet.createRow(i + 1);
+				Map<String, Object> map = list.get(i);
+				for (int j = 0; j < titlearray.length; j++) {
+					cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
+					Object value = map.get(titlearray[j].toString());
+					if (value != null) {
+						if("avgprice".equals(titlearray[j].toString())) {
+							if(map.get("principal")!=null && map.get("sales")!=null) {
+								cell.setCellValue(Float.parseFloat(map.get("principal").toString())/Float.parseFloat(map.get("sales").toString()) );
+							}else {
+								cell.setCellValue("0");
+							}
+						}else {
+							if(value instanceof BigDecimal) {
+								cell.setCellValue(Double.parseDouble(value.toString()));
+							}else {
+								cell.setCellValue(value.toString());
+							}
+						}
+					}
+				}
+			}
+		} else {
+			try {
+				throw new Exception("没有数据可导出！");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	@PostMapping("/getList")
+	public Result<?> getListAction(@RequestBody Map<String,Object> param) {
+		UserInfo user = UserInfoContext.get();
+		Date fromDate = GeneralUtil.getDate(param.get("fromDate"));
+		Calendar calendar = Calendar.getInstance();
+		if(fromDate==null){
+			throw new BizException("查询日期不能为空");
+		}
+		calendar.setTime(fromDate);
+		calendar.set(Calendar.DATE, 1);
+		calendar.set(Calendar.HOUR_OF_DAY  , 0);
+		calendar.set(Calendar.MINUTE  , 0);
+		calendar.set(Calendar.SECOND  , 0);
+		param.put("fromDate",GeneralUtil.formatDate(calendar.getTime()));
+		calendar.add(Calendar.MONTH, 1);
+		calendar.add(Calendar.DATE  , -1);
+		param.put("shopid",user.getCompanyid());
+		param.put("endDate",GeneralUtil.formatDate(calendar.getTime())+" 23:59:59");
+		BasePageQuery query=new BasePageQuery();
+		String groupid=param.get("groupid")!=null?param.get("groupid").toString():null;
+		String marketplaceid=param.get("marketplaceid")!=null?param.get("marketplaceid").toString():null;
+		param.put("marketplaceid",marketplaceid);
+		if(StrUtil.isNotBlank(groupid)&& StrUtil.isNotBlank(marketplaceid)){
+			AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+			if (auth!=null){
+				param.put("amazonauthid", auth.getId());
+			}
+		}
+		if(param.get("search")!=null){
+			param.put("search","%"+param.get("search").toString().trim()+"%");
+		}
+		query.setCurrentpage(Integer.parseInt(param.get("currentpage").toString()));
+		query.setPagesize(Integer.parseInt(param.get("pagesize").toString()));
+		query.setOrder(param.get("order")!=null?param.get("order").toString():"desc");
+		query.setSort(param.get("sort")!=null?param.get("sort").toString():"sku");
+		Object page = this.iAmzSettlementReportService.findSettlementSummarySku(query.getPage(),param);
+		return Result.success(page);
+	}
+
+
+	@PostMapping("/getMonthDetail")
+	public Result<?> getMonthDetailAction(@RequestBody Map<String,Object> param) {
+		UserInfo user = UserInfoContext.get();
+		String fromDate =GeneralUtil.formatDate(GeneralUtil.getDate(param.get("fromDate")));
+		if(fromDate==null){
+			throw new BizException("查询日期不能为空");
+		}
+		if (param.get("groupid")==null || StrUtil.isEmpty(param.get("groupid").toString()) ) {
+			param.put("groupid", null);
+		}
+		param.put("fromDate",fromDate);
+		param.put("shopid",user.getCompanyid());
+		String enddate =GeneralUtil.formatDate(GeneralUtil.getDate(param.get("endDate")));
+		param.put("endDate", enddate+" 23:59:59");
+		BasePageQuery query=new BasePageQuery();
+		String groupid=param.get("groupid")!=null?param.get("groupid").toString():null;
+		String marketplaceid=param.get("marketplaceid")!=null?param.get("marketplaceid").toString():null;
+		param.put("marketplaceid",marketplaceid);
+		if(StrUtil.isNotBlank(groupid)&& StrUtil.isNotBlank(marketplaceid)){
+			AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+			if (auth!=null){
+				param.put("amazonauthid", auth.getId());
+			}
+		}
+		if(param.get("search")!=null){
+			param.put("search","%"+param.get("search").toString().trim()+"%");
+		}
+		if (param.get("datetype")==null || StrUtil.isEmpty(param.get("datetype").toString()) ) {
+			param.put("datetype", null);
+		}
+		Object result = this.iAmzSettlementReportService.monthDetail(param);
+		return Result.success(result);
+	}
+	@GetMapping("/getMonthReportField")
+	public Result<?> getMonthReportFieldAction() {
+		return Result.success(AmzSettlementReportServiceImpl.getTransactionTypes());
+	}
+	@PostMapping("/getMonthReport")
+	public Result<?> getMonthReportAction(@RequestBody Map<String,Object> param) {
+		UserInfo user = UserInfoContext.get();
+		String fromDate =GeneralUtil.formatDate(GeneralUtil.getDate(param.get("fromDate")));
+		if(fromDate==null){
+			throw new BizException("查询日期不能为空");
+		}
+		if (param.get("groupid")==null || StrUtil.isEmpty(param.get("groupid").toString()) ) {
+			param.put("groupid", null);
+		}
+		param.put("fromDate",fromDate);
+		param.put("shopid",user.getCompanyid());
+		String enddate =GeneralUtil.formatDate(GeneralUtil.getDate(param.get("endDate")));
+		param.put("endDate", enddate+" 23:59:59");
+		BasePageQuery query=new BasePageQuery();
+		String groupid=param.get("groupid")!=null?param.get("groupid").toString():null;
+		String marketplaceid=param.get("marketplaceid")!=null?param.get("marketplaceid").toString():null;
+		String marketplace_name=param.get("marketplace_name")!=null?param.get("marketplace_name").toString():null;
+		if(marketplaceid==null&&param.get("country")!=null){
+			String country=param.get("country").toString();
+			Marketplace market = marketplaceService.findMarketplaceByCountry(country);
+			if(market!=null){
+				marketplaceid=market.getMarketplaceid();
+				marketplace_name=market.getPointName();
+			}
+		}
+		param.put("marketplaceid",marketplaceid);
+		if(param.get("marketplace_name")==null&&marketplace_name!=null){
+			param.put("marketplace_name",marketplace_name);
+		}
+
+		if(StrUtil.isNotBlank(groupid)&& StrUtil.isNotBlank(marketplaceid)){
+			AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+			if (auth!=null){
+				param.put("amazonauthid", auth.getId());
+			}
+		}
+		if(param.get("search")!=null){
+			param.put("search","%"+param.get("search").toString().trim()+"%");
+		}
+		if (param.get("datetype")==null || StrUtil.isEmpty(param.get("datetype").toString()) ) {
+			param.put("datetype", null);
+		}
+		Map<String,Object> result = this.iAmzSettlementReportService.monthReport(param);
+		if(result==null){
+			result=new HashMap<>();
+		}
+		if(marketplaceid!=null){
+			Marketplace marketplace= marketplaceService.selectByPKey(marketplaceid);
+			result.put("currency",marketplace.getCurrency());
+			result.put("timezone",GeneralUtil.getTimeZone(marketplace.getMarket()));
+		}
+
+		return Result.success(result);
+	}
 
 		
 }

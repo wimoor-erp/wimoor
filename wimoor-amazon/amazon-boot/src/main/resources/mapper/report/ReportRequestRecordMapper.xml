@@ -59,12 +59,14 @@
 			</foreach>
 			)
 		</if>
-		and (report_processing_status is null or report_processing_status='DONE' 
-		or report_processing_status='SUBMITTED' 
-		or report_processing_status='success' 
-		or report_processing_status='treat' 
-		or  report_processing_status='IN_QUEUE' 
-		or  report_processing_status='IN_PROGRESS' )
+		and (report_processing_status is null
+			or report_processing_status='DONE'
+			or report_processing_status='SUBMITTED'
+			or report_processing_status='success'
+			or report_processing_status='treat'
+			or  report_processing_status='IN_QUEUE'
+			or  report_processing_status='IN_PROGRESS'
+		    )
 		<if test="reporttype=='_GET_FBA_STORAGE_FEE_CHARGES_DATA_' || reporttype=='_GET_FBA_FULFILLMENT_LONGTERM_STORAGE_FEE_CHARGES_DATA_'">
 			and report_processing_status!='DONE_NO_DATA'
 		</if>
@@ -94,7 +96,12 @@
 		where reportType='GET_SALES_AND_TRAFFIC_REPORT' 
 			and isnewest=true 
 			and ifnull(treatnumber,0) &lt;10
-	        and (report_processing_status is null or report_processing_status='DONE' or report_processing_status='treat' or  report_processing_status='IN_QUEUE' or  report_processing_status='IN_PROGRESS' )
+	        and (report_processing_status is null
+			or  report_processing_status='DONE'
+			or  report_processing_status='treat'
+			or  report_processing_status='IN_QUEUE'
+			or  report_processing_status='IN_PROGRESS'
+		    )
 			and sellerid=#{sellerid,jdbcType=CHAR}
 			and lastupdate>date_add(curdate(), interval -3 day)
 	</select>
@@ -208,9 +215,18 @@
   <select id="selectTaskInfoList"  resultType="java.util.Map" parameterType="java.lang.String">
 	    SELECT t.cname,r.report_processing_status,r.lastupdate
 		from t_amz_report_request_type t
-		LEFT JOIN  t_report_requestrecord r ON t.code=r.reportType  AND r.lastupdate>DATE_ADD(NOW(),INTERVAL  -1 DAY) 
+		LEFT JOIN  t_report_requestrecord r ON t.code=r.reportType  AND r.lastupdate>DATE_ADD(NOW(),INTERVAL  -1 DAY)
 	 	AND r.marketPlaceId=#{marketplaceid,jdbcType=CHAR}
 	 	and r.sellerid=#{sellerid,jdbcType=CHAR}
 	 	WHERE t.disabled=0 AND t.id NOT IN (17,22)
+	 	<if test="reportType != null and reportType != ''">
+	 		AND t.code=#{reportType,jdbcType=CHAR}
+	 	</if>
   </select>
+    <select id="getWithoutSeller" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT sellerid FROM t_report_requestrecord
+		WHERE reportType=#{reporttype,jdbcType=CHAR}
+		GROUP BY  sellerid
+		HAVING(sum(report_processing_status!='CANCELLED')=0)
+	</select>
 </mapper>

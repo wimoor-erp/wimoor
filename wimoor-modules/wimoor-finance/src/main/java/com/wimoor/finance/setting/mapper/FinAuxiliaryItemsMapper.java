@@ -53,9 +53,21 @@ public interface FinAuxiliaryItemsMapper
 
     /**
      * 批量删除辅助核算具体项目
-     * 
+     *
      * @param itemIds 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteFinAuxiliaryItemsByItemIds(Long[] itemIds);
+
+    /**
+     * 从ERP供应商表同步数据到辅助核算项目表
+     *
+     * @param finAuxiliaryItems 包含groupid、typeId、shopid
+     * @return 新增行数
+     */
+    public int syncSupplierFromErp(FinAuxiliaryItems finAuxiliaryItems);
+
+    public int syncEmployeeFromAdmin(FinAuxiliaryItems finAuxiliaryItems);
+
+    public int syncDeptFromAdmin(FinAuxiliaryItems finAuxiliaryItems);
 }

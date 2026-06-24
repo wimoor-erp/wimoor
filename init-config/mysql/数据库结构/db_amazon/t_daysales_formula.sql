@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `t_daysales_formula` (
   `month_sales_rate` decimal(10,2) DEFAULT NULL,
   `15sales_rate` decimal(10,2) DEFAULT NULL,
   `7sales_rate` decimal(10,2) DEFAULT NULL,
+  `source` tinyint DEFAULT '1' COMMENT '1：报告 2：来源API',
   `creator` bigint unsigned DEFAULT NULL,
   `operator` bigint unsigned DEFAULT NULL,
   `createdate` datetime DEFAULT NULL,

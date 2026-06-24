@@ -16,7 +16,7 @@
 
 -- 导出  表 db_erp.t_erp_material_brand 结构
 CREATE TABLE IF NOT EXISTS `t_erp_material_brand` (
-  `id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `id` bigint unsigned NOT NULL DEFAULT '0',
   `name` char(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `shopid` bigint unsigned DEFAULT NULL,
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,

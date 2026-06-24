@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.feishu.mapper.SysFeishuTableMapper">
+    
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wimoor.feishu.pojo.entity.SysFeishuTable">
+        <id column="id" property="id" />
+        <result column="appid" property="appid" />
+        <result column="apptoken" property="apptoken" />
+        <result column="tableid" property="tableid" />
+        <result column="viewid" property="viewid" />
+        <result column="fieldjson" property="fieldjson" />
+        <result column="feedback" property="feedback" />
+        <result column="opttime" property="opttime" />
+        <result column="operator" property="operator" />
+    </resultMap>
+    
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, appid, apptoken, tableid, viewid, fieldjson, feedback, opttime, operator
+    </sql>
+    
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from t_sys_feishu_table
+        where id = #{id}
+    </select>
+    
+
+    
+    <!-- 更新 -->
+
+    
+    <!-- 删除 -->
+
+    
+    <!-- 批量插入 -->
+    <insert id="insertBatch" parameterType="java.util.List">
+        insert into t_sys_feishu_table (id, appid, apptoken, tableid, viewid, fieldjson, feedback, opttime, operator)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.appid}, #{item.apptoken}, #{item.tableid}, #{item.viewid}, #{item.fieldjson}, #{item.feedback}, #{item.opttime}, #{item.operator})
+        </foreach>
+    </insert>
+    
+    <!-- 根据条件查询 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from t_sys_feishu_table
+        <where>
+            <if test="appid != null">and appid = #{appid}</if>
+            <if test="apptoken != null">and apptoken = #{apptoken}</if>
+            <if test="tableid != null">and tableid = #{tableid}</if>
+            <if test="viewid != null">and viewid = #{viewid}</if>
+            <if test="feedback != null">and feedback = #{feedback}</if>
+        </where>
+    </select>
+    
+    <!-- 获取数据表类型列表 -->
+    <select id="getTypeList" resultType="java.lang.String">
+        select distinct name as type
+        from t_sys_feishu_table
+        where appid = #{appId}
+        order by name
+    </select>
+    
+</mapper>

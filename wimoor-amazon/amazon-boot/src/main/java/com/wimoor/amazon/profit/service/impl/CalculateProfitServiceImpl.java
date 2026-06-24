@@ -1,12 +1,6 @@
 package com.wimoor.amazon.profit.service.impl;
 
-import java.math.BigDecimal;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
@@ -26,9 +20,12 @@ import com.wimoor.amazon.profit.service.ICalculateProfitService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.amazon.profit.service.IReferralFeeService;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
  
 @Service("calculateProfitService")  
 @RequiredArgsConstructor
@@ -75,6 +72,7 @@ public class CalculateProfitServiceImpl implements ICalculateProfitService {
 			profitcfgid = profitCfgService.findDefaultPlanIdByGroup(auth.getGroupid());
 		}
 		ProfitConfig profitcfg = profitCfgService.findConfigAction(profitcfgid);
+		profitcfg.setShopId(auth.getShopId());
 		ReferralFee ref = new ReferralFee();
 	
 		

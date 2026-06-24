@@ -1,16 +1,17 @@
 package com.wimoor.amazon.finances.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public interface IAmzSettlementReportService extends IService<AmzSettlementReport> {
 
@@ -51,4 +52,10 @@ public interface IAmzSettlementReportService extends IService<AmzSettlementRepor
 
  	public List<Map<String, Object>> findCommodity(Map<String, Object> map);
  	public List<Map<String,Object>> findCommodity(String ekey, Map<String, Object> map);
+	List<Map<String,Object>> findSettlementSummarySku(Map<String, Object> param);
+    IPage<Map<String,Object>> findSettlementSummarySku(Page<Object> page, Map<String, Object> param);
+
+	public List<Map<String,Object>> monthDetail(Map<String,Object> param);
+
+	public Map<String,Object> monthReport(Map<String, Object> param);
 }

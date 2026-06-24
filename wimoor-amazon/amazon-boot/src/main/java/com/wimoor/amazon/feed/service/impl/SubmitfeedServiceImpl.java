@@ -1,35 +1,13 @@
 package com.wimoor.amazon.feed.service.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-
-import okhttp3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.api.FeedsApi;
 import com.amazon.spapi.client.ApiCallback;
 import com.amazon.spapi.client.ApiException;
-import com.amazon.spapi.model.feeds.CreateFeedDocumentResponse;
-import com.amazon.spapi.model.feeds.CreateFeedDocumentSpecification;
-import com.amazon.spapi.model.feeds.CreateFeedResponse;
-import com.amazon.spapi.model.feeds.CreateFeedSpecification;
-import com.amazon.spapi.model.feeds.Feed;
-import com.amazon.spapi.model.feeds.FeedOptions;
+import com.amazon.spapi.model.feeds.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -47,8 +25,17 @@ import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
+import okhttp3.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 
  
@@ -452,12 +439,15 @@ public class SubmitfeedServiceImpl implements ISubmitfeedService,IAwsSQSMessageH
 				continue;
 			}
 			callSubmitFeedAsync(amazonAuthority,market,queue);
-			List<AmzSubmitFeedQueue> queueList = amzSubmitfeedQueueMapper.findQueue(amazonAuthority.getId(),market.getMarketplaceid());
-			for(AmzSubmitFeedQueue queueFind:queueList) {
-				if(queue.getFeedType().indexOf('_')==0) {
+			List<Map<String, Object>> queueList = amzSubmitfeedQueueMapper.findQueue(amazonAuthority.getId(),market.getMarketplaceid(),queue.getFeedType(),queue.getFilename());
+			for(Map<String, Object> queueFind:queueList) {
+				if(queueFind.get("feed_type").toString().indexOf('_')==0) {
 					continue;
 				}
-				GetFeedSubmissionRequestAsync(amazonAuthority,queueFind);
+				AmzSubmitFeedQueue que=amzSubmitfeedQueueMapper.selectByKey(queueFind.get("id").toString());
+				if (que!=null &&  StrUtil.isNotEmpty(que.getSubmitfeedid())){
+					GetFeedSubmissionRequestAsync(amazonAuthority,que);
+				}
 			}
 		}
 	}

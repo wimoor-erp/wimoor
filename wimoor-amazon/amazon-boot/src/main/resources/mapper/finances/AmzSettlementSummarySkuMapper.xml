@@ -247,7 +247,6 @@
 		v.setincome,	
         v.shipping,
         v.promotion,
-        v.income,
         v.share_storage_fee,
 		v.share_long_storage_fee,
 		v.share_adv_spend_fee,
@@ -307,16 +306,6 @@
 		sum(share_reimbursement_fee) share_reimbursement_fee,
 		sum(share_disposal_fee) share_disposal_fee,
 		sum(share_shop_other_fee) share_shop_other_fee,
-		sum(
-		ifnull(t.principal,0)               +ifnull(t.commission,0)
-		+ifnull(t.fbafee,0)                 +ifnull(t.refund,0)
-		+ifnull(t.otherfee,0)               +ifnull(t.tax,0)
-		+ifnull(t.shipping,0)               +ifnull(t.promotion,0)
-		+ifnull(t.share_storage_fee,0)      +ifnull(t.share_long_storage_fee,0)
-		+ifnull(t.share_adv_spend_fee,0)	+ifnull(t.share_coupon_redemption_fee,0)
-	    +ifnull(t.share_reserve_fee,0)	    +ifnull(t.share_shop_other_fee,0)
-	    +ifnull(t.share_reimbursement_fee,0)+ifnull(t.share_disposal_fee,0)
-		)   income,
 		sum(local_price) local_price,
 		sum(local_other_cost) local_other_cost,
 		sum(local_return_tax) local_return_tax,
@@ -456,20 +445,30 @@
 		    max(r.currency) currency,
 	        sum(case when amount_description='Principal' and transaction_type='Order' and amount_type='ItemPrice' then quantity_orders else 0 end) order_amount,
 			sum(case when amount_description='Principal' and transaction_type='Order' and amount_type='ItemPrice' then quantity_purchased else 0 end) sales,
-			sum(case when amount_description='Principal' and transaction_type='Refund' and amount_type='ItemPrice' then
-			   case when quantity_orders>quantity_purchased then quantity_purchased else   quantity_purchased end else 0 end) refundsales,
-			sum(case when amount_description='Principal' and transaction_type='Refund' and amount_type='ItemPrice' then quantity_orders else 0 end) refundorder,
-			sum(case when amount_description='Principal' and amount_type='ItemPrice' and transaction_type='Order' then amount else 0 end) principal,
-			sum(case when amount_description like 'Commission%' and transaction_type='Order' then amount else 0 end) commission,
-			sum(case when amount_description like 'FBA%' and transaction_type='Order' then amount else 0 end ) fbafee,
+			sum(case when  amount_description='Principal'
+			           and transaction_type='Refund'
+			           and amount_type='ItemPrice' then
+							  case when quantity_orders>quantity_purchased
+									 then quantity_purchased
+									 else   quantity_purchased
+									 end else 0 end) refundsales,
+			sum(case when amount_description='Principal'  and transaction_type='Refund' and amount_type='ItemPrice' then quantity_orders else 0 end) refundorder,
+			sum(case when amount_description='Principal'  and amount_type='ItemPrice'   and transaction_type='Order' then amount else 0 end) principal,
+			sum(case when amount_description='Commission' and transaction_type='Order' then amount else 0 end) commission,
+			sum(case when amount_description = 'FBAPerUnitFulfillmentFee' and transaction_type='Order' then amount else 0 end ) fbafee,
 			sum(case when transaction_type='Refund' then amount else 0 end ) refund,
 			sum(case when  (amount_description='Shipping' and amount_type='ItemPrice' ) or  (amount_description='ShippingTax' and amount_type='ItemPrice') 
 		             then amount else 0 end
 		         ) shipping,
 		    sum(case when amount_type='Promotion' then amount else 0 end) promotion,
-			sum(case when amount_description='MarketplaceFacilitatorVAT-Principal' and transaction_type='Order'
-				and amount_type='ItemWithheldTax' and (m.region='EU' or m.region='UK')then amount else 0 end) vat,
-			sum(case when amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' then amount else 0 end) tax,
+			sum(case when (amount_description='MarketplaceFacilitatorVAT-Principal'
+			                   OR
+			               amount_description='MarketplaceFacilitatorVAT-Shipping')
+			              AND amount_type='ItemWithheldTax' then amount else 0 end) vat,
+			sum(case when amount_description='Tax'
+			                  and transaction_type='Order'
+			                  and amount_type='ItemPrice'
+			          then amount else 0 end) tax,
             sum(amount) total
 		from t_amz_settlement_summary_day r
 		left JOIN t_amz_settlement_acc_report rt ON r.settlementid=rt.settlement_id
@@ -483,12 +482,17 @@
 		SELECT max(r.id) id,max(a.groupid) pid,r.amazonauthid,r.marketplace_name,max(r.currency) currency,
 		sum(case when amount_description='Principal' and amount_type='ItemPrice'  and transaction_type='Order'  then amount else 0 end) principal,
 		sum(case when r.amount_description = 'Commission' AND (r.transaction_type='Order' or  r.transaction_type='Refund')  then amount else 0 end) commission,
-		sum(case when (amount_description like 'FBA%') and transaction_type='Order' then amount else 0 end ) fbafee,
+		sum(case when (amount_description like 'FBA%')
+		                  and transaction_type='Order'
+		    then amount else 0 end ) fbafee,
 		sum(case when amount_description='Principal' and transaction_type='Refund' then amount else 0 end ) refund,
 		sum(case when amount_type='Cost of Advertising' and transaction_type='ServiceFee' then amount else 0 end ) advfee,
 		sum(case when amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' then amount else 0 end) tax,
 		sum(case when amount_description='MarketplaceFacilitatorVAT-Principal' and transaction_type='Order' and amount_type='ItemPrice' then amount else 0 end) vat,
-		sum(case when amount_description='Storage Fee' and transaction_type='other-transaction' then amount else 0 end ) storagefee,
+		sum(case when (amount_description='Storage Fee'  and transaction_type='other-transaction')
+		               or  (amount_description in ('FBA Inventory Storage Fee','FBA Long Term Storage Fee')
+		                   and r.transaction_type='FBAFees')
+		    then amount else 0 end ) storagefee,
 		sum(case when amount_description='FBA International Freight Shipping Charge' then amount else 0 end) shipcharge,
 		sum(case when amount_description='Previous Reserve Amount Balance' or 
 		amount_description='Current Reserve Amount' then amount else 0 end) reserve,
@@ -547,12 +551,14 @@
 				m.marketplaceId marketplaceid,
 				m.market country,
 				ifnull(mt.vatrate,0) vatrate,
+				ifnull(mt.drawback_rate,0) drawback_rate,
 				info.asin asin,
 				ifnull(mt.price,0) itemprice,
 				ifnull(opt.owner,mt.owner) owner,
 				ifnull(mt.other_cost,0) otherCost,
 			    ifnull(dim.length,0)*ifnull(dim.width,0)*ifnull(dim.height,0) volume, 
-			    ifnull(dim.weight,0) weight
+			    ifnull(dim.weight,0) weight,
+				cy.first_leg_charges first_leg_charges
 		 FROM 
 		   	  (SELECT 	t.amazonAuthId,t.marketplace_name market,
 						t.sku,
@@ -565,6 +571,7 @@
 				left join t_amazon_auth au on au.id=v.amazonAuthId
 			    left join t_marketplace m on m.point_name=v.market
 				left join t_product_info info on info.marketplaceid=m.marketplaceId and info.sku=v.msku and info.amazonauthid=v.amazonAuthId
+		   	    left join t_erp_shipcycle cy on cy.groupid=au.groupid and cy.marketplaceid=m.marketplaceId and cy.sku=info.sku
 				left join t_product_in_opt opt on opt.pid=info.id
 				left join t_erp_material mt on mt.sku=ifnull(opt.msku,info.sku) and mt.shopid=au.shop_id and mt.isDelete = 0
 				left join t_dimensions dim on dim.id=mt.pkgDimensions

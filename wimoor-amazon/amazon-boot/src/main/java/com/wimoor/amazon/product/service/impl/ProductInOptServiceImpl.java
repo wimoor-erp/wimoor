@@ -1,23 +1,6 @@
 package com.wimoor.amazon.product.service.impl;
 
-import java.io.InputStream;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.util.*;
-import javax.annotation.Resource;
-
-import com.wimoor.amazon.api.ErpClientOneFeignManager;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.catalogitems.Dimension;
 import com.amazon.spapi.model.catalogitems.Dimensions;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -26,22 +9,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.wimoor.amazon.api.AdminClientOneFeignManager;
+import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.pojo.entity.DaysalesFormula;
 import com.wimoor.amazon.common.service.IDaysalesFormulaService;
-import com.wimoor.amazon.product.mapper.AmazonDeclareRateMapper;
-import com.wimoor.amazon.product.mapper.ProductInOptMapper;
-import com.wimoor.amazon.product.mapper.ProductInTagsMapper;
-import com.wimoor.amazon.product.mapper.ProductInfoMapper;
-import com.wimoor.amazon.product.mapper.ProductPriceMapper;
-import com.wimoor.amazon.product.mapper.ProductRemarkHistoryMapper;
+import com.wimoor.amazon.product.mapper.*;
 import com.wimoor.amazon.product.pojo.dto.ProductPriceDTO;
-import com.wimoor.amazon.product.pojo.entity.AmazonDeclareRate;
-import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
-import com.wimoor.amazon.product.pojo.entity.ProductInTags;
-import com.wimoor.amazon.product.pojo.entity.ProductInfo;
-import com.wimoor.amazon.product.pojo.entity.ProductPrice;
+import com.wimoor.amazon.product.pojo.entity.*;
 import com.wimoor.amazon.product.pojo.vo.ProductPriceVo;
 import com.wimoor.amazon.product.service.IProductInOptService;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
@@ -55,7 +30,23 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
-import cn.hutool.core.util.StrUtil;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.util.*;
 
 /**
  * <p>
@@ -172,11 +163,11 @@ public class ProductInOptServiceImpl extends ServiceImpl<ProductInOptMapper, Pro
 			Object price = item.get("price");// 售价
 			BigDecimal sellprice = new BigDecimal(price != null ? price.toString() : "0");
 			Object isSmlAndLightObj = item.get("isSmlAndLight");
-			boolean isSmlAndLight = isSmlAndLightObj != null ? (Boolean) isSmlAndLightObj : false;// 是否輕小
-			isSmlAndLight=profitService.checkLight(country, true, sellprice);
-			item.put("isSmlAndLight",isSmlAndLight);
 			String pgroup = item.get("pgroup").toString();// 亚马逊那边产品种类
 			String category = item.get("category").toString();// 本地录入的产品种类
+			boolean isSmlAndLight = isSmlAndLightObj != null ? (Boolean) isSmlAndLightObj : false;// 是否輕小
+			isSmlAndLight=profitService.checkLight(country, true, sellprice,pgroup!=null?pgroup:category);
+			item.put("isSmlAndLight",isSmlAndLight);
 			Map<String, String> selfttirMap = profitService.getProductTier
 					(profitConfigCountry, selfInputDimension, country, "0", sellprice, isSmlAndLight, category,null);
 			String fcurrency = selfttirMap.get("fcurrency");

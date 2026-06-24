@@ -1,6 +1,7 @@
 package com.wimoor.amazon.util;
 
 
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -14,7 +15,12 @@ import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
- 
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 
 /**
  * <pre>
@@ -38,6 +44,32 @@ public class HttpUtils {
     private HttpUtils() {
     }
 
+    /**
+     * 跳过SSL证书验证
+     */
+    public static  void skipSSLVerification() {
+        try {
+            // 创建信任所有证书的SSL上下文
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[]{
+                    new X509TrustManager() {
+                        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                        }
+                        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                        }
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[]{};
+                        }
+                    }
+            }, new java.security.SecureRandom());
+
+            // 设置HttpsURLConnection使用我们的SSL上下文
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * 获取实例
      *

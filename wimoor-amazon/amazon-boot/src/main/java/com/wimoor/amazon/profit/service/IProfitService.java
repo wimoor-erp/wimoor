@@ -1,18 +1,18 @@
 package com.wimoor.amazon.profit.service;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
 import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
 import com.wimoor.amazon.profit.pojo.dto.ProfitQuery;
 import com.wimoor.amazon.profit.pojo.entity.ProductTier;
-import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
+import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.entity.ReferralFee;
 import com.wimoor.amazon.profit.pojo.vo.CostDetail;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.common.mvc.BizException;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 public interface IProfitService {
 
@@ -93,7 +93,7 @@ public interface IProfitService {
 
 	public void clearUnitMap();
 	
-	public boolean checkLight(String country, Boolean isSmlAndLight, BigDecimal price);
+	public boolean checkLight(String country, Boolean isSmlAndLight, BigDecimal price,String typename);
 	public BigDecimal getInplaceFee(String invplacefee ,String height,String length,String width,String weight);
 	public BigDecimal calculateFBASIPP(String country, String productTierId, InputDimensions inputDimension,
 			String isMedia, String type, BigDecimal outboundWeight, ProfitConfigCountry profitConfigX, Boolean sipp);

@@ -3,8 +3,10 @@
 * Wimoor erp是国内首款百分百开源、支持商用的亚马逊erp系统
 * 不仅现有系统免费，系统源码也都是公之于众的，可以任意安装、卸载和升级，没有用户数量限制
 * 除了为跨境卖家提供一站式服务，我们也提供系统源代码搭建，成品系统部署搭建，支持功能定制开发等相关服务
-* 官网地址：https://wimoor.com/ 商务或技术交流请联系客服QQ：1874049814 微信：wimoorerp
-* 系统注册地址：https://erp.wimoor.com/toRegister.do 大家可免费使用
+* 官网地址：https://wimoor.com/ 商务或技术交流请联系客服QQ：1874049814 微信：wimoor
+* 系统注册地址：https://app.wimoor.com/register 免费使用
+* 文档地址：https://wiki.wimoor.com
+* 社区：https://bbs.wimoor.com
 * 欢迎加入Wimoor ERP开源项目交流群（可联系客服QQ或微信拉你入群）
 
 开源协议

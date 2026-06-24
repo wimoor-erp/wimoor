@@ -31,6 +31,8 @@ target
 
 .DS_Store
 node_modules/
+wimoorui/dist/
+wimoorui/node_modules/
 dist/
 npm-debug.log*
 yarn-debug.log*

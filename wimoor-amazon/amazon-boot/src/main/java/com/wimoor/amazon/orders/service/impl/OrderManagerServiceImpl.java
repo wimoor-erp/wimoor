@@ -1,66 +1,18 @@
 package com.wimoor.amazon.orders.service.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import javax.annotation.Resource;
-
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.api.OrdersV0Api;
 import com.amazon.spapi.client.ApiException;
-import com.amazon.spapi.model.orders.Address;
-import com.amazon.spapi.model.orders.BuyerInfo;
-import com.amazon.spapi.model.orders.GetOrderAddressResponse;
-import com.amazon.spapi.model.orders.GetOrderBuyerInfoResponse;
-import com.amazon.spapi.model.orders.GetOrderItemsResponse;
-import com.amazon.spapi.model.orders.GetOrderResponse;
-import com.amazon.spapi.model.orders.Order;
+import com.amazon.spapi.model.orders.*;
 import com.amazon.spapi.model.orders.Order.OrderStatusEnum;
-import com.amazon.spapi.model.orders.OrderAddress;
-import com.amazon.spapi.model.orders.OrderBuyerInfo;
-import com.amazon.spapi.model.orders.OrderItem;
-import com.amazon.spapi.model.orders.OrderItemList;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -81,27 +33,9 @@ import com.wimoor.amazon.feed.pojo.entity.Submitfeed;
 import com.wimoor.amazon.feed.service.ISubmitfeedService;
 import com.wimoor.amazon.finances.pojo.entity.OrdersFinancial;
 import com.wimoor.amazon.finances.service.IOrdersFinancialService;
-import com.wimoor.amazon.orders.mapper.AmzOrderBuyerShipAddressMapper;
-import com.wimoor.amazon.orders.mapper.AmzOrderItemMapper;
-import com.wimoor.amazon.orders.mapper.AmzOrderMainMapper;
-import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceMapper;
-import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceReportMapper;
-import com.wimoor.amazon.orders.mapper.AmzOrdersInvoiceVatMapper;
-import com.wimoor.amazon.orders.mapper.AmzOrdersRemarkMapper;
-import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
-import com.wimoor.amazon.orders.mapper.OrdersSummaryMapper;
-import com.wimoor.amazon.orders.mapper.SummaryAllMapper;
+import com.wimoor.amazon.orders.mapper.*;
 import com.wimoor.amazon.orders.pojo.dto.AmazonOrdersDTO;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrderBuyerShipAddress;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrderItem;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrderMain;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoice;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoiceReport;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrdersInvoiceVat;
-import com.wimoor.amazon.orders.pojo.entity.AmzOrdersRemark;
-import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
-import com.wimoor.amazon.orders.pojo.entity.OrdersSummary;
-import com.wimoor.amazon.orders.pojo.entity.SummaryAll;
+import com.wimoor.amazon.orders.pojo.entity.*;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersDetailVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersShipVo;
 import com.wimoor.amazon.orders.pojo.vo.AmazonOrdersVo;
@@ -118,8 +52,29 @@ import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.service.impl.PictureServiceImpl;
 import com.wimoor.common.user.UserInfo;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service("orderManagerService")
 public class OrderManagerServiceImpl implements IOrderManagerService{
@@ -247,28 +202,28 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	}
 
 	private long addAllQuery(List<AmazonOrdersVo> mylist, AmazonOrdersDTO dto) {
-		Calendar c=Calendar.getInstance();
-		c.add(Calendar.DATE, -3);	
-		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=3) {
-			AmazonOrdersDTO newdto = new AmazonOrdersDTO();
-			BeanUtil.copyProperties(dto, newdto);
-			if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getStartDate()), new Date())>3) {
-				newdto.setStartDate(GeneralUtil.formatDate(c.getTime()));
-			}else {
-				newdto.setStartDate(dto.getStartDate());
-			}
-			dto.setEndDate(GeneralUtil.formatDate(c.getTime()));
-			List<AmazonOrdersVo> mainlist = ordersReportMapper.selectOrderMainList(newdto);
-			if(mainlist!=null&&mainlist.size()>0) {
-				mylist.addAll(mainlist);
-			}
-			dto.setEndDate(GeneralUtil.formatDate(c.getTime()));
-		}
-		if(StrUtil.isNotBlank(dto.getOrderid())) {
-			if(mylist.size()>0) {
-				return mylist.size();
-			}
-		}
+//		Calendar c=Calendar.getInstance();
+//		c.add(Calendar.DATE, -3);
+//		if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getEndDate()), new Date())<=3) {
+//			AmazonOrdersDTO newdto = new AmazonOrdersDTO();
+//			BeanUtil.copyProperties(dto, newdto);
+//			if(GeneralUtil.distanceOfDay(GeneralUtil.getDatez(dto.getStartDate()), new Date())>3) {
+//				newdto.setStartDate(GeneralUtil.formatDate(c.getTime()));
+//			}else {
+//				newdto.setStartDate(dto.getStartDate());
+//			}
+//			dto.setEndDate(GeneralUtil.formatDate(c.getTime()));
+//			List<AmazonOrdersVo> mainlist = ordersReportMapper.selectOrderMainList(newdto);
+//			if(mainlist!=null&&mainlist.size()>0) {
+//				mylist.addAll(mainlist);
+//			}
+//			dto.setEndDate(GeneralUtil.formatDate(c.getTime()));
+//		}
+//		if(StrUtil.isNotBlank(dto.getOrderid())) {
+//			if(mylist.size()>0) {
+//				return mylist.size();
+//			}
+//		}
 		List<AmazonOrdersVo> orderlist = ordersReportMapper.selectOrderList(dto);
 		if(orderlist!=null&&orderlist.size()>0) {
 			mylist.addAll(orderlist);
@@ -529,7 +484,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 	@SuppressWarnings("unused")
 	@Override
 	public String setAmzOrderVatHandler(UserInfo userinfo, String groupid, String country, String orderid,
-			String itemstatus, String postDate, String vatlabel, String vattype,String ordertype) {
+										String itemstatus, String postDate, String vatlabel, String vattype,String ordertype) {
 
 		ByteArrayOutputStream baos=new ByteArrayOutputStream();
 		Map<String, Object> map =new HashMap<String, Object>();
@@ -543,32 +498,32 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 			e.printStackTrace();
 		}finally {
 			if(document != null && document.isOpen()){
-				 document.close();
-	        }
-			 if(baos != null){
-	                try {
-	                    baos.close();
-	                } catch (IOException e) {
-	                	e.printStackTrace();
-	                }
-	         }
+				document.close();
+			}
+			if(baos != null){
+				try {
+					baos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		AmzSubmitFeedQueue response = null;
-		  Marketplace marketplace = marketplaceService.findMarketplaceByCountry(country.toUpperCase());
+		Marketplace marketplace = marketplaceService.findMarketplaceByCountry(country.toUpperCase());
 		AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplace.getMarketplaceid());
 		AmzOrderMain orderMain = getAmzOrderMainById(orderid,auth.getId());
 		if(orderMain!=null) {
 			String authid = orderMain.getAmazonauthid();
 			if(auth!=null) {
 				auth.setMarketPlace(marketplace);
-				 Map<String, String> feedOptions = new HashMap<String, String>(); // building parameter map
-				 feedOptions.put("metadata:OrderId", orderid);
-				 feedOptions.put("metadata:TotalAmount", map.get("totalAmount").toString());
-				 feedOptions.put("metadata:TotalVATAmount", map.get("totalVat").toString());
-				 feedOptions.put("metadata:InvoiceNumber", map.get("invoiceNo").toString());
-				 //invoiceNo
-				 //VatNo
-				 String feedoptions=feedOptions.entrySet().stream().map(e -> String.format("%s=%s", e.getKey(), e.getValue())).collect(Collectors.joining(";"));
+				Map<String, String> feedOptions = new HashMap<String, String>(); // building parameter map
+				feedOptions.put("metadata:OrderId", orderid);
+				feedOptions.put("metadata:TotalAmount", map.get("totalAmount").toString());
+				feedOptions.put("metadata:TotalVATAmount", map.get("totalVat").toString());
+				feedOptions.put("metadata:InvoiceNumber", map.get("invoiceNo").toString());
+				//invoiceNo
+				//VatNo
+				String feedoptions=feedOptions.entrySet().stream().map(e -> String.format("%s=%s", e.getKey(), e.getValue())).collect(Collectors.joining(";"));
 				response = submitfeedService.SubmitFeedQueue(baos, orderid, auth, "UPLOAD_VAT_INVOICE", userinfo,feedoptions);
 			}
 		}
@@ -1841,6 +1796,7 @@ public class OrderManagerServiceImpl implements IOrderManagerService{
 					list.get(0).setBuyername(orderMain.getBuyerAdress().getName());
 					list.get(0).setBuyeremail(orderMain.getBuyerAdress().getName());
 					list.get(0).setAddressLine(adress);
+					list.get(0).setItemstatus(orderMain.getOrderStatus());
 					list.get(0).setAddressState(orderMain.getBuyerAdress().getStateOrRegion());
 					list.get(0).setAddressCity(orderMain.getBuyerAdress().getCity());
 					list.get(0).setAddressCountry(orderMain.getBuyerAdress().getCountryCode());

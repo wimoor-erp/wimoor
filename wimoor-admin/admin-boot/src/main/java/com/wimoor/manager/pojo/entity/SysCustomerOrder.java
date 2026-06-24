@@ -1,17 +1,16 @@
 package com.wimoor.manager.pojo.entity;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.common.pojo.entity.BaseEntity;
-
-import java.time.LocalDateTime;
-import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -41,7 +40,7 @@ public class SysCustomerOrder extends BaseEntity implements Serializable {
     @ApiModelProperty(value = "订单名称")
     private String subject;
 
-    @ApiModelProperty(value = "支付宝交易号")
+    @ApiModelProperty(value = "交易号")
     private String tradeNo;
 
     @ApiModelProperty(value = "付款金额")

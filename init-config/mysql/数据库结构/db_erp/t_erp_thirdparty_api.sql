@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_thirdparty_api` (
   `isdelete` bit(1) DEFAULT b'0',
   `operator` bigint unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
+  `runtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_shopid` (`name`,`shopid`,`system`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17392024503578653692 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC;

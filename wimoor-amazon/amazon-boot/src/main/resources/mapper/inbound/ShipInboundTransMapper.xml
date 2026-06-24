@@ -74,9 +74,13 @@
 							WHERE s2.ShipmentId=s.ShipmentId 
 								AND s2.inboundplanid=s.inboundplanid 
 								AND a2.groupid=p.amazongroupid
-							<if test="param.endDate!=null">
+							<if test="param.endDate!=null and param.datetype=='shipdate'">
 								and s2.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
 								and s2.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+							</if>
+							<if test="param.endDate!=null and param.datetype=='arrdate'">
+								and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trans2.arrivalTime)>= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+								and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trans2.arrivalTime) &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
 							</if>
 						)
 			)),2) skufee
@@ -99,9 +103,13 @@
 			AND p.shopid=#{param.shopid,jdbcType=CHAR} 
 			AND a.groupid=p.amazongroupid
 			AND trans.transweight>0
-		<if test="param.endDate!=null">
-			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
-			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+		<if test="param.endDate!=null and param.datetype=='shipdate'">
+			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+		</if>
+		<if test="param.endDate!=null and param.datetype=='arrdate'">
+			and ifnull(IFNULL(i.ReceivedDate,s.start_receive_date),trans.arrivalTime)>= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+			and ifnull(IFNULL(i.ReceivedDate,s.start_receive_date),trans.arrivalTime) &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
 		</if>
 		<if test="param.groupid!=null">
 			and p.amazongroupid= #{param.groupid,jdbcType=CHAR}
@@ -183,8 +191,9 @@
 							WHERE s2.ShipmentId=s.ShipmentId 
 								AND s2.inboundplanid=s.inboundplanid 
 								AND a2.groupid=p.amazongroupid
-								and s2.status5date>= #{param.fromDate,jdbcType=TIMESTAMP} 
-								and s2.status5date &lt;#{param.endDate,jdbcType=TIMESTAMP} 
+						and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trans2.arrivalTime)>=#{param.fromDate,jdbcType=TIMESTAMP}
+						and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trans2.arrivalTime) &lt;= #{param.endDate,jdbcType=TIMESTAMP}
+
 						),1)
 			)),2) skufee
 		FROM t_erp_ship_inbounditem i
@@ -634,9 +643,13 @@
 		AND s2.formid=s.formid
 		AND a2.groupid=p.groupid
 		and p2.shopid=#{param.shopid,jdbcType=CHAR}
-		<if test="param.endDate!=null">
+		<if test="param.endDate!=null and param.datetype=='shipdate'">
 			and s2.shiped_date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
 			and s2.shiped_date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
+		</if>
+		<if test="param.endDate!=null and param.datetype=='arrdate'">
+			and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trd.arrivalTime)>= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+			and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trd.arrivalTime) &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
 		</if>
 		),2
 		)) skufee
@@ -663,9 +676,13 @@
 		WHERE p.shopid=#{param.shopid,jdbcType=CHAR}
 		AND trans.transweight>0
 		AND a.groupid=p.groupid
-		<if test="param.endDate!=null">
+		<if test="param.endDate!=null and param.datetype=='shipdate'">
 			and s.shiped_date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
 			and s.shiped_date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+		</if>
+		<if test="param.endDate!=null and param.datetype=='arrdate'">
+			and ifnull(IFNULL(i.ReceivedDate,s.start_receive_date),trans.arrivalTime)>= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+			and ifnull(IFNULL(i.ReceivedDate,s.start_receive_date),trans.arrivalTime) &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
 		</if>
 		<if test="param.groupid!=null">
 			and p.groupid= #{param.groupid,jdbcType=CHAR}
@@ -770,10 +787,15 @@
 						AND s2.inboundplanid=s.inboundplanid 
 						AND a2.groupid=p.amazongroupid
 						and p2.shopid=#{param.shopid,jdbcType=CHAR}
-					<if test="param.endDate!=null">
+					<if test="param.endDate!=null and param.datetype=='shipdate'">
 						and s2.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
 						and s2.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day) , '%Y/%m/%d')
 					</if>
+					<if test="param.endDate!=null and param.datetype=='arrdate'">
+						and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trans2.arrivalTime)>= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+						and ifnull(IFNULL(i2.ReceivedDate,s2.start_receive_date),trans2.arrivalTime) &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+					</if>
+
 				),2
 			)) skufee
 		FROM t_erp_ship_inbounditem i
@@ -799,9 +821,13 @@
 		WHERE p.shopid=#{param.shopid,jdbcType=CHAR}
 			AND trans.transweight>0 
 			AND a.groupid=p.amazongroupid
-		<if test="param.endDate!=null">
+		<if test="param.endDate!=null and param.datetype=='shipdate'">
 			and s.status5date &gt;= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP} , '%Y/%m/%d')
 			and s.status5date &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
+		</if>
+		<if test="param.endDate!=null and param.datetype=='arrdate'">
+			and ifnull(IFNULL(i.ReceivedDate,s.start_receive_date),trans.arrivalTime)>= DATE_FORMAT(#{param.fromDate,jdbcType=TIMESTAMP}, '%Y/%m/%d')
+			and ifnull(IFNULL(i.ReceivedDate,s.start_receive_date),trans.arrivalTime) &lt;= DATE_FORMAT(date_add(#{param.endDate,jdbcType=TIMESTAMP}, interval 1 day), '%Y/%m/%d')
 		</if>
 		<if test="param.groupid!=null">
 			and p.amazongroupid= #{param.groupid,jdbcType=CHAR}

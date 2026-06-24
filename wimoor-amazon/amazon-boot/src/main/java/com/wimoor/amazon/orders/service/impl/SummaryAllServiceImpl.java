@@ -1,18 +1,5 @@
 package com.wimoor.amazon.orders.service.impl;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -23,6 +10,13 @@ import com.wimoor.amazon.orders.pojo.entity.SummaryAll;
 import com.wimoor.amazon.orders.service.ISummaryAllService;
 import com.wimoor.amazon.util.ChartPoint;
 import com.wimoor.common.GeneralUtil;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.*;
+import java.util.Map.Entry;
 @Service("summaryAllService")
 public class SummaryAllServiceImpl extends ServiceImpl<SummaryAllMapper,SummaryAll> implements ISummaryAllService  {
 	@Resource
@@ -39,12 +33,13 @@ public class SummaryAllServiceImpl extends ServiceImpl<SummaryAllMapper,SummaryA
 		if (param.get("currency") != null && !"".equals(param.get("currency").toString().trim())) {
 			currency = param.get("currency").toString();
 		}
+		String shopid=param.get("shopid").toString();
 		for (Map<String, Object> item : list) {
 			Object point = item.get("sales_channel");
 			Object price = item.get("price");
 			Marketplace market = allmarketplace.get(point.toString());
 			if (market != null) {
-				BigDecimal rmbprice = exchangeRateHandlerService.changeCurrencyByLocal(market.getCurrency(), currency, new BigDecimal(price.toString()));
+				BigDecimal rmbprice = exchangeRateHandlerService.changeCurrencyByLocal(shopid,market.getCurrency(), currency, new BigDecimal(price.toString()));
 				result = result.add(rmbprice);
 			}
 		}
@@ -52,6 +47,7 @@ public class SummaryAllServiceImpl extends ServiceImpl<SummaryAllMapper,SummaryA
 	}
 
 	public Map<String, Object> orderMonthsSummaryAll(Map<String, Object> param) {
+		String shopid=param.get("shopid").toString();
 		Map<String, Marketplace> allmarketplace = marketplaceService.findMapByPoint();
 		List<Map<String, Object>> list = this.baseMapper.selectMonthsSummary(param);
 		Map<String, ArrayList<Map<String, Object>>> map = GeneralUtil.groupListMapBy(list, "purchase_date");
@@ -69,7 +65,7 @@ public class SummaryAllServiceImpl extends ServiceImpl<SummaryAllMapper,SummaryA
 				Object price = itemMap.get("price");
 				Marketplace market = allmarketplace.get(point.toString());
 				if (market != null) {
-					BigDecimal rmbprice = exchangeRateHandlerService.changeCurrencyByLocal(market.getCurrency(), currency, new BigDecimal(price.toString()));
+					BigDecimal rmbprice = exchangeRateHandlerService.changeCurrencyByLocal(shopid,market.getCurrency(), currency, new BigDecimal(price.toString()));
 					result = result.add(rmbprice);
 				}
 			}

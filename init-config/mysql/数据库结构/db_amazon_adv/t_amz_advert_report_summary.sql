@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS `t_amz_advert_report_summary` (
   `units` int DEFAULT NULL,
   `spc` double DEFAULT NULL,
   `totalsales` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`bydate`,`id`),
-  UNIQUE KEY `sellerskum` (`sellerid`,`marketplaceid`,`sku`,`ctype`,`bydate`)
+  PRIMARY KEY (`bydate`,`id`) USING BTREE,
+  UNIQUE KEY `sellerskum` (`sellerid`,`marketplaceid`,`sku`,`ctype`,`bydate`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='商品广告';
 
 -- 数据导出被取消选择。

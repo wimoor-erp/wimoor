@@ -1,18 +1,15 @@
 package com.wimoor.erp.api;
 
+import com.wimoor.admin.api.AdminClientOneFeign;
+import com.wimoor.common.result.Result;
+import com.wimoor.common.user.UserInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.wimoor.admin.api.AdminClientOneFeign;
-import com.wimoor.common.result.Result;
-import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.bean.BeanUtil;
 
 
  
@@ -24,12 +21,12 @@ public class AdminClientOneFeignManager {
 	@Autowired
 	AdminClientOneFeign api;
 	
-    public Result<Map<String,Object>> getUserByUserId(  String userid){
-    	 Result<UserInfo> user = api.getUserAllByUserId(userid);
+    public UserInfo getUserByUserId(  String userid){
+    	 Result<UserInfo> user = api.getUserByUserId(userid);
     	 if(user!=null&&user.getData()!=null) {
-    		 return Result.success(BeanUtil.beanToMap(user.getData()));
+    		 return user.getData();
     	 }else {
-    		 return Result.failed();
+    		return null;
     	 }
     }
     public Map<String,String> listType(String typeCode) {
@@ -46,8 +43,12 @@ public class AdminClientOneFeignManager {
     	return null;
     }
 	
-	public Result<UserInfo> getUserAllByUserId(  String userid){
-		return api.getUserAllByUserId(userid);
+	public UserInfo getUserAllByUserId(  String userid){
+		Result<UserInfo> result= api.getUserByUserId(userid);
+		if(Result.isSuccess(result)&&result.getData()!=null) {
+			return result.getData();
+		}
+		return null;
 	}
 	
 	public Result<List<Map<String,Object>>> findTagsNameByIds(  Set<String> tagsIdsList){

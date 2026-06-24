@@ -16,24 +16,25 @@
 
 -- 导出  表 db_admin.t_sys_customer_order 结构
 CREATE TABLE IF NOT EXISTS `t_sys_customer_order` (
-  `id` bigint unsigned NOT NULL,
+  `id` bigint unsigned NOT NULL COMMENT 'ID',
   `shopid` bigint unsigned DEFAULT NULL COMMENT '公司ID',
   `ftype` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '订单类型  package:套餐  append:附加包',
   `out_trade_no` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '商户订单号',
   `subject` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '订单名称',
   `trade_no` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '支付宝交易号',
   `total_amount` decimal(10,2) DEFAULT NULL COMMENT '付款金额',
-  `discountnumber` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `paytime` timestamp NULL DEFAULT NULL,
+  `discountnumber` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '折扣编码',
+  `paytime` datetime DEFAULT NULL COMMENT '付款时间',
   `paystatus` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '付款状态',
   `ivcstatus` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '开票状态',
-  `months` int DEFAULT NULL,
-  `tariffpackage` int DEFAULT NULL,
-  `pcs` int DEFAULT '1',
-  `paytype` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `disable` bit(1) DEFAULT b'0',
+  `months` int DEFAULT NULL COMMENT '月份数',
+  `tariffpackage` int DEFAULT NULL COMMENT '套餐ID',
+  `pcs` int DEFAULT '1' COMMENT '购买的套餐数量默认是1',
+  `paytype` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '付款方式',
+  `disable` bit(1) DEFAULT b'0' COMMENT '是否取消',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `out_trade_no` (`out_trade_no`)
+  UNIQUE KEY `out_trade_no` (`out_trade_no`),
+  KEY `shopid` (`shopid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT=' ';
 
 -- 数据导出被取消选择。

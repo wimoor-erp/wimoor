@@ -2,7 +2,7 @@ package com.wimoor.data.controller;
 
 
 import cn.hutool.core.util.StrUtil;
-import com.wimoor.data.controller.result.Result;
+import com.wimoor.common.result.Result;
 import com.wimoor.data.service.IDataMoveService;
 import com.wimoor.data.service.IDataService;
 import org.springframework.beans.factory.annotation.Autowired;

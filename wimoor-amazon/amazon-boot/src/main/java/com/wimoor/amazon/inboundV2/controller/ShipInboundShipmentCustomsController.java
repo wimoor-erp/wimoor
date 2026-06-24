@@ -1,5 +1,6 @@
 package com.wimoor.amazon.inboundV2.controller;
 
+import com.wimoor.amazon.inboundV2.service.IShipCrossborderXmlSevice;
 import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentCustomsService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentTemplateFileService;
 import com.wimoor.common.result.Result;
@@ -79,8 +80,6 @@ public class ShipInboundShipmentCustomsController {
                 }
                 return Result.success(maps);
         }
-
-
 
 
 }

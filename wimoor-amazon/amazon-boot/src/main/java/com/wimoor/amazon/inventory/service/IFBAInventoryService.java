@@ -1,11 +1,5 @@
 package com.wimoor.amazon.inventory.service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -14,6 +8,13 @@ import com.wimoor.amazon.inventory.pojo.entity.InventoryReport;
 import com.wimoor.amazon.inventory.pojo.vo.AmzInventoryPlanningVo;
 import com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo;
 import com.wimoor.amazon.report.pojo.dto.InvDayDetailDTO;
+import com.wimoor.common.user.UserInfo;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public interface IFBAInventoryService extends IService<InventoryReport>{
 	
@@ -32,8 +33,11 @@ public interface IFBAInventoryService extends IService<InventoryReport>{
 	public Map<String, Object> getFBAInvDayDetailTotal(Map<String, Object> parameter);
 	
 	public IPage<Map<String, Object>> selectInventoryCost(Page<?> page, String groupid, String marketplaceid, String sku,
-			String shopid, String byday);
+			String shopid, String byday, String isAvgPrice);
 	public List<Map<String, Object>> selectInventoryCostAll(String groupid, String marketplaceid, String sku,
-			String shopid, String byday);
+			String shopid, String byday, String isAvgPrice);
 	public IPage<Map<String, Object>> getFBAInvDayDetail(InvDayDetailDTO query, Map<String, Object> parameter);
+
+	// 添加文件上传处理方法
+	public String uploadInventoryFile(Sheet sheet, UserInfo userInfo);
 }

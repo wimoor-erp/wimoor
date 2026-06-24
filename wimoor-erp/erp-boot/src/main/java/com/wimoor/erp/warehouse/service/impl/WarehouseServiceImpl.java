@@ -1,18 +1,8 @@
 package com.wimoor.erp.warehouse.service.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import com.wimoor.erp.warehouse.pojo.dto.WarehouseDTO;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -23,24 +13,25 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
-import com.wimoor.erp.material.mapper.AssemblyFormMapper;
-import com.wimoor.erp.material.pojo.entity.AssemblyForm;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
 import com.wimoor.erp.inventory.mapper.InventoryMapper;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
+import com.wimoor.erp.material.mapper.AssemblyFormMapper;
+import com.wimoor.erp.material.pojo.entity.AssemblyForm;
 import com.wimoor.erp.purchase.mapper.PurchasePlanMapper;
 import com.wimoor.erp.stock.mapper.ChangeWhFormMapper;
 import com.wimoor.erp.stock.mapper.DispatchFormMapper;
 import com.wimoor.erp.stock.pojo.entity.ChangeWhForm;
 import com.wimoor.erp.stock.pojo.entity.DispatchForm;
 import com.wimoor.erp.warehouse.mapper.WarehouseMapper;
+import com.wimoor.erp.warehouse.pojo.dto.WarehouseDTO;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
  
 
   
@@ -293,7 +284,7 @@ public class WarehouseServiceImpl extends  ServiceImpl<WarehouseMapper,Warehouse
 				wh.setId(warehouse.getId());
 				result = this.updateById(wh);
 			}else {
-				throw new ERPBizException("该仓库已经存在！");
+				throw new ERPBizException("同一个公司下不能存在多个相同名称的仓库，建议将父仓库作为前缀！");
 			}
 		}else {
 			result = save(wh);

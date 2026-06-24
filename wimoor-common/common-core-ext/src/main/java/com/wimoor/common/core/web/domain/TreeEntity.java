@@ -26,6 +26,15 @@ public class TreeEntity extends BaseEntity
 
     /** 子部门 */
     private List<?> children = new ArrayList<>();
+    boolean hasChildren = false;
+
+    public boolean hasChildren() {
+        return hasChildren;
+    }
+
+    public void setHasChildren(boolean hasChildren) {
+        this.hasChildren = hasChildren;
+    }
 
     public String getParentName()
     {

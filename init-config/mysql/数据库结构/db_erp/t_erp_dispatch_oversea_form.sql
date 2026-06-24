@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_dispatch_oversea_form` (
   `boxnum` int DEFAULT NULL,
   `createdate` datetime DEFAULT NULL,
   `arrivalTime` datetime DEFAULT NULL,
+  `check_inv` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `number_shopid` (`shopid`,`number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;

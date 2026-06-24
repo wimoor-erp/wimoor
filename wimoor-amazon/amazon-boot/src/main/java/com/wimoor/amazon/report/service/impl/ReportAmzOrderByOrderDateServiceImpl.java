@@ -1,31 +1,34 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.*;
-
-import javax.annotation.Resource;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.reports.CreateReportSpecification;
 import com.amazon.spapi.model.reports.ReportOptions;
-import com.wimoor.amazon.util.AmzDateUtils;
-import org.springframework.stereotype.Service;
-
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
 import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
+import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.*;
 
 @Service("reportAmzOrderByOrderDateService")
 public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 
 	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
 		amazonAuthority.setUseApi("createReport");
+		if(GeneralUtil.isBetweenTime(8, 18)&&(ignore==null||ignore==false)) {
+			ignore=true;
+			//开始时间必须是结束时间往前推6小时内的时间
+			cstart.setTime(cend.getTime());
+			cstart.add(Calendar.HOUR,-6);
+		}
 		List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
 		List<String> list=new ArrayList<String>();
 		CreateReportSpecification body=new CreateReportSpecification();
@@ -41,15 +44,17 @@ public class ReportAmzOrderByOrderDateServiceImpl extends ReportServiceImpl{
 			list.add(market.getMarketplaceid());
 			if(mymarket==null){ mymarket=market;}
 		}
+		if(list.size()==0) {return;}
 		if(ignore==null||ignore==false) {
-			Map<String,Object> param=new HashMap<String,Object>();
-			param.put("sellerid", amazonAuthority.getSellerid());
-			param.put("reporttype", this.myReportType());
-			param.put("marketplacelist", list);
-			Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);
-			if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
-				return;
-			}
+			//时间在早上8点到18点之间的申请，不执行以下代码
+				Map<String,Object> param=new HashMap<String,Object>();
+				param.put("sellerid", amazonAuthority.getSellerid());
+				param.put("reporttype", this.myReportType());
+				param.put("marketplacelist", list);
+				Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);
+				if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
+					return;
+				}
 		}
 		amazonAuthority.setMarketPlace(mymarket);
 		body.setMarketplaceIds(list);

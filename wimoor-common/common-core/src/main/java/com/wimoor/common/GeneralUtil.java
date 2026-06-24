@@ -1,14 +1,27 @@
 package com.wimoor.common;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -19,57 +32,18 @@ import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
+import java.util.*;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.XMLConstants;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import cn.hutool.core.util.StrUtil;
  
 
 /**
  * 将对象转换为json格式字符串
  * @author felix_liu
  * @version 2016-11-05
- * @param Object
  * @return json string
  */
 
@@ -78,9 +52,6 @@ public class GeneralUtil {
 
 	/**
 	 * 此功能可以将数据库里面查出来的list<map> 结构在进行以某个字段进行分类。
-	 * 
-	 * @param list
-	 * @param by
 	 * @return
 	 */
 	public static boolean isEmpty(String value){
@@ -1451,7 +1422,7 @@ public class GeneralUtil {
 		if(position==null)return null;
 		if(position<info.length) {
 			if(isNumericzidai(info[position])) {
-				return   Integer.parseInt(info[position]);
+				return   new BigDecimal(info[position]).intValue();
 			}
 		}
 		return null;
@@ -1942,7 +1913,13 @@ public class GeneralUtil {
 		// TODO Auto-generated method stub
 		return !GeneralUtil.isEmpty(value);
 	}
-
+    public static BigDecimal getBigDecimal(Object object ){
+		if(object!=null){
+			return GeneralUtil.getBigDecimal(object.toString());
+		}else{
+			return null;
+		}
+	}
 
 	public static BigDecimal getBigDecimal(String value) {
 		if (StrUtil.isEmpty(value) || "N/A".equals(value)) {
@@ -1983,7 +1960,10 @@ public class GeneralUtil {
 		}
 		return null;
 	}
-	
+	public static Integer getInteger(Object value) {
+		 if(value==null)return null;
+		 else return getInteger(value.toString());
+	}
 	public static Integer getInteger(String value) {
 		if (StrUtil.isEmpty(value) || "N/A".equals(value)) {
 			return null;
@@ -2115,4 +2095,49 @@ public class GeneralUtil {
 	      else return value;
 	    }
 
+    public static boolean isSameMonth(Date lastCaptuerDate, Date date) {
+		Calendar cal1 = Calendar.getInstance();
+        cal1.setTime(lastCaptuerDate);
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(date);
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) && cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH);
+    }
+
+	public static boolean isBetweenTime(int start, int end) {
+		Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        return hour >= start && hour < end;
+	}
+
+	public static String getTimeZone(String market) {
+        switch (market) {
+            case "US":
+            case "CA":
+                return "PST";
+            case "MX":
+                return "CST";
+            case "UK":
+            case "IE":
+                return "GMT";
+            case "SE":
+            case "PL":
+            case "NL":
+            case "IT":
+            case "FR":
+            case "ES":
+            case "DE":
+            case "BE":
+                return "GMT+1";
+            case "AE":
+                return "GST";
+            case "JP":
+                return "JST";
+            case "EG":
+                return "EET";
+            case "TR":
+                return "TRT";
+            default:
+                return "UTC";
+        }
+	}
 }

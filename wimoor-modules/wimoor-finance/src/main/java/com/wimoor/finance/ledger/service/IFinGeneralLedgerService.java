@@ -79,4 +79,24 @@ public interface IFinGeneralLedgerService
     int deleteByPeriod(String groupid, String nextPeriod);
 
     List<Map<String, Object>> getAllSubjectBalance(String groupid, String period);
+
+    /**
+     * 查询顶级科目总账汇总
+     */
+    List<Map<String, Object>> selectTopLevelSummary(FinLedgerDTO dto);
+
+    /**
+     * 查询顶级科目总账汇总（完整数据，包含期初余额、本期合计、本年累计）
+     */
+    List<Map<String, Object>> selectTopLevelSummaryFull(FinLedgerDTO dto);
+
+    /**
+     * 从凭证分录重建总账
+     */
+    int rebuildGeneralLedger(String groupid);
+
+    /**
+     * 验证总账公式：期初余额 + 本期借方 - 本期贷方 = 期末余额
+     */
+    List<Map<String, Object>> verifyLedgerFormula(String groupid);
 }

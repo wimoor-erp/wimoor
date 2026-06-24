@@ -26,7 +26,7 @@ public class FBAEstimatedFeeServiceImpl extends ServiceImpl<FBAEstimatedFeeMappe
 
 	
 	@Override
-	@Cacheable(value = "fbaFeeCache")
+	@Cacheable(value = "fbaFeeCache#20")
 	public FBAEstimatedFee getOneBySku(String sku, String asin, String amazonauthid, String marketplaceid) {
 		// TODO Auto-generated method stub
 		LambdaQueryWrapper<FBAEstimatedFee> queryFbaFee=new LambdaQueryWrapper<FBAEstimatedFee>();

@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `fin_report_templates` (
   `created_time` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`template_id`),
   UNIQUE KEY `uk_tenant_report_code` (`groupid`,`template_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=120 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='财务报表模板定义表';
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='财务报表模板定义表';
 
 -- 数据导出被取消选择。
 

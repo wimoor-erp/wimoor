@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_operate_log` (
   KEY `campaignId` (`campaignId`),
   KEY `profileid` (`profileid`,`opttime`),
   KEY `adGroupId` (`adGroupId`)
-) ENGINE=InnoDB AUTO_INCREMENT=522159 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=531277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

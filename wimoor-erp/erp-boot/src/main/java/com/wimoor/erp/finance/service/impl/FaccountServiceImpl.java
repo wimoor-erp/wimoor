@@ -243,7 +243,7 @@ public class FaccountServiceImpl extends ServiceImpl<FinAccountMapper,FinAccount
 			}
 		}
 		
-	public FinAccount readFinAccount(String shopid,Integer payMethod) {
+	public FinAccount readFinAccount(String shopid,Integer payMethod,String name) {
 		if(payMethod==null){
 			payMethod=1;
 		}
@@ -251,26 +251,33 @@ public class FaccountServiceImpl extends ServiceImpl<FinAccountMapper,FinAccount
 		queryWrapper.eq("shopid", shopid);
 		queryWrapper.eq("isdelete", false);
 		queryWrapper.eq("paymeth", payMethod);
-		List<FinAccount> list = finAccountMapper.selectList(queryWrapper);
-		if (list.size() > 0) {
-			for(FinAccount item:list){
-				if(item.getIsdefault()!=null&&item.getIsdefault()) {
-					return item;
+		if(GeneralUtil.isNotEmpty(name)) {
+			queryWrapper.eq("name", name);
+			return finAccountMapper.selectOne(queryWrapper);
+		}else{
+			List<FinAccount> list = finAccountMapper.selectList(queryWrapper);
+			if (list.size() > 0) {
+				for(FinAccount item:list){
+					if(item.getIsdefault()!=null&&item.getIsdefault()) {
+						return item;
+					}
 				}
+				return list.get(0);
+			} else {
+				FinAccount record = new FinAccount();
+				record.setBalance(new BigDecimal("0"));
+				record.setPaymeth(payMethod);
+				record.setIsdelete(false);
+				record.setCreatedate(new Date());
+				record.setIsdefault(true);
+				record.setName("默认账户");
+				record.setShopid(shopid);
+				finAccountMapper.insert(record);
+				return record;
 			}
-			return list.get(0);
-		} else {
-			FinAccount record = new FinAccount();
-			record.setBalance(new BigDecimal("0"));
-			record.setPaymeth(payMethod);
-			record.setIsdelete(false);
-			record.setCreatedate(new Date());
-			record.setIsdefault(true);
-			record.setName("默认账户");
-			record.setShopid(shopid);
-			finAccountMapper.insert(record);
-			return record;
 		}
+
+
 	}
 
 	

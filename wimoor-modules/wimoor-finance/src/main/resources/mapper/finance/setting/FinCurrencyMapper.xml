@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinCurrencyMapper">
+    
+    <resultMap type="com.wimoor.finance.setting.domain.FinCurrency" id="FinCurrencyResult">
+        <result property="code"    column="code"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="name"    column="name"    />
+        <result property="rate"    column="rate"    />
+        <result property="islocal"    column="islocal"    />
+        <result property="isauto"    column="isauto"    />
+        <result property="modifyBy"    column="modify_by"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinCurrencyVo">
+        select code, groupid, name, rate, islocal, isauto, modify_by, create_by, created_time, updated_time from fin_currency
+    </sql>
+
+    <select id="selectFinCurrencyList" parameterType="com.wimoor.finance.setting.domain.FinCurrency" resultMap="FinCurrencyResult">
+        <include refid="selectFinCurrencyVo"/>
+        <where>
+            groupid = #{groupid}
+            <if test="code != null  and code != ''"> and code = #{code}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="rate != null "> and rate = #{rate}</if>
+            <if test="islocal != null "> and islocal = #{islocal}</if>
+        </where>
+    </select>
+    
+     <select id="selectFinCurrencyByCode" parameterType="String" resultMap="FinCurrencyResult">
+        <include refid="selectFinCurrencyVo"/>
+        where code = #{code} and groupid = #{groupid}
+    </select>
+
+    <insert id="insertFinCurrency" parameterType="com.wimoor.finance.setting.domain.FinCurrency">
+        insert into fin_currency
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code != null">code,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="name != null">name,</if>
+            <if test="rate != null">rate,</if>
+            <if test="islocal != null">islocal,</if>
+            <if test="isauto != null">isauto,</if>
+            <if test="modifyBy != null">modify_by,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code != null">#{code},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="name != null">#{name},</if>
+            <if test="rate != null">#{rate},</if>
+            <if test="islocal != null">#{islocal},</if>
+            <if test="isauto != null">#{isauto},</if>
+            <if test="modifyBy != null">#{modifyBy},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinCurrency" parameterType="com.wimoor.finance.setting.domain.FinCurrency">
+        update fin_currency
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="rate != null">rate = #{rate},</if>
+            <if test="islocal != null">islocal = #{islocal},</if>
+            <if test="isauto != null">isauto = #{isauto},</if>
+            <if test="modifyBy != null">modify_by = #{modifyBy},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where code = #{code} and groupid = #{groupid}
+    </update>
+
+    <delete id="deleteFinCurrencyByCode" parameterType="String">
+        delete from fin_currency where code = #{code}
+    </delete>
+
+    <delete id="deleteFinCurrencyByCodes" parameterType="String">
+        delete from fin_currency where code in 
+        <foreach item="code" collection="array" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </delete>
+</mapper>

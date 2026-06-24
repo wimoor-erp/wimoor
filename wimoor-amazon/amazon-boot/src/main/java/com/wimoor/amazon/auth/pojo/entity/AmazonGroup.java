@@ -33,6 +33,10 @@ public class AmazonGroup extends BaseEntity {
     @TableField(value =  "profitcfgid")
    	protected String profitcfgid;
 
+    @ApiModelProperty(value = "财务模块利润计算方案ID")
+    @TableField(value =  "financeprofitid")
+   	protected String financeprofitid;
+
     @ApiModelProperty(value = "公司名称")
     @TableField(value =  "company")
     protected String company;
@@ -44,7 +48,16 @@ public class AmazonGroup extends BaseEntity {
     @ApiModelProperty(value = "税务编码")
     @TableField(value =  "tax_number")
     protected String taxNumber;
-    
+
+    @ApiModelProperty(value = "海关注册编码")
+    @TableField(value =  "custom_number")
+    protected String customNumber;
+
+
+    @ApiModelProperty(value = "海关Dxpid")
+    @TableField(value =  "dxpid")
+    protected String dxpid;
+
 	@ApiModelProperty(value = "排序号")
     @TableField(value =  "findex")
    	protected Integer findex;

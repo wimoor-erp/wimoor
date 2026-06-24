@@ -13,4 +13,5 @@ public class InventoryValueReportDTO extends BasePageQuery{
 	String sku ;
 	String byday;
 	String warehouseid;
+	String isAvgPrice;
 }

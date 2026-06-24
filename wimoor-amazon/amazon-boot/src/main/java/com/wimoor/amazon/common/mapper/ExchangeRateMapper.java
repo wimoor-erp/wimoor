@@ -1,5 +1,6 @@
 package com.wimoor.amazon.common.mapper;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -14,4 +15,5 @@ public interface ExchangeRateMapper extends BaseMapper<ExchangeRate> {
 	ExchangeRate selectMineByName(@Param("name")String name,@Param("shopid")String shopid);
     int deleteAll();
 	List<ExchangeRate> getExchangeRateLimit();
+    Date findLastCaptuerDate();
 }

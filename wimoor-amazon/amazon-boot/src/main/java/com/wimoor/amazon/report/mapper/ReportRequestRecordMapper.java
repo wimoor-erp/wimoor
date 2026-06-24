@@ -1,14 +1,13 @@
 package com.wimoor.amazon.report.mapper;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wimoor.amazon.report.pojo.entity.ReportRequestRecord;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 @Mapper
 public interface ReportRequestRecordMapper  extends BaseMapper<ReportRequestRecord> {
 	Date oldestRequestByType(Map<String, Object> map);
@@ -29,5 +28,7 @@ public interface ReportRequestRecordMapper  extends BaseMapper<ReportRequestReco
 	
 	List<ReportRequestRecord> selectNoTreatReport(@Param("reporttype")String reporttype,@Param("marketplaceid")String marketplaceid);
 	
-	List<Map<String,Object>> selectTaskInfoList(@Param("sellerid")String sellerid,@Param("marketplaceid")String marketplaceid);
+	List<Map<String,Object>> selectTaskInfoList(@Param("sellerid")String sellerid,@Param("marketplaceid")String marketplaceid,@Param("reportType")String reportType);
+
+    List<String> getWithoutSeller(String reportType);
 }

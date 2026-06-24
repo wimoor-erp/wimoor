@@ -28,6 +28,8 @@ public class FinVoucherDTO extends BaseEntity
     @Excel(name = "关联的凭证ID")
     private Long voucherId;
 
+    private String voucherType;
+
     /** 分录序号，从1开始 */
     @Excel(name = "分录序号，从1开始")
     private Long entryNo;
@@ -65,6 +67,9 @@ public class FinVoucherDTO extends BaseEntity
     private String subjectName;
 
     /** 凭证日期参数 */
+    private String startPeriod;
+    private String endPeriod;
+
     private Date startDate;
     private Date endDate;
 
@@ -76,6 +81,34 @@ public class FinVoucherDTO extends BaseEntity
     @Excel(name = "审核人用户ID")
     private String auditorBy;
 
+    private String order = "desc";
+
+    public String getVoucherType() {
+        return voucherType;
+    }
+    public void setVoucherType(String voucherType) {
+        this.voucherType = voucherType;
+    }
+    public Date getStartDate() {
+        return startDate;
+    }
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+    public Date getEndDate() {
+        return endDate;
+    }
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getOrder() {
+        return order;
+    }
+
+    public void setOrder(String order) {
+        this.order = order;
+    }
     public String getAuditorBy() {
         return auditorBy;
     }
@@ -102,12 +135,22 @@ public class FinVoucherDTO extends BaseEntity
     public void setVoucherDateStr(List<String> voucherDateStr) {
         this.voucherDateStr = voucherDateStr;
     }
+    public String getStartPeriod() {
+        return startPeriod;
+    }
 
-    public void setStartDate(Date startDate) {this.startDate = startDate;}
-    public Date getStartDate() {return startDate;}
+    public void setStartPeriod(String startPeriod) {
+        this.startPeriod = startPeriod;
+    }
 
-    public void setEndDate(Date endDate) {this.endDate = endDate;}
-    public Date getEndDate() {return endDate;}
+    public String getEndPeriod() {
+        return endPeriod;
+    }
+
+    public void setEndPeriod(String endPeriod) {
+        this.endPeriod = endPeriod;
+    }
+
 
     public void setVoucherDate(Date voucherDate)
     {

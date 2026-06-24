@@ -1,28 +1,22 @@
 package com.wimoor.common.service.impl;
 
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Date;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mapper.PictureMapper;
 import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.service.IPictureService;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
+import org.springframework.stereotype.Service;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Date;
+import java.util.List;
  
 
 @Service("pictureService")
@@ -193,6 +187,18 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper,Picture> imple
 				}
 		}
 		return picture;
+	}
+
+	@Override
+	public void removePicture(String pkgimage) {
+		Picture picture = this.getById(pkgimage);
+		String destinationPath = picture.getLocation();
+		if(destinationPath==null) {
+			return;
+		}
+		String path = destinationPath.substring((storageService.getBucketName() + "/").length(), destinationPath.length());
+		storageService.removeObject(storageService.getBucketName(), path);
+		this.removeById(pkgimage);
 	}
 
 	private List<Picture> selectByImageName(String oldlocation) {

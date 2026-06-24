@@ -1,24 +1,5 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.io.BufferedReader;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
-
 import com.amazon.spapi.model.reports.CreateReportSpecification;
 import com.amazon.spapi.model.reports.ReportOptions;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -30,6 +11,14 @@ import com.wimoor.amazon.finances.pojo.entity.FBAStorageFeeReport;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service("reportAmzFBAStorageFeeService")
 public class ReportAmzFBAStorageFeeServiceImpl extends ReportServiceImpl{
@@ -38,62 +27,55 @@ public class ReportAmzFBAStorageFeeServiceImpl extends ReportServiceImpl{
 	private IMarketplaceService marketplaceService;
 	@Resource
 	private FBAStorageFeeReportMapper fBAStorageFeeReportMapper;
-	
-	@Override
+
 	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
-          amazonAuthority.setUseApi("createReport");
-		  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
-		  Set<String> region=new HashSet<String>();
-		  cstart.set(Calendar.DATE, 1);
-		  cend.setTime(cstart.getTime());
-		  cend.add(Calendar.MONTH, 1);
-		  cend.add(Calendar.DATE, -1);
-		  for(Marketplace market:marketlist) {
-			  CreateReportSpecification body=new CreateReportSpecification();
-			  body.setReportType(myReportType());
-			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
-			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
-			  QueryWrapper<FBAStorageFeeReport> query=new QueryWrapper<FBAStorageFeeReport>();
-			  query.eq("amazonauthid", amazonAuthority.getId());
-			  query.eq("country", market.getMarket());
-			  SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM");
-			  query.eq("month",fmt.format(cend.getTime()));
-			  Long count = fBAStorageFeeReportMapper.selectCount(query);
-			   if(count!=null&&count>0) {
-				   continue;
-			   }
-			   if(region.contains(market.getRegion())) {
-				   continue;
-			   }else {
-				   region.add(market.getRegion());
-			   }
-			   Date today = new Date();
-				  double days = Math.floor((today.getTime() - cend.getTime().getTime()) / 1000 / 3600 / 24); 
-				  if(days<8) {
-					  continue;
-				  }
-			  ReportOptions reportOptions=getMyOptions();
-			  if(reportOptions!=null) {
-				body.setReportOptions(reportOptions);  
-			  }
-			  List<String> list=new ArrayList<String>();
-			  list.add(market.getMarketplaceid());
-			  amazonAuthority.setMarketPlace(market);
-			  if(ignore==null||ignore==false) {
-				  Map<String,Object> param=new HashMap<String,Object>();
-				  param.put("sellerid", amazonAuthority.getSellerid());
-				  param.put("reporttype", this.myReportType());
-				  param.put("marketplacelist", list);
-				  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
-				  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
-					  continue;
-				  }
-			  }
-			  body.setMarketplaceIds(list);
-			  callCreateAPI(this, body, amazonAuthority, market,cstart.getTime(),cend.getTime());
-			 
-		  }
-}
+		amazonAuthority.setUseApi("createReport");
+		// 设置为整月查询：开始时间为月份第一天，结束时间为月份最后一天
+		// 重置开始时间为当月第一天
+		cstart.set(Calendar.DAY_OF_MONTH, 1);
+		cstart.set(Calendar.HOUR_OF_DAY, 0);
+		cstart.set(Calendar.MINUTE, 0);
+		cstart.set(Calendar.SECOND, 0);
+		// 先将cend的年份和月份设置为与cstart相同
+		cend.set(Calendar.YEAR, cstart.get(Calendar.YEAR));
+		cend.set(Calendar.MONTH, cstart.get(Calendar.MONTH));
+		// 然后设置为该月的最后一天
+		cend.set(Calendar.DAY_OF_MONTH, cstart.getActualMaximum(Calendar.DAY_OF_MONTH));
+		cend.set(Calendar.HOUR_OF_DAY, 23);
+		cend.set(Calendar.MINUTE, 59);
+		cend.set(Calendar.SECOND, 59);
+		List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
+		List<String> list=new ArrayList<String>();
+		CreateReportSpecification body=new CreateReportSpecification();
+		body.setReportType(myReportType());
+		body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
+		body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
+		ReportOptions reportOptions=getMyOptions();
+		if(reportOptions!=null) {
+			body.setReportOptions(reportOptions);
+		}
+		Marketplace mymarket=null;
+		for(Marketplace market:marketlist) {
+			list.add(market.getMarketplaceid());
+			if(mymarket==null){ mymarket=market;}
+		}
+		if(list.size()==0) {return;}
+		if(ignore==null||ignore==false) {
+			//时间在早上8点到18点之间的申请，不执行以下代码
+			Map<String,Object> param=new HashMap<String,Object>();
+			param.put("sellerid", amazonAuthority.getSellerid());
+			param.put("reporttype", this.myReportType());
+			param.put("marketplacelist", list);
+			Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);
+			if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<72) {
+				return;
+			}
+		}
+		amazonAuthority.setMarketPlace(mymarket);
+		body.setMarketplaceIds(list);
+		callCreateAPI(this, body, amazonAuthority, mymarket,cstart.getTime(),cend.getTime());
+	}
+
 
 	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
 		int lineNumber = 0;

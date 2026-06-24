@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_thirdparty_warehouse_bind` (
   `local_warehouse_id` bigint unsigned NOT NULL,
   `operator` bigint unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
-  PRIMARY KEY (`thirdparty_warehouse_id`) USING BTREE,
+  PRIMARY KEY (`thirdparty_warehouse_id`,`local_warehouse_id`) USING BTREE,
   UNIQUE KEY `uni` (`local_warehouse_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 

@@ -1,22 +1,17 @@
 package com.wimoor.finance.report.controller;
 
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.wimoor.finance.report.domain.FinReportTemplates;
-import com.wimoor.finance.report.service.IFinReportTemplatesService;
+import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.controller.BaseController;
 import com.wimoor.common.core.web.domain.Result;
-import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.page.TableDataInfo;
+import com.wimoor.finance.report.domain.FinReportTemplates;
+import com.wimoor.finance.report.service.IFinReportItemsService;
+import com.wimoor.finance.report.service.IFinReportTemplatesService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * 财务报表模板Controller
@@ -30,6 +25,9 @@ public class FinReportTemplatesController extends BaseController
 {
     @Autowired
     private IFinReportTemplatesService finReportTemplatesService;
+    
+    @Autowired
+    private IFinReportItemsService finReportItemsService;
 
     /**
      * 查询财务报表模板列表
@@ -87,5 +85,25 @@ public class FinReportTemplatesController extends BaseController
     public Result remove(@PathVariable Long[] templateIds)
     {
         return toResult(finReportTemplatesService.deleteFinReportTemplatesByTemplateIds(templateIds));
+    }
+    
+    /**
+     * 初始化模板的报表项目
+     * 会删除现有项目并根据模板类型重新创建默认项目
+     */
+    @PostMapping("/init-items/{templateId}")
+    public Result initTemplateItems(@PathVariable Long templateId, 
+                                     @RequestParam String groupid,
+                                     @RequestParam String templateType)
+    {
+        try
+        {
+            int count = finReportItemsService.initTemplateItems(templateId, groupid, templateType);
+            return success("初始化成功，创建了 " + count + " 个报表项目");
+        }
+        catch (Exception e)
+        {
+            return error("初始化失败: " + e.getMessage());
+        }
     }
 }

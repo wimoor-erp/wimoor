@@ -33,6 +33,9 @@ public interface FinVouchersMapper
      */
     public List<FinVouchers> selectFinVouchersList(FinVoucherDTO finVouchers);
 
+    /** 简单查询凭证列表（不含嵌套分录和附件），用于批量加载优化 */
+    public List<FinVouchers> selectFinVouchersSimpleList(FinVoucherDTO finVouchers);
+
     /**
      * 新增记账凭证
      *
@@ -105,4 +108,26 @@ public interface FinVouchersMapper
     List<FinVouchers> selectVouchersModifiedAfterClosing(String groupid, String period, Date closeTime);
 
     List<FinVouchers> selectProfitTransferVouchers(String groupid, String period);
+
+    /**
+     * 查询指定期间的凭证列表（按凭证编号排序），用于重新编号
+     *
+     * @param groupid 租户ID
+     * @param year 年份
+     * @param month 月份
+     * @return 凭证列表
+     */
+    List<FinVouchers> selectVouchersByYearMonth(@Param("groupid") String groupid,
+                                                @Param("year") int year,
+                                                @Param("month") int month);
+
+    /**
+     * 更新凭证编号
+     *
+     * @param voucherId 凭证ID
+     * @param voucherNo 新的凭证编号
+     * @return 更新行数
+     */
+    int updateVoucherNo(@Param("voucherId") Long voucherId,
+                        @Param("voucherNo") String voucherNo);
 }

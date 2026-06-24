@@ -190,6 +190,20 @@ public class ShipInboundShipment {
 	@TableField(value="transportation_token")
 	String transportationToken;
 
+	@ApiModelProperty(value = "order海关guid")
+	@TableField(value="ordguid")
+	private String ordguid;
+
+	@ApiModelProperty(value = "inv海关guid")
+	@TableField(value="invguid")
+	private String invguid;
+
+	@ApiModelProperty(value = "decguid")
+	@TableField(value="decguid")
+	private String decguid;
+
+
+
     @TableField(exist = false)
 	private List<ShipInboundItem> itemList=new ArrayList<ShipInboundItem>();
     

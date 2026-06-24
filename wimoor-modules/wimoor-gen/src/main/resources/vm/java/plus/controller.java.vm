@@ -1,0 +1,96 @@
+package ${packageName}.controller;
+
+import java.util.List;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import ${packageName}.domain.${ClassName};
+import ${packageName}.service.I${ClassName}Service;
+import com.wimoor.common.core.web.domain.Result;
+import com.wimoor.common.core.utils.poi.ExcelUtil;
+import com.wimoor.common.service.impl.SystemControllerLog;
+import io.swagger.annotations.Api;
+import lombok.RequiredArgsConstructor;
+#if($table.crud || $table.sub)
+import com.wimoor.common.core.web.page.TableDataInfo;
+import com.wimoor.common.core.web.controller.BaseController;
+#elseif($table.tree)
+#end
+
+/**
+ * ${functionName}Controller
+ * 
+ * @author ${author}
+ * @date ${datetime}
+ */
+@Api(tags = "${functionName}")
+@RestController
+@SystemControllerLog("${functionName}")
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/${businessName}")
+public class ${ClassName}Controller  
+{
+    private final I${ClassName}Service ${className}Service;
+    /**
+     * 查询${functionName}列表
+     */
+    @GetMapping("/list")
+    public Result list(${ClassName} ${className})
+    {
+        return Result.success(${className}Service.selectPage${ClassName}List(${className}));
+    }
+ 
+    /**
+     * 导出${functionName}列表
+     */
+    @PostMapping("/export")
+    public void export(HttpServletResponse response, ${ClassName} ${className})
+    {
+        List<${ClassName}> list = ${className}Service.select${ClassName}List(${className});
+        ExcelUtil<${ClassName}> util = new ExcelUtil<${ClassName}>(${ClassName}.class);
+        util.exportExcel(response, list, "${functionName}数据");
+    }
+
+    /**
+     * 获取${functionName}详细信息
+     */
+    @GetMapping(value = "/{${pkColumn.javaField}}")
+    public Result getInfo(@PathVariable("${pkColumn.javaField}") ${pkColumn.javaType} ${pkColumn.javaField})
+    {
+        return Result.success(${className}Service.select${ClassName}By${pkColumn.capJavaField}(${pkColumn.javaField}));
+    }
+
+    /**
+     * 新增${functionName}
+     */
+    @PostMapping
+    public Result add(@RequestBody ${ClassName} ${className})
+    {
+        return Result.success(${className}Service.insert${ClassName}(${className}));
+    }
+
+    /**
+     * 修改${functionName}
+     */
+    @PutMapping
+    public Result edit(@RequestBody ${ClassName} ${className})
+    {
+        return Result.success(${className}Service.update${ClassName}(${className}));
+    }
+
+    /**
+     * 删除${functionName}
+     */
+	@DeleteMapping("/${${pkColumn.javaField}}s")
+    public Result remove(@PathVariable ${pkColumn.javaType}[] ${pkColumn.javaField}s)
+    {
+        return Result.success(${className}Service.delete${ClassName}By${pkColumn.capJavaField}s(${pkColumn.javaField}s));
+    }
+}

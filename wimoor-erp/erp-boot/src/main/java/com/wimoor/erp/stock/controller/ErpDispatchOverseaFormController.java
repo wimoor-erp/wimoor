@@ -1,44 +1,9 @@
 package com.wimoor.erp.stock.controller;
 
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import com.wimoor.erp.common.pojo.entity.ERPBizException;
-import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
-import com.wimoor.erp.purchase.pojo.entity.PurchaseFormReceive;
-import com.wimoor.erp.stock.pojo.dto.OverseaReportDTO;
-import com.wimoor.erp.util.LockCheckUtils;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -62,19 +27,39 @@ import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
 import com.wimoor.erp.ship.service.IShipAmazonFormService;
 import com.wimoor.erp.stock.pojo.dto.DispatchOverseaWarehouseItemDTO;
 import com.wimoor.erp.stock.pojo.dto.DispatchWarehouseFormDTO;
+import com.wimoor.erp.stock.pojo.entity.ErpDispatchOverseaBox;
+import com.wimoor.erp.stock.pojo.entity.ErpDispatchOverseaCase;
 import com.wimoor.erp.stock.pojo.entity.ErpDispatchOverseaForm;
+import com.wimoor.erp.stock.service.IErpDispatchOverseaBoxService;
+import com.wimoor.erp.stock.service.IErpDispatchOverseaCaseService;
 import com.wimoor.erp.stock.service.IErpDispatchOverseaFormEntryService;
 import com.wimoor.erp.stock.service.IErpDispatchOverseaFormService;
+import com.wimoor.erp.stock.service.impl.BoxFileExcel;
+import com.wimoor.erp.util.LockCheckUtils;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * <p>
@@ -111,6 +96,8 @@ public class ErpDispatchOverseaFormController {
 	IShipAmazonFormService iShipAmazonFormService;
     @Resource
     IDimensionsInfoService iDimensionsInfoService;
+	final IErpDispatchOverseaBoxService erpDispatchOverseaBoxService;
+	final IErpDispatchOverseaCaseService erpDispatchOverseaCaseService;
     @PostMapping("/list")
 	public Result<IPage<Map<String, Object>>> getListData(@RequestBody DispatchWarehouseFormDTO dto){
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -399,6 +386,7 @@ public class ErpDispatchOverseaFormController {
 			BizException.getMessage(e, "获取店铺名称失败");
 		}
 		map.put("warehouseform", data);
+		map.put("check_inv", data.get("check_inv")!=null?data.get("check_inv").toString():"");
 		map.put("dispatchFormEntryList", dispatchFormEntryList);
 		return Result.success(map);
 	}
@@ -548,6 +536,7 @@ public class ErpDispatchOverseaFormController {
 			if(data.get("createdate")!=null) {
 				itemsum.setCreatedate(GeneralUtil.getDate(data.get("createdate")));
 			}
+			itemsum.setCheckinv(data.get("check_inv")!=null?data.get("check_inv").toString():null);
 			List<ShipInboundItemVo> list=new ArrayList<ShipInboundItemVo>();
 			long sum=0;
 			for(Map<String, Object> item:dispatchFormEntryList) {
@@ -621,6 +610,153 @@ public class ErpDispatchOverseaFormController {
 		return Result.success(chart);
 	}
 
+	@GetMapping("/getQuotainfo")
+	public Result<?> getQuotainfoAction(String id) {
+		UserInfo user = UserInfoContext.get();
+		String shopid = user.getCompanyid();
+		
+		// 获取调库单信息
+		Map<String, Object> formData = iErpDispatchOverseaFormService.findById(id);
+		ShipInboundShipmenSummarytVo vo=new ShipInboundShipmenSummarytVo();
+		
+		// 处理店铺信息
+		try {
+			if(formData.get("groupid")!=null) {
+				String groupid=formData.get("groupid").toString();
+				Result<?> result = amazonClientOneFeign.getAmazonGroupByIdAction(groupid);
+				if(Result.isSuccess(result)&&result.getData()!=null) {
+					Map<String, Object> groupmap = BeanUtil.beanToMap(result.getData());
+					if(groupmap!=null) {
+						vo.setGroupname(groupmap.get("name").toString());
+					}
+				}
+			}
+		} catch(FeignException e) {
+			BizException.getMessage(e, "获取店铺名称失败");
+		}
+		
+		// 处理基本信息
+		if(formData.get("country")!=null) {
+			vo.setCountryCode(formData.get("country").toString());
+			vo.setCountry(formData.get("country").toString());
+		}
+		if(formData.get("number")!=null) {
+			vo.setShipmentid(formData.get("number").toString());
+		}
+		if(formData.get("remark")!=null) {
+			vo.setRemark(formData.get("remark").toString());
+		}
+		if(formData.get("fromwarehouse")!=null) {
+			vo.setWarehouse(formData.get("fromwarehouse").toString());
+		}
+		if(formData.get("from_warehouseid")!=null) {
+			vo.setWarehouseid(formData.get("from_warehouseid").toString());
+		}
+		if(formData.get("towarehouse")!=null) {
+			vo.setCenter(formData.get("towarehouse").toString());
+		}
+		if(formData.get("check_inv")!=null) {
+			vo.setCheckinv(formData.get("check_inv").toString());
+		}
 
+		// 获取调库单明细
+		List<Map<String, Object>> dispatchFormEntryList = iErpDispatchOverseaFormEntryService.findFormDetailByFormid(
+				id,
+				formData.get("to_warehouseid").toString(),
+				formData.get("from_warehouseid").toString(),
+				shopid
+		);
+		
+		// 处理SKU列表
+		List<ShipInboundItemVo> itemList = new ArrayList<>();
+		Long sumquantity=0L;
+		for(Map<String, Object> item : dispatchFormEntryList) {
+			ShipInboundItemVo skuItem = new ShipInboundItemVo();
+			skuItem.setSku(item.get("sku").toString());
+			skuItem.setName(item.get("name").toString());
+			int quantity = item.get("amount")!=null?Integer.parseInt(item.get("amount").toString()):0;
+			skuItem.setQuantity(quantity);
+			skuItem.setQuantityShipped(quantity);
+			sumquantity=sumquantity+quantity;
+			skuItem.setMaterialid(item.get("materialid").toString());
+			// 添加图片信息
+			Material material = materialService.getById(item.get("materialid").toString());
+			if(material!=null&&material.getImage()!=null) {
+				skuItem.setImage(material.getImage());
+			}
+			
+			itemList.add(skuItem);
+		}
+		vo.setItemList(itemList);
+		vo.setSumQuantity(sumquantity);
+		vo.setSkuamount(Long.parseLong(dispatchFormEntryList.size()+""));
+		vo.setShopid(shopid);
+		
+		// 设置表单类型
+		vo.setFormType("overseas");
+		
+		// 处理库存信息
+		ShipInboundShipmenSummarytVo data = iWarehouseShelfInventoryService.formInvAssemblyShelf(vo);
+		if(StrUtil.isBlank(data.getCheckinv())||data.getCheckinv().equals("0")) {
+			data.setCheckinv(warehouseService.getUUID());
+		}
+		
+		return Result.success(data);
+	}
+
+	@PostMapping("/checkinv/{checkinv}")
+	@Transactional
+	public Result<?> checkinvAction(@PathVariable("checkinv") String checkinv, @RequestBody String overseasformids) {
+		UserInfo user = UserInfoContext.get();
+		Integer i=0;
+		overseasformids = overseasformids.replaceAll("\\s+","");
+		if(StrUtil.isBlank(overseasformids)) {
+			throw new BizException("请选择调库单");
+		}
+		List<String> overseasformidList = Arrays.asList(overseasformids.split(","));
+		for(String overseasformid: overseasformidList) {
+			ErpDispatchOverseaForm form = this.iErpDispatchOverseaFormService.getById(overseasformid);
+			form.setCheckInv(checkinv!=null?new BigInteger(checkinv):null);
+			if(this.iErpDispatchOverseaFormService.updateById(form)) {
+				i=i+1;
+			}
+		}
+		return Result.success(i);
+	}
+	@GetMapping("/downExcelRecords")
+	public Result<?> downExcelBoxDetail(String id,HttpServletResponse response) {
+		UserInfo user=UserInfoContext.get();
+		response.setContentType("application/force-download");// 设置强制下载不打开
+		response.addHeader("Content-Disposition", "attachment;fileName=boxDetail" + System.currentTimeMillis() + ".xlsx");// 设置文件名
+		ErpDispatchOverseaForm form=iErpDispatchOverseaFormService.getById(id);
+		List<Map<String,Object>> entrylist=iErpDispatchOverseaFormEntryService.selectByFormid( id);
+		List<ErpDispatchOverseaBox> boxlist=erpDispatchOverseaBoxService.list(new QueryWrapper<ErpDispatchOverseaBox>().eq("formid", id));
+		List<ErpDispatchOverseaCase> caselist=new ArrayList<>();
+		for(ErpDispatchOverseaBox box:boxlist){
+			List<ErpDispatchOverseaCase> list = erpDispatchOverseaCaseService.list(new QueryWrapper<ErpDispatchOverseaCase>().eq("boxid", box.getId()));
+			box.setCaseListDetail(list);
+		}
+		Workbook workbook=BoxFileExcel.getFile(form,entrylist,boxlist);
+		ServletOutputStream fOut = null;
+		try {
+			fOut = response.getOutputStream();
+			workbook.write(fOut);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				if(fOut != null) {
+					fOut.flush();
+					fOut.close();
+				}
+				if(workbook != null) {
+					workbook.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return Result.success();
+	}
 }
 

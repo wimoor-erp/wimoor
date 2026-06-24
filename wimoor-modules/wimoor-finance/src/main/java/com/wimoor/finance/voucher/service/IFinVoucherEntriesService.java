@@ -1,7 +1,10 @@
 package com.wimoor.finance.voucher.service;
 
-import java.util.List;
 import com.wimoor.finance.voucher.domain.FinVoucherEntries;
+import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 凭证分录明细Service接口
@@ -26,6 +29,7 @@ public interface IFinVoucherEntriesService
      * @return 凭证分录明细集合
      */
     public List<FinVoucherEntries> selectFinVoucherEntriesList(FinVoucherEntries finVoucherEntries);
+    public List<Map<String, Object>> selectFinVoucherEntriesList(FinVoucherDTO dto);
     public List<FinVoucherEntries> selectFinVoucherEntriesListByVoucherId(Long voucherId);
 
     /**

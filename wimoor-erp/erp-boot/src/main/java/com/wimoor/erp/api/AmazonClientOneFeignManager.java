@@ -1,16 +1,16 @@
 package com.wimoor.erp.api;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundPlanDTO;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmentDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class AmazonClientOneFeignManager {
@@ -90,4 +90,19 @@ public class AmazonClientOneFeignManager {
 			return null;
 		}
     }
+
+	public Map<String,String> getAmazonGroupAction(){
+		Result<List<Map<String, Object>>> result = api.getAmazonGroupAction();
+		Map<String,String> groupNameMap = new HashMap<String,String>();
+		if(Result.isSuccess(result)&&result.getData()!=null) {
+			for(Map<String, Object> item:result.getData()){
+				String id=item.get("id")!=null?item.get("id").toString():null;
+				String name=item.get("name")!=null?item.get("name").toString():null;
+				groupNameMap.put(id,name);
+			}
+			return groupNameMap;
+		}else {
+			return null;
+		}
+	}
 }

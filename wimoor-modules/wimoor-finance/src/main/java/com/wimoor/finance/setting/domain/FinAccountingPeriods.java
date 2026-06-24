@@ -1,12 +1,12 @@
 package com.wimoor.finance.setting.domain;
 
-import java.time.LocalDate;
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.wimoor.common.core.annotation.Excel;
 import com.wimoor.common.core.web.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.util.Date;
 
 /**
  * 会计期间管理对象 fin_accounting_periods
@@ -27,7 +27,7 @@ public class FinAccountingPeriods extends BaseEntity
         this.periodName = periodName;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.periodStatus=1;
+        this.periodStatus=PeriodStatus.NOT_OPEN.getValue();
         this.isCurrent=0;
         this.createdTime=new Date();
     }
@@ -66,13 +66,18 @@ public class FinAccountingPeriods extends BaseEntity
 
     /** 创建时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @Excel(name = "关闭时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date closeTime;
 
     /** 创建时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date createdTime;
+
+    /** 更新时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date updatedTime;
 
     private String remark;
 
@@ -184,6 +189,16 @@ public class FinAccountingPeriods extends BaseEntity
         return createdTime;
     }
 
+    public void setUpdatedTime(Date updatedTime) 
+    {
+        this.updatedTime = updatedTime;
+    }
+
+    public Date getUpdatedTime() 
+    {
+        return updatedTime;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -195,7 +210,9 @@ public class FinAccountingPeriods extends BaseEntity
             .append("endDate", getEndDate())
             .append("periodStatus", getPeriodStatus())
             .append("isCurrent", getIsCurrent())
+            .append("closeTime", getCloseTime())
             .append("createdTime", getCreatedTime())
+            .append("updatedTime", getUpdatedTime())
             .toString();
     }
 }

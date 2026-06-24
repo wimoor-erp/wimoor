@@ -1,26 +1,38 @@
 package com.wimoor.erp.material.service.impl;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.mvc.FileUpload;
+import com.wimoor.common.pojo.entity.Picture;
+import com.wimoor.common.result.Result;
+import com.wimoor.common.service.IPictureService;
+import com.wimoor.common.service.impl.PictureServiceImpl;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.erp.api.AdminClientOneFeignManager;
+import com.wimoor.erp.api.AmazonClientOneFeignManager;
+import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
+import com.wimoor.erp.common.pojo.entity.ERPBizException;
+import com.wimoor.erp.customer.service.ICustomerService;
+import com.wimoor.erp.inventory.mapper.InventoryMapper;
+import com.wimoor.erp.inventory.service.IInventoryService;
+import com.wimoor.erp.material.mapper.*;
+import com.wimoor.erp.material.pojo.dto.MaterialDTO;
+import com.wimoor.erp.material.pojo.dto.PlanDTO;
+import com.wimoor.erp.material.pojo.entity.*;
 import com.wimoor.erp.material.pojo.vo.*;
+import com.wimoor.erp.material.service.*;
+import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
+import com.wimoor.erp.purchase.service.IPurchasePlanItemService;
+import com.wimoor.erp.warehouse.service.IWarehouseService;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -33,66 +45,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
-import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.mvc.BizException;
-import com.wimoor.common.mvc.FileUpload;
-import com.wimoor.common.pojo.entity.Picture;
-import com.wimoor.common.result.Result;
-import com.wimoor.common.service.IPictureService;
-import com.wimoor.common.service.impl.PictureServiceImpl;
-import com.wimoor.common.user.UserInfo;
-import com.wimoor.erp.api.AdminClientOneFeignManager;
-import com.wimoor.erp.api.AmazonClientOneFeignManager;
-import com.wimoor.erp.material.pojo.entity.Assembly;
-import com.wimoor.erp.material.service.IAssemblyService;
-import com.wimoor.erp.common.pojo.entity.ERPBizException;
-import com.wimoor.erp.customer.service.ICustomerService;
-import com.wimoor.erp.inventory.mapper.InventoryMapper;
-import com.wimoor.erp.inventory.service.IInventoryService;
-import com.wimoor.erp.material.mapper.ERPMaterialHistoryMapper;
-import com.wimoor.erp.material.mapper.MaterialBrandMapper;
-import com.wimoor.erp.material.mapper.MaterialCategoryMapper;
-import com.wimoor.erp.material.mapper.MaterialConsumableMapper;
-import com.wimoor.erp.material.mapper.MaterialCustomsFileMapper;
-import com.wimoor.erp.material.mapper.MaterialCustomsMapper;
-import com.wimoor.erp.material.mapper.MaterialMapper;
-import com.wimoor.erp.material.mapper.MaterialTagsMapper;
-import com.wimoor.erp.material.pojo.dto.MaterialDTO;
-import com.wimoor.erp.material.pojo.dto.PlanDTO;
-import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
-import com.wimoor.erp.material.pojo.entity.ERPMaterialHistory;
-import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.pojo.entity.MaterialCategory;
-import com.wimoor.erp.material.pojo.entity.MaterialConsumable;
-import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
-import com.wimoor.erp.material.pojo.entity.MaterialMark;
-import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
-import com.wimoor.erp.material.pojo.entity.MaterialTags;
-import com.wimoor.erp.material.pojo.entity.StepWisePrice;
-import com.wimoor.erp.material.service.IDimensionsInfoService;
-import com.wimoor.erp.material.service.IMaterialCategoryService;
-import com.wimoor.erp.material.service.IMaterialConsumableInventoryService;
-import com.wimoor.erp.material.service.IMaterialConsumableService;
-import com.wimoor.erp.material.service.IMaterialMarkService;
-import com.wimoor.erp.material.service.IMaterialService;
-import com.wimoor.erp.material.service.IMaterialSupplierService;
-import com.wimoor.erp.material.service.IStepWisePriceService;
-import com.wimoor.erp.material.service.IStockCycleService;
-import com.wimoor.erp.material.service.IZipRarUploadService;
-import com.wimoor.erp.purchase.pojo.entity.PurchasePlanItem;
-import com.wimoor.erp.purchase.service.IPurchasePlanItemService;
-import com.wimoor.erp.warehouse.service.IWarehouseService;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
+import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.Map.Entry;
  
  
 
@@ -137,12 +94,16 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	@Lazy
 	@Autowired
 	IInventoryService inventoryService;
+	@Lazy
+	@Autowired
+	IAssemblyFormService assemblyFormService;
 	 
 	@Lazy
 	@Autowired
 	IMaterialSupplierService iIMaterialSupplierService;
 	final IMaterialConsumableInventoryService iMaterialConsumableInventoryService;
 	final MaterialCustomsMapper materialCustomsMapper;
+	final MaterialCustomMapper materialCustomMapper;
 	final IMaterialConsumableService  iMaterialConsumableService;
 	final MaterialCustomsFileMapper materialCustomsFileMapper;
 	final AmazonClientOneFeignManager amazonClientOneFeign;
@@ -317,7 +278,22 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		return this.removeById(id);
 	}
 	List<MaterialCustoms> saveMaterialCustoms(MaterialInfoVO vo,Material material){
-    	//海关信息
+
+		//先删除后加
+		MaterialCustom old = materialCustomMapper.selectById(material.getId());
+		if(old!=null) {
+			materialCustomMapper.deleteById(old.getMaterialid());
+		}
+		MaterialCustom custom = vo.getCustom();
+		if(custom!=null){
+			custom.setMaterialid(material.getId());
+			custom.setCreatetime(new Date());
+			custom.setOpttime(new Date());
+			custom.setOperator(material.getOperator());
+			custom.setCreator(material.getOperator());
+			materialCustomMapper.insert(custom);
+		}
+		//海关信息
 		List<MaterialCustoms> customsvo = vo.getCustoms();
 		//先删除后加
 		QueryWrapper<MaterialCustoms> queryWrapper=new QueryWrapper<MaterialCustoms>();
@@ -327,7 +303,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 			for (int i = 0; i < customsvo.size(); i++) {
 				MaterialCustoms item = customsvo.get(i);
 				item.setMaterialid(material.getId());
-			    materialCustomsMapper.insert(item);
+				materialCustomsMapper.insert(item);
 			}
 		}
 		return customsvo;
@@ -364,13 +340,40 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		iIMaterialSupplierService.saveOrUpdateSupplier(supplierlist,user,material.getId(),material);
 		saveMaterialConsumable(consumableList,user,material.getId());
 		saveTags(vo,material,user);
+		if(material.getIsAssPrice()!=null&&material.getIsAssPrice()) {
+			calcAssPrice(material.getId());
+		}else if(material.getIssfg()!=null&&material.getIssfg().equals("2")){
+            calcAssMainPrice(material.getId(),material.getShopid());
+		}
 		if(material.getId()!=null) {
 			return material.getId();
 		}else {
 			throw new ERPBizException("填入数据参数异常！");
 		}
 	}
-	
+
+	public void calcAssMainPrice(String materialId,String shopId) {
+		List<Map<String, Object>> mainlist = assemblyService.selectMainBySubid(materialId, shopId);
+		for(Map<String, Object> item:mainlist) {
+			 if(item.get("is_ass_price")!=null&&item.get("is_ass_price").equals("1")) {
+				 calcAssPrice(item.get("mainmid").toString());
+			 }
+		}
+	}
+
+	public void calcAssPrice(String materialId) {
+		BigDecimal assPrice=BigDecimal.ZERO;
+		Material material=this.getById(materialId);
+		List<AssemblyVO> sublist = this.assemblyService.selectByMainmid(materialId);
+		if(sublist!=null&& !sublist.isEmpty()) {
+			for(AssemblyVO item:sublist) {
+					assPrice=assPrice.add(item.getSubprice().multiply(new BigDecimal(item.getSubnumber())));
+			}
+		}
+		material.setPrice(assPrice);
+		this.updateById(material);
+	}
+
 
 	private void saveTags(MaterialInfoVO vo, Material material, UserInfo user) {
 		// TODO Auto-generated method stub
@@ -401,10 +404,40 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		// TODO Auto-generated method stub
 		List<AssemblyVO> asslist = vo.getAssemblyList();
 		List<AssemblyVO> sublist = assemblyService.selectByMainmid(material.getId());
+		Long runCount=assemblyFormService.lambdaQuery()
+				                          .eq(AssemblyForm::getMainmid, material.getId())
+				                          .eq(AssemblyForm::getShopid, material.getShopid())
+				                          .in(AssemblyForm::getAuditstatus, 0,1,2)
+				                          .count();
 		Map<String,AssemblyVO> subset=new HashMap<String,AssemblyVO>();
 		for(AssemblyVO item:sublist) {
 			subset.put(item.getSubmid(),item);
 		}
+		 if(runCount>0){
+			 if(asslist==null&&sublist!=null||asslist!=null&&sublist==null){
+				 throw new BizException("存在正在运行的组装单，不可以修改组装内容");
+			 }
+			 if( (asslist!=null&&sublist!=null&&asslist.size()!=sublist.size())){
+				 throw new BizException("存在正在运行的组装单，不可以修改组装内容");
+			 }
+             //判断asslist与sublist是否相同，如果不同则抛出异常，存在正在运行的组装单，不可以修改组装内容
+			 if(asslist!=null&&sublist!=null&&asslist.size()==sublist.size()&&asslist.size()>0) {
+				 boolean isSame=true;
+				 for (AssemblyVO item : asslist) {
+					 AssemblyVO sub = subset.get(item.getSubmid());
+					 if (sub == null) {
+						 isSame = false;
+					 }
+					 else if (!sub.getSubnumber().equals(item.getSubnumber())) {
+						 isSame = false;
+					 }
+				 }
+				 if (!isSame) {
+					 throw new BizException("存在正在运行的组装单，不可以修改组装内容");
+				 }
+			 }
+         }
+
 		List<Assembly> mainlist = assemblyService.selectBySubid(material.getId());
 	 
 		if ( asslist!=null && asslist.size()>0) {
@@ -434,6 +467,9 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 				}
 				if(assub.getIssfg()==null||!assub.getIssfg().equals("2")) {
 					assub.setIssfg("2");
+					LambdaQueryWrapper<Assembly> deletequery=new LambdaQueryWrapper<Assembly>();
+					deletequery.eq(Assembly::getMainmid,assub.getId());
+					assemblyService.remove(deletequery);
 					this.baseMapper.updateById(assub);
 				}
 			}
@@ -442,16 +478,22 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 			vo.getMaterial().setIssfg("1");
 			if(main.getIssfg()==null||!main.getIssfg().equals("1")) {
 				main.setIssfg("1");
+				LambdaQueryWrapper<Assembly> deletequery=new LambdaQueryWrapper<Assembly>();
+				deletequery.eq(Assembly::getSubmid,main.getId());
+				assemblyService.remove(deletequery);
 				this.baseMapper.updateById(main);
 			}
 		}else {
 			    if(mainlist!=null&&mainlist.size()>0) {
-			    	Material main = this.getById(material.getId());
+			    	Material old = this.getById(material.getId());
 			    	material.setIssfg("2");
 			    	vo.getMaterial().setIssfg("2");
-			    	if(main.getIssfg()==null||!main.getIssfg().equals("2")) {
-			    		main.setIssfg("2");
-						this.baseMapper.updateById(main);	
+			    	if(old.getIssfg()==null||!old.getIssfg().equals("2")) {
+						old.setIssfg("2");
+						LambdaQueryWrapper<Assembly> deletequery=new LambdaQueryWrapper<Assembly>();
+						deletequery.eq(Assembly::getMainmid,old.getId());
+						assemblyService.remove(deletequery);
+						this.baseMapper.updateById(old);
 			    	}
 			    }else {
 			    	material.setIssfg("0");
@@ -459,6 +501,10 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 			    	Material main = this.getById(material.getId());
 			    	if(main.getIssfg()==null||!main.getIssfg().equals("0")) {
 			    		main.setIssfg("0");
+						LambdaQueryWrapper<Assembly> deletequery=new LambdaQueryWrapper<Assembly>();
+						deletequery.eq(Assembly::getMainmid,material.getId());
+						deletequery.or().eq(Assembly::getSubmid,material.getId());
+						assemblyService.remove(deletequery);
 						this.baseMapper.updateById(main);	
 			    	}
 			    }
@@ -473,7 +519,10 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 				Material assub = this.getById(id);
 				if(assub.getIssfg()==null||!assub.getIssfg().equals("0"))
 				assub.setIssfg("0");
-				this.baseMapper.updateById(assub);	
+				LambdaQueryWrapper<Assembly> deletequery=new LambdaQueryWrapper<Assembly>();
+				deletequery.eq(Assembly::getMainmid,assub.getId());
+				assemblyService.remove(deletequery);
+				this.baseMapper.updateById(assub);
 			}
 		}
 		
@@ -506,7 +555,6 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		QueryWrapper<Material> queryWrapper=new QueryWrapper<Material>();
 		queryWrapper.eq("shopid", user.getCompanyid());
 		queryWrapper.eq("sku", vo.getMaterial().getSku());
-		queryWrapper.eq("isDelete",false);
 		String oldowner=null;
 		boolean isupdate=true;
 		String oldpicture=null;
@@ -514,7 +562,11 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		Material  material= this.baseMapper.selectOne(queryWrapper);
 		if(material==null) {
 			  material = new Material();
-			  material.setId(warehouseService.getUUID());
+			  String uuid = warehouseService.getUUID();
+			  if(StrUtil.isBlank(uuid)) {
+				  throw new ERPBizException("生成物料ID失败，请重试！");
+			  }
+			  material.setId(uuid);
 			  isupdate=false;
 		}else {
 			if(material.isDelete()) {
@@ -572,6 +624,11 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}else{
+			if(StrUtil.isEmpty(vo.getMaterial().getLocation())&&material.getPkgimage()!=null){
+			    pictureService.removePicture(material.getPkgimage());
+				material.setPkgimage(null);
+			}
 		}
 		material.setShopid(user.getCompanyid());
 		material.setOpttime(new Date());
@@ -585,6 +642,7 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		material.setBoxnum(materialvo.getBoxnum());
 		material.setAddfee(materialvo.getAddfee());
 		material.setVatrate(materialvo.getVatrate());
+		material.setDrawbackRate(materialvo.getDrawbackRate());
 		if(GeneralUtil.isNotEmpty(materialvo.getCategoryid())) {
 			material.setCategoryid(materialvo.getCategoryid());
 		}
@@ -593,8 +651,14 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 		material.setUpc(materialvo.getUpc());
 		material.setName(materialvo.getName());
 		material.setSmlAndLight(false);
-		material.setBrand(materialvo.getBrandid());
+		material.setBrandid(materialvo.getBrandid());
+		if(StrUtil.isNotBlank(materialvo.getGroupid())){
+			material.setGroupid(materialvo.getGroupid());
+		}else{
+			material.setGroupid(null);
+		}
 		material.setSpecification(materialvo.getSpecification());
+		material.setIsAssPrice(materialvo.getIsAssPrice());
 		if(material.getIssfg()==null) {
 			material.setIssfg("0");
 		}
@@ -733,10 +797,6 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 	}
 
 
-	public Map<String, Object> findDimAndAsinBymid(String sku, String shopid, String marketplaceid, String groupid) {
-		return this.baseMapper.findDimAndAsinBymid(sku, shopid, marketplaceid, groupid);
-	}
-
 	public List<Map<String, Object>> getForSum(String shopid,String groupid) {
 		return this.baseMapper.getForSum(shopid,groupid);
 	}
@@ -870,8 +930,8 @@ public class MaterialServiceImpl extends  ServiceImpl<MaterialMapper,Material> i
 					}
 					stepWisePrice.setAmount(Integer.parseInt(map.get("amount").toString()));
 					stepWisePrice.setPrice(price);
-					if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 2) {
-						throw new ERPBizException("阶梯采购采购价不能超过两位小数！");
+					if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 4) {
+						throw new ERPBizException("阶梯采购采购价不能超过四位小数！");
 					}
 					stepWisePrice.setMaterial(material.getId());
 					stepWisePrice.setOperator(user.getId());
@@ -1209,7 +1269,7 @@ public Map<String, Object> getRealityPrice(String materialid){
 					String filePath = PictureServiceImpl.materialImgPath + userinfo.getCompanyid();
 					int len = filename.lastIndexOf(".");
 					String imgtype=filename.substring(len, filename.length());
-					if(materialid!=null){
+					if(StrUtil.isNotBlank(materialid)){
 						filename=materialid+"-"+System.currentTimeMillis()+imgtype;
 					}else{
 						filename=System.currentTimeMillis()+imgtype;
@@ -1371,6 +1431,7 @@ public Map<String, Object> getRealityPrice(String materialid){
     public String getValue(Object value) {
     	return value==null?"":value.toString();
     }
+
 	@Override
 	public Workbook setMaterialExcelBook(Workbook workbook, MaterialDTO dto, UserInfo userinfo) {
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -1403,7 +1464,7 @@ public Map<String, Object> getRealityPrice(String materialid){
 		if (list != null) {
 			for (int i = 0; i < list.length; i++) {
 				if (StrUtil.isNotEmpty(list[i])) {
-					skulist.add("%" + list[i] + "%");
+					skulist.add( list[i]);
 				}
 			}
 		} else {
@@ -1548,6 +1609,7 @@ public Map<String, Object> getRealityPrice(String materialid){
 				  cell.setCellValue(getValue(item.get("planamount")));
 				  cell = row.createCell(15);
 				  cell.setCellValue(getValue(item.get("remark")));
+
 			}
 			records=null;
 			return workbook;
@@ -1588,6 +1650,17 @@ public Map<String, Object> getRealityPrice(String materialid){
 					String sku=item.get("sku").toString();
 					String mid=item.get("id").toString();
 					List<MaterialCustoms> customs=this.selectCustomsByMaterialId(mid);
+					MaterialCustom customCN=this.selectCustomByMaterialId(mid);
+					if(customCN==null){
+						continue;
+					}
+					if(customs==null){
+						customs=new ArrayList<MaterialCustoms>();
+					}
+					MaterialCustoms entity=new MaterialCustoms();
+					customCN.setCountry("CN");
+					BeanUtil.copyProperties(customCN, entity);
+					customs.add(entity);
 					for(int j=0;j<customs.size();j++) {
 						Row row = sheet.createRow(++rowindex);
 						MaterialCustoms custom=customs.get(j);
@@ -1614,10 +1687,16 @@ public Map<String, Object> getRealityPrice(String materialid){
 							cell9.setCellValue(custom.getRate()!=null?custom.getRate().toString():"");
 							Cell cell10 = row.createCell(10);
 						    cell10.setCellValue(custom.getUrl());
+							Cell cell11 = row.createCell(11);
+							cell11.setCellValue(custom.getElements()!=null?custom.getElements().toString():"");
+							Cell cell12 = row.createCell(12);
+							cell12.setCellValue(custom.getUnit()!=null?custom.getUnit().toString():"");
+							Cell cell13 = row.createCell(13);
+							cell13.setCellValue(custom.getUnit2()!=null?custom.getUnit2().toString():"");
+							Cell cell14 = row.createCell(14);
+							cell14.setCellValue(custom.getUnitrate()!=null?custom.getUnitrate().toString():"");
 						}
 					}
-					
-			 
 				}
 			}
 			//处理基础数据
@@ -1722,6 +1801,12 @@ public Map<String, Object> getRealityPrice(String materialid){
 							}else {
 								cell23.setCellValue("");
 							}
+							Cell cell24 = row.createCell(23);
+							if(item.get("is_ass_price")!=null) {
+								cell24.setCellValue((Boolean)item.get("is_ass_price")?"是":"否");
+							}else {
+								cell24.setCellValue("");
+							}
 						}
 						
 				}
@@ -1805,6 +1890,55 @@ public Map<String, Object> getRealityPrice(String materialid){
 						strs="无";
 					}
 					cell9.setCellValue(strs);
+				}
+			}
+			//处理供应商关系数据
+			if("MaterialMoreSupplier".equals(dto.getDowntype())) {
+				int step=1;
+				for(int i=0;i<records.size();i++) {
+					Map<String, Object> item = records.get(i);
+					String sku=item.get("sku").toString();
+					String mid=item.get("id").toString();
+					List<MaterialSupplierVO> lists =iIMaterialSupplierService.selectSupplierByMainmid(mid);
+					if(lists!=null && lists.size()>0) {
+						for (MaterialSupplierVO listvo: lists) {
+							Row row = sheet.createRow(step++);
+							Cell cell = row.createCell(0); // 在索引0的位置创建单元格(左上端) {100-9.9},{500-9.5}
+							cell.setCellValue(sku);
+							Cell cell2 = row.createCell(1);
+							cell2.setCellValue(listvo.getName());
+							Cell cell3 = row.createCell(2);
+							cell3.setCellValue(listvo.getProductCode());
+							Cell cell4 = row.createCell(3);
+							cell4.setCellValue(listvo.getPurchaseUrl());
+							Cell cell5 = row.createCell(4);
+							if(listvo.getOtherCost()!=null) {
+								cell5.setCellValue(listvo.getOtherCost().toString());
+							}
+							Cell cell6 = row.createCell(5);
+							if(listvo.getDeliverycycle()!=null) {
+								cell6.setCellValue(listvo.getDeliverycycle());
+							}
+							Cell cell7 = row.createCell(6);
+							if(listvo.getBadrate()!=null) {
+								cell7.setCellValue(listvo.getBadrate().toString());
+							}
+							Cell cell8 = row.createCell(7);
+							cell8.setCellValue(listvo.getMOQ());
+							Cell cell9 = row.createCell(8);
+							String strs="";
+							if(listvo.getStepList()!=null && listvo.getStepList().size()>0) {
+								for (int j = 0; j < listvo.getStepList().size(); j++) {
+									MaterialSupplierStepwise vo = listvo.getStepList().get(j);
+									strs+=("{"+vo.getAmount()+"-"+vo.getPrice()+("},"));
+								}
+							}else {
+								strs="无";
+							}
+							cell9.setCellValue(strs);
+						}
+					}
+
 				}
 			}
 		}
@@ -1912,9 +2046,66 @@ public Map<String, Object> getRealityPrice(String materialid){
 	}
 
 	@Override
+	public MaterialCustom getCustom(String shopid, String msku) {
+		// TODO Auto-generated method stub
+		MaterialCustom custom= materialCustomMapper.getCustom(shopid,msku);
+		if(custom!=null){
+			if(custom.getUnit()==null){
+				custom.setUnit("套");
+			}
+		}
+		return custom;
+	}
+
+	@Override
+	public void saveCustom(UserInfo user,MaterialCustom custom) {
+			LambdaQueryWrapper<MaterialCustom> query=new LambdaQueryWrapper<MaterialCustom>();
+			query.eq(MaterialCustom::getMaterialid, custom.getMaterialid());
+			MaterialCustom old = materialCustomMapper.selectOne(query);
+			if(old!=null) {
+				custom.setOperator(user.getId());
+				custom.setOpttime(new Date());
+				custom.setCreatetime(old.getCreatetime());
+				custom.setCreator(old.getCreator());
+				materialCustomMapper.update(custom, query);
+			}else {
+				custom.setOperator(user.getId());
+				custom.setOpttime(new Date());
+				custom.setCreatetime(new Date());
+				custom.setCreator(user.getId());
+				materialCustomMapper.insert(custom);
+			}
+	}
+
+	@Override
+	public MaterialCustom selectCustomByMaterialId(String id) {
+		return this.materialCustomMapper.selectById(id);
+	}
+
+	@Override
 	public MaterialCustoms getCustoms(String shopid, String msku,String country) {
 		// TODO Auto-generated method stub
-		return materialCustomsMapper.getCustoms(shopid,msku,country);
+		MaterialCustoms result=null;
+		if("CN".equals(country)) {
+			 MaterialCustom custom= materialCustomMapper.getCustom(shopid,msku);
+			 result=new MaterialCustoms();
+             BeanUtil.copyProperties(custom,result);
+		}else {
+			 result= materialCustomsMapper.getCustoms(shopid,msku,country);
+			 result=result==null?new MaterialCustoms():result;
+			 MaterialCustom custom= materialCustomMapper.getCustom(shopid,msku);
+			 if(custom!=null) {
+				 if(result.getCode()!=null) {
+					 BeanUtil.copyProperties(custom,result,"code");
+				 }else{
+					 BeanUtil.copyProperties(custom,result);
+				 }
+			 }
+		}
+		if(result.getUnit()==null){
+			result.setUnit("套");
+		}
+		return result;
 	}
 
 	@Override
@@ -1924,6 +2115,10 @@ public Map<String, Object> getRealityPrice(String materialid){
 			 query.eq(MaterialCustoms::getMaterialid, item.getMaterialid());
 			 query.eq(MaterialCustoms::getCountry, item.getCountry());
 			 MaterialCustoms old = materialCustomsMapper.selectOne(query);
+			 Material material = this.getById(item.getMaterialid());
+			 if(material!=null&&item.getUnit()!=null){
+
+			 }
 			 if(old!=null) {
 				 item.setOperator(user.getId());
 				 item.setOpttime(new Date());
@@ -1937,6 +2132,34 @@ public Map<String, Object> getRealityPrice(String materialid){
 				 item.setCreator(user.getId());
 				 materialCustomsMapper.insert(item);
 			 }
+			 MaterialCustom custom=new MaterialCustom();
+			 custom.setMaterialid(item.getMaterialid());
+			 custom.setCountry("CN");
+			 custom.setCreator(user.getId());
+			 custom.setCreatetime(new Date());
+			 custom.setOperator(user.getId());
+			 custom.setOpttime(new Date());
+			 custom.setMaterial(item.getMaterial());
+			 custom.setApplication(item.getApplication());
+			 custom.setPrice(item.getPrice());
+			 custom.setUrl(item.getUrl());
+			 custom.setCode(item.getCode());
+			 custom.setCname(item.getCname());
+			 custom.setElements(item.getElements());
+			 custom.setEname(item.getEname());
+			 custom.setMaterialcn(item.getMaterialcn());
+			 custom.setRate(item.getRate());
+			 LambdaQueryWrapper<MaterialCustom> queryC=new LambdaQueryWrapper<MaterialCustom>();
+			 queryC.eq(MaterialCustom::getMaterialid, item.getMaterialid());
+			 MaterialCustom oldC = materialCustomMapper.selectOne(queryC);
+			 if(oldC!=null) {
+				 custom.setCreatetime(oldC.getCreatetime());
+				 custom.setCreator(oldC.getCreator());
+				 materialCustomMapper.updateById(custom);
+			 }else{
+				 materialCustomMapper.insert(custom);
+			 }
+
 		 }
 		return ;
 	}

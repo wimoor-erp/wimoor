@@ -1,22 +1,6 @@
 package com.wimoor.amazon.finances.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.stereotype.Service;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -27,11 +11,7 @@ import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
-import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMonthMapper;
-import com.wimoor.amazon.finances.mapper.FBALongTermStorageFeeReportMapper;
-import com.wimoor.amazon.finances.mapper.FBAReimbursementsFeeReportMapper;
-import com.wimoor.amazon.finances.mapper.FBAStorageFeeReportMapper;
+import com.wimoor.amazon.finances.mapper.*;
 import com.wimoor.amazon.finances.pojo.entity.AmzFinSettlementFormula;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementSummarySkuMonth;
 import com.wimoor.amazon.finances.service.IAmzFinSettlementFormulaService;
@@ -41,9 +21,18 @@ import com.wimoor.amazon.inbound.mapper.ShipInboundTransMapper;
 import com.wimoor.amazon.orders.mapper.AmzOrderRemovesMapper;
 import com.wimoor.amazon.orders.mapper.OrdersFulfilledShipmentsFeeMapper;
 import com.wimoor.common.GeneralUtil;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 /**
  * <p>
@@ -636,32 +625,14 @@ final AmzOrderRemovesMapper amzOrderRemovesMapper;
 		titlemap.put("promotion", "促销费");
 		titlemap.put("otherfee", "其它费用");
 		titlemap.put("setincome", "SKU结算");
-		titlemap.put("share_storage_fee", "店铺分摊_仓储费");
-		titlemap.put("share_long_storage_fee", "店铺分摊_长期仓储费");
-		titlemap.put("share_adv_spend_fee", "店铺分摊_广告费");
-		titlemap.put("share_reserve_fee", "店铺分摊_预留金");
-		titlemap.put("share_coupon_redemption_fee", "店铺分摊_折扣券");
-		titlemap.put("share_disposal_fee", "店铺分摊_移除费");
-		titlemap.put("share_shop_other_fee", "其它店铺分摊");
-		titlemap.put("income", "店铺结算");
-		titlemap.put("local_price", "本地采购成本");
-		titlemap.put("local_other_cost", "本地其它");
-		titlemap.put("local_return_tax", "本地退税");
-		titlemap.put("profit_local_shipmentfee", "本地预估运费");
-		titlemap.put("profit_marketfee", "市场费用");
-		titlemap.put("profit_vat", "VAT");
-		titlemap.put("profit_companytax", "所得税");
-		titlemap.put("profit_customstax", "关税");
-		titlemap.put("profit_exchangelost", "汇率损耗");
-		titlemap.put("profit_lostrate", "固定费用");
-		titlemap.put("profit_otherfee", "预估其它费用");
-		titlemap.put("rpt_storage_fee", "报表_仓储费");
-		titlemap.put("rpt_long_storage_fee", "报表_长期仓储");
-		titlemap.put("rpt_adv_spend_fee", "报表_广告费");
-		titlemap.put("rpt_reimbursements_fee", "报表_赔偿金");
-		titlemap.put("rpt_disposal_fee", "报表_移除费");
-		titlemap.put("rpt_disposal_units", "报表_移除数量");
-		titlemap.put("fin_sum_fee", "报表_其它自定义");
+		
+		// 添加动态字段
+		String shopid = params.get("shopid").toString();
+		Map<String, String> formulaTitles = iAmzFinSettlementFormulaService.getformulaTitle(shopid);
+		for (Map.Entry<String, String> entry : formulaTitles.entrySet()) {
+			titlemap.put(entry.getKey(), entry.getValue());
+		}
+		
 		titlemap.put("profit", "利润");
 		titlemap.put("profitrate", "利润率");
 		
@@ -713,5 +684,147 @@ final AmzOrderRemovesMapper amzOrderRemovesMapper;
 			}
 		}
 	}
-	
+
+	@Override
+	public void getDownloadListOld(SXSSFWorkbook workbook, Map<String, Object> params) {
+		List<Map<String, Object>> list = this.baseMapper.findByCondition(params);
+		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
+		String ftype=params.get("type").toString();
+		if("sku".equals(ftype)) {
+			titlemap.put("sku", "SKU");
+			titlemap.put("asin", "ASIN");
+			titlemap.put("groupname", "店铺");
+			titlemap.put("marketname", "站点");
+			titlemap.put("ownername", "负责人名字");
+			titlemap.put("local_unit_price", "采购单价");
+		}
+		if("msku".equals(ftype)) {
+			titlemap.put("msku", "本地SKU");
+			titlemap.put("ownername", "负责人名字");
+			titlemap.put("currency", "币种");
+			titlemap.put("pname", "商品名称");
+			titlemap.put("mname", "本地产品名称");
+		}
+		if("categoryid".equals(ftype)) {
+			titlemap.put("categoryname", "品类名称");
+		}
+		if("owner".equals(ftype)) {
+			titlemap.put("ownername", "负责人名字");
+		}
+		if("groupid".equals(ftype)) {
+			titlemap.put("groupname", "店铺名称");
+		}
+		if("asin".equals(ftype)) {
+			titlemap.put("asin", "ASIN");
+			titlemap.put("ownername", "负责人名字");
+			titlemap.put("currency", "币种");
+			titlemap.put("pname", "商品名称");
+			titlemap.put("mname", "本地产品名称");
+		}
+
+		titlemap.put("order_amount", "订单量");
+		titlemap.put("sales", "销量");
+		titlemap.put("refundsales", "退款数量");
+		titlemap.put("principal", "销售额");
+		titlemap.put("avgprice", "平均售价");
+		titlemap.put("commission", "佣金");
+		titlemap.put("fbafee", "FBA费");
+		titlemap.put("shipping", "运费");
+		titlemap.put("refund", "退款");
+		titlemap.put("promotion", "促销费");
+		titlemap.put("otherfee", "其它费用");
+		titlemap.put("setincome", "SKU结算");
+		titlemap.put("share_storage_fee", "店铺分摊_仓储费");
+		titlemap.put("share_long_storage_fee", "店铺分摊_长期仓储费");
+		titlemap.put("share_adv_spend_fee", "店铺分摊_广告费");
+		titlemap.put("share_reserve_fee", "店铺分摊_预留金");
+		titlemap.put("share_coupon_redemption_fee", "店铺分摊_折扣券");
+		titlemap.put("share_disposal_fee", "店铺分摊_移除费");
+		titlemap.put("share_shop_other_fee", "其它店铺分摊");
+		titlemap.put("income", "店铺结算");
+		titlemap.put("local_price", "本地采购成本");
+		titlemap.put("local_other_cost", "本地其它");
+		titlemap.put("local_return_tax", "本地退税");
+		titlemap.put("profit_local_shipmentfee", "本地预估运费");
+		titlemap.put("profit_marketfee", "市场费用");
+		titlemap.put("profit_vat", "VAT");
+		titlemap.put("profit_companytax", "所得税");
+		titlemap.put("profit_customstax", "关税");
+		titlemap.put("profit_exchangelost", "汇率损耗");
+		titlemap.put("profit_lostrate", "固定费用");
+		titlemap.put("profit_otherfee", "预估其它费用");
+		titlemap.put("rpt_storage_fee", "报表_仓储费");
+		titlemap.put("rpt_long_storage_fee", "报表_长期仓储");
+		titlemap.put("rpt_adv_spend_fee", "报表_广告费");
+		titlemap.put("rpt_reimbursements_fee", "报表_赔偿金");
+		titlemap.put("rpt_disposal_fee", "报表_移除费");
+		titlemap.put("rpt_disposal_units", "报表_移除数量");
+		titlemap.put("fin_sum_fee", "报表_其它自定义");
+		titlemap.put("profit", "利润");
+		titlemap.put("profitrate", "利润率");
+
+		if (list.size() > 0 && list != null) {
+			Sheet sheet = workbook.createSheet("sheet1");
+			// 在索引0的位置创建行（最顶端的行）
+			Row trow = sheet.createRow(0);
+			Cell cell = null;
+			Object[] titlearray = titlemap.keySet().toArray();
+			for (int i = 0; i < titlearray.length; i++) {
+				cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
+				Object value = titlemap.get(titlearray[i].toString());
+				cell.setCellValue(value.toString());
+			}
+			for (int i = 0; i < list.size(); i++) {
+				Row row = sheet.createRow(i + 1);
+				Map<String, Object> map = list.get(i);
+				for (int j = 0; j < titlearray.length; j++) {
+					cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
+					Object value = map.get(titlearray[j].toString());
+					if (value != null) {
+						if("avgprice".equals(titlearray[j].toString())) {
+							if(map.get("principal")!=null && map.get("sales")!=null) {
+								cell.setCellValue(Float.parseFloat(map.get("principal").toString())/Float.parseFloat(map.get("sales").toString()) );
+							}else {
+								cell.setCellValue("0");
+							}
+						}else if("profitrate".equals(titlearray[j].toString())){
+							if(map.get("profit")!=null && map.get("principal")!=null) {
+								cell.setCellValue(Float.parseFloat(map.get("profit").toString())/Float.parseFloat(map.get("principal").toString()) );
+							}else {
+								cell.setCellValue("0");
+							}
+						}else {
+							if(value instanceof BigDecimal) {
+								cell.setCellValue(Double.parseDouble(value.toString()));
+							}else {
+								cell.setCellValue(value.toString());
+							}
+						}
+					}
+				}
+			}
+		} else {
+			try {
+				throw new Exception("没有数据可导出！");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public List<Map<String, Object>> summaryQuarter(Map<String, Object> param) {
+		return this.baseMapper.summaryQuarter(param);
+	}
+
+	@Override
+	public List<Map<String, Object>> getSummaryMonth(Map<String, Object> param) {
+		return this.baseMapper.getSummaryMonth(param);
+	}
+
+	@Override
+	public List<Map<String, Object>> getSummaryMonthStorage(Map<String, Object> param) {
+		return this.baseMapper.getSummaryMonthStorage(param);
+	}
+
 }

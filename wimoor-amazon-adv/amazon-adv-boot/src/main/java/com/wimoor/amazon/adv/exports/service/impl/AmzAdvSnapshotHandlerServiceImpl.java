@@ -116,11 +116,11 @@ public class AmzAdvSnapshotHandlerServiceImpl implements IAmzAdvSnapshotHandlerS
 	}
 
 	public void requestSnapshot(String exportType, String campaignType) {//线程数量=20*9
-//		Example example=new Example(AmzAdvAuth.class);
-//		Criteria criteria = example.createCriteria();
-//		criteria.andEqualTo("id", "");
-//		List<AmzAdvAuth> advauthlist = amzAdvAuthService.selectByExample(example);
-		List<AmzAdvAuth> advauthlist = amzAdvAuthService.selectLastAuthList();
+		Example example=new Example(AmzAdvAuth.class);
+		Criteria criteria = example.createCriteria();
+		//criteria.andEqualTo("id", "");
+		//List<AmzAdvAuth> advauthlist = amzAdvAuthService.selectByExample(example);
+		List<AmzAdvAuth> advauthlist = amzAdvAuthService.selectLastAuthList("snapshot");
 		if(advauthlist==null || advauthlist.size()==0){
 			return;
 		}
@@ -272,11 +272,16 @@ public class AmzAdvSnapshotHandlerServiceImpl implements IAmzAdvSnapshotHandlerS
 		}
 		List<Map<String, Object>> paramList = new ArrayList<Map<String,Object>>();
 		for (AmzAdvSnapshot amzsnap : list) {
-			AmzAdvProfile advProfile = amzAdvAuthService.getAmzAdvProfileByKey(amzsnap.getProfileid());
-			Map<String, Object> param = new HashMap<String, Object>();
-			param.put("amzsnap", amzsnap);
-			param.put("advProfile", advProfile);
-			paramList.add(param);
+			try {
+				AmzAdvProfile advProfile = amzAdvAuthService.getAmzAdvProfileByKey(amzsnap.getProfileid());
+				Map<String, Object> param = new HashMap<String, Object>();
+				param.put("amzsnap", amzsnap);
+				param.put("advProfile", advProfile);
+				paramList.add(param);
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+
 		}
 	    return readSnapShotThread(paramList);
 	}

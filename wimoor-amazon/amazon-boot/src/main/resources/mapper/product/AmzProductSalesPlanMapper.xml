@@ -234,7 +234,7 @@
 			 v.sumseven,v.statusname,v.statuscolor,v.country,v.shopid,v.asin,
 			 v.opttime,v.invage,
 			 p.avgsales,p.needship,p.needshipfba,p.needpurchase,p.ship_min_cycle_sale,p.short_time,
-			 p.needpurchase,p.salesday,p.shipday,p.delivery_cycle,
+			 p.needpurchase,p.salesday,p.salesday_avgsales salesdayAvgsales,p.shipday,p.delivery_cycle,
 			 r.afn_fulfillable_quantity,    r.afn_inbound_working_quantity,  r.afn_unsellable_quantity,
 			 r.afn_inbound_shipped_quantity,r.afn_inbound_receiving_quantity,r.afn_reserved_quantity,
 			 r.afn_total_quantity,r.afn_researching_quantity,r.afn_reserved_future_supply,
@@ -319,7 +319,7 @@
 								    </foreach>			
 				           )
 				</if>
-	            group by 
+	            group by p.amazonauthid,
 	             <if test="mskus!=null">
 				  p.msku, 
 				</if>

@@ -1,22 +1,6 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.io.BufferedReader;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.threeten.bp.OffsetDateTime;
-
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.api.ReportsApi;
@@ -39,8 +23,14 @@ import com.wimoor.amazon.report.service.IReportService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.threeten.bp.OffsetDateTime;
 
-import cn.hutool.extra.spring.SpringUtil;
+import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.util.*;
+import java.util.Map.Entry;
 
  
 
@@ -103,12 +93,6 @@ public class HandlerReportServiceImpl implements IHandlerReportService,IAwsSQSMe
 		ReportRequestType type = iReportRequestTypeService.findByTypeCode(reportReuestRecord.getReporttype());
 		IReportService service=SpringUtil.getBean(type.getBean());
 		service.refreshReport(reportReuestRecord);
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		service.downloadProcessReport(reportReuestRecord);
 	}
 	
@@ -204,12 +188,23 @@ public class HandlerReportServiceImpl implements IHandlerReportService,IAwsSQSMe
 	public void requestReport(List<AmazonAuthority> amazonAuthorityList, String reportType, Boolean ignore) {
 		ReportRequestType type = iReportRequestTypeService.findByTypeCode(reportType);
 		if(type==null)return;
+		 List<String> withoutSellerList = this.reportRequestRecordMapper.getWithoutSeller(reportType);
+		 List<AmazonAuthority> newList=new ArrayList<AmazonAuthority>();
+		 if(withoutSellerList!=null&& !withoutSellerList.isEmpty()) {
+			 for(AmazonAuthority auth:amazonAuthorityList) {
+				 if(!withoutSellerList.contains(auth.getId())) {
+					 newList.add(auth);
+				 }
+			 }
+		 }else{
+			  newList.addAll(amazonAuthorityList);
+		 }
 		IReportService service=SpringUtil.getBean(type.getBean());
 		Calendar cstart = Calendar.getInstance();
 		cstart.add(Calendar.DATE, type.getDay()!=null?type.getDay()*-1:0);
 		cstart.add(Calendar.HOUR, -2);
 		Calendar cend = Calendar.getInstance();
-		requestReport(amazonAuthorityList,service,cstart,cend,ignore);
+		requestReport(newList,service,cstart,cend,ignore);
 		//Calendar mycstart = Calendar.getInstance();
 		//requestReport(amazonAuthorityList,service,mycstart,cend,ignore);
 	}
@@ -315,6 +310,15 @@ public class HandlerReportServiceImpl implements IHandlerReportService,IAwsSQSMe
 					record.setReportProcessingStatus(processingStatus);
 					record.setReportDocumentId(reportDocumentId);
 					reportRequestRecordMapper.update(record, query);
+//					if(reportDocumentId!=null&&!reportDocumentId.equals("")) {
+//						ReportRequestType type = iReportRequestTypeService.findByTypeCode(record.getReporttype());
+//						IReportService reportService=SpringUtil.getBean(type.getBean());
+//						try{
+//							reportService.downloadProcessReport(record);
+//						}catch(Exception e) {
+//							e.printStackTrace();
+//						}
+//					}
 				}
 			}
 		}

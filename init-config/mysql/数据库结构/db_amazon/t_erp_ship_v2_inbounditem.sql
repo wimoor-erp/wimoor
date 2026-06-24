@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_v2_inbounditem` (
   `opttime` datetime DEFAULT NULL,
   `appendtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `msku` (`msku`)
+  KEY `msku` (`msku`),
+  KEY `formid` (`formid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

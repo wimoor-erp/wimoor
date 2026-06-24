@@ -38,7 +38,6 @@
         and (expires &gt; now() or expires is null)
 		and treat_number&lt;3
         and requesttime&gt;=DATE_ADD(now(),INTERVAL -48 HOUR)
-        and (region='EU' or region='FE')
 		and (status='IN_PROGRESS' or status='SUCCESS' or status='PROCESSING'  or status='COMPLETED')
  		and (treat_status is null or treat_status='error' or treat_status='')
         order by requesttime asc

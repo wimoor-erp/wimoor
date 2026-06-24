@@ -1,27 +1,13 @@
 package com.wimoor.amazon.inboundV2.controller;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.fulfillmentinbound.LabelOwner;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.MskuPrepDetailInput;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.PrepCategory;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.PrepOwner;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.PrepType;
-import com.wimoor.admin.api.AdminClientOneFeign;
-import com.wimoor.amazon.util.LockCheckUtils;
-import com.wimoor.common.GeneralUtil;
-import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wimoor.admin.api.AdminClientOneFeign;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -33,15 +19,10 @@ import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
 import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
 import com.wimoor.amazon.inboundV2.pojo.vo.ShipInboundItemVo;
 import com.wimoor.amazon.inboundV2.pojo.vo.ShipPlanVo;
-import com.wimoor.amazon.inboundV2.service.IInboundApiHandlerService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundBoxService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundCaseService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundItemService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundOperationService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundPlanService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentRecordV2Service;
-import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentService;
+import com.wimoor.amazon.inboundV2.service.*;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanShipItemService;
+import com.wimoor.amazon.util.LockCheckUtils;
+import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
@@ -50,13 +31,18 @@ import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.erp.ship.pojo.dto.ShipFormDTO;
 import com.wimoor.erp.ship.pojo.dto.ShipItemDTO;
-
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Api(tags = "发货单")
 @RestController
@@ -155,6 +141,22 @@ public class ShipInboundPlanV2Controller {
 				lock.clear();
 			}
 			return Result.success(inplan.getId());
+	}
+
+	@ApiOperation(value = "配货发货计划")
+	@PostMapping("/changeInboundPlanItem")
+	@SystemControllerLog("配货")
+	@Transactional
+	public  Result<String> changeInboundPlanItemAction(String planid,String itemid,String qty){
+		UserInfo user=UserInfoContext.get();
+		LockCheckUtils lock = new LockCheckUtils(stringRedisTemplate,"changeInboundPlan"+user.getCompanyid());
+		try {
+			ShipInboundPlan old = shipInboundPlanV2Service.getById(planid);
+			shipInboundPlanV2Service.changeShipInboundPlanItem(old,itemid,Integer.parseInt(qty));
+		}finally {
+			lock.clear();
+		}
+		return Result.success("success");
 	}
 	
 	@ApiOperation(value = "完成配货发货计划")
@@ -293,6 +295,23 @@ public class ShipInboundPlanV2Controller {
 		}
 	}
 
+	@ApiOperation(value = "更新plan的运输方式")
+	@GetMapping("/updatePlanTranStyle")
+	public Result<String> updatePlanTranStyleAction(String formid,String transtyle) {
+		ShipInboundPlan plan = shipInboundPlanV2Service.getById(formid);
+		if(plan!=null) {
+			if(plan.getAuditstatus()>=7){
+				throw new BizException("当前状态不支持修改运输方式!");
+			}else{
+				plan.setTranstyle(transtyle);
+				shipInboundPlanV2Service.updateById(plan);
+				return Result.success("ok");
+			}
+		}else {
+			return Result.success(null);
+		}
+	}
+
 	 @ApiOperation(value = "刷新发货计划")
 	 @GetMapping("/refreshInboundPlan")
 	 @Transactional
@@ -308,10 +327,27 @@ public class ShipInboundPlanV2Controller {
 	 public Result<Boolean> updatePlanItemAction(@RequestBody ShipInboundItem item) {
 		   UserInfo user=UserInfoContext.get();
 		   ShipInboundItem olditem = iShipInboundItemService.getById(item.getId());
-		   olditem.setExpiration(item.getExpiration());
-		   olditem.setLabelOwner(item.getLabelOwner());
-		   olditem.setManufacturingLotCode(item.getManufacturingLotCode());
-		   olditem.setPrepOwner(item.getPrepOwner());
+		   if(item.getLabelOwner()!=null){
+			   olditem.setExpiration(item.getExpiration());
+			   olditem.setLabelOwner(item.getLabelOwner());
+			   olditem.setManufacturingLotCode(item.getManufacturingLotCode());
+			   olditem.setPrepOwner(item.getPrepOwner());
+		   }
+		   else if(item.getQuantity() != null) {
+			   ShipInboundPlan old = shipInboundPlanV2Service.getById(olditem.getFormid());
+			   if(old.getAuditstatus()==10){
+				   LockCheckUtils lock = new LockCheckUtils(stringRedisTemplate,"changeInboundPlan"+user.getCompanyid());
+				   try {
+					   shipInboundPlanV2Service.changeShipInboundPlanItem(old,item.getId(),item.getQuantity());
+				   }finally {
+					   lock.clear();
+				   }
+				   return Result.success();
+			   }else{
+				   olditem.setQuantity(item.getQuantity());
+				   olditem.setConfirmQuantity(item.getQuantity());
+			   }
+		   }
 		   olditem.setOperator(user.getId());
 		   olditem.setOpttime(new Date());
 		   return Result.judge(iShipInboundItemService.updateById(olditem))  ;
@@ -355,6 +391,70 @@ public class ShipInboundPlanV2Controller {
 			 }
 	}
 
+	@ApiOperation(value = "审核并保持发货计划")
+	@GetMapping("/approveAndKeepInboundPlan")
+	@SystemControllerLog("审核并保持")    
+	@Transactional
+	public  Result<String> approveAndKeepInboundPlan(String id){
+		 UserInfo user=UserInfoContext.get();
+		 ShipInboundPlan inplan=shipInboundPlanV2Service.getById(id);
+		 try {
+				 List<ShipInboundItemVo> itemlist = iShipInboundItemService.listByFormid(inplan.getId());
+				 ShipFormDTO dto=getFormDTO(inplan,itemlist);
+				 if(inplan.getInvtype()!=2){
+					 erpClientOneFeign.outBoundShipInventory(dto);
+					 inplan.setInvstatus(1);
+				 }
+				 for(ShipInboundItemVo item:itemlist) {
+					 ShipInboundItem itemold = iShipInboundItemService.getById(item.getId());
+					 itemold.setMsku(item.getMsku());
+					 iShipInboundItemService.updateById(itemold);
+				 }
+				 inplan.setAuditstatus(10);
+				 inplan.setAuditor(user.getId());
+				 inplan.setAuditime(new Date());
+				 inplan.setOpttime(new Date());
+				 inplan.setOperator(user.getId());
+				 shipInboundPlanV2Service.updateById(inplan);
+				 shipInboundV2ShipmentRecordService.saveRecord(inplan);
+				 return Result.success(inplan.getId());
+			 }catch(FeignException e) {
+				 throw new BizException("提交失败" +e.getMessage());
+			 }catch(BizException e) {
+				 throw e;
+			 }catch(Exception e) {
+				 throw new BizException("提交失败" +e.getMessage());
+			 }
+	}
+
+	@ApiOperation(value = "解除保持发货计划")
+	@PostMapping("/releaseKeepInboundPlan")
+	@SystemControllerLog("解除保持")    
+	@Transactional
+	public  Result<String> releaseKeepInboundPlan(@RequestBody List<String> ids){
+		 UserInfo user=UserInfoContext.get();
+		 if(ids==null||ids.size()==0){
+			 return Result.success();
+		 }
+		 try {
+			 Date now = new Date();
+			 for(String id:ids) {
+				 ShipInboundPlan inplan=shipInboundPlanV2Service.getById(id);
+				 if(inplan.getAuditstatus()==10) {
+					 inplan.setAuditstatus(2);
+					 inplan.setOpttime(now);
+					 inplan.setCreatetime(now);
+					 inplan.setOperator(user.getId());
+					 shipInboundPlanV2Service.updateById(inplan);
+					 shipInboundV2ShipmentRecordService.saveRecord(inplan);
+				 }
+			 }
+			 return Result.success();
+		 }catch(Exception e) {
+			 throw new BizException("解除保持失败" +e.getMessage());
+		 }
+	}
+
 	@ApiOperation(value = "追加商品到审核后发货计划")
 	@PostMapping("/approveInboundPlanAppend")
 	@SystemControllerLog("审核")
@@ -372,7 +472,7 @@ public class ShipInboundPlanV2Controller {
 			oldmap.put(item.getSku(), item);
 		}
 		try {
-			if(inplan.getAuditstatus()>2||inplan.getInvstatus()==2){
+			if((inplan.getAuditstatus()>2 && inplan.getAuditstatus()!=10)||inplan.getInvstatus()==2){
 				throw new BizException("当前状态不支持新增");
 			}
 			for(ShipInboundItem item:items){
@@ -407,7 +507,7 @@ public class ShipInboundPlanV2Controller {
 			 if(itemvoList.size()==0){
 				 throw new BizException("保存失败");
 			 }
-			 if(inplan.getAuditstatus()==2&& inplan.getInvstatus()==1){
+			 if((inplan.getAuditstatus()==2 || inplan.getAuditstatus()==10)  && inplan.getInvstatus()==1){
 				 ShipFormDTO dto=getFormDTO(inplan, itemvoList);
 				 erpClientOneFeign.outBoundShipInventory(dto);
 			 }

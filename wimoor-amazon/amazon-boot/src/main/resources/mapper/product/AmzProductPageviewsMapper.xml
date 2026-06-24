@@ -203,15 +203,18 @@
 	  	    info.name,
 	  	    info.asin asin 
 	  	FROM t_amz_product_pageviews t
+	  	LEFT JOIN t_amazon_auth g on g.id=t.amazonAuthid
 		LEFT JOIN t_product_info info ON info.amazonAuthId=t.amazonAuthid AND t.SKU=info.sku AND t.marketplaceid=info.marketplaceid
 		LEFT JOIN t_picture p ON p.id=info.image
 		LEFT JOIN t_product_in_opt o ON o.pid=info.id
 		LEFT JOIN t_erp_material m ON m.sku=ifnull(o.msku,info.sku) AND m.shopid=#{dto.shopid,jdbcType=CHAR} AND m.isDelete=0
 		WHERE t.marketplaceid=#{dto.marketplaceid,jdbcType=CHAR}
-		AND t.byday &gt;=#{dto.startDate,jdbcType=CHAR} AND t.byday &lt;=#{dto.endDate,jdbcType=CHAR}  
+		AND t.byday &gt;=#{dto.startDate,jdbcType=CHAR}
+		AND t.byday &lt;=#{dto.endDate,jdbcType=CHAR}
 		<if test="dto.amazonauthid!=null">
-		and t.amazonAuthid=#{dto.amazonauthid,jdbcType=CHAR}
+		   and t.amazonAuthid=#{dto.amazonauthid,jdbcType=CHAR}
 		</if>
+		   and g.groupid=#{dto.groupid,jdbcType=CHAR}
 	<if test="dto.owner!=null">
 	and o.owner=#{dto.owner,jdbcType=CHAR}
 	</if>

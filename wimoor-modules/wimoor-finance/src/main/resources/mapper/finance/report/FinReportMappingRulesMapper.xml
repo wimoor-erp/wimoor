@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.report.mapper.FinReportMappingRulesMapper">
+
+    <resultMap type="com.wimoor.finance.report.domain.FinReportMappingRules" id="FinReportMappingRulesResult">
+        <result property="ruleId"    column="rule_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="templateType"    column="template_type"    />
+        <result property="ruleType"    column="rule_type"    />
+        <result property="itemCode"    column="item_code"    />
+        <result property="ruleName"    column="rule_name"    />
+        <result property="matchType"    column="match_type"    />
+        <result property="matchValue"    column="match_value"    />
+        <result property="matchValueEnd"    column="match_value_end"    />
+        <result property="operator"    column="operator"    />
+        <result property="subjectType"    column="subject_type"    />
+        <result property="direction"    column="direction"    />
+        <result property="isLeafOnly"    column="is_leaf_only"    />
+        <result property="priority"    column="priority"    />
+        <result property="status"    column="status"    />
+        <result property="description"    column="description"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="createdBy"    column="created_by"    />
+    </resultMap>
+
+    <sql id="selectFinReportMappingRulesVo">
+        select rule_id, groupid, template_type, rule_type, item_code, rule_name, match_type, match_value, match_value_end, operator, subject_type, direction, is_leaf_only, priority, status, description, created_time, updated_time, created_by from fin_report_mapping_rules
+    </sql>
+
+    <select id="selectFinReportMappingRulesList" parameterType="com.wimoor.finance.report.domain.FinReportMappingRules" resultMap="FinReportMappingRulesResult">
+        <include refid="selectFinReportMappingRulesVo"/>
+        <where>
+            <if test="groupid != null and groupid != ''"> and groupid = #{groupid}</if>
+            <if test="templateType != null and templateType != ''"> and template_type = #{templateType}</if>
+            <if test="itemCode != null and itemCode != ''"> and item_code = #{itemCode}</if>
+            <if test="ruleName != null and ruleName != ''"> and rule_name like concat('%', #{ruleName}, '%')</if>
+            <if test="matchType != null and matchType != ''"> and match_type = #{matchType}</if>
+            <if test="matchValue != null and matchValue != ''"> and match_value = #{matchValue}</if>
+            <if test="operator != null and operator != ''"> and operator = #{operator}</if>
+            <if test="subjectType != null"> and subject_type = #{subjectType}</if>
+            <if test="direction != null"> and direction = #{direction}</if>
+            <if test="isLeafOnly != null"> and is_leaf_only = #{isLeafOnly}</if>
+            <if test="priority != null"> and priority = #{priority}</if>
+            <if test="status != null"> and status = #{status}</if>
+        </where>
+        order by priority asc, rule_id asc
+    </select>
+
+    <select id="selectFinReportMappingRulesByRuleId" parameterType="Long" resultMap="FinReportMappingRulesResult">
+        <include refid="selectFinReportMappingRulesVo"/>
+        where rule_id = #{ruleId}
+    </select>
+
+    <select id="selectRulesByTemplateType" resultMap="FinReportMappingRulesResult">
+        <include refid="selectFinReportMappingRulesVo"/>
+        where groupid = #{groupid}
+        and template_type = #{templateType}
+        and status = 1
+        order by item_code asc, priority asc
+    </select>
+
+    <select id="selectRulesByItemCode" resultMap="FinReportMappingRulesResult">
+        <include refid="selectFinReportMappingRulesVo"/>
+        where groupid = #{groupid}
+        and item_code = #{itemCode}
+        and status = 1
+        order by priority asc
+    </select>
+
+    <insert id="insertFinReportMappingRules" parameterType="com.wimoor.finance.report.domain.FinReportMappingRules" useGeneratedKeys="true" keyProperty="ruleId">
+        insert into fin_report_mapping_rules
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">groupid,</if>
+            <if test="templateType != null and templateType != ''">template_type,</if>
+            <if test="ruleType != null and ruleType != ''">rule_type,</if>
+            <if test="itemCode != null and itemCode != ''">item_code,</if>
+            <if test="ruleName != null and ruleName != ''">rule_name,</if>
+            <if test="matchType != null and matchType != ''">match_type,</if>
+            <if test="matchValue != null and matchValue != ''">match_value,</if>
+            <if test="matchValueEnd != null and matchValueEnd != ''">match_value_end,</if>
+            <if test="operator != null and operator != ''">operator,</if>
+            <if test="subjectType != null">subject_type,</if>
+            <if test="direction != null">direction,</if>
+            <if test="isLeafOnly != null">is_leaf_only,</if>
+            <if test="priority != null">priority,</if>
+            <if test="status != null">status,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="createdBy != null and createdBy != ''">created_by,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">#{groupid},</if>
+            <if test="templateType != null and templateType != ''">#{templateType},</if>
+            <if test="ruleType != null and ruleType != ''">#{ruleType},</if>
+            <if test="itemCode != null and itemCode != ''">#{itemCode},</if>
+            <if test="ruleName != null and ruleName != ''">#{ruleName},</if>
+            <if test="matchType != null and matchType != ''">#{matchType},</if>
+            <if test="matchValue != null and matchValue != ''">#{matchValue},</if>
+            <if test="matchValueEnd != null and matchValueEnd != ''">#{matchValueEnd},</if>
+            <if test="operator != null and operator != ''">#{operator},</if>
+            <if test="subjectType != null">#{subjectType},</if>
+            <if test="direction != null">#{direction},</if>
+            <if test="isLeafOnly != null">#{isLeafOnly},</if>
+            <if test="priority != null">#{priority},</if>
+            <if test="status != null">#{status},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+        </trim>
+    </insert>
+
+    <insert id="batchInsertFinReportMappingRules" parameterType="java.util.List">
+        insert into fin_report_mapping_rules (groupid, template_type, rule_type, item_code, rule_name, match_type, match_value, match_value_end, operator, subject_type, direction, is_leaf_only, priority, status, description, created_by)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+                #{item.groupid},
+                #{item.templateType},
+                #{item.ruleType},
+                #{item.itemCode},
+                #{item.ruleName},
+                #{item.matchType},
+                #{item.matchValue},
+                #{item.matchValueEnd},
+                #{item.operator},
+                #{item.subjectType},
+                #{item.direction},
+                #{item.isLeafOnly},
+                #{item.priority},
+                #{item.status},
+                #{item.description},
+                #{item.createdBy}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateFinReportMappingRules" parameterType="com.wimoor.finance.report.domain.FinReportMappingRules">
+        update fin_report_mapping_rules
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupid != null and groupid != ''">groupid = #{groupid},</if>
+            <if test="templateType != null and templateType != ''">template_type = #{templateType},</if>
+            <if test="ruleType != null and ruleType != ''">rule_type = #{ruleType},</if>
+            <if test="itemCode != null and itemCode != ''">item_code = #{itemCode},</if>
+            <if test="ruleName != null and ruleName != ''">rule_name = #{ruleName},</if>
+            <if test="matchType != null and matchType != ''">match_type = #{matchType},</if>
+            <if test="matchValue != null and matchValue != ''">match_value = #{matchValue},</if>
+            <if test="matchValueEnd != null">match_value_end = #{matchValueEnd},</if>
+            <if test="operator != null and operator != ''">operator = #{operator},</if>
+            <if test="subjectType != null">subject_type = #{subjectType},</if>
+            <if test="direction != null">direction = #{direction},</if>
+            <if test="isLeafOnly != null">is_leaf_only = #{isLeafOnly},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where rule_id = #{ruleId}
+    </update>
+
+    <delete id="deleteFinReportMappingRulesByRuleId" parameterType="Long">
+        delete from fin_report_mapping_rules where rule_id = #{ruleId}
+    </delete>
+
+    <delete id="deleteFinReportMappingRulesByRuleIds" parameterType="String">
+        delete from fin_report_mapping_rules where rule_id in
+        <foreach item="ruleId" collection="array" open="(" separator="," close=")">
+            #{ruleId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteRulesByTenantAndType">
+        delete from fin_report_mapping_rules where groupid = #{groupid} and template_type = #{templateType}
+    </delete>
+</mapper>

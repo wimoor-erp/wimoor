@@ -1,15 +1,14 @@
 package com.wimoor.erp.purchase.service;
 
-import java.util.Map;
-
-import javax.servlet.http.HttpServletResponse;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.purchase.pojo.dto.PurchaseTimeDTO;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 public interface IPurchaseFormEntryService extends IService<PurchaseFormEntry>{
 
@@ -21,4 +20,6 @@ public interface IPurchaseFormEntryService extends IService<PurchaseFormEntry>{
 	IPage<Map<String, Object>> getPurchaseTimeList(PurchaseTimeDTO dto);
 
 	void downloadTimeList(SXSSFWorkbook workbook, PurchaseTimeDTO dto);
+
+    Object downloadPurchaseInfoData(Map<String, Object> map, UserInfo userinfo);
 }

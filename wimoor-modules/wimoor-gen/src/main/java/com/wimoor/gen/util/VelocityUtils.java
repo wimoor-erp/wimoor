@@ -1,10 +1,5 @@
 package com.wimoor.gen.util;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.apache.velocity.VelocityContext;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.wimoor.common.core.constant.GenConstants;
@@ -12,6 +7,12 @@ import com.wimoor.common.core.utils.DateUtils;
 import com.wimoor.common.core.utils.StringUtils;
 import com.wimoor.gen.domain.GenTable;
 import com.wimoor.gen.domain.GenTableColumn;
+import org.apache.velocity.VelocityContext;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 模板工具类
@@ -127,7 +128,7 @@ public class VelocityUtils
      * @param tplWebType 前端类型
      * @return 模板列表
      */
-    public static List<String> getTemplateList(String tplCategory, String tplWebType)
+    public static List<String> getTemplateList(String tplCategory, String tplWebType,String tplJavaType)
     {
         String useWebType = "vm/vue";
         if ("element-plus".equals(tplWebType))
@@ -135,11 +136,20 @@ public class VelocityUtils
             useWebType = "vm/vue/v3";
         }
         List<String> templates = new ArrayList<String>();
-        templates.add("vm/java/domain.java.vm");
-        templates.add("vm/java/mapper.java.vm");
-        templates.add("vm/java/service.java.vm");
-        templates.add("vm/java/serviceImpl.java.vm");
-        templates.add("vm/java/controller.java.vm");
+        if(tplJavaType.equals("mybatis-plus")){
+            templates.add("vm/java/plus/domain.java.vm");
+            templates.add("vm/java/plus/mapper.java.vm");
+            templates.add("vm/java/plus/service.java.vm");
+            templates.add("vm/java/plus/serviceImpl.java.vm");
+            templates.add("vm/java/plus/controller.java.vm");
+        }else{
+            templates.add("vm/java/domain.java.vm");
+            templates.add("vm/java/mapper.java.vm");
+            templates.add("vm/java/service.java.vm");
+            templates.add("vm/java/serviceImpl.java.vm");
+            templates.add("vm/java/controller.java.vm");
+        }
+
         templates.add("vm/xml/mapper.xml.vm");
         templates.add("vm/sql/sql.vm");
         templates.add("vm/js/api.js.vm");

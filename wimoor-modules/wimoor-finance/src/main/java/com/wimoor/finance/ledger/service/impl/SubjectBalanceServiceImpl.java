@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -69,7 +68,8 @@ public class SubjectBalanceServiceImpl implements ISubjectBalanceService {
             LocalDate endDate = dateRange[1];
 
             // 批量查询科目余额
-            List<SubjectBalanceDTO> balanceDTOs = finDetailLedgerMapper.selectSubjectBalances(groupid, subjectCodes, startDate, endDate);
+            List<SubjectBalanceDTO> balanceDTOs = finDetailLedgerMapper.selectSubjectBalances(
+                    Map.of("groupid", groupid, "subjectCodes", subjectCodes, "startDate", startDate, "endDate", endDate));
 
             for (SubjectBalanceDTO dto : balanceDTOs) {
                 BigDecimal amount = getAmountByType(dto, amountType);
@@ -111,7 +111,7 @@ public class SubjectBalanceServiceImpl implements ISubjectBalanceService {
 
             // 获取余额信息
             List<SubjectBalanceDTO> balanceDTOs = finDetailLedgerMapper.selectSubjectBalances(
-                    groupid, Collections.singletonList(subjectCode), startDate, endDate);
+                    Map.of("groupid", groupid, "subjectCodes", Collections.singletonList(subjectCode), "startDate", startDate, "endDate", endDate));
 
             if (!balanceDTOs.isEmpty()) {
                 return balanceDTOs.get(0);
@@ -143,6 +143,11 @@ public class SubjectBalanceServiceImpl implements ISubjectBalanceService {
         FinAccountingSubjects subject = finAccountingSubjectsMapper.selectByTenantIdAndSubjectCode(groupid, subjectCode);
         if (subject == null) {
             return BigDecimal.ZERO;
+        }
+
+        // 如果amountType为空，默认使用END_BALANCE
+        if (amountType == null || amountType.isEmpty()) {
+            amountType = "END_BALANCE";
         }
 
         switch (amountType) {
@@ -223,10 +228,43 @@ public class SubjectBalanceServiceImpl implements ISubjectBalanceService {
         Map<String,BigDecimal> result = new HashMap<>();
         List<Map<String, Object>> list = finGeneralLedgerService.getAllSubjectBalance(groupid, period);
         for(Map<String, Object> map : list) {
-            result.put("ACC_" + map.get("subjectCode").toString(), map.get("endBalance")!=null?new BigDecimal(map.get("endBalance").toString()):BigDecimal.ZERO);
+            BigDecimal endBalance = map.get("endBalance")!=null?new BigDecimal(map.get("endBalance").toString()):BigDecimal.ZERO;
+            Integer endDirection = map.get("endDirection")!=null?Integer.parseInt(map.get("endDirection").toString()):null;
+            
+            // 根据余额方向处理：借方余额为正数，贷方余额为负数
+            if (endDirection != null && endDirection == 2) {
+                // 贷方余额，返回负数
+                endBalance = endBalance.negate();
+            }
+            // 借方余额保持正数
+            
+            result.put("ACC_" + map.get("subjectCode").toString(), endBalance);
         }
         return result;
     }
+
+    @Override
+    public Map<String,BigDecimal> getAllSubjectDebitTotal(String groupid,String period) {
+        Map<String,BigDecimal> result = new HashMap<>();
+        List<Map<String, Object>> list = finGeneralLedgerService.getAllSubjectBalance(groupid, period);
+        for(Map<String, Object> map : list) {
+            BigDecimal debitTotal = map.get("debitTotal")!=null?new BigDecimal(map.get("debitTotal").toString()):BigDecimal.ZERO;
+            result.put("ACC_" + map.get("subjectCode").toString(), debitTotal);
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String,BigDecimal> getAllSubjectCreditTotal(String groupid,String period) {
+        Map<String,BigDecimal> result = new HashMap<>();
+        List<Map<String, Object>> list = finGeneralLedgerService.getAllSubjectBalance(groupid, period);
+        for(Map<String, Object> map : list) {
+            BigDecimal creditTotal = map.get("creditTotal")!=null?new BigDecimal(map.get("creditTotal").toString()):BigDecimal.ZERO;
+            result.put("ACC_" + map.get("subjectCode").toString(), creditTotal);
+        }
+        return result;
+    }
+
     private BigDecimal getAmountByType(SubjectBalanceDTO dto, String amountType) {
         switch (amountType) {
             case "BEGIN_BALANCE":

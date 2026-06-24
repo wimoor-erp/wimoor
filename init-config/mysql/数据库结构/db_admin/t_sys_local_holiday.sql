@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_local_holiday` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_year_month_day` (`shopid`,`year`,`month`,`day`),
   KEY `shopid` (`shopid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1945757654443974752 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='节假日表';
+) ENGINE=InnoDB AUTO_INCREMENT=2037529790442954793 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='节假日表';
 
 -- 数据导出被取消选择。
 

@@ -32,7 +32,7 @@ public interface ProductInfoMapper extends BaseMapper<ProductInfo> {
 	
 	List<Map<String, Object>> findShopSku(@Param("shopid")String shopid, @Param("sku")String sku);
 	
-	List<Map<String,Object>> selectByAuth(@Param("amazonAuthId")String amazonAuthId);
+	List<Map<String,Object>> selectByAuth(@Param("amazonAuthId")String amazonAuthId,@Param("sku")String sku, @Param("marketplaceid")String marketplaceid);
 	
 	List<Map<String,Object>> selectByMapByParams(@Param("params")Map<String,Object> params);
 	
@@ -59,4 +59,9 @@ public interface ProductInfoMapper extends BaseMapper<ProductInfo> {
 	List<Map<String, Object>> getInfoSimple(Map<String, Object> param);
 
 	IPage<AmzProductListVo> selectParentDetialByAuth(Page<Object> page,@Param("param") Map<String, Object> parameter);
+
+    void batchInsertOrUpdate(List<ProductInfo> batchList);
+
+    List<String> selectByAsinAndMarketplace(@Param("asin") String asin, @Param("marketplaceid") String marketplaceid, @Param("amazonAuthId") String amazonAuthId);
+
 }

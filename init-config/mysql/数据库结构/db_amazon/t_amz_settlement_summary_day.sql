@@ -22,18 +22,18 @@ CREATE TABLE IF NOT EXISTS `t_amz_settlement_summary_day` (
   `sku` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `marketplace_name` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `posted_date` date NOT NULL,
-  `transaction_type` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '商品费用',
-  `amount_type` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `amount_description` char(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `transaction_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '商品费用',
+  `amount_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+  `amount_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `fulfillment_type` char(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `currency` char(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `amount` decimal(15,2) DEFAULT NULL,
   `quantity_purchased` int DEFAULT NULL,
   `quantity_orders` int DEFAULT NULL,
-  PRIMARY KEY (`amazonAuthId`,`posted_date`,`id`),
-  KEY `sku` (`sku`),
-  KEY `settlementid` (`settlementid`),
-  KEY `marketplace_name` (`marketplace_name`)
+  PRIMARY KEY (`amazonAuthId`,`posted_date`,`id`) USING BTREE,
+  KEY `sku` (`sku`) USING BTREE,
+  KEY `settlementid` (`settlementid`) USING BTREE,
+  KEY `marketplace_name` (`marketplace_name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

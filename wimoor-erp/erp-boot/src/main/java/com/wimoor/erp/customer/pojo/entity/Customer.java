@@ -1,14 +1,13 @@
 package com.wimoor.erp.customer.pojo.entity;
- 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.erp.common.pojo.entity.ErpBaseEntity;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -35,6 +34,9 @@ public class Customer extends ErpBaseEntity{
     @TableField(value= "ftype")
     private String ftype;
 
+    @TableField(value= "goodtype")
+    private String goodtype;
+
     @NotNull(message="联系人不能为空")
     @Size(max=50,message="联系人的长度不能超过50个字符且不小于2个字符")
     @TableField(value= "contacts")
@@ -42,11 +44,11 @@ public class Customer extends ErpBaseEntity{
     
     @Size(max=11,message="请正确输入手机号码或电话的格式")
     @TableField(value= "phone_num")
-    private String phone_num;
+    private String phoneNum;
 
     @Size(max=2000,message="其它联系信息的长度不能超过2000个字符")
     @TableField(value= "contact_info")
-    private String contact_info;
+    private String contactInfo;
 
     @Size(max=500,message="地址的长度不能超过500个字符")
     @TableField(value= "address")

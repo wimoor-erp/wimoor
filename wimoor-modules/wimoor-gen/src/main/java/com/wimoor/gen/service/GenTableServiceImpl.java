@@ -1,5 +1,32 @@
 package com.wimoor.gen.service;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.wimoor.common.core.constant.Constants;
+import com.wimoor.common.core.constant.GenConstants;
+import com.wimoor.common.core.exception.ServiceException;
+import com.wimoor.common.core.text.CharsetKit;
+import com.wimoor.common.core.utils.StringUtils;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.gen.domain.GenTable;
+import com.wimoor.gen.domain.GenTableColumn;
+import com.wimoor.gen.mapper.GenTableColumnMapper;
+import com.wimoor.gen.mapper.GenTableMapper;
+import com.wimoor.gen.util.GenUtils;
+import com.wimoor.gen.util.VelocityInitializer;
+import com.wimoor.gen.util.VelocityUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -11,33 +38,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import com.wimoor.common.user.UserInfo;
-import com.wimoor.common.user.UserInfoContext;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
-import com.wimoor.common.core.constant.Constants;
-import com.wimoor.common.core.constant.GenConstants;
-import com.wimoor.common.core.exception.ServiceException;
-import com.wimoor.common.core.text.CharsetKit;
-import com.wimoor.common.core.utils.StringUtils;
-import com.wimoor.gen.domain.GenTable;
-import com.wimoor.gen.domain.GenTableColumn;
-import com.wimoor.gen.mapper.GenTableColumnMapper;
-import com.wimoor.gen.mapper.GenTableMapper;
-import com.wimoor.gen.util.GenUtils;
-import com.wimoor.gen.util.VelocityInitializer;
-import com.wimoor.gen.util.VelocityUtils;
 
 /**
  * 业务 服务层实现
@@ -209,7 +209,7 @@ public class GenTableServiceImpl implements IGenTableService
         VelocityContext context = VelocityUtils.prepareContext(table);
 
         // 获取模板列表
-        List<String> templates = VelocityUtils.getTemplateList(table.getTplCategory(), table.getTplWebType());
+        List<String> templates = VelocityUtils.getTemplateList(table.getTplCategory(), table.getTplWebType(),table.getTplJavaType());
         for (String template : templates)
         {
             // 渲染模板
@@ -257,7 +257,7 @@ public class GenTableServiceImpl implements IGenTableService
         VelocityContext context = VelocityUtils.prepareContext(table);
 
         // 获取模板列表
-        List<String> templates = VelocityUtils.getTemplateList(table.getTplCategory(), table.getTplWebType());
+        List<String> templates = VelocityUtils.getTemplateList(table.getTplCategory(), table.getTplWebType(),table.getTplJavaType());
         for (String template : templates)
         {
             if (!StringUtils.containsAny(template, "sql.vm", "api.js.vm", "index.vue.vm", "index-tree.vue.vm"))
@@ -370,7 +370,7 @@ public class GenTableServiceImpl implements IGenTableService
         VelocityContext context = VelocityUtils.prepareContext(table);
 
         // 获取模板列表
-        List<String> templates = VelocityUtils.getTemplateList(table.getTplCategory(), table.getTplWebType());
+        List<String> templates = VelocityUtils.getTemplateList(table.getTplCategory(), table.getTplWebType(),table.getTplJavaType());
         for (String template : templates)
         {
             // 渲染模板

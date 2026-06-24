@@ -124,8 +124,8 @@ public class MaterialSupplierServiceImpl extends  ServiceImpl<MaterialSupplierMa
 							MaterialSupplierStepwise step = pricelist.get(j);
 							int amount= step.getAmount();
 							BigDecimal price=step.getPrice();
-							if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 2) {
-								throw new ERPBizException("阶梯采购采购价不能超过两位小数！");
+							if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 4) {
+								throw new ERPBizException("阶梯采购采购价不能超过四位小数！");
 							}
 							if(j==0 && (moq==null || moq<=0)) {
 								moq=amount;
@@ -193,8 +193,8 @@ public class MaterialSupplierServiceImpl extends  ServiceImpl<MaterialSupplierMa
   								moq=amount;
   							}
   							BigDecimal price=step.getPrice();
-  							if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 2) {
-  								throw new ERPBizException("阶梯采购采购价不能超过两位小数！");
+  							if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 4) {
+  								throw new ERPBizException("阶梯采购采购价不能超过四位小数！");
   							}
   							if (maxprice.compareTo(price) < 0) {
   								maxprice = price;
@@ -235,8 +235,8 @@ public class MaterialSupplierServiceImpl extends  ServiceImpl<MaterialSupplierMa
   								MaterialSupplierStepwise step = pricelist.get(j);
   								int amount= step.getAmount();
   								BigDecimal price=step.getPrice();
-  								if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 2) {
-  									throw new ERPBizException("阶梯采购采购价不能超过两位小数！");
+  								if (price.toString().split("\\.").length > 1 && price.toString().split("\\.")[1].length() > 4) {
+  									throw new ERPBizException("阶梯采购采购价不能超过四位小数！");
   								}
   								StepWisePrice stepWisePrice = new StepWisePrice();
   								stepWisePrice.setAmount(amount);

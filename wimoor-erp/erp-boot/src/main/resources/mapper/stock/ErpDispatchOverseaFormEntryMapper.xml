@@ -12,7 +12,7 @@
         <result column="amount" property="amount" />
     </resultMap>
    <select id="selectByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
-	    select m.sku sku, a.*
+	    select m.sku sku,m.name,m.upc, a.*
 	    from t_erp_dispatch_oversea_form_entry a left join t_erp_material m on a.materialid = m.id
 	    where formid = #{formid,jdbcType=CHAR}
   </select>

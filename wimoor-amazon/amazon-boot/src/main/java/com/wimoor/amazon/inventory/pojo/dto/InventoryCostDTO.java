@@ -12,4 +12,5 @@ public class InventoryCostDTO extends BasePageQuery{
 	String sku;
 	String groupid ;
 	String byday ;
+	String isAvgPrice;
 }

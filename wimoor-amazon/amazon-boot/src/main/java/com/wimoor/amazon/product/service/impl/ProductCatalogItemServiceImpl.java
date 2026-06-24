@@ -252,7 +252,7 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
     	    	if(parentAsins!=null&&parentAsins.size()>0) {
     	    		for(String parentAsin:parentAsins) {
         	    		if(StrUtil.isNotBlank(parentAsin)) {
-            	    		if(info.getParentAsin()==null||!info.getParentAsin().equals(parentAsin)) {
+            	    		if(info.getParentAsin()==null||!info.getParentAsin().equals(parentAsin)||Boolean.TRUE.equals(info.getIsparent())) {
             	    			info.setParentAsin(parentAsin);
             	    			info.setParentMarketplace(marketplaceid);
             	    			info.setIsparent(false);
@@ -260,15 +260,17 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
             	    			List<ProductInfo> asinParent = iProductInfoService.selectByAsin(auth.getId(), parentAsin ,marketplaceid);
             	    			if(asinParent!=null) {
             	    				for(ProductInfo parent:asinParent) {
-                	    				parent.setIsparent(true);
-                	    				iProductInfoService.updateById(parent);
+										if(parent.getParentAsin()==null){
+											parent.setIsparent(true);
+											iProductInfoService.updateById(parent);
+										}
                 	    			}
             	    			}
             	    		}
             	    	}
         	    	}
     	    	}
-    	    	if(children!=null&&children.size()>0) {
+    	    	else if(children!=null&&children.size()>0) {
     	    		boolean isparent = false;
     	    		for(String child:children) {
         	    		if(StrUtil.isNotBlank(child)) {
@@ -286,7 +288,7 @@ public class ProductCatalogItemServiceImpl implements IProductCatalogItemService
             	    		  }
             	    	}
         	    	}
-    	    		if(isparent) {
+    	    		if(isparent&&StrUtil.isBlank(info.getParentAsin())) {
     	    			if(info.getIsparent()==null||!info.getIsparent()) {
     	    				info.setIsparent(true);
     	    				iProductInfoService.updateById(info);

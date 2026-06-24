@@ -50,7 +50,7 @@
 		replace into t_amz_adv_rpt2_sp_purchaseproduct (
 		keywordId, adGroupId, campaignId, bydate, addToList, addToListFromClicks,
 		qualifiedBorrows, qualifiedBorrowsFromClicks, royaltyQualifiedBorrows,
-		royaltyQualifiedBorrowsFromClicks, portfolioId, campaignName, adGroupName,
+		royaltyQualifiedBorrowsFromClicks, portfolioId,
 		keyword, keywordType, advertisedAsin, purchasedAsin, advertisedSku,
 		campaignBudgetCurrencyCode, matchType, unitsSoldClicks1d, unitsSoldClicks7d,
 		unitsSoldClicks14d, unitsSoldClicks30d, sales1d, sales7d, sales14d, sales30d,
@@ -73,8 +73,6 @@
 			#{adv.royaltyQualifiedBorrows,jdbcType=INTEGER},
 			#{adv.royaltyQualifiedBorrowsFromClicks,jdbcType=INTEGER},
 			#{adv.portfolioId,jdbcType=BIGINT},
-			#{adv.campaignName,jdbcType=CHAR},
-			#{adv.adGroupName,jdbcType=CHAR},
 			#{adv.keyword,jdbcType=CHAR},
 			#{adv.keywordType,jdbcType=CHAR},
 			#{adv.advertisedAsin,jdbcType=CHAR},
@@ -222,7 +220,7 @@
 		<if test="dateType == 'daily'">
 			t.bydate,
 		</if>
-	    cm.name campaignName,ad.name adGroupName, asin, sku,
+	    ifnull(cm.name,'无对应广告活动') campaignName,ifnull(ad.name,'无对应广告组') adGroupName, ifnull(pd.asin,'无对应asin') asin, ifnull(pd.sku,'无对应sku') sku,
 	    sum(impressions) impressions, sum(clicks) clicks, sum(cost) Spend, 
 		ifnull((sum(clicks) / sum(impressions)),0) 'Click Thru Rate (CTR)',
 		ifnull((sum(cost) / sum(clicks)),0) 'Cost Per Click (CPC)',

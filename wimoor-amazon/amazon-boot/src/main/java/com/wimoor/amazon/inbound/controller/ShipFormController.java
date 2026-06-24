@@ -476,7 +476,11 @@ public class ShipFormController {
 								Map<String, Object> maps=new HashMap<String, Object>();
 								maps.put("title", pdt.getName()!=null?pdt.getName():"");
 								maps.put("quantity", item.get("quantity")!=null?item.get("quantity").toString():"");
-								maps.put("fnsku", pdt.getFnsku()!=null?pdt.getFnsku():"");
+								if(item.get("fnsku")!=null){
+									maps.put("fnsku", item.get("fnsku"));
+								}else{
+									maps.put("fnsku", pdt.getFnsku()!=null?pdt.getFnsku():"");
+								}
 								maps.put("sku",pdt.getSku()!=null?pdt.getSku():"");
 								if(marketplace!=null) {
 									maps.put("country", marketplace.getMarket());

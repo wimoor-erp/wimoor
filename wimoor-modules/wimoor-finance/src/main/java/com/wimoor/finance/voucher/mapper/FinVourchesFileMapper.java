@@ -1,9 +1,10 @@
 package com.wimoor.finance.voucher.mapper;
 
-import java.util.List;
-
 import com.wimoor.finance.voucher.domain.FinVouchers;
 import com.wimoor.finance.voucher.domain.FinVourchesFile;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 凭证附件Mapper接口
@@ -64,4 +65,7 @@ public interface FinVourchesFileMapper
     int deleteFinVourchesFileByVoucherId(FinVouchers finVouchers);
 
     List<FinVourchesFile> selectFinVourchesFileByVoucherId(FinVouchers finVouchers);
+
+    /** 批量查询附件（按凭证ID列表），用于消除 N+1 查询 */
+    List<FinVourchesFile> selectByVoucherIds(@Param("list") List<Long> voucherIds);
 }

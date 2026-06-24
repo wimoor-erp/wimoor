@@ -305,7 +305,7 @@ public class DispatchWarehouseFormController{
 			String id = request.getParameter("id");
 			Map<String, Object> data = dispatchFormService.findById(id);
 			String ftype=data!=null&&data.get("ftype")!=null?  data.get("ftype").toString():"0";
-			String ftypeName=DictSerializer.getDictDataOptions("dispatch_form_type", ftype);
+			String ftypeName=DictSerializer.getDictNameByValue("dispatch_form_type", ftype);
 			data.put("ftypeName", ftypeName);
 			UserInfo user = UserInfoContext.get();
 			String shopid = user.getCompanyid();

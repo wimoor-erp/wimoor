@@ -391,7 +391,7 @@
 		<if test="dateType == 'daily'">
 			t.bydate,
 		</if>
-			cm.name campaignName,pd.expression targetingText,pd.expressionType targetingType,
+				ifnull(cm.name,'无对应广告活动') campaignName,ifnull(pd.expression,'无对应target文本') targetingText,ifnull(pd.expressionType,'无对应target类型') targetingType,
 			sum(impressions) impressions, sum(clicks) clicks, sum(cost) Spend,
 			ifnull((sum(clicks) / sum(impressions)),0) 'Click Thru Rate (CTR)',
 			ifnull((sum(cost) / sum(clicks)),0) 'Cost Per Click (CPC)',

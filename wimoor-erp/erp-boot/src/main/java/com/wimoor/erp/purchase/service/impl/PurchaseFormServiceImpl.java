@@ -1,52 +1,7 @@
 package com.wimoor.erp.purchase.service.impl;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wimoor.erp.purchase.mapper.*;
-import com.wimoor.erp.purchase.pojo.entity.*;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.ClientAnchor;
-import org.apache.poi.ss.usermodel.Drawing;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -61,50 +16,59 @@ import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
-import com.wimoor.erp.material.pojo.entity.Assembly;
-import com.wimoor.erp.material.pojo.entity.AssemblyForm;
-import com.wimoor.erp.material.pojo.entity.AssemblyFormEntry;
-import com.wimoor.erp.material.service.IAssemblyFormEntryService;
-import com.wimoor.erp.material.service.IAssemblyFormService;
-import com.wimoor.erp.material.service.IAssemblyService;
-import com.wimoor.erp.common.pojo.entity.ERPBizException;
-import com.wimoor.erp.common.pojo.entity.EnumByFormType;
-import com.wimoor.erp.common.pojo.entity.EnumByInventory;
-import com.wimoor.erp.common.pojo.entity.Operate;
-import com.wimoor.erp.common.pojo.entity.Status;
+import com.wimoor.erp.api.AmazonClientOneFeignManager;
+import com.wimoor.erp.common.pojo.entity.*;
 import com.wimoor.erp.config.IniConfig;
 import com.wimoor.erp.customer.pojo.entity.Customer;
 import com.wimoor.erp.customer.service.ICustomerService;
+import com.wimoor.erp.finance.mapper.FinAccountMapper;
 import com.wimoor.erp.finance.mapper.FinanceProjectMapper;
+import com.wimoor.erp.finance.pojo.entity.FinAccount;
 import com.wimoor.erp.finance.pojo.entity.FinanceProject;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.service.IInventoryFormAgentService;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.mapper.DimensionsInfoMapper;
 import com.wimoor.erp.material.mapper.MaterialMarkMapper;
-import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
-import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.pojo.entity.MaterialMark;
-import com.wimoor.erp.material.service.IMaterialService;
-import com.wimoor.erp.material.service.IStepWisePriceService;
+import com.wimoor.erp.material.pojo.entity.*;
+import com.wimoor.erp.material.service.*;
 import com.wimoor.erp.purchase.alibaba.mapper.PurchaseFormEntryLogisticsMapper;
 import com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseFormEntryLogistics;
 import com.wimoor.erp.purchase.alibaba.service.IPurchaseAlibabaAuthService;
 import com.wimoor.erp.purchase.alibaba.service.IPurchaseFormEntryAlibabaInfoService;
+import com.wimoor.erp.purchase.mapper.*;
 import com.wimoor.erp.purchase.pojo.dto.PurchaseSaveDTO;
-import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
-import com.wimoor.erp.purchase.service.IPurchaseFormPaymentService;
-import com.wimoor.erp.purchase.service.IPurchaseFormReceiveService;
-import com.wimoor.erp.purchase.service.IPurchaseFormService;
-import com.wimoor.erp.purchase.service.IPurchasePlanService;
-import com.wimoor.erp.purchase.service.IPurchaseWareHouseStatusService;
+import com.wimoor.erp.purchase.pojo.entity.*;
+import com.wimoor.erp.purchase.service.*;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.pojo.entity.WarehouseShelfInventoryOptRecord;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryOptRecordService;
-
-import cn.hutool.core.util.StrUtil;
+import com.wimoor.util.ExcelExportUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
 
 @Service("purchaseFormService")
 @RequiredArgsConstructor
@@ -182,10 +146,14 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 	final PurchaseFormEntryHistoryMapper purchaseFormEntryHistoryMapper;
 
 	final PurchaseFormPrintIPMapper purchaseFormPrintIPMapper;
+
+	final FinAccountMapper finAccountMapper;
 	
 	@Autowired
 	FileUpload fileUpload;
-	
+    @Autowired
+    private AmazonClientOneFeignManager amazonClientOneFeignManager;
+
 	public int delete(String key) {
 		int changecount = 0;
 		PurchaseFormEntry entry = purchaseFormEntryMapper.selectById(key);
@@ -212,9 +180,13 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 			    }catch(Exception e) {
 			    	e.printStackTrace();
 			    }
+			 Map<String,String> groupNameMap=this.amazonClientOneFeignManager.getAmazonGroupAction();
 			 List<Map<String, Object>> entrylist = list.getRecords();
 			 if(entrylist!=null&&entrylist.size()>0) {
 					for(Map<String, Object> entry:entrylist) {
+						if(entry.get("groupid")!=null&&groupNameMap!=null){
+							entry.put("groupname",groupNameMap.get(entry.get("groupid").toString()));
+						}
 						String tags=entry.get("tags")!=null?entry.get("tags").toString():null;
 						 if(tagsNameMap!=null &&tags!=null) {
 				    			 String[] tagarray =tags.split(",");
@@ -241,6 +213,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		Map<String, Object> tagsNameMap = null;
 		String shopid=param.get("shopid").toString();
 		IPage<Map<String, Object>> list = this.baseMapper.selectByConditionForm(page,param);
+		Map<String, String> groupNameMap = amazonClientOneFeignManager.getAmazonGroupAction();
 		if(list!=null &&   list.getRecords().size()>0) {
 			//把entrylist加入form
 			 try {
@@ -265,6 +238,9 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 				params.put("ftype", "sku");
 				params.put("formid", item.get("id"));
 				params.put("shopid",param.get("shopid"));
+				if(groupNameMap!=null&&item.get("groupid")!=null){
+					item.put("groupname",groupNameMap.get(item.get("groupid").toString()));
+				}
 				List<Map<String, Object>> entrylist = this.baseMapper.selectByCondition(params);
 				if(entrylist!=null&&entrylist.size()>0) {
 					for(Map<String, Object> entry:entrylist) {
@@ -676,8 +652,10 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 				for (int i = 0; i < paylist.size(); i++) {
 					PurchaseFormPayment pay = paylist.get(i);
 					if(pay.getPaymentMethod()!=null) {
+						String acctid = pay.getAcct();
+                        FinAccount finacct = this.finAccountMapper.selectById(acctid);
 						PurchaseFormPaymentMethod methods = purchaseFormPaymentMethodMapper.selectById(pay.getPaymentMethod());
-						pay.setMethodname(methods.getName());
+						pay.setMethodname(methods.getName()+"--"+finacct.getName());
 					}
 					String projectid = pay.getProjectid();
 					if(projectid!=null && !PurchaseFormPaymentServiceImpl.type_ship.equals(projectid) &&  !PurchaseFormPaymentServiceImpl.type_cost.equals(projectid)) {
@@ -691,10 +669,10 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 						pay.setProjectname("运费");
 					}
 					if(pay!=null&&pay.getOperator()!=null) {
-						Result<Map<String, Object>> info = adminClientOneFeign.getUserByUserId(pay.getOperator());
-						if(Result.isSuccess(info)&&info.getData()!=null) {
+						UserInfo info = adminClientOneFeign.getUserByUserId(pay.getOperator());
+						if(info!=null) {
 							@SuppressWarnings("unchecked")
-							Map<String,Object> userinfo=info.getData().get("userinfo")!=null?(Map<String,Object>)info.getData().get("userinfo"):null;
+							Map<String,Object> userinfo=info.getUserinfo()!=null?info.getUserinfo():null;
 							pay.setOperator(userinfo!=null&&userinfo.get("name")!=null?userinfo.get("name").toString():null);
 						}
 					}
@@ -1036,6 +1014,7 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		titlemap.put("supplier", "供应商");
 		titlemap.put("number", "订单编码");
 		titlemap.put("sku", "SKU");
+		titlemap.put("groupname", "店铺名称");
 		titlemap.put("auditstatus", "审核状态");
 		titlemap.put("name", "产品名称");
 		titlemap.put("itemprice", "单价");
@@ -1136,105 +1115,83 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		}
   
 	}
-	
-	
-	
+
+
+
 
 	public void setPurchaseSkuItemExcelBook(SXSSFWorkbook workbook, Map<String, Object> param) {
-		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
-		titlemap.put("createdate", "订单日期");
-		titlemap.put("suppliername", "供应商");
-		titlemap.put("number", "订单编码");
-		titlemap.put("sku", "SKU");
-		titlemap.put("itemprice", "单价");
-		titlemap.put("amount", "采购数量");
-		titlemap.put("orderprice", "采购金额");
-		titlemap.put("totalpay", "付款金额");
-		titlemap.put("paystatus", "付款状态");
-		titlemap.put("totalin", "入库数量");
-		titlemap.put("inwhstatus", "入库状态");
-		titlemap.put("deliverydate", "预计到货时间");
+		// 定义表头
+		LinkedHashMap<String, String> headers = new LinkedHashMap<>();
+		headers.put("createdate", "订单日期");
+		headers.put("suppliername", "供应商");
+		headers.put("number", "订单编码");
+		headers.put("sku", "SKU");
+		headers.put("itemprice", "单价");
+		headers.put("amount", "采购数量");
+		headers.put("orderprice", "采购金额");
+		headers.put("totalpay", "付款金额");
+		headers.put("paystatus", "付款状态");
+		headers.put("totalin", "入库数量");
+		headers.put("inwhstatus", "入库状态");
+		headers.put("deliverydate", "预计到货时间");
+
+		// 获取数据
 		List<Map<String, Object>> list = this.baseMapper.selectByCondition(param);
-		Sheet sheet = workbook.createSheet("sheet1");
-		// 在索引0的位置创建行（最顶端的行）
-		Row trow = sheet.createRow(0);
-		Object[] titlearray = titlemap.keySet().toArray();
-		for (int i = 0; i < titlearray.length; i++) {
-			Cell cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
-			Object value = titlemap.get(titlearray[i].toString());
-			cell.setCellValue(value.toString());
+
+		// 检查数据
+		if (list == null || list.isEmpty()) {
+			throw new RuntimeException("没有数据可导出！");
 		}
-		if (list != null && list.size() > 0) {
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				Map<String, Object> map = list.get(i);
-				for (int j = 0; j < titlearray.length; j++) {
-					Cell cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
-					String key = titlearray[j].toString();
-					Object value = map.get(key);
-					if ("inwhstatus".equals(key)) {
-						if ("1".equals(value.toString())) {
-							value = "入库已完成";
-						} else {
-							value = "入库未完成";
-						}
-					}
-					if ("paystatus".equals(key)) {
-						if ("1".equals(value.toString())) {
-							value = "付款已完成";
-						} else {
-							value = "付款未完成";
-						}
-					}
-					if (value != null) {
-						cell.setCellValue(value.toString());
-					}
-				}
-			}
-		}
+
+		// 创建值转换器（只做必须的状态转换）
+		Map<String, Function<Object, Object>> converters = new HashMap<>();
+
+		// 状态转换器
+		converters.put("inwhstatus", value -> convertStatus(value, "1", "入库已完成", "入库未完成"));
+		converters.put("paystatus", value -> convertStatus(value, "1", "付款已完成", "付款未完成"));
+
+		// 使用通用导出工具
+		ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, list, converters);
 	}
-	
+
+	/**
+	 * 通用状态转换方法
+	 */
+	private String convertStatus(Object value, String trueValue, String trueText, String falseText) {
+		if (value == null) return "";
+		return trueValue.equals(value.toString()) ? trueText : falseText;
+	}
+
 	public void getPurchaseRecInfoExcelBook(SXSSFWorkbook workbook, Map<String, Object> param) {
-		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
-		titlemap.put("createdate", "订单日期");
-		titlemap.put("number", "订单编码");
-		titlemap.put("sku", "SKU");
-		titlemap.put("totalin", "入库数量");
-		titlemap.put("inwhstatus", "入库状态");
-		titlemap.put("operator", "收货人");
-		titlemap.put("opttime", "收货时间");
-		Sheet sheet = workbook.createSheet("sheet1");
-		// 在索引0的位置创建行（最顶端的行）
-		Row trow = sheet.createRow(0);
-		Object[] titlearray = titlemap.keySet().toArray();
-		for (int i = 0; i < titlearray.length; i++) {
-			Cell cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
-			Object value = titlemap.get(titlearray[i].toString());
-			cell.setCellValue(value.toString());
-		}
-		
+		// 定义表头
+		LinkedHashMap<String, String> headers = new LinkedHashMap<>();
+		headers.put("createdate", "订单日期");
+		headers.put("number", "订单编码");
+		headers.put("sku", "SKU");
+		headers.put("totalin", "入库数量");
+		headers.put("inwhstatus", "入库状态");
+		headers.put("operator", "收货人");
+		headers.put("opttime", "收货时间");
+
+		// 获取数据
 		List<Map<String, Object>> list = this.baseMapper.getEnteyInfo(param);
-		if (list != null && list.size() > 0) {
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				Map<String, Object> map = list.get(i);
-				for (int j = 0; j < titlearray.length; j++) {
-					Cell cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
-					String key = titlearray[j].toString();
-					Object value = map.get(key);
-					if ("inwhstatus".equals(key)) {
-						if ("1".equals(value.toString())) {
-							value = "入库已完成";
-						} else {
-							value = "入库未完成";
-						}
-					}
-					if (value != null) {
-						cell.setCellValue(value.toString());
-					}
-				}
-			}
+
+		// 检查数据
+		if (list == null || list.isEmpty()) {
+			throw new RuntimeException("没有数据可导出！");
 		}
+
+		// 创建值转换器（只做必须的状态转换）
+		Map<String, Function<Object, Object>> converters = new HashMap<>();
+
+		// 状态转换
+		converters.put("inwhstatus", value -> {
+			if (value == null) return "";
+			return "1".equals(value.toString()) ? "入库已完成" : "入库未完成";
+		});
+
+		// 使用通用导出工具
+		ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, list, converters);
 	}
 	public int savePurchaseForm(UserInfo user,List<PurchaseForm> formList, String planwarehouseid) throws ERPBizException {
 		int changecount = 0;
@@ -1348,9 +1305,9 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 				operator=entryRec.getOperator();
 		 
 				if(operator!=null) {
-					Result<Map<String, Object>> info = adminClientOneFeign.getUserByUserId(operator);
-					if(Result.isSuccess(info)&&info.getData()!=null) {
-						operator=info.getData().get("name")!=null?info.getData().get("name").toString():null;
+					UserInfo info = adminClientOneFeign.getUserByUserId(operator);
+					if(info!=null) {
+						operator=info.getUserName()!=null?info.getUserName():null;
 					}
 				}
 				if("in".equals(entryRec.getFtype())) {
@@ -1695,9 +1652,9 @@ public class PurchaseFormServiceImpl extends  ServiceImpl<PurchaseFormMapper,Pur
 		UserInfo user =  UserInfoContext.get();
 		if(user!=null) {
 			if(operator!=null) {
-				Result<Map<String, Object>> info = adminClientOneFeign.getUserByUserId(operator);
-				if(Result.isSuccess(info)&&info.getData()!=null) {
-					operator=info.getData().get("name")!=null?info.getData().get("name").toString():null;
+				UserInfo info = adminClientOneFeign.getUserByUserId(operator);
+				if(info!=null) {
+					operator=info.getUserName()!=null?info.getUserName():null;
 				}
 			}
 		}

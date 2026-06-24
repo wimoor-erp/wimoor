@@ -11,7 +11,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="itemCode"    column="item_code"    />
         <result property="itemName"    column="item_name"    />
         <result property="status"    column="status"    />
-        <result property="createdTime"    column="created_time"    />
+        <result property="createTime"    column="created_time"    />
     </resultMap>
 
     <sql id="selectFinAuxiliaryItemsVo">
@@ -19,13 +19,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
     <select id="selectFinAuxiliaryItemsList" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems" resultMap="FinAuxiliaryItemsResult">
-        <include refid="selectFinAuxiliaryItemsVo"/>
-        <where>  
-            <if test="itemCode != null  and itemCode != ''"> and item_code = #{itemCode}</if>
-            <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
-            <if test="status != null "> and status = #{status}</if>
-            <if test="createdTime != null "> and created_time = #{createdTime}</if>
-        </where>
+        <choose>
+            <when test="typeCode != null and typeCode == 'other'">
+                select c.id as item_id, #{groupid} as groupid, #{typeId} as type_id,
+                       c.number as item_code, c.name as item_name, 1 as status, c.opttime as created_time
+                from db_erp.t_erp_customer c
+                where c.shopid = #{shopid}
+                <if test="itemCode != null and itemCode != ''"> and c.number = #{itemCode}</if>
+                <if test="itemName != null and itemName != ''"> and c.name like concat('%', #{itemName}, '%')</if>
+            </when>
+            <otherwise>
+                <include refid="selectFinAuxiliaryItemsVo"/>
+                <where>
+                      and groupid=#{groupid}
+                    <if test="typeId != null"> and type_id = #{typeId}</if>
+                    <if test="itemCode != null  and itemCode != ''"> and item_code = #{itemCode}</if>
+                    <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
+                    <if test="status != null "> and status = #{status}</if>
+                    <if test="createTime != null "> and created_time = #{createTime}</if>
+                </where>
+            </otherwise>
+        </choose>
     </select>
     
     <select id="selectFinAuxiliaryItemsByItemId" parameterType="Long" resultMap="FinAuxiliaryItemsResult">
@@ -41,7 +55,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="itemCode != null and itemCode != ''">item_code,</if>
             <if test="itemName != null and itemName != ''">item_name,</if>
             <if test="status != null">status,</if>
-            <if test="createdTime != null">created_time,</if>
+            <if test="createTime != null">created_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="groupid != null">#{groupid},</if>
@@ -49,7 +63,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="itemCode != null and itemCode != ''">#{itemCode},</if>
             <if test="itemName != null and itemName != ''">#{itemName},</if>
             <if test="status != null">#{status},</if>
-            <if test="createdTime != null">#{createdTime},</if>
+            <if test="createTime != null">#{createTime},</if>
          </trim>
     </insert>
 
@@ -61,7 +75,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="itemCode != null and itemCode != ''">item_code = #{itemCode},</if>
             <if test="itemName != null and itemName != ''">item_name = #{itemName},</if>
             <if test="status != null">status = #{status},</if>
-            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="createTime != null">created_time = #{createTime},</if>
         </trim>
         where item_id = #{itemId}
     </update>
@@ -71,9 +85,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteFinAuxiliaryItemsByItemIds" parameterType="String">
-        delete from fin_auxiliary_items where item_id in 
+        delete from fin_auxiliary_items where item_id in
         <foreach item="itemId" collection="array" open="(" separator="," close=")">
             #{itemId}
         </foreach>
     </delete>
+
+    <insert id="syncSupplierFromErp" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems">
+        INSERT IGNORE INTO fin_auxiliary_items (groupid, type_id, item_code, item_name, status, created_time)
+        SELECT #{groupid}, #{typeId}, c.number, c.name, 1, NOW()
+        FROM db_erp.t_erp_customer c
+        WHERE c.shopid = #{shopid}
+        AND c.number IS NOT NULL AND c.number != ''
+    </insert>
+
+    <insert id="syncEmployeeFromAdmin" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems">
+        INSERT IGNORE INTO fin_auxiliary_items (groupid, type_id, item_code, item_name, status, created_time)
+        SELECT #{groupid}, #{typeId}, t.account, i.name, 1, NOW()
+        FROM db_admin.t_user t
+        LEFT JOIN db_admin.t_userinfo i ON i.id = t.id
+        WHERE t.leader_id = #{shopid}
+        AND t.account IS NOT NULL AND t.account != ''
+    </insert>
+
+    <insert id="syncDeptFromAdmin" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryItems">
+        INSERT IGNORE INTO fin_auxiliary_items (groupid, type_id, item_code, item_name, status, created_time)
+        SELECT #{groupid}, #{typeId}, d.code, d.name, 1, NOW()
+        FROM db_admin.t_sys_dept d
+        WHERE d.id IS NOT NULL AND d.name IS NOT NULL AND d.name != ''
+    </insert>
 </mapper>

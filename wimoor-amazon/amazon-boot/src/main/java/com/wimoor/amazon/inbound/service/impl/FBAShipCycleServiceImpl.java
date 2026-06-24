@@ -1,24 +1,22 @@
 package com.wimoor.amazon.inbound.service.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.inbound.mapper.FBAShipCycleMapper;
 import com.wimoor.amazon.inbound.pojo.entity.FBAShipCycle;
 import com.wimoor.amazon.inbound.service.IFBAShipCycleService;
 import com.wimoor.common.user.UserInfo;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service("fBAShipCycleService")
 @RequiredArgsConstructor
@@ -51,6 +49,15 @@ public class FBAShipCycleServiceImpl extends ServiceImpl<FBAShipCycleMapper,FBAS
 	public int updateStockCycle(String groupid,String marketplaceid,String sku,Integer stockcycle,Integer mincycle, BigDecimal fee, UserInfo user) {
 		int result = 0;
 		FBAShipCycle stockcy =  this.baseMapper.findShipCycleBySKU(sku, marketplaceid, groupid);
+		if(stockcycle!=null&&stockcycle==0){
+			stockcycle=null;
+		}
+		if(mincycle!=null&&mincycle==0){
+			mincycle=null;
+		}
+		if(fee!=null&&fee.doubleValue()<0.001){
+			fee=null;
+		}
 		if (stockcy == null) {
 			stockcy = new FBAShipCycle();
 			stockcy.setStockingcycle(stockcycle);

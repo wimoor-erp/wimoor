@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_v2_inboundplan` (
   `inbound_pland_id` char(38) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `name` char(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `number` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `packing_option_id` char(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `placement_option_id` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `source_address` bigint unsigned DEFAULT NULL COMMENT '	您的退货地址。(发货地址)',
   `groupid` bigint unsigned DEFAULT NULL,

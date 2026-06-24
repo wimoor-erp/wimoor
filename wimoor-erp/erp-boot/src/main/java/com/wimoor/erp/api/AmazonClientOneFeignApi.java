@@ -1,23 +1,17 @@
 package com.wimoor.erp.api;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.wimoor.common.result.Result;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundPlanDTO;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmentDTO;
-
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @Component
 @FeignClient(value = "wimoor-amazon")
@@ -72,4 +66,7 @@ public interface AmazonClientOneFeignApi {
 			                                                            @RequestParam("msku") String msku);
 	@PostMapping("/amazon/api/v1/shipForm/getLastShipmentQty")
 	Result<Map<String, Object>> getLastShipmentQty(@RequestBody Map<String,Object> param);
+
+	@GetMapping("/amazon/api/v1/amzgroup/list")
+	public Result<List<Map<String,Object>>> getAmazonGroupAction();
 }

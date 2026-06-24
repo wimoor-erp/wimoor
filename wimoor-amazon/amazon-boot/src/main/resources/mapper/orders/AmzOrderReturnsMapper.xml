@@ -445,4 +445,41 @@
 		WHERE sellerid=#{sellerid,jdbcType=CHAR} AND return_date>=date_sub(current_date(),interval 30 day)
 		GROUP BY r.sku,c.sales_channel
 	</select>
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		INSERT INTO t_amz_returns_report (
+			sku, return_date, order_id, sellerid, asin, fnsku, quantity, 
+			fulfillment_center_id, detailed_disposition, reason, status, 
+			license_plate_number, customer_comments, marketplaceid
+		) VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.sku,jdbcType=CHAR},
+				#{item.returnDate,jdbcType=TIMESTAMP},
+				#{item.orderId,jdbcType=CHAR},
+				#{item.sellerid,jdbcType=CHAR},
+				#{item.asin,jdbcType=CHAR},
+				#{item.fnsku,jdbcType=CHAR},
+				#{item.quantity,jdbcType=CHAR},
+				#{item.fulfillmentCenterId,jdbcType=CHAR},
+				#{item.detailedDisposition,jdbcType=CHAR},
+				#{item.reason,jdbcType=VARCHAR},
+				#{item.status,jdbcType=CHAR},
+				#{item.licensePlateNumber,jdbcType=CHAR},
+				#{item.customerComments,jdbcType=VARCHAR},
+				#{item.marketplaceid,jdbcType=CHAR}
+			)
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+			asin = VALUES(asin),
+			fnsku = VALUES(fnsku),
+			quantity = VALUES(quantity),
+			fulfillment_center_id = VALUES(fulfillment_center_id),
+			detailed_disposition = VALUES(detailed_disposition),
+			reason = VALUES(reason),
+			status = VALUES(status),
+			customer_comments = VALUES(customer_comments),
+			marketplaceid = VALUES(marketplaceid)
+	</insert>
+
 </mapper>

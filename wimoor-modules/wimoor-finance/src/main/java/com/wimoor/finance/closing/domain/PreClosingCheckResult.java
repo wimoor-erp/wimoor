@@ -90,7 +90,12 @@ public class PreClosingCheckResult {
             statistics.incrementPassedCount();
         } else {
             statistics.incrementFailedCount();
-
+            // 如果检查项失败且有消息，自动添加到错误列表
+            if (checkItem.getMessage() != null && !checkItem.getMessage().isEmpty()) {
+                this.errors.add(checkItem.getMessage());
+                statistics.incrementErrorCount();
+                this.errorMessage = checkItem.getMessage();
+            }
         }
 
         statistics.incrementTotalCount();

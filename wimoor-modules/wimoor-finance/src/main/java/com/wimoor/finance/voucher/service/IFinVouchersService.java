@@ -1,10 +1,11 @@
 package com.wimoor.finance.voucher.service;
 
-import java.util.Date;
-import java.util.List;
 import com.wimoor.finance.voucher.domain.FinVouchers;
 import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
 import com.wimoor.finance.voucher.service.util.BatchPostingResult;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * 记账凭证Service接口
@@ -21,7 +22,7 @@ public interface IFinVouchersService
      * @return 记账凭证
      */
     FinVouchers selectFinVouchersByVoucherId(Long voucherId);
-
+    FinVouchers selectFinVoucherByVoucherId(Long voucherId);
     /**
      * 查询记账凭证列表
      *
@@ -63,6 +64,14 @@ public interface IFinVouchersService
      * @return 结果
      */
     public int deleteFinVouchersByVoucherId(Long voucherId);
+
+    /**
+     * 强制删除记账凭证（跳过期间检查，用于反结账场景）
+     *
+     * @param voucherId 需要删除的记账凭证主键
+     * @return 结果
+     */
+    public int forceDeleteFinVouchersByVoucherId(Long voucherId);
     /**
      * 审核记账凭证
      *
@@ -75,6 +84,8 @@ public interface IFinVouchersService
 
     Integer countProfitTransferVouchers(String groupid, String period);
 
+    Integer countVouchersByPeriod(String groupid, String period);
+
     List<FinVouchers> selectVouchersModifiedAfterClosing(String groupid, String period, Date closeTime);
 
     List<FinVouchers> selectProfitTransferVouchers(String groupid, String period);
@@ -82,4 +93,6 @@ public interface IFinVouchersService
     public void reversePosting(Long voucherId);
 
     int filesFinVouchers(FinVouchers finVouchers);
+
+    List<FinVouchers> selectFinVouchersSimpleList(FinVouchers voucherQuery);
 }

@@ -62,8 +62,8 @@
 	</select>
 
 	<select id="selectByCondition" resultType="java.util.Map" parameterType="java.util.Map">
-		select entry.id,form.number,m.sku,entry.supplier,entry.auditstatus,entry.audittime,
-		  IFNULL(pic.location,pic.url) image,m.color,m.name mname,entry.itemprice,c.name suppliername,
+		select entry.id,form.number,m.sku,ag.name groupname,entry.supplier,entry.auditstatus,entry.audittime,
+		  IFNULL(pic.location,pic.url) image,m.color,m.name mname,entry.itemprice,c.name suppliername,form.groupid,
 			entry.amount,entry.orderprice, form.creator,cu.name creatorname,DATE_FORMAT(form.createdate,'%Y-%m-%d %T') createdate,entry.materialid,
 			form.warehouseid warehouseid, w.name warehousename, w.address warehouseadress ,entry.remark notice,
 			entry.totalpay,entry.totalin,entry.inwhstatus,entry.paystatus ,ifnull(s.purchaseUrl,m.purchaseUrl)  purchaseUrl,ifnull(s.MOQ,m.MOQ) moq,
@@ -87,6 +87,7 @@
 		left join t_erp_purchase_form_entry_alibabainfo al on al.entryid=entry.id
 		left join t_erp_purchase_form_entry_alibabainfo_ext e on e.entryid=entry.id
 		left join t_erp_inventory i on i.warehouseid=form.warehouseid and i.materialid=entry.materialid and i.status='fulfillable' AND i.shopid=form.id
+		left join t_amazon_group ag on ag.id=m.groupid
 		<if test='param.auditstatus=="18"'>
 		left join t_erp_purchase_form_entry_change chg on chg.entryid=entry.id
 		</if>
@@ -238,7 +239,8 @@
 			case when  entry.paystatus=1 then ROUND(p.costfee/entry.amount,2)  else entry.itemprice end factitemprice,
 			entry.remark skuRemark, form.remark orderRemark,
 			entry.closepaydate closepaydate,entry.closerecdate closerecdate,
-			m.name name, p.totalrefund,entry.totalre totalreturn,
+			m.name name,ifnull(gp.name,gp2.name) groupname,
+			p.totalrefund,entry.totalre totalreturn,
 		    p.otherfee ,p.payment_method,
 		    case when entry.paystatus!=1 then entry.orderprice - ifnull(p.costfee,0)-ifnull(p.appwaitPay,0) else 0 end  waitPay,
 		    case when entry.paystatus!=1 then  ifnull(p.appwaitPay,0) else 0 end appwaitPay,
@@ -251,6 +253,8 @@
 		left join t_erp_purchase_form form on form.id=entry.formid
 		left join t_erp_warehouse w on w.id=form.warehouseid
 		left join t_picture pc on pc.id=m.image
+		left join t_amazon_group gp on gp.id=m.groupid
+		left join t_amazon_group gp2 on gp2.id=form.groupid
 		left join (
 			select pay.formentryid,
 			sum(case when pay.auditstatus=1 and pay.projectid='26138972997300238' then pay.payprice else 0 end) shipfee ,
@@ -1241,9 +1245,10 @@
 			entry.amount,entry.orderprice,form.id formid, form.creator,cu.name creatorname,form.createdate,
 			entry.materialid, form.warehouseid warehouseid, w.name warehousename ,entry.remark notice,entry.totalpay,
 			entry.totalin,entry.inwhstatus,entry.paystatus ,m.purchaseUrl,m.MOQ moq,m.delivery_cycle,
-			entry.deliverydate deliverydate ,m.specification
+			entry.deliverydate deliverydate ,m.specification,mc.unit
 		from t_erp_purchase_form_entry entry
 		left join t_erp_material m on entry.materialid=m.id
+		left join t_erp_material_custom mc on mc.materialid=m.id
 		left join t_picture pic on m.image=pic.id
 		left join t_erp_purchase_form form on entry.formid=form.id
 		left join t_erp_customer c on c.id=entry.supplier

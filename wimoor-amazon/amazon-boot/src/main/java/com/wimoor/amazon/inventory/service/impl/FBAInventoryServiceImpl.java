@@ -1,25 +1,17 @@
 package com.wimoor.amazon.inventory.service.impl;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
+import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
+import com.wimoor.amazon.auth.pojo.entity.Marketplace;
+import com.wimoor.amazon.auth.service.IAmazonGroupService;
+import com.wimoor.amazon.auth.service.IMarketplaceService;
+import com.wimoor.amazon.inbound.service.IFBAShipCycleService;
 import com.wimoor.amazon.inventory.mapper.AmzInventoryCountryReportMapper;
 import com.wimoor.amazon.inventory.mapper.AmzInventoryPlanningMapper;
 import com.wimoor.amazon.inventory.mapper.InventoryReportHisMapper;
@@ -34,10 +26,17 @@ import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.amazon.report.pojo.dto.InvDayDetailDTO;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.result.Result;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
+import com.wimoor.common.user.UserInfo;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +49,9 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 	final ErpClientOneFeignManager erpClientOneFeign;
 	final AmzInventoryCountryReportMapper amzInventoryCountryReportMapper;
 	final InventoryReportHisMapper inventoryReportHisMapper;
+	final IFBAShipCycleService iFBAShipCycleService;
+	final IAmazonGroupService iAmazonGroupService;
+	final IMarketplaceService iMarketplaceService;
 	public List<Map<String, Object>> findByTypeWithStockCycle(String msku, String shopid) {
 		List<Map<String, Object>> list =this.baseMapper.findFBAWithStockCycle(msku, shopid);
 		return list;
@@ -352,6 +354,9 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 		titlelist.add("店铺");
 		titlelist.add("FBA仓库");
 		titlelist.add("SKU");
+		titlelist.add("安全库存周期");
+		titlelist.add("最小发货周期");
+		titlelist.add("头程运输成本");
 		titlelist.add("库存");
 		titlelist.add("可售");
 		titlelist.add("不可售");
@@ -372,6 +377,9 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 		titlechange.put("待接收", "afnInboundShippedQuantity");
 		titlechange.put("正在接收", "afnInboundReceivingQuantity");
 		titlechange.put("异常", "afnResearchingQuantity");
+		titlechange.put("安全库存周期", "stockingCycle");
+		titlechange.put("最小发货周期", "minCycle");
+		titlechange.put("头程运输成本", "firstLegCharges");
 
 		// 在索引0的位置创建行（最顶端的行）
 		Row row = sheet.createRow(0);
@@ -395,7 +403,7 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 		}
 	}
 	@Override
-	public IPage<Map<String, Object>> selectInventoryCost(Page<?> page, String groupid, String marketplaceid,String sku, String shopid, String byday) {
+	public IPage<Map<String, Object>> selectInventoryCost(Page<?> page, String groupid, String marketplaceid,String sku, String shopid, String byday, String isAvgPrice) {
 		// TODO Auto-generated method stub
 		if (StrUtil.isEmpty(sku)) {
 			sku = null;
@@ -405,8 +413,8 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 		if (StrUtil.isEmpty(marketplaceid)) {
 			marketplaceid = null;
 		}
-		IPage<Map<String,Object>> pagelist = this.baseMapper.findInventoryCost(page,groupid, marketplaceid, sku, shopid, byday);
-		Map<String, Object> map = this.baseMapper.findInventoryCostTotal(groupid, marketplaceid, sku, shopid, byday);
+		IPage<Map<String,Object>> pagelist = this.baseMapper.findInventoryCost(page,groupid, marketplaceid, sku, shopid, byday, isAvgPrice);
+		Map<String, Object> map = this.baseMapper.findInventoryCostTotal(groupid, marketplaceid, sku, shopid, byday, isAvgPrice);
 		if (pagelist != null&&pagelist.getRecords().size() > 0 ) {
 			for (Map<String, Object> pagemap : pagelist.getRecords()) {
 				String sku_p = pagemap.get("sku").toString();
@@ -427,7 +435,7 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 	}
 	
 	@Override
-	public List<Map<String, Object>> selectInventoryCostAll(String groupid, String marketplaceid, String sku,String shopid, String byday) {
+	public List<Map<String, Object>> selectInventoryCostAll(String groupid, String marketplaceid, String sku,String shopid, String byday, String isAvgPrice) {
 		// TODO Auto-generated method stub
 		if (StrUtil.isEmpty(sku)) {
 			sku = null;
@@ -437,7 +445,113 @@ public class FBAInventoryServiceImpl extends ServiceImpl<InventoryReportMapper,I
 		if (StrUtil.isEmpty(marketplaceid)) {
 			marketplaceid = null;
 		}
-		List<Map<String, Object>> pagelist = this.baseMapper.findInventoryCost(groupid, marketplaceid, sku, shopid, byday);
+		List<Map<String, Object>> pagelist = this.baseMapper.findInventoryCost(groupid, marketplaceid, sku, shopid, byday, isAvgPrice);
 		return pagelist;
+	}
+
+	@Override
+	public String uploadInventoryFile(Sheet sheet, UserInfo userInfo) {
+		// 实现文件上传逻辑，根据requesttype处理不同类型的报表
+		try {
+			// 将BufferedReader转换为InputStream
+			  // 获取第一个Sheet
+			int rowNum = 0;
+			for (Row row : sheet) {
+				rowNum++;
+				if (rowNum == 1) {
+					// 跳过表头
+					continue;
+				}
+
+				// 检查行是否为空
+				if (row.getLastCellNum() < 7) {
+					continue;
+				}
+				// 获取各列数据
+				String groupname = getCellValue(row.getCell(0)); // 店铺
+				if ("合计".equals(groupname)) {
+					// 过滤店铺列为"合计"的行
+					continue;
+				}
+				//通过groupname获取groupid
+				LambdaQueryWrapper<AmazonGroup> groupQuery=new LambdaQueryWrapper<AmazonGroup>();
+				groupQuery.eq(AmazonGroup::getName, groupname);
+				groupQuery.eq(AmazonGroup::getShopid, userInfo.getCompanyid());
+				AmazonGroup group = iAmazonGroupService.getOne(groupQuery);
+				if(group==null){
+					continue;
+				}
+				String warehouse = getCellValue(row.getCell(1)); // FBA仓库
+				String sku = getCellValue(row.getCell(2)); // SKU
+				String stockingCycleStr = getCellValue(row.getCell(3)); // 安全库存周期
+				String minCycleStr = getCellValue(row.getCell(4)); // 最小发货周期
+				String firstLegChargesStr = getCellValue(row.getCell(5)); // 头程运输成本
+
+				// 提取站点名（从"FBA-美国"中提取"美国"）
+				String marketplace = warehouse;
+				String marketplaceid=null;
+				if (warehouse != null && warehouse.contains("-")) {
+					marketplace = warehouse.split("-")[1].trim();
+					//通过站点名 获取marketplaceid
+					LambdaQueryWrapper<Marketplace> marketQuery=new LambdaQueryWrapper<Marketplace>();
+					marketQuery.eq(Marketplace::getName, marketplace);
+					Marketplace market = iMarketplaceService.getOne(marketQuery);
+					if(market!=null){
+						marketplaceid=market.getMarketplaceid();
+						if("EU".equals(market.getRegion())){
+							marketplaceid="EU";
+						}
+					}
+				}
+				if(marketplaceid==null){
+					continue;
+				}
+				// 解析数值字段
+				Integer stockingCycle = stockingCycleStr != null ? Integer.parseInt(stockingCycleStr) : null;
+				Integer minCycle = minCycleStr != null ? Integer.parseInt(minCycleStr) : null;
+				BigDecimal firstLegCharges = firstLegChargesStr != null ? new BigDecimal(firstLegChargesStr) : null;
+
+				// 使用IFBAShipCycleService的updateStockCycle方法保存数据
+				if (sku != null && !sku.isEmpty() && marketplace != null && !marketplace.isEmpty()) {
+					iFBAShipCycleService.updateStockCycle(
+							group.getId(), // groupid
+							marketplaceid, // marketplaceid
+							sku, // sku
+							stockingCycle, // stockcycle
+							minCycle, // mincycle
+							firstLegCharges, // fee
+							userInfo // user
+					);
+				}
+			}
+			return "处理成功";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "处理失败：" + e.getMessage();
+		}
+	}
+
+	// 辅助方法：获取单元格值
+	private String getCellValue(Cell cell) {
+		if (cell == null) {
+			return null;
+		}
+
+		switch (cell.getCellType()) {
+			case STRING:
+				return cell.getStringCellValue().trim();
+			case NUMERIC:
+				if (DateUtil.isCellDateFormatted(cell)) {
+					return cell.getDateCellValue().toString();
+				} else {
+					return String.valueOf((int) cell.getNumericCellValue());
+				}
+			case BOOLEAN:
+				return String.valueOf(cell.getBooleanCellValue());
+			case FORMULA:
+				return cell.getCellFormula();
+			default:
+				return null;
+		}
 	}
 }

@@ -27,9 +27,10 @@ CREATE TABLE IF NOT EXISTS `fin_accounting_periods` (
   `is_current` tinyint DEFAULT '0' COMMENT '是否当前期间：0-否，1-是',
   `close_time` datetime DEFAULT NULL,
   `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `updated_time` datetime DEFAULT NULL,
   PRIMARY KEY (`period_id`),
   UNIQUE KEY `uk_tenant_period_code` (`groupid`,`period_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=169 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='会计期间管理表';
+) ENGINE=InnoDB AUTO_INCREMENT=302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='会计期间管理表';
 
 -- 数据导出被取消选择。
 

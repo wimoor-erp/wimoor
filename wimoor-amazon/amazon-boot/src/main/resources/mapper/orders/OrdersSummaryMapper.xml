@@ -28,7 +28,14 @@
 		ifnull(p.location,p.url) image,
 		DATE_FORMAT(i.openDate,'%Y-%m-%d') openDate,
 		ifnull(o.msku,t.sku) msku,
-		t.sku,t.purchase_date,t.quantity
+		t.sku,t.purchase_date,
+		<if test="summaryData=='quantity'">
+		    t.quantity quantity
+		</if>
+		<if test="summaryData=='orders'">
+			t.ordersum quantity
+		</if>
+
 		<if test="summaryType=='day'">
 			from t_orders_summary t
 		</if>
@@ -730,5 +737,14 @@
 			group by t.amazon_order_id 
 		) V 
 	
+	</select>
+    <select id="selectTotal" resultType="java.util.Map" parameterType="java.util.Map">
+		select t.purchase_date,sum(t.orderprice) orderprice,sum(t.ordersum) ordersum
+		  from t_orders_summary_month t
+		  left join t_amazon_auth a on a.id=t.amazonauthid
+		  where a.shop_id=#{shopid,jdbcType=CHAR}
+		  and t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
+		  and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
+		  group by t.purchase_date
 	</select>
 </mapper>

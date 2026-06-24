@@ -1,28 +1,6 @@
 package com.wimoor.erp.inventory.controller;
- 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
@@ -38,15 +16,25 @@ import com.wimoor.erp.inventory.service.IInventoryHisService;
 import com.wimoor.erp.inventory.service.IInventoryMonthSummaryService;
 import com.wimoor.erp.inventory.service.IInventoryRecordService;
 import com.wimoor.erp.inventory.service.IInventoryService;
-import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWhseReportService;
-
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 @Api(tags = "仓存接口")
 @RestController
 @RequestMapping("/api/v1/inventory/report")
@@ -250,13 +238,7 @@ public class InventoryReportController {
 					if(StrUtil.isBlankOrUndefined(days)) {
 						throw new BizException("库存天数不能为空");
 					}
-					 UserInfo user = UserInfoContext.get();
-					if (StrUtil.isNotEmpty(wid)) {
-							Warehouse warehouse = iWarehouseService.getById(wid);
-							if(warehouse!=null) {
-								param.put("parentid", warehouse.getParentid());
-							}
-					}
+					UserInfo user = UserInfoContext.get();
 					String search = dto.getSearch();
 					if (StrUtil.isEmpty(search))
 						search = null;
@@ -301,12 +283,6 @@ public class InventoryReportController {
 				 } else {
 					 search = "%"+search.trim() + "%";
 				 }
-				 if (StrUtil.isNotEmpty(warehouseid)) {
-						Warehouse warehouse = iWarehouseService.getById(warehouseid);
-						if(warehouse!=null) {
-							warehouseid= warehouse.getParentid();
-						}
-				}
 				 Map<String,Object> params=new HashMap<String,Object>();
 				 params.put("shopid", userinfo.getCompanyid());
 				 params.put("warehouseid", warehouseid);
@@ -393,7 +369,7 @@ public class InventoryReportController {
 		String sku =dto.getSku();
 		String byday =dto.getByday();
 		UserInfo user = UserInfoContext.get();
-		return Result.success(inventoryService.selectInventoryCost(dto.getPage(),dto.getWarehouseid(), sku, user.getCompanyid(), byday));
+		return Result.success(inventoryService.selectInventoryCost(dto.getPage(),dto.getWarehouseid(), sku, user.getCompanyid(), byday, dto.getIsAvgPrice()));
 	}
 	
 	@PostMapping(value = "downLoadInvCost")
@@ -410,7 +386,7 @@ public class InventoryReportController {
 			String sku =dto.getSku();
 			String byday =dto.getByday();
 			String shopid = user.getCompanyid();
-			List<Map<String, Object>> list = inventoryService.selectInventoryCostAll(warehouseid, sku, shopid, byday);
+			List<Map<String, Object>> list = inventoryService.selectInventoryCostAll(warehouseid, sku, shopid, byday, dto.getIsAvgPrice());
 			Sheet sheet = workbook.createSheet("sheet1");
 			Map<String, Integer> titlemap = new HashMap<String, Integer>();
 			Row row = sheet.createRow(0);

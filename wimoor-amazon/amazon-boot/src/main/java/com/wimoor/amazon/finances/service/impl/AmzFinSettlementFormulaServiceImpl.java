@@ -1,26 +1,22 @@
 package com.wimoor.amazon.finances.service.impl;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.wimoor.amazon.finances.mapper.AmzFinSettlementFormulaMapper;
 import com.wimoor.amazon.finances.pojo.entity.AmzFinSettlementFormula;
 import com.wimoor.amazon.finances.service.IAmzFinSettlementFormulaService;
+import com.wimoor.amazon.finances.service.IAmzFinUserItemService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.amazon.finances.service.IAmzFinUserItemService;
-import cn.hutool.core.util.StrUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.Map.Entry;
 @Service
 public class AmzFinSettlementFormulaServiceImpl extends ServiceImpl<AmzFinSettlementFormulaMapper, AmzFinSettlementFormula> implements IAmzFinSettlementFormulaService {
     @Autowired
@@ -132,7 +128,7 @@ public class AmzFinSettlementFormulaServiceImpl extends ServiceImpl<AmzFinSettle
 	
 
 	public static Map<String, String> findSysFinMap() {
-		Map<String, String> titlemap = new HashMap<String, String>();
+		Map<String, String> titlemap = new LinkedHashMap<>();
 		titlemap.put("setincome", "结算收入");
 		titlemap.put("spend", "广告费用");
 		titlemap.put("price", "采购成本");
@@ -151,9 +147,9 @@ public class AmzFinSettlementFormulaServiceImpl extends ServiceImpl<AmzFinSettle
 		titlemap.put("refund", "退款金额");
 		titlemap.put("refundnum", "退款数量");
 
-		titlemap.put("shipmentfee", "预估运费");
-		titlemap.put("storagefee", "仓储费");
+		titlemap.put("shipmentfee", "运费预估");
 		titlemap.put("longTermFee", "长期仓储费");
+		titlemap.put("storagefee", "仓储费");
 		titlemap.put("firstShipment", "货件头程运费");
 		titlemap.put("profit_vat", "VAT税费");
 		titlemap.put("reimbursementsFee", "赔偿金");
@@ -228,7 +224,7 @@ public class AmzFinSettlementFormulaServiceImpl extends ServiceImpl<AmzFinSettle
 		String field = formula.getField();
 		String[] fields = field.split(",");
 		Map<String, String> titlemap1 = new HashMap<String, String>();
-		Map<String, String> titlemap2 = findSysNeedDisplayFinMap();
+		Map<String, String> titlemap2 = findSysFinMap();
 		List<Map<String, Object>> list = IAmzFinUserItemService.findFinListByShopid(shopid);
 		for (Map<String, Object> item : list) {
 			titlemap1.put(item.get("id").toString(), item.get("name").toString());
@@ -236,12 +232,43 @@ public class AmzFinSettlementFormulaServiceImpl extends ServiceImpl<AmzFinSettle
 		Map<String, String> result = new HashMap<String, String>();
 		for (String field2 : fields) {
 			if (titlemap2.get(field2) != null) {
-				result.put(field2, titlemap2.get(field2));
+				String mappedField = getFrontendFieldMapping(field2);
+				result.put(mappedField, titlemap2.get(field2));
 			} else if (titlemap1.get(field2) != null) {
 				result.put("field" + field2, titlemap1.get(field2));
 			}
 		}
 		return result;
+	}
+	
+	/**
+	 * 获取前端字段映射
+	 * 将后端内部字段名转换为前端表格prop名
+	 */
+	private String getFrontendFieldMapping(String backendField) {
+		Map<String, String> fieldMapping = new HashMap<String, String>();
+		// 系统默认字段映射
+		fieldMapping.put("price", "local_price");           // 采购成本
+		fieldMapping.put("othersfee", "local_other_cost");  // 其它成本
+		fieldMapping.put("shipmentfee", "profit_local_shipmentfee"); // 预估运费
+		fieldMapping.put("firstShipment", "local_shipment_item_fee"); // 货件头程运费
+		fieldMapping.put("profit_vat", "profit_vat");       // VAT税费
+		fieldMapping.put("itemshopfee", "itemshopfee");     // 店铺费用
+		fieldMapping.put("storagefee", "rpt_storage_fee");  // 仓储费
+		fieldMapping.put("longTermFee", "rpt_long_storage_fee"); // 长期仓储费
+		fieldMapping.put("spend", "rpt_adv_spend_fee");     // 广告费用
+		fieldMapping.put("reimbursementsFee", "rpt_reimbursements_fee"); // 赔偿金
+		fieldMapping.put("vat", "profit_vat");              // VAT税费
+		fieldMapping.put("profit_otherfee", "profit_otherfee"); // 预估其他
+		fieldMapping.put("profit_marketfee", "profit_marketfee"); // 预估市场费用
+		fieldMapping.put("profit_costrate", "profit_costrate"); // 预估其他成本
+		fieldMapping.put("profit_exchangelost", "profit_exchangelost"); // 预估汇率损耗
+		fieldMapping.put("profit_customstax", "profit_customstax"); // 预估关税
+		fieldMapping.put("profit_companytax", "profit_companytax"); // 预估所得税
+		fieldMapping.put("profit_lostrate", "profit_lostrate"); // 预估固定费用
+		
+		// 如果有映射则返回映射后的字段名，否则返回原字段名
+		return fieldMapping.getOrDefault(backendField, backendField);
 	}
 }
 

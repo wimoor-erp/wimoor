@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS `t_product_in_opt` (
   `owner` bigint unsigned DEFAULT NULL COMMENT '运营负责人',
   `operator` bigint unsigned DEFAULT NULL COMMENT '操作人',
   `lowestprice` decimal(20,6) DEFAULT NULL,
+  `estimated_referral_fee_per_unit` decimal(20,6) DEFAULT NULL COMMENT '预估FBA费用',
+  `estimated_fee_total` decimal(20,6) DEFAULT NULL COMMENT '预估FBA费用 total',
   PRIMARY KEY (`pid`),
   KEY `idx_msku_disable_status` (`msku`,`disable`,`status`),
   KEY `msku` (`msku`),

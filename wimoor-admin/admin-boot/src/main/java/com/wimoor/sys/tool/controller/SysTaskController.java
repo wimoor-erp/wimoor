@@ -2,6 +2,7 @@ package com.wimoor.sys.tool.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.wimoor.admin.common.exception.BizException;
+import com.wimoor.common.pojo.entity.QuartzJobsVO;
 import com.wimoor.common.pojo.entity.QuartzTask;
 import com.wimoor.util.SpringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,28 @@ import java.util.List;
 public class SysTaskController {
    @Autowired
    SystemSchedulerService systemSchedulerService;
+
+    @GetMapping("/listScheduler")
+    public Result<List<QuartzJobsVO>> listSchedulerAction() {
+        List<QuartzJobsVO> list = systemSchedulerService.listScheduler();
+        return Result.success(list);
+    }
+
+    @GetMapping("/puaseScheduler")
+    public Result<?> puaseSchedulerAction(String jobDetailName, String jobDetailGroup) {
+        return Result.success(systemSchedulerService.puaseScheduler(jobDetailName, jobDetailGroup));
+    }
+
+    @GetMapping("/resumeScheduler")
+    public Result<?> resumeSchedulerAction(String jobDetailName, String jobDetailGroup) {
+        return Result.success(systemSchedulerService.resumeScheduler(jobDetailName, jobDetailGroup));
+    }
+
+    @GetMapping("/deleteScheduler")
+    public Result<?> deleteSchedulerAction(String jobDetailName, String jobDetailGroup) {
+        return Result.success(systemSchedulerService.deleteScheduler(jobDetailName, jobDetailGroup));
+    }
+
     @GetMapping("/refresh")
     public Result<?> refresh() {
     	systemSchedulerService.refreshTask();
@@ -31,7 +54,6 @@ public class SysTaskController {
         List<QuartzTask> list = systemSchedulerService.getTaskList();
         return Result.success(list);
     }
-
 
     @PostMapping("/enableApi")
     public Result<?> enableApiAction(@RequestBody QuartzTask task){
@@ -52,6 +74,11 @@ public class SysTaskController {
         return Result.success();
     }
 
+    @PostMapping("/addScheduler")
+    public Result<?> addSchedulerAction(@RequestBody QuartzTask task){
+        systemSchedulerService.addScheduler(task);
+        return Result.success();
+    }
 
     /**
      * 执行API操作的控制器方法。

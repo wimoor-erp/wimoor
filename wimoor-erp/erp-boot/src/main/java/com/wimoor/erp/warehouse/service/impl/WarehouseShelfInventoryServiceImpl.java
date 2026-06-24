@@ -50,7 +50,7 @@ import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryOptRecordService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfService;
-import com.wimoor.util.DownloadExcelUtil;
+import com.wimoor.util.ExcelExportUtil;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -362,7 +362,9 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 			if(m!=null&&m.getIssfg()!=null&&m.getIssfg().equals("1")) {
 				List<AssemblyVO> assvolist = assemblyService.selectByMainmid(item.getMaterialid());
 				for(AssemblyVO assvo:assvolist) {
-					assvo.setSubamount(assvo.getSubnumber()*item.getQuantityShipped());
+					Integer subnumber = assvo.getSubnumber() != null ? assvo.getSubnumber() : 0;
+					Integer quantityShipped = item.getQuantityShipped() != null ? item.getQuantityShipped() : 0;
+					assvo.setSubamount(subnumber * quantityShipped);
 					Map<String, Object> map = inventoryService.findInvDetailById(assvo.getSubmid(), itemsum.getWarehouseid(), itemsum.getShopid());
 					if(map!=null) {
 						assvo.setInbound(map.get("inbound")!=null?Integer.parseInt(map.get("inbound").toString()):0);
@@ -596,7 +598,7 @@ public class WarehouseShelfInventoryServiceImpl extends ServiceImpl<WarehouseShe
 					if (j==1) {
 						if(!StrUtil.isBlank(image)) {
 							try {
-								DownloadExcelUtil.insertImageToCell(workbook, sheet, i+1, j, image, "xlsx");
+								ExcelExportUtil.insertImageToCell(workbook, sheet, i+1, j, image, "xlsx");
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();

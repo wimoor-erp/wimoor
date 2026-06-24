@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wimoor ERP仓库管理流程图</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .flowchart-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .flowchart-section h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .flowchart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        .download-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .download-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            border: none;
+            font-size: 16px;
+        }
+        .download-button:hover {
+            background-color: #45a049;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-left: 4px solid #1E90FF;
+            border-radius: 4px;
+        }
+        .step h3 {
+            color: #1E90FF;
+            margin-top: 0;
+        }
+        .notice {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            color: #856404;
+        }
+        .instructions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            color: #004085;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .node rect, .node circle, .node ellipse, .node polygon, .node path {
+            fill: #E8F4FD;
+            stroke: #4A90E2;
+            stroke-width: 2px;
+        }
+        .node text {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            fill: #333;
+        }
+        .edgePath path {
+            stroke: #4A90E2;
+            stroke-width: 2px;
+            fill: none;
+        }
+        .edgePath marker {
+            fill: #4A90E2;
+        }
+        .cluster rect {
+            fill: #F0F8FF;
+            stroke: #4A90E2;
+            stroke-width: 2px;
+        }
+        .cluster text {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            fill: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wimoor ERP仓库管理流程图</h1>
+        
+        <div class="instructions">
+            <h3>使用说明</h3>
+            <p>1. 页面加载完成后，流程图会自动显示</p>
+            <p>2. 点击每个流程图下方的"下载流程图"按钮，即可将流程图保存为PNG图片</p>
+            <p>3. 如果下载失败，请检查浏览器是否阻止了下载</p>
+        </div>
+        
+        <h2>仓库管理总览</h2>
+        <div class="flowchart-section">
+            <h3>仓库管理整体流程</h3>
+            <div class="flowchart-container" id="flowchart1">
+                <svg width="1000" height="500" viewBox="0 0 1000 500">
+                    <!-- 仓库管理 -->
+                    <rect x="420" y="20" width="160" height="50" rx="10" ry="10" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="500" y="50" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="#333">仓库管理</text>
+                    
+                    <!-- 仓库设置 -->
+                    <rect x="200" y="100" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="275" y="125" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">仓库设置</text>
+                    <line x1="500" y1="70" x2="275" y2="100" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="275,100 270,95 280,95" fill="#4A90E2"/>
+                    
+                    <!-- 库位管理 -->
+                    <rect x="500" y="100" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="575" y="125" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">库位管理</text>
+                    <line x1="500" y1="70" x2="575" y2="100" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="575,100 570,95 580,95" fill="#4A90E2"/>
+                    
+                    <!-- 库存管理 -->
+                    <rect x="800" y="100" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="875" y="125" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">库存管理</text>
+                    <line x1="500" y1="70" x2="875" y2="100" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="875,100 870,95 880,95" fill="#4A90E2"/>
+                    
+                    <!-- 创建仓库 -->
+                    <rect x="150" y="160" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="180" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">创建仓库</text>
+                    <line x1="275" y1="140" x2="210" y2="160" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,160 205,155 215,155" fill="#4A90E2"/>
+                    
+                    <!-- 编辑仓库 -->
+                    <rect x="150" y="200" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="220" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">编辑仓库</text>
+                    <line x1="210" y1="190" x2="210" y2="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,200 205,195 215,195" fill="#4A90E2"/>
+                    
+                    <!-- 仓库列表 -->
+                    <rect x="150" y="240" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="260" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">仓库列表</text>
+                    <line x1="210" y1="230" x2="210" y2="240" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,240 205,235 215,235" fill="#4A90E2"/>
+                    
+                    <!-- 创建库位 -->
+                    <rect x="450" y="160" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="510" y="180" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">创建库位</text>
+                    <line x1="575" y1="140" x2="510" y2="160" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="510,160 505,155 515,155" fill="#4A90E2"/>
+                    
+                    <!-- 编辑库位 -->
+                    <rect x="450" y="200" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="510" y="220" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">编辑库位</text>
+                    <line x1="510" y1="190" x2="510" y2="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="510,200 505,195 515,195" fill="#4A90E2"/>
+                    
+                    <!-- 库位列表 -->
+                    <rect x="450" y="240" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="510" y="260" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">库位列表</text>
+                    <line x1="510" y1="230" x2="510" y2="240" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="510,240 505,235 515,235" fill="#4A90E2"/>
+                    
+                    <!-- 库存查询 -->
+                    <rect x="750" y="160" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="810" y="180" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">库存查询</text>
+                    <line x1="875" y1="140" x2="810" y2="160" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="810,160 805,155 815,155" fill="#4A90E2"/>
+                    
+                    <!-- 库存调整 -->
+                    <rect x="750" y="200" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="810" y="220" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">库存调整</text>
+                    <line x1="810" y1="190" x2="810" y2="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="810,200 805,195 815,195" fill="#4A90E2"/>
+                    
+                    <!-- 库存报表 -->
+                    <rect x="750" y="240" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="810" y="260" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">库存报表</text>
+                    <line x1="810" y1="230" x2="810" y2="240" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="810,240 805,235 815,235" fill="#4A90E2"/>
+                    
+                    <!-- 入库管理 -->
+                    <rect x="200" y="290" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="275" y="315" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">入库管理</text>
+                    <line x1="500" y1="70" x2="275" y2="290" stroke="#4A90E2" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="275,290 270,285 280,285" fill="#4A90E2"/>
+                    
+                    <!-- 出库管理 -->
+                    <rect x="500" y="290" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="575" y="315" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">出库管理</text>
+                    <line x1="500" y1="70" x2="575" y2="290" stroke="#4A90E2" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="575,290 570,285 580,285" fill="#4A90E2"/>
+                    
+                    <!-- 调库管理 -->
+                    <rect x="800" y="290" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="875" y="315" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">调库管理</text>
+                    <line x1="500" y1="70" x2="875" y2="290" stroke="#4A90E2" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="875,290 870,285 880,285" fill="#4A90E2"/>
+                    
+                    <!-- 采购入库 -->
+                    <rect x="150" y="350" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="370" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">采购入库</text>
+                    <line x1="275" y1="330" x2="210" y2="350" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,350 205,345 215,345" fill="#4A90E2"/>
+                    
+                    <!-- 生产入库 -->
+                    <rect x="150" y="390" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="410" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">生产入库</text>
+                    <line x1="210" y="380" x2="210" y="390" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,390 205,385 215,385" fill="#4A90E2"/>
+                    
+                    <!-- 其他入库 -->
+                    <rect x="150" y="430" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="450" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">其他入库</text>
+                    <line x1="210" y="420" x2="210" y="430" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,430 205,425 215,425" fill="#4A90E2"/>
+                    
+                    <!-- 销售出库 -->
+                    <rect x="450" y="350" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="510" y="370" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">销售出库</text>
+                    <line x1="575" y="330" x2="510" y="350" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="510,350 505,345 515,345" fill="#4A90E2"/>
+                    
+                    <!-- 生产出库 -->
+                    <rect x="450" y="390" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="510" y="410" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">生产出库</text>
+                    <line x1="510" y="380" x2="510" y="390" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="510,390 505,385 515,385" fill="#4A90E2"/>
+                    
+                    <!-- 其他出库 -->
+                    <rect x="450" y="430" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="510" y="450" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">其他出库</text>
+                    <line x1="510" y="420" x2="510" y="430" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="510,430 505,425 515,425" fill="#4A90E2"/>
+                    
+                    <!-- 调库单 -->
+                    <rect x="750" y="350" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="810" y="370" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">调库单</text>
+                    <line x1="875" y="330" x2="810" y="350" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="810,350 805,345 815,345" fill="#4A90E2"/>
+                    
+                    <!-- 调库明细 -->
+                    <rect x="750" y="390" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="810" y="410" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">调库明细</text>
+                    <line x1="810" y="380" x2="810" y="390" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="810,390 805,385 815,385" fill="#4A90E2"/>
+                    
+                    <!-- 调库执行 -->
+                    <rect x="750" y="430" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="810" y="450" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">调库执行</text>
+                    <line x1="810" y="420" x2="810" y="430" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="810,430 805,425 815,425" fill="#4A90E2"/>
+                </svg>
+            </div>
+            <div class="download-section">
+                <button class="download-button" onclick="downloadPNG('flowchart1', '仓库管理总览')">下载流程图</button>
+            </div>
+        </div>
+        
+        <h2>仓库创建与管理流程</h2>
+        <div class="flowchart-section">
+            <h3>仓库创建和管理步骤</h3>
+            <div class="flowchart-container" id="flowchart2">
+                <svg width="800" height="400" viewBox="0 0 800 400">
+                    <!-- 开始 -->
+                    <rect x="350" y="20" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="45" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">开始</text>
+                    
+                    <!-- 进入仓库管理 -->
+                    <rect x="350" y="80" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="105" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">进入仓库管理</text>
+                    <line x1="400" y1="60" x2="400" y2="80" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,80 395,75 405,75" fill="#4A90E2"/>
+                    
+                    <!-- 点击创建仓库 -->
+                    <rect x="350" y="140" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="165" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">点击创建仓库</text>
+                    <line x1="400" y1="120" x2="400" y2="140" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,140 395,135 405,135" fill="#4A90E2"/>
+                    
+                    <!-- 填写仓库信息 -->
+                    <rect x="350" y="200" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="225" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">填写仓库信息</text>
+                    <line x1="400" y1="180" x2="400" y2="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,200 395,195 405,195" fill="#4A90E2"/>
+                    
+                    <!-- 选择仓库类型 -->
+                    <rect x="350" y="260" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="285" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">选择仓库类型</text>
+                    <line x1="400" y1="240" x2="400" y2="260" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,260 395,255 405,255" fill="#4A90E2"/>
+                    
+                    <!-- 设置仓库属性 -->
+                    <rect x="350" y="320" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="345" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">设置仓库属性</text>
+                    <line x1="400" y1="300" x2="400" y2="320" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,320 395,315 405,315" fill="#4A90E2"/>
+                    
+                    <!-- 提交保存 -->
+                    <rect x="350" y="380" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="405" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">提交保存</text>
+                    <line x1="400" y1="360" x2="400" y2="380" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,380 395,375 405,375" fill="#4A90E2"/>
+                    
+                    <!-- 仓库创建成功 -->
+                    <rect x="350" y="440" width="100" height="40" rx="5" ry="5" fill="#D4EDDA" stroke="#28A745" stroke-width="2"/>
+                    <text x="400" y="465" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">仓库创建成功</text>
+                    <line x1="400" y="420" x2="400" y2="440" stroke="#28A745" stroke-width="2"/>
+                    <polygon points="400,440 395,435 405,435" fill="#28A745"/>
+                </svg>
+            </div>
+            <div class="download-section">
+                <button class="download-button" onclick="downloadPNG('flowchart2', '仓库创建与管理流程')">下载流程图</button>
+            </div>
+        </div>
+        
+        <h2>库位管理流程</h2>
+        <div class="flowchart-section">
+            <h3>库位创建和管理步骤</h3>
+            <div class="flowchart-container" id="flowchart3">
+                <svg width="800" height="400" viewBox="0 0 800 400">
+                    <!-- 开始 -->
+                    <rect x="350" y="20" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="45" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">开始</text>
+                    
+                    <!-- 进入库位管理 -->
+                    <rect x="350" y="80" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="105" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">进入库位管理</text>
+                    <line x1="400" y1="60" x2="400" y2="80" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,80 395,75 405,75" fill="#4A90E2"/>
+                    
+                    <!-- 选择仓库 -->
+                    <rect x="350" y="140" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="165" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">选择仓库</text>
+                    <line x1="400" y1="120" x2="400" y2="140" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,140 395,135 405,135" fill="#4A90E2"/>
+                    
+                    <!-- 点击创建库位 -->
+                    <rect x="350" y="200" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="225" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">点击创建库位</text>
+                    <line x1="400" y1="180" x2="400" y2="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,200 395,195 405,195" fill="#4A90E2"/>
+                    
+                    <!-- 填写库位信息 -->
+                    <rect x="350" y="260" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="285" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">填写库位信息</text>
+                    <line x1="400" y1="240" x2="400" y2="260" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,260 395,255 405,255" fill="#4A90E2"/>
+                    
+                    <!-- 设置库位属性 -->
+                    <rect x="350" y="320" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="345" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">设置库位属性</text>
+                    <line x1="400" y1="300" x2="400" y2="320" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,320 395,315 405,315" fill="#4A90E2"/>
+                    
+                    <!-- 提交保存 -->
+                    <rect x="350" y="380" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="405" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">提交保存</text>
+                    <line x1="400" y1="360" x2="400" y2="380" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="400,380 395,375 405,375" fill="#4A90E2"/>
+                    
+                    <!-- 库位创建成功 -->
+                    <rect x="350" y="440" width="100" height="40" rx="5" ry="5" fill="#D4EDDA" stroke="#28A745" stroke-width="2"/>
+                    <text x="400" y="465" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">库位创建成功</text>
+                    <line x1="400" y1="420" x2="400" y2="440" stroke="#28A745" stroke-width="2"/>
+                    <polygon points="400,440 395,435 405,435" fill="#28A745"/>
+                </svg>
+            </div>
+            <div class="download-section">
+                <button class="download-button" onclick="downloadPNG('flowchart3', '库位管理流程')">下载流程图</button>
+            </div>
+        </div>
+        
+        <h2>库存上下架流程</h2>
+        <div class="flowchart-section">
+            <h3>库存入库和出库流程</h3>
+            <div class="flowchart-container" id="flowchart4">
+                <svg width="1200" height="500" viewBox="0 0 1200 500">
+                    <!-- 库存管理 -->
+                    <rect x="550" y="20" width="100" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="600" y="45" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">库存管理</text>
+                    
+                    <!-- 入库流程 -->
+                    <rect x="200" y="100" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="275" y="125" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">入库流程</text>
+                    <line x1="600" y1="60" x2="275" y2="100" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="275,100 270,95 280,95" fill="#4A90E2"/>
+                    
+                    <!-- 出库流程 -->
+                    <rect x="950" y="100" width="150" height="40" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="1025" y="125" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">出库流程</text>
+                    <line x1="600" y1="60" x2="1025" y2="100" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="1025,100 1020,95 1030,95" fill="#4A90E2"/>
+                    
+                    <!-- 选择入库类型 -->
+                    <rect x="150" y="160" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="180" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">选择入库类型</text>
+                    <line x1="275" y1="140" x2="210" y2="160" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,160 205,155 215,155" fill="#4A90E2"/>
+                    
+                    <!-- 填写入库信息 -->
+                    <rect x="150" y="200" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="220" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">填写入库信息</text>
+                    <line x1="210" y="190" x2="210" y="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,200 205,195 215,195" fill="#4A90E2"/>
+                    
+                    <!-- 选择库位 -->
+                    <rect x="150" y="240" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="260" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">选择库位</text>
+                    <line x1="210" y="230" x2="210" y="240" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,240 205,235 215,235" fill="#4A90E2"/>
+                    
+                    <!-- 确认入库 -->
+                    <rect x="150" y="280" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="210" y="300" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">确认入库</text>
+                    <line x1="210" y="270" x2="210" y="280" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="210,280 205,275 215,275" fill="#4A90E2"/>
+                    
+                    <!-- 库存增加 -->
+                    <rect x="150" y="320" width="120" height="30" rx="5" ry="5" fill="#D4EDDA" stroke="#28A745" stroke-width="2"/>
+                    <text x="210" y="340" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">库存增加</text>
+                    <line x1="210" y="310" x2="210" y="320" stroke="#28A745" stroke-width="2"/>
+                    <polygon points="210,320 205,315 215,315" fill="#28A745"/>
+                    
+                    <!-- 选择出库类型 -->
+                    <rect x="900" y="160" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="960" y="180" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">选择出库类型</text>
+                    <line x1="1025" y="140" x2="960" y="160" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="960,160 955,155 965,155" fill="#4A90E2"/>
+                    
+                    <!-- 填写出库信息 -->
+                    <rect x="900" y="200" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="960" y="220" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">填写出库信息</text>
+                    <line x1="960" y="190" x2="960" y="200" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="960,200 955,195 965,195" fill="#4A90E2"/>
+                    
+                    <!-- 选择库位 -->
+                    <rect x="900" y="240" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="960" y="260" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">选择库位</text>
+                    <line x1="960" y="230" x2="960" y="240" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="960,240 955,235 965,235" fill="#4A90E2"/>
+                    
+                    <!-- 确认出库 -->
+                    <rect x="900" y="280" width="120" height="30" rx="5" ry="5" fill="#E8F4FD" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="960" y="300" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">确认出库</text>
+                    <line x1="960" y="270" x2="960" y="280" stroke="#4A90E2" stroke-width="2"/>
+                    <polygon points="960,280 955,275 965,275" fill="#4A90E2"/>
+                    
+                    <!-- 库存减少 -->
+                    <rect x="900" y="320" width="120" height="30" rx="5" ry="5" fill="#F8D7DA" stroke="#DC3545" stroke-width="2"/>
+                    <text x="960" y="340" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">库存减少</text>
+                    <line x1="960" y="310" x2="960" y="320" stroke="#DC3545" stroke-width="2"/>
+                    <polygon points="960,320 955,315 965,315" fill="#DC3545"/>
+                </svg>
+            </div>
+            <div class="download-section">
+                <button class="download-button" onclick="downloadPNG('flowchart4', '库存上下架流程')">下载流程图</button>
+            </div>
+        </div>
+        
+        <h2>详细流程说明</h2>
+        
+        <div class="step">
+            <h3>1. 仓库创建与管理</h3>
+            <p><strong>功能说明</strong>：创建和管理仓库信息，设置仓库属性和类型。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入仓库管理页面（路径：ERP → 仓库 → 仓库管理）</li>
+                <li>点击"创建仓库"按钮</li>
+                <li>填写仓库名称、代码、地址等基本信息</li>
+                <li>选择仓库类型（本地仓、FBA仓等）</li>
+                <li>设置仓库属性（是否默认仓库、是否启用等）</li>
+                <li>提交保存</li>
+                <li>仓库创建成功后，可在仓库列表中查看和管理</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>2. 库位管理</h3>
+            <p><strong>功能说明</strong>：在仓库中创建和管理库位，用于更精细的库存管理。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入库位管理页面（路径：ERP → 仓库 → 库位管理）</li>
+                <li>选择要管理的仓库</li>
+                <li>点击"创建库位"按钮</li>
+                <li>填写库位编码、名称、位置等信息</li>
+                <li>设置库位属性（是否启用、是否允许负库存等）</li>
+                <li>提交保存</li>
+                <li>库位创建成功后，可在库位列表中查看和管理</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>3. 库存入库流程</h3>
+            <p><strong>功能说明</strong>：处理货物入库，增加库存数量。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入入库管理页面（路径：ERP → 仓库 → 入库管理）</li>
+                <li>选择入库类型（采购入库、生产入库、其他入库）</li>
+                <li>填写入库单基本信息（单号、日期、供应商等）</li>
+                <li>添加入库商品及数量</li>
+                <li>选择入库库位</li>
+                <li>确认入库信息</li>
+                <li>提交保存，系统自动更新库存</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>4. 库存出库流程</h3>
+            <p><strong>功能说明</strong>：处理货物出库，减少库存数量。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入出库管理页面（路径：ERP → 仓库 → 出库管理）</li>
+                <li>选择出库类型（销售出库、生产出库、其他出库）</li>
+                <li>填写出库单基本信息（单号、日期、客户等）</li>
+                <li>添加出库商品及数量</li>
+                <li>选择出库库位</li>
+                <li>确认出库信息</li>
+                <li>提交保存，系统自动更新库存</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>5. 库存调整</h3>
+            <p><strong>功能说明</strong>：对库存数量进行调整，处理库存差异。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入库存调整页面（路径：ERP → 仓库 → 库存调整）</li>
+                <li>选择调整类型（盘盈、盘亏）</li>
+                <li>选择仓库和库位</li>
+                <li>添加需要调整的商品及数量</li>
+                <li>填写调整原因</li>
+                <li>提交保存，系统自动更新库存</li>
+            </ol>
+        </div>
+        
+        <div class="notice">
+            <h3>注意事项</h3>
+            <ol>
+                <li><strong>库存影响</strong>：入库会增加库存，出库会减少库存，调整会根据类型增减库存</li>
+                <li><strong>库位管理</strong>：库位是仓库的子单位，用于更精细的库存管理</li>
+                <li><strong>数据同步</strong>：库存数据会与其他模块（如采购、销售）同步</li>
+                <li><strong>权限控制</strong>：不同角色的用户有不同的仓库操作权限</li>
+                <li><strong>审核流程</strong>：部分入库和出库操作可能需要审核</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function downloadPNG(containerId, filename) {
+            try {
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    alert('找不到图表容器');
+                    return;
+                }
+                
+                const svg = container.querySelector('svg');
+                if (!svg) {
+                    alert('找不到SVG图表');
+                    return;
+                }
+                
+                // 克隆SVG以避免修改原始元素
+                const clonedSVG = svg.cloneNode(true);
+                
+                // 设置SVG的宽度和高度
+                const bbox = svg.getBBox();
+                const width = bbox.width + 40;
+                const height = bbox.height + 40;
+                clonedSVG.setAttribute('width', width);
+                clonedSVG.setAttribute('height', height);
+                clonedSVG.setAttribute('viewBox', (bbox.x - 20) + ' ' + (bbox.y - 20) + ' ' + (bbox.width + 40) + ' ' + (bbox.height + 40));
+                
+                // 将SVG转换为字符串
+                const svgData = new XMLSerializer().serializeToString(clonedSVG);
+                
+                // 创建Blob对象
+                const blob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                
+                // 创建一个临时的img元素
+                const img = new Image();
+                img.onload = function() {
+                    // 创建画布
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 设置画布大小
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // 绘制图片到画布
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // 将画布转换为图片并下载
+                    canvas.toBlob(function(blob) {
+                        if (blob) {
+                            const downloadUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = downloadUrl;
+                            a.download = filename + '.png';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(downloadUrl);
+                            URL.revokeObjectURL(url);
+                            alert('流程图已下载为PNG格式！');
+                        } else {
+                            alert('无法创建PNG图片');
+                        }
+                    }, 'image/png', 1.0);
+                };
+                
+                img.onerror = function() {
+                    alert('图片加载失败');
+                };
+                
+                // 设置图片源
+                img.src = url;
+            } catch (error) {
+                alert('下载失败：' + error.message + '\n\n请尝试右键点击流程图，选择"另存为图片"');
+            }
+        }
+    </script>
+</body>
+</html>

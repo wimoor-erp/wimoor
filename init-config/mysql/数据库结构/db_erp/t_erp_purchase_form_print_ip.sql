@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_print_ip` (
   `opttime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_ftype` (`shopid`,`ftype`,`addressid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1985271139951255554 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=2069249638385582083 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

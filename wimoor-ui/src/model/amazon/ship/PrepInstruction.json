@@ -1,0 +1,18 @@
+{
+ "POLYBAGGING":"塑料袋",
+ "BUBBLEWRAPPING":"气泡膜",
+ "TAPING":"录音",
+ "BLACKSHRINKWRAPPING":"黑色收缩包装",
+ "LABELING":"FNSKU 标签",
+ "HANGGARMENT":"框架装",
+ "SETCREATION":"套装",
+ "BOXING":"双层瓦楞纸箱",
+ "REMOVEFROMHANGER":"去框架装",
+ "DEBUNDLE":"分拆",
+ "SUFFOCATIONSTICKERING":"窒息警告",
+ "CAPSEALING":"密封",
+ "SETSTICKERING":"套装(贴纸)",
+ "BLANKSTICKERING":"空白贴纸(覆盖条码)",
+ "NOPREP":"无准备",
+ "NONE":"无准备"
+}

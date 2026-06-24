@@ -94,7 +94,7 @@ public class ReportAmzInventoryDetailServiceImpl extends ReportServiceImpl{
 	}
 
 	@Override
-	public synchronized String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br) {
+	public  String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br) {
 //		Date
 //		FNSKU
 //		ASIN
@@ -116,7 +116,13 @@ public class ReportAmzInventoryDetailServiceImpl extends ReportServiceImpl{
 		Map<String,Integer> titleList = Collections.synchronizedMap(new HashMap<String,Integer>());  
 		try {
 			//删除old
-		
+			Calendar c=Calendar.getInstance();
+			c.add(Calendar.DATE, -380);
+			LambdaQueryWrapper<InventoryDetailReport> query=new LambdaQueryWrapper<InventoryDetailReport>();
+			query.eq(InventoryDetailReport::getAuthid, amazonAuthority.getId());
+			query.lt(InventoryDetailReport::getByday,GeneralUtil.formatDate(c.getTime()));
+			inventoryDetailReportMapper.delete(query);
+		   List<InventoryDetailReport> list=new ArrayList<InventoryDetailReport>();
 			while ((line = br.readLine()) != null) {
 				String[] info = line.replace("\"", "").split("\t");
 				int length = info.length;
@@ -147,25 +153,12 @@ public class ReportAmzInventoryDetailServiceImpl extends ReportServiceImpl{
 					e.setUnreconciledQuantity(GeneralUtil.getIntegerValue(info, titleList, "unreconciled quantity"));
 					e.setRefreshtime(refreshtime);
 					e.setAuthid(amazonAuthority.getId());
-					
-					
-					LambdaQueryWrapper<InventoryDetailReport> query=new LambdaQueryWrapper<InventoryDetailReport>();
-					query.eq(InventoryDetailReport::getAuthid, amazonAuthority.getId());
-					query.eq(InventoryDetailReport::getMsku,e.getMsku());
-					query.eq(InventoryDetailReport::getByday,e.getByday());
-					query.eq(InventoryDetailReport::getEventType,e.getEventType());
-					query.eq(InventoryDetailReport::getReferenceID,e.getReferenceID());
-					query.eq(InventoryDetailReport::getFulfillmentCenter, e.getFulfillmentCenter());
-					query.eq(InventoryDetailReport::getDisposition, e.getDisposition());
-					InventoryDetailReport old = inventoryDetailReportMapper.selectOne(query);
-					if(old==null) {
-						inventoryDetailReportMapper.insert(e);
-					}else {
-						e.setId(old.getId());
-						inventoryDetailReportMapper.updateById(e);
-					}
+					list.add(e);
 				}
 				lineNumber++;
+			}
+			if(!list.isEmpty()){
+				inventoryDetailReportMapper.insertBatch(list);
 			}
 		} catch (IOException e) {
 			log.info("ReportAmzInventoryReceiptsService:"+e.getMessage());
@@ -181,12 +174,6 @@ public class ReportAmzInventoryDetailServiceImpl extends ReportServiceImpl{
 				//同步item的authority id,marketplace id,receive date
 				shipInboundItemMapper.updateByInventoryDetail(amazonAuthority.getId());
 				shipInboundShipmentItemV2Mapper.updateByInventoryDetail(amazonAuthority.getId());
-				Calendar c=Calendar.getInstance();
-				c.add(Calendar.DATE, -380);
-				LambdaQueryWrapper<InventoryDetailReport> query=new LambdaQueryWrapper<InventoryDetailReport>();
-				query.eq(InventoryDetailReport::getAuthid, amazonAuthority.getId());
-				query.lt(InventoryDetailReport::getByday,GeneralUtil.formatDate(c.getTime()));
-			    inventoryDetailReportMapper.delete(query);
 		}
       return mlog;
 	

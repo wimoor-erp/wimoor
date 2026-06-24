@@ -68,4 +68,13 @@
 		where am.id = #{groupid,jdbcType=CHAR} or pg.isSystem=true 
 		order by pg.opttime desc limit 1
 	</select>
+
+	<select id="findFinDefaultPlanIdByGroup" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT pg.id, pg.shop_id, pg.isSystem, pg.name, pg.sales_channel,
+			   pg.sellerPlan, pg.shipmentStyle,pg.isDefault, pg.opttime
+		from t_profitcfg pg
+		left join t_amazon_group am on am.financeprofitid=pg.id
+		where am.id = #{groupid,jdbcType=CHAR} or pg.isSystem=true
+		order by pg.opttime desc limit 1
+	</select>
 </mapper>

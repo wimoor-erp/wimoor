@@ -1,10 +1,5 @@
 package com.wimoor.amazon.auth.service.impl;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,8 +9,11 @@ import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.report.mapper.ReportRequestRecordMapper;
 import com.wimoor.common.user.UserInfo;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 /**
  * 用户业务类
  */
@@ -30,7 +28,7 @@ public class AmazonGroupServiceImpl extends ServiceImpl<AmazonGroupMapper, Amazo
 	public List<AmazonGroup> getGroupByUser(UserInfo user){
 			List<AmazonGroup> groupList = null;
 			if (user.getGroups() != null && user.getGroups().size() >0) {
-				groupList = this.lambdaQuery().in(AmazonGroup::getId, user.getGroups()).orderByAsc(AmazonGroup::getFindex).list();	 
+				groupList = this.lambdaQuery().in(AmazonGroup::getId, user.getGroups()).eq(AmazonGroup::getIsdelete,Boolean.FALSE).orderByAsc(AmazonGroup::getFindex).list();
 			} else {
 				groupList = this.baseMapper.findShopNameByCompany(user.getCompanyid());
 			}
@@ -63,8 +61,8 @@ public class AmazonGroupServiceImpl extends ServiceImpl<AmazonGroupMapper, Amazo
 	}
 
 	@Override
-	public List<Map<String, Object>> selectTaskInfoList(String sellerid, String marketplaceid) {
-		return reportRequestRecordMapper.selectTaskInfoList(sellerid, marketplaceid);
+	public List<Map<String, Object>> selectTaskInfoList(String sellerid, String marketplaceid, String reportType) {
+		return reportRequestRecordMapper.selectTaskInfoList(sellerid, marketplaceid, reportType);
 	}
 
  

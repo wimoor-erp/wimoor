@@ -73,7 +73,10 @@ public class ShipPlanVo  {
 	 
 	 @ApiModelProperty(value = "站点")
 	 String marketplaceid;
-	 
+
+	@ApiModelProperty(value = "运输方式")
+	String transtyle;
+
 	 @ApiModelProperty(value = "authid")
 	 String amazonauthid;
 	 

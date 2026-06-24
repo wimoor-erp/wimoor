@@ -115,6 +115,12 @@
 					<if test="amazonAuthId != null">
 					and orde.amazonAuthId = #{amazonAuthId,jdbcType=CHAR}
 					</if>
+					<if test="marketplaceid != null">
+						and orde.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+					</if>
+					<if test="sku != null">
+						and orde.sku= #{sku,jdbcType=CHAR}
+					</if>
 					group by orde.sku,orde.marketplaceid,orde.amazonAuthId
 					having sales30 &gt; 0 ) v
 			    left join  t_product_info t on  t.sku=v.sku and t.marketplaceid =v.marketplaceid and t.amazonAuthId =v.amazonAuthId
@@ -127,6 +133,12 @@
 				left join t_product_rank ranks on ranks.product_id = t.id and ranks.isMain=1 and ranks.isNewest=1
 				left join t_amz_dimensions td on td.id = t.pageDimensions
 				where t.amazonAuthId =#{amazonAuthId,jdbcType=CHAR}
+				<if test="marketplaceid != null">
+					and t.marketplaceid = #{marketplaceid,jdbcType=CHAR}
+				</if>
+				<if test="sku != null">
+					and t.sku= #{sku,jdbcType=CHAR}
+				</if>
 	</select>
 	<select id="selectByMapByParams" resultType="java.util.Map"  parameterType="java.util.Map">
 	  SELECT a.id,a.shop_id shopid,a.groupid, ifnull(opt.msku,t.sku) msku,t.id pid,
@@ -232,8 +244,7 @@
 		select
 		    op.profitid,t.id,ifnull(op.msku,t.sku) msku,t.invalid, em.id mid,em.price mprice,t.asin, t.sku,t.marketplaceid,a.sellerid, m.point_name, t.name,t.parentAsin,
 			em.color skucolor,date_format( openDate,'%Y-%m-%d') opendate, fulfillchannel, binding,a.region region,m.region mregion,
-			(select min(`rank`) `rank` from t_product_rank  where product_id = t.id 
-			and byday &gt;= DATE_FORMAT(DATE_SUB(now(),INTERVAL 7 DAY),'%Y-%m-%d')) `rank`,
+			(select min(`rank`) `rank` from t_product_rank  where product_id = t.id) `rank`,
 			ifnull(pf.flownumber,t.totalOfferCount) totalOfferCount,
 			ifnull(pf.flownumber,0) followcount,case when ifnull(pf.flownumber,0)>1 and ifnull(pf.isread,0)=0 then 1 else 0 end notread,
 			manufacturer, pgroup, typename,ifnull(p.location,p.url) image,
@@ -823,5 +834,56 @@
 			and (op.disable = 0 or op.disable is null) and (t.invalid = 0)
 			and (t.isparent = 0)
 	</select>
-	
+
+	<insert id="batchInsertOrUpdate" parameterType="java.util.List">
+		INSERT INTO t_product_info (
+		id,
+		asin,
+		sku,
+		marketplaceid,
+		name,
+		openDate,
+		fulfillChannel,
+		price,
+		amazonAuthId,
+		invalid,
+		refreshtime,
+		createdate
+		) VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+			#{item.id},
+			#{item.asin},
+			#{item.sku},
+			#{item.marketplaceid},
+			#{item.name},
+			#{item.openDate},
+			#{item.fulfillChannel},
+			#{item.price},
+			#{item.amazonAuthId},
+			#{item.invalid},
+			#{item.refreshtime},
+			#{item.createdate}
+			)
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		name = VALUES(name),
+		fulfillChannel = VALUES(fulfillChannel),
+		price = VALUES(price),
+		asin = VALUES(asin),
+		<!-- 使用CASE语句实现条件更新：只有当原openDate为NULL时才更新 -->
+		openDate = CASE
+		WHEN t_product_info.openDate IS NULL THEN VALUES(openDate)
+		ELSE t_product_info.openDate
+		END,
+		refreshtime = VALUES(refreshtime),
+		invalid = VALUES(invalid)
+	</insert>
+
+	<select id="selectByAsinAndMarketplace" resultType="java.lang.String" parameterType="java.util.Map">
+		select id from t_product_info where asin = #{asin,jdbcType=CHAR}
+		                                and marketplaceid = #{marketplaceid,jdbcType=CHAR}
+		                                and amazonAuthId = #{amazonAuthId,jdbcType=CHAR}
+	</select>
+
 </mapper>

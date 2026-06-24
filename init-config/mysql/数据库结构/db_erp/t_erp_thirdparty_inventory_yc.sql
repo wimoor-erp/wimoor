@@ -17,11 +17,11 @@
 -- 导出  表 db_erp.t_erp_thirdparty_inventory_yc 结构
 CREATE TABLE IF NOT EXISTS `t_erp_thirdparty_inventory_yc` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `houseid` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `houseid` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `housename` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `api` bigint unsigned NOT NULL DEFAULT '0',
   `code` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `sku` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `sku` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `barcode` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `quality` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS `t_erp_thirdparty_inventory_yc` (
   `processing` int DEFAULT NULL,
   `transportation` int DEFAULT NULL,
   `refreshtime` datetime DEFAULT NULL,
-  `shopid` bigint unsigned DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `sku_houseid` (`shopid`,`api`,`houseid`,`sku`) USING BTREE
+  `shopid` bigint unsigned NOT NULL,
+  PRIMARY KEY (`shopid`,`api`,`houseid`,`sku`) USING BTREE,
+  UNIQUE KEY `uni-key` (`id`,`houseid`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1926926498155986947 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

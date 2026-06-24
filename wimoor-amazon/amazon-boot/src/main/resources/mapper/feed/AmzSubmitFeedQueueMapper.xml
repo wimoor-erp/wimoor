@@ -37,8 +37,13 @@
     <select id="findQueue" resultType="java.util.Map" parameterType="java.lang.String" >
     SELECT q.*,s.feed_processing_status feedstatus from t_amz_submitfeed_queue q 
 		left join t_amz_submitfeed s on q.submitfeedid=s.feed_submissionid 
-	 where  q.amazonAuthId=#{authorityid,jdbcType=BIGINT} and q.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
-	 and q.feed_type=#{feedtype,jdbcType=CHAR} and q.filename=#{shipmentid,jdbcType=VARCHAR} 
+	 where  q.amazonAuthId=#{authorityid,jdbcType=BIGINT} and q.marketplaceid=#{marketplaceid,jdbcType=CHAR}
+	   <if test="feedtype!= null">
+	 and q.feed_type=#{feedtype,jdbcType=CHAR}
+	   </if>
+	   <if test="shipmentid!= null">
+	 and q.filename=#{shipmentid,jdbcType=VARCHAR}
+	   </if>
 	order by s.opttime desc limit 1 
   </select>
    

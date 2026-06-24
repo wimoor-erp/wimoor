@@ -1,13 +1,12 @@
 package com.wimoor.amazon.feed.mapper;
 
-import java.util.List;
-import java.util.Map;
-
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wimoor.amazon.feed.pojo.entity.AmzSubmitFeedQueue;
+import java.util.List;
+import java.util.Map;
 @Mapper
 public interface AmzSubmitFeedQueueMapper extends BaseMapper<AmzSubmitFeedQueue> {
 
@@ -21,6 +20,6 @@ public interface AmzSubmitFeedQueueMapper extends BaseMapper<AmzSubmitFeedQueue>
 			@Param("marketplaceid") String marketplaceid, @Param("feedtype") String feedtype,
 			@Param("shipmentid") String shipmentid);
 	
-	List<AmzSubmitFeedQueue> findQueue(@Param("authorityid") String authid,@Param("marketplaceid") String marketplaceid);
+	List<Map<String, Object>> findQueue(@Param("authorityid") String authid,@Param("marketplaceid") String marketplaceid,@Param("feedtype") String feedtype,@Param("shipmentid") String shipmentid);
 	 
 }

@@ -9,15 +9,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="groupid"    column="groupid"    />
         <result property="typeName"    column="type_name"    />
         <result property="typeCode"    column="type_code"    />
+        <result property="status"    column="status"    />
     </resultMap>
 
     <sql id="selectFinAuxiliaryTypesVo">
-        select type_id, groupid, type_name, type_code from fin_auxiliary_types
+        select type_id, groupid, type_name, type_code, status from fin_auxiliary_types
     </sql>
 
     <select id="selectFinAuxiliaryTypesList" parameterType="com.wimoor.finance.setting.domain.FinAuxiliaryTypes" resultMap="FinAuxiliaryTypesResult">
         <include refid="selectFinAuxiliaryTypesVo"/>
-        <where>  
+        <where>
+              and groupid=#{groupid}
+            <if test="status != null"> and status = #{status}</if>
             <if test="typeName != null  and typeName != ''"> and type_name like concat('%', #{typeName}, '%')</if>
             <if test="typeCode != null  and typeCode != ''"> and type_code = #{typeCode}</if>
         </where>
@@ -33,12 +36,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="typeId != null">type_id,</if>
             <if test="groupid != null">groupid,</if>
+            <if test="status != null">status,</if>
             <if test="typeName != null and typeName != ''">type_name,</if>
             <if test="typeCode != null and typeCode != ''">type_code,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="typeId != null">#{typeId},</if>
             <if test="groupid != null">#{groupid},</if>
+            <if test="status != null">#{status},</if>
             <if test="typeName != null and typeName != ''">#{typeName},</if>
             <if test="typeCode != null and typeCode != ''">#{typeCode},</if>
          </trim>
@@ -48,6 +53,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update fin_auxiliary_types
         <trim prefix="SET" suffixOverrides=",">
             <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="status != null">status = #{status},</if>
             <if test="typeName != null and typeName != ''">type_name = #{typeName},</if>
             <if test="typeCode != null and typeCode != ''">type_code = #{typeCode},</if>
         </trim>

@@ -201,6 +201,10 @@ public class ShipInboundShipmenSummarytVo{
 	Date deliveryUntil;
 
 	String transactionName;
+	String ordguid;
+	String invguid;
+	String decguid;
+	Integer iscustom;
   }
 
  

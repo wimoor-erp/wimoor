@@ -1,17 +1,8 @@
 package com.wimoor.amazon.finances.service.impl;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.api.FinancesApi;
@@ -31,9 +22,17 @@ import com.wimoor.amazon.finances.pojo.entity.AmzFinAccount;
 import com.wimoor.amazon.finances.service.IAmazonSettlementOpenService;
 import com.wimoor.amazon.finances.service.IAmzFinAccountService;
 import com.wimoor.amazon.util.AmzDateUtils;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 @Service
 public class AmazonSettlementOpenServiceImpl extends ServiceImpl<AmazonSettlementOpenMapper, AmazonSettlementOpen> implements IAmazonSettlementOpenService {
 @Autowired
@@ -898,7 +897,7 @@ IAmzFinAccountService iAmzFinAccountService;
 			}
 	       	 for(AmazonSettlementOpen item:list) {
 				 String date=DateUtil.format(item.getPostedDate(),"yyyy-MM-dd HH:mm:ss");
-				 if(date.equals(oldDate)){
+				 if(date!=null&&date.equals(oldDate)){
 					item.setPostedDate(old);
 				 }
 	       		 if(item.getPostedDate()!=null) {

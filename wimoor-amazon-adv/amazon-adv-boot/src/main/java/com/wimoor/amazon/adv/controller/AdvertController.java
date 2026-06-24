@@ -1,27 +1,6 @@
 package com.wimoor.amazon.adv.controller;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
-import com.wimoor.common.GeneralUtil;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.github.miemiedev.mybatis.paginator.domain.PageList;
 import com.wimoor.amazon.adv.common.pojo.AmzAdvAuth;
 import com.wimoor.amazon.adv.common.pojo.AmzRegion;
@@ -44,11 +23,20 @@ import com.wimoor.amazon.adv.sp.service.IAmzAdvAdGroupService;
 import com.wimoor.amazon.adv.sp.service.IAmzAdvCampaignService;
 import com.wimoor.amazon.adv.sp.service.IAmzAdvKeywordsService;
 import com.wimoor.amazon.adv.sp.service.IAmzAdvProductAdsService;
+import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
-
-import cn.hutool.core.util.StrUtil;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import tk.mybatis.mapper.util.StringUtil;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController 
 @RequestMapping("/api/v1/advert") 
@@ -391,15 +379,16 @@ public class AdvertController extends ERPBaseController<AmzAdvAuth> {
 			String result = amzAdvAuthService.captureAmzAdvAuthByCode(code, region, groupid);
 			return Result.success("绑定请求---------"+result);
 		}catch(Exception e ) {
-			if(e!=null) {
-				StackTraceElement[] s = e.getStackTrace();
-				if(s!=null) {
-					return Result.success("绑定请求---------"+s.toString());
-				}else {
-					return Result.success("绑定请求---------"+e.getMessage()); 
+				if(e!=null) {
+					StackTraceElement[] s = e.getStackTrace();
+					String stack="";
+					for(StackTraceElement item:s){
+						stack=stack+item.toString();
+					}
+					return Result.success( "绑定处理---------"+e.getMessage()+stack);
 				}
-			}else {
-				return Result.success("绑定请求---------授权存在问题");
+			 else {
+					return Result.success( "绑定请求---------授权存在问题");
 			}
 		} 
 	}	 

@@ -1,15 +1,13 @@
 package com.wimoor.amazon.inbound.pojo.dto;
 
- 
-
-import java.util.List;
 
 import com.wimoor.common.pojo.entity.BasePageQuery;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value="ShipInboundShipmenSummaryDTO对象", description="申请货件列表条件")
@@ -19,6 +17,8 @@ public class ShipInboundShipmenSummaryDTO extends BasePageQuery{
 	
 	@ApiModelProperty(value = "货件ID", example = "FBA2X65XXX")
 	String shipmentid ;
+
+	List<String> shipmentids;
 	
 	@ApiModelProperty(value = "货件ID", example = "FBA2X65XXX")
 	String formid ;

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
+import com.wimoor.erp.material.pojo.entity.MaterialCustom;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
 import com.wimoor.erp.material.pojo.entity.StepWisePrice;
 
@@ -48,7 +49,10 @@ public class MaterialInfoVO {
 	
 	@ApiModelProperty(value = "产品供应商列表")
 	List<MaterialSupplierVO> supplierList;
-	
+
+	@ApiModelProperty(value = "产品海关报关")
+	MaterialCustom custom;
+
 	@ApiModelProperty(value = "产品海关基础数据")
 	List<MaterialCustoms> customs;
 	

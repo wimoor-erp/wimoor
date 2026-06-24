@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `fin_general_ledger` (
   PRIMARY KEY (`ledger_id`),
   UNIQUE KEY `uk_tenant_subject_period` (`groupid`,`subject_id`,`period`) USING BTREE,
   KEY `idx_general_ledger_tenant_period` (`groupid`,`period`) USING BTREE COMMENT '租户总账期间索引'
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='总账表，按科目和期间汇总的账务信息';
+) ENGINE=InnoDB AUTO_INCREMENT=3300 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='总账表，按科目和期间汇总的账务信息';
 
 -- 数据导出被取消选择。
 

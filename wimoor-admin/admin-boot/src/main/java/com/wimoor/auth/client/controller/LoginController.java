@@ -1,28 +1,23 @@
 package com.wimoor.auth.client.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import java.security.MessageDigest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.wimoor.admin.controller.UserController;
 import com.wimoor.auth.client.config.FeiShuLoginConfig;
+import com.wimoor.auth.client.config.MyWxConfig;
+import com.wimoor.auth.client.config.ShiroConfig;
+import com.wimoor.auth.client.pojo.AppUserInfo;
 import com.wimoor.common.CacheConstants;
+import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.result.Result;
+import com.wimoor.common.result.ResultCode;
+import com.wimoor.common.user.UserInfo;
+import feign.FeignException;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.bouncycastle.jcajce.provider.digest.SHA1;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,23 +26,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.alibaba.fastjson.JSONObject;
-import com.wimoor.auth.client.config.FeiShuLoginConfig;
-import com.wimoor.auth.client.config.MyWxConfig;
-import com.wimoor.auth.client.config.ShiroConfig;
-import com.wimoor.auth.client.pojo.AppUserInfo;
-import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.mvc.BizException;
-import com.wimoor.common.result.Result;
-import com.wimoor.common.result.ResultCode;
-import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.lang.UUID;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.Mode;
-import cn.hutool.crypto.Padding;
-import feign.FeignException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.stream.Collectors;
 @EnableAutoConfiguration
 @Controller
 @RequestMapping("/api/v1/auth")
@@ -315,6 +306,7 @@ public class LoginController {
 		}catch(BizException e) {
 			return Result.failed(e.getMessage());
 		}catch(Exception e) {
+			e.printStackTrace();
 			return Result.failed("登录失败");
 		}
 	}

@@ -1,11 +1,14 @@
 package com.wimoor.finance.voucher.service.impl;
 
-import java.util.List;
+import com.wimoor.finance.voucher.domain.FinVoucherEntries;
+import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
+import com.wimoor.finance.voucher.mapper.FinVoucherEntriesMapper;
+import com.wimoor.finance.voucher.service.IFinVoucherEntriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.wimoor.finance.voucher.mapper.FinVoucherEntriesMapper;
-import com.wimoor.finance.voucher.domain.FinVoucherEntries;
-import com.wimoor.finance.voucher.service.IFinVoucherEntriesService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 凭证分录明细Service业务层处理
@@ -41,6 +44,15 @@ public class FinVoucherEntriesServiceImpl implements IFinVoucherEntriesService
     public List<FinVoucherEntries> selectFinVoucherEntriesList(FinVoucherEntries finVoucherEntries)
     {
         return finVoucherEntriesMapper.selectFinVoucherEntriesList(finVoucherEntries);
+    }
+
+    @Override
+    public List<Map<String, Object>> selectFinVoucherEntriesList(FinVoucherDTO dto) {
+        List<Map<String, Object>> list = finVoucherEntriesMapper.selectFinVoucherEntriesListWithJoin(dto);
+//        if(list != null && list.size() > 0){
+//            list.forEach(item -> item.setGroupName(companyname));
+//        }
+        return list;
     }
 
     @Override

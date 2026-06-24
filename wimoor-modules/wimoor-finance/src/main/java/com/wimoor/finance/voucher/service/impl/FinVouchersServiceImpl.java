@@ -1,13 +1,10 @@
 package com.wimoor.finance.voucher.service.impl;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import cn.hutool.core.util.StrUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.finance.closing.service.IFinClosingTemplateVouchersService;
 import com.wimoor.finance.ledger.domain.FinDetailLedger;
 import com.wimoor.finance.ledger.domain.FinGeneralLedger;
 import com.wimoor.finance.ledger.mapper.FinDetailLedgerMapper;
@@ -21,15 +18,21 @@ import com.wimoor.finance.setting.service.IFinAccountingSubjectsService;
 import com.wimoor.finance.voucher.domain.*;
 import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
 import com.wimoor.finance.voucher.mapper.FinVoucherEntriesMapper;
+import com.wimoor.finance.voucher.mapper.FinVouchersMapper;
 import com.wimoor.finance.voucher.mapper.FinVourchesFileMapper;
+import com.wimoor.finance.voucher.service.IFinVoucherEntriesAuxiliaryService;
 import com.wimoor.finance.voucher.service.IFinVoucherModifyLogService;
+import com.wimoor.finance.voucher.service.IFinVouchersService;
 import com.wimoor.finance.voucher.service.IFinVourchesFileService;
 import com.wimoor.finance.voucher.service.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.wimoor.finance.voucher.mapper.FinVouchersMapper;
-import com.wimoor.finance.voucher.service.IFinVouchersService;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * 记账凭证Service业务层处理
@@ -69,6 +72,10 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     private IFinVourchesFileService finVourchesFileService;
     @Autowired
     private FinVourchesFileMapper finVourchesFileMapper;
+    @Autowired
+    private IFinClosingTemplateVouchersService finClosingTemplateVouchersService;
+    @Autowired
+    private IFinVoucherEntriesAuxiliaryService finVoucherEntriesAuxiliaryService;
 
 
     /**
@@ -81,11 +88,22 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     public FinVouchers selectFinVouchersByVoucherId(Long voucherId)
     {
         FinVouchers finVouchers = finVouchersMapper.selectFinVouchersByVoucherId(voucherId);
+        if(finVouchers==null){
+            return null;
+        }
         List<FinVoucherEntries> entries = finVoucherEntriesMapper.selectByVoucherId(voucherId);
+        // 加载辅助核算数据
+        loadAuxiliaryForEntries(entries);
         finVouchers.setEntries(entries);
         // 4. 查询凭证附件
         List<FinVourchesFile> files = finVourchesFileService.selectFinVourchesFileByVoucherId(finVouchers);
         finVouchers.setFiles(files);
+        return finVouchers;
+    }
+    @Override
+    public FinVouchers selectFinVoucherByVoucherId(Long voucherId)
+    {
+        FinVouchers finVouchers = finVouchersMapper.selectFinVouchersByVoucherId(voucherId);
         return finVouchers;
     }
 
@@ -98,7 +116,56 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     @Override
     public List<FinVouchers> selectFinVouchersList(FinVoucherDTO finVouchers)
     {
-        return finVouchersMapper.selectFinVouchersList(finVouchers);
+        // 1. 查询凭证列表（不含嵌套分录和附件）
+        List<FinVouchers> list = finVouchersMapper.selectFinVouchersSimpleList(finVouchers);
+        if (list == null || list.isEmpty()) {
+            return list;
+        }
+
+        // 2. 收集所有凭证ID
+        List<Long> voucherIds = new ArrayList<>(list.size());
+        for (FinVouchers v : list) {
+            voucherIds.add(v.getVoucherId());
+        }
+
+        // 3. 批量查询所有分录（1次查询代替 N 次）
+        List<FinVoucherEntries> allEntries = finVoucherEntriesMapper.selectByVoucherIds(voucherIds);
+        Map<Long, List<FinVoucherEntries>> entriesMap = new HashMap<>();
+        for (FinVoucherEntries entry : allEntries) {
+            entriesMap.computeIfAbsent(entry.getVoucherId(), k -> new ArrayList<>()).add(entry);
+        }
+
+        // 4. 批量查询所有附件（1次查询代替 N 次）
+        List<FinVourchesFile> allFiles = finVourchesFileMapper.selectByVoucherIds(voucherIds);
+        Map<Long, List<FinVourchesFile>> filesMap = new HashMap<>();
+        for (FinVourchesFile file : allFiles) {
+            filesMap.computeIfAbsent(file.getVoucherId(), k -> new ArrayList<>()).add(file);
+        }
+
+        // 5. 批量查询辅助核算
+        List<Long> allEntryIds = new ArrayList<>();
+        for (FinVoucherEntries entry : allEntries) {
+            allEntryIds.add(entry.getEntryId());
+        }
+        Map<Long, List<FinVoucherEntriesAuxiliary>> auxiliaryMap = new HashMap<>();
+        if (!allEntryIds.isEmpty()) {
+            List<FinVoucherEntriesAuxiliary> allAuxiliary = finVoucherEntriesAuxiliaryService.selectByEntryIds(allEntryIds);
+            for (FinVoucherEntriesAuxiliary aux : allAuxiliary) {
+                auxiliaryMap.computeIfAbsent(Long.parseLong(aux.getEntryId()), k -> new ArrayList<>()).add(aux);
+            }
+        }
+
+        // 6. 组装数据
+        for (FinVouchers v : list) {
+            List<FinVoucherEntries> vEntries = entriesMap.getOrDefault(v.getVoucherId(), Collections.emptyList());
+            for (FinVoucherEntries entry : vEntries) {
+                entry.setAuxiliaryList(auxiliaryMap.getOrDefault(entry.getEntryId(), Collections.emptyList()));
+            }
+            v.setEntries(vEntries);
+            v.setFiles(filesMap.getOrDefault(v.getVoucherId(), Collections.emptyList()));
+        }
+
+        return list;
     }
 
     @Override
@@ -116,30 +183,61 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     @Transactional(rollbackFor = Exception.class)
     public int insertFinVouchers(FinVouchers finVouchers)
     {
-        UserInfo userinfo = UserInfoContext.get();
         int result=0;
         if(finVouchers.getTotalAmount()==null||finVouchers.getTotalAmount().doubleValue()==0){
-            throw new IllegalArgumentException("凭证金额不能为空");
+            //此处需要判断entry中的内容，如果entry中是因为正负数相互抵消导致的totalAmount为0 ，则需要新增，否则提示错误信息
+            if(finVouchers.getEntries()!=null&&!finVouchers.getEntries().isEmpty()){
+                BigDecimal totalAmount=BigDecimal.ZERO;
+                for(FinVoucherEntries detail:finVouchers.getEntries()){
+                    if(detail.getCreditAmount()!=null&&detail.getCreditAmount().doubleValue()!=0){
+                        totalAmount=totalAmount.add(detail.getCreditAmount().abs());
+                    }
+                    if(detail.getDebitAmount()!=null&&detail.getDebitAmount().doubleValue()!=0){
+                        totalAmount=totalAmount.add(detail.getDebitAmount().abs());
+                    }
+                }
+                if(totalAmount.doubleValue()==0){
+                    throw new IllegalArgumentException("凭证金额不能为空");
+                }
+            }
         }
-        finVouchers.setPreparerBy(userinfo.getUserName());
-        finVouchers.setCreatedTime(new Date());
-        finVouchers.setUpdatedTime(new Date());
-
+        if(finVouchers.getCreatedTime()==null){
+            finVouchers.setCreatedTime(new Date());
+            finVouchers.setUpdatedTime(new Date());
+        }
+        //获取会计期间
+        FinAccountingPeriods accountingPeriods = finAccountingPeriodsService.selectFinAccountingPeriodsByDate(finVouchers.getGroupid(),finVouchers.getVoucherDate());
+        if(accountingPeriods==null){
+            throw new IllegalArgumentException("凭证日期不在会计期间内");
+        }
+        finVouchers.setPeriodId(accountingPeriods.getPeriodId());
         // 1. 保存凭证主表
         result = finVouchersMapper.insertFinVouchers(finVouchers);
 
         if(result>0&&finVouchers.getEntries()!=null){
             // 2. 保存凭证分录
             List<FinVoucherEntries> details=finVouchers.getEntries();
+            List<FinVoucherEntriesAuxiliary> allAuxiliary = new ArrayList<>();
             for(FinVoucherEntries detail:details){
                 if(detail.getCreditAmount()!=null||detail.getDebitAmount()!=null){
                     detail.setVoucherId(finVouchers.getVoucherId());
                     detail.setGroupid(finVouchers.getGroupid());
                     detail.setCreatedTime(new Date());
                     finVoucherEntriesMapper.insertFinVoucherEntries(detail);
+                    // 收集辅助核算数据
+                    if(detail.getAuxiliaryList()!=null&&!detail.getAuxiliaryList().isEmpty()){
+                        for(FinVoucherEntriesAuxiliary aux:detail.getAuxiliaryList()){
+                            aux.setEntryId(String.valueOf(detail.getEntryId()));
+                            aux.setGroupid(finVouchers.getGroupid());
+                            allAuxiliary.add(aux);
+                        }
+                    }
                 }
             }
-
+            // 保存辅助核算
+            if(!allAuxiliary.isEmpty()){
+                finVoucherEntriesAuxiliaryService.batchInsert(allAuxiliary);
+            }
             // 3. 实时过账到账簿（无论是否审核）
             repostToLedgers(finVouchers);
         }
@@ -190,13 +288,29 @@ public class FinVouchersServiceImpl implements IFinVouchersService
             // 5. 更新凭证分录
             if(result>0&&finVouchers.getEntries()!=null){
                 finVoucherEntriesMapper.deleteFinVoucherEntriesByVoucherId(finVouchers);
+                // 删除旧的辅助核算
+                finVoucherEntriesAuxiliaryService.deleteByVoucherId(finVouchers.getVoucherId());
                 List<FinVoucherEntries> details=finVouchers.getEntries();
+                List<FinVoucherEntriesAuxiliary> allAuxiliary = new ArrayList<>();
                 for(FinVoucherEntries detail:details){
                     if((detail.getCreditAmount()!=null&&detail.getCreditAmount().doubleValue()!=0)||(detail.getDebitAmount()!=null&&detail.getDebitAmount().doubleValue()!=0)){
                         detail.setVoucherId(finVouchers.getVoucherId());
                         detail.setGroupid(finVouchers.getGroupid());
+                        detail.setCreatedTime(new Date());
                         finVoucherEntriesMapper.insertFinVoucherEntries(detail);
+                        // 收集辅助核算数据
+                        if(detail.getAuxiliaryList()!=null&&!detail.getAuxiliaryList().isEmpty()){
+                            for(FinVoucherEntriesAuxiliary aux:detail.getAuxiliaryList()){
+                                aux.setEntryId(String.valueOf(detail.getEntryId()));
+                                aux.setGroupid(finVouchers.getGroupid());
+                                allAuxiliary.add(aux);
+                            }
+                        }
                     }
+                }
+                // 保存辅助核算
+                if(!allAuxiliary.isEmpty()){
+                    finVoucherEntriesAuxiliaryService.batchInsert(allAuxiliary);
                 }
 
                 // 6. 重新实时过账到账簿
@@ -205,7 +319,7 @@ public class FinVouchersServiceImpl implements IFinVouchersService
                 // 7. 记录修改日志
                 finVoucherModifyLogService.logModification(backup,finVouchers,user.getUserName(),finVouchers.getReason());
             }
-             // 8. 更新凭证附件
+            // 8. 更新凭证附件
 //             if(result>0){
 //                finVourchesFileService.deleteFinVourchesFileByVoucherId(finVouchers);
 //                if(finVouchers.getFiles()!=null){
@@ -237,6 +351,10 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     @Transactional(rollbackFor = Exception.class)
     public int deleteFinVouchersByVoucherIds(Long[] voucherIds)
     {
+        // 记录需要重新编号的期间（年月和租户ID）
+        Set<String> periodsToRenumber = new HashSet<>();
+        Map<String, String> periodGroupMap = new HashMap<>();
+
         int result = 0;
         for (Long voucherId : voucherIds) {
             // 删除前先检查凭证状态
@@ -248,6 +366,18 @@ public class FinVouchersServiceImpl implements IFinVouchersService
             // 获取备份数据（用于异常恢复）
             VoucherBackup backup = preCheckResult.getBackup();
 
+            // 记录该凭证所属的期间，用于后续重新编号
+            FinVouchers voucher = backup.getOriginalVoucher();
+            if (voucher != null && voucher.getVoucherDate() != null) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(voucher.getVoucherDate());
+                int year = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH) + 1;
+                String periodKey = year + "-" + String.format("%02d", month);
+                periodsToRenumber.add(periodKey);
+                periodGroupMap.put(periodKey, voucher.getGroupid());
+            }
+
             try {
                 // 从账簿中移除原凭证的影响
                 removeOriginalVoucherImpact(backup);
@@ -255,16 +385,28 @@ public class FinVouchersServiceImpl implements IFinVouchersService
                 // 删除凭证分录
                 FinVouchers param = new FinVouchers();
                 param.setVoucherId(voucherId);
-                finVoucherEntriesMapper.deleteFinVoucherEntriesByVoucherId(param);
+                finVoucherEntriesMapper.deleteByVoucherId(voucherId);
                 finVourchesFileService.deleteFinVourchesFileByVoucherId(param);
                 // 删除凭证
                 result += finVouchersMapper.deleteFinVouchersByVoucherId(voucherId);
+                // 删除关联的 FinClosingTemplateVouchers 记录
+                finClosingTemplateVouchersService.deleteByVoucherId(voucherId.toString());
             } catch (Exception e) {
                 // 失败时恢复备份
                 restoreFromBackup(backup);
                 throw new BizException("删除凭证失败，已恢复原状", e);
             }
         }
+
+        // 删除完成后，重新编号受影响的期间
+        for (String periodKey : periodsToRenumber) {
+            String[] parts = periodKey.split("-");
+            int year = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]);
+            String groupid = periodGroupMap.get(periodKey);
+            renumberVouchers(groupid, year, month);
+        }
+
         return result;
     }
 
@@ -297,9 +439,40 @@ public class FinVouchersServiceImpl implements IFinVouchersService
             finVoucherEntriesMapper.deleteFinVoucherEntriesByVoucherId(param);
 
             // 删除凭证
-            return finVouchersMapper.deleteFinVouchersByVoucherId(voucherId);
+            int result = finVouchersMapper.deleteFinVouchersByVoucherId(voucherId);
+            // 删除关联的 FinClosingTemplateVouchers 记录
+            finClosingTemplateVouchersService.deleteByVoucherId(voucherId.toString());
+            return result;
         } catch (Exception e) {
             // 失败时恢复备份
+            restoreFromBackup(backup);
+            throw new BizException("删除凭证失败，已恢复原状", e);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int forceDeleteFinVouchersByVoucherId(Long voucherId)
+    {
+        // 强制删除：跳过期间检查，仅用于反结账场景
+        FinVouchers voucher = finVouchersMapper.selectFinVouchersByVoucherId(voucherId);
+        if (voucher == null) {
+            throw new IllegalArgumentException("凭证不存在");
+        }
+
+        VoucherBackup backup = backupVoucherAndLedgerData(voucherId);
+
+        try {
+            removeOriginalVoucherImpact(backup);
+
+            FinVouchers param = new FinVouchers();
+            param.setVoucherId(voucherId);
+            finVoucherEntriesMapper.deleteFinVoucherEntriesByVoucherId(param);
+
+            int result = finVouchersMapper.deleteFinVouchersByVoucherId(voucherId);
+            finClosingTemplateVouchersService.deleteByVoucherId(voucherId.toString());
+            return result;
+        } catch (Exception e) {
             restoreFromBackup(backup);
             throw new BizException("删除凭证失败，已恢复原状", e);
         }
@@ -362,6 +535,34 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     }
 
     /**
+     * 重新编号指定期间的凭证，保证编号连续
+     *
+     * @param groupid 租户ID
+     * @param year 年份
+     * @param month 月份
+     */
+    private void renumberVouchers(String groupid, int year, int month) {
+        // 查询该期间的所有凭证（按凭证编号排序）
+        List<FinVouchers> vouchers = finVouchersMapper.selectVouchersByYearMonth(groupid, year, month);
+
+        // 如果没有凭证或查询结果为空，直接返回
+        if (vouchers == null || vouchers.isEmpty()) {
+            return;
+        }
+
+        // 重新编号，从1开始
+        int newNo = 1;
+        for (FinVouchers voucher : vouchers) {
+            String voucherNo = String.format("%03d", newNo);
+            // 只有编号不一致时才更新
+            if (!voucherNo.equals(voucher.getVoucherNo())) {
+                finVouchersMapper.updateVoucherNo(voucher.getVoucherId(), voucherNo);
+            }
+            newNo++;
+        }
+    }
+
+    /**
      * 备份凭证和账簿数据
      */
     private VoucherBackup backupVoucherAndLedgerData(Long voucherId) {
@@ -402,7 +603,7 @@ public class FinVouchersServiceImpl implements IFinVouchersService
             result.add(generalLedger);
         }
 
-       return result;
+        return result;
     }
 
 
@@ -446,6 +647,27 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     }
 
     /**
+     * 为分录列表加载辅助核算数据
+     */
+    private void loadAuxiliaryForEntries(List<FinVoucherEntries> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        List<Long> entryIds = new ArrayList<>();
+        for (FinVoucherEntries entry : entries) {
+            entryIds.add(entry.getEntryId());
+        }
+        List<FinVoucherEntriesAuxiliary> allAuxiliary = finVoucherEntriesAuxiliaryService.selectByEntryIds(entryIds);
+        Map<Long, List<FinVoucherEntriesAuxiliary>> auxiliaryMap = new HashMap<>();
+        for (FinVoucherEntriesAuxiliary aux : allAuxiliary) {
+            auxiliaryMap.computeIfAbsent(Long.parseLong(aux.getEntryId()), k -> new ArrayList<>()).add(aux);
+        }
+        for (FinVoucherEntries entry : entries) {
+            entry.setAuxiliaryList(auxiliaryMap.getOrDefault(entry.getEntryId(), Collections.emptyList()));
+        }
+    }
+
+    /**
      * 重新过账到账簿
      */
     private void repostToLedgers(FinVouchers voucher) {
@@ -481,12 +703,40 @@ public class FinVouchersServiceImpl implements IFinVouchersService
             generalLedger.setGroupid(groupid);
             generalLedger.setSubjectId(Long.parseLong(entry.getSubjectId()));
             generalLedger.setPeriod(period);
-            generalLedger.setBeginBalance(BigDecimal.ZERO);
-            generalLedger.setBeginDirection(1); // 默认借方
-            generalLedger.setDebitTotal(BigDecimal.ZERO);
-            generalLedger.setCreditTotal(BigDecimal.ZERO);
-            generalLedger.setEndBalance(BigDecimal.ZERO);
-            generalLedger.setEndDirection(1); // 默认借方
+
+            // 从上一期获取期末余额作为本期期初余额
+            String prevPeriod = getPreviousPeriod(period);
+            FinGeneralLedger prevLedger = finGeneralLedgerMapper.selectBySubjectAndPeriod(
+                    groupid, entry.getSubjectId(), prevPeriod);
+            if (prevLedger != null) {
+                generalLedger.setBeginBalance(prevLedger.getEndBalance());
+                generalLedger.setBeginDirection(prevLedger.getEndDirection());
+                generalLedger.setEndBalance(prevLedger.getEndBalance());
+                generalLedger.setEndDirection(prevLedger.getEndDirection());
+            } else {
+                generalLedger.setBeginBalance(BigDecimal.ZERO);
+                generalLedger.setBeginDirection(1); // 默认借方
+                generalLedger.setEndBalance(BigDecimal.ZERO);
+                generalLedger.setEndDirection(1); // 默认借方
+            }
+
+            // 加上当前分录的借贷金额
+            BigDecimal initDebit = entry.getDebitAmount() != null ? entry.getDebitAmount() : BigDecimal.ZERO;
+            BigDecimal initCredit = entry.getCreditAmount() != null ? entry.getCreditAmount() : BigDecimal.ZERO;
+            generalLedger.setDebitTotal(initDebit);
+            generalLedger.setCreditTotal(initCredit);
+
+            // 计算期末余额和方向
+            BalanceResult balanceResult = calculateEndBalance(
+                    generalLedger.getBeginBalance(),
+                    generalLedger.getBeginDirection().intValue(),
+                    initDebit,
+                    initCredit,
+                    entry.getSubjectId()
+            );
+            generalLedger.setEndBalance(balanceResult.getBalance());
+            generalLedger.setEndDirection(balanceResult.getDirection());
+
             generalLedger.setCreatedTime(new Date());
             finGeneralLedgerMapper.insertFinGeneralLedger(generalLedger);
         } else {
@@ -658,6 +908,11 @@ public class FinVouchersServiceImpl implements IFinVouchersService
     }
 
     @Override
+    public Integer countVouchersByPeriod(String groupid, String period) {
+        return this.finVouchersMapper.countVouchersByPeriod(groupid, period);
+    }
+
+    @Override
     public List<FinVouchers> selectVouchersModifiedAfterClosing(String groupid, String period, Date closeTime) {
         return this.finVouchersMapper.selectVouchersModifiedAfterClosing(groupid, period, closeTime);
     }
@@ -696,6 +951,15 @@ public class FinVouchersServiceImpl implements IFinVouchersService
      */
     private void updateGeneralLedger(FinVoucherEntries entry, String groupid, String period) {
         updateGeneralLedgerRealtime(groupid, entry, period);
+    }
+
+    /**
+     * 获取上一个会计期间
+     */
+    private String getPreviousPeriod(String period) {
+        LocalDate date = LocalDate.parse(period + "01", DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate prevDate = date.minusMonths(1);
+        return prevDate.format(DateTimeFormatter.ofPattern("yyyyMM"));
     }
 
     /**
@@ -745,29 +1009,27 @@ public class FinVouchersServiceImpl implements IFinVouchersService
         Integer previousDirection = 1;
 
         if (lastDetail != null) {
-            previousBalance = lastDetail.getBalance();
+            previousBalance = lastDetail.getBalance() != null ? lastDetail.getBalance() : BigDecimal.ZERO;
             if(lastDetail.getBalanceDirection()!=null){
                 previousDirection = lastDetail.getBalanceDirection().intValue();
             }else{
-                previousDirection = 2;
+                previousDirection = 1;
+            }
+            // balance 存的是绝对值，direction 表示方向
+            // 借方余额(direction=1)为正数，贷方余额(direction=2)为负数
+            if (previousDirection == 2) {
+                previousBalance = previousBalance.negate();
             }
         }
-
-        // 获取科目信息
-        FinAccountingSubjects subject = accountingSubjectService.getSubjectById(currentSubjectId);
 
         BigDecimal currentBalance;
         Integer currentDirection;
 
-        if (subject.isDebitBalance()) {
-            // 借方余额科目
-            currentBalance = previousBalance.add(debitAmount).subtract(creditAmount);
-            currentDirection = currentBalance.compareTo(BigDecimal.ZERO) >= 0 ? 1 : 2;
-        } else {
-            // 贷方余额科目
-            currentBalance = previousBalance.add(creditAmount).subtract(debitAmount);
-            currentDirection = currentBalance.compareTo(BigDecimal.ZERO) >= 0 ? 2 : 1;
-        }
+        // previousBalance 已转换为带符号值（借方为正，贷方为负）
+        // 统一公式：当前余额 = 上笔余额 + 借方 - 贷方
+        BigDecimal signedBalance = previousBalance.add(debitAmount).subtract(creditAmount);
+        currentDirection = signedBalance.compareTo(BigDecimal.ZERO) >= 0 ? 1 : 2;
+        currentBalance = signedBalance.abs();  // 数据库存绝对值
 
         return new BalanceDetailResult(currentBalance, currentDirection);
     }
@@ -818,15 +1080,23 @@ public class FinVouchersServiceImpl implements IFinVouchersService
         int count=0;
         count=count+finVourchesFileService.deleteFinVourchesFileByVoucherId(finVouchers);
 
-            if(finVouchers.getFiles()!=null) {
-                for (FinVourchesFile file : finVouchers.getFiles()) {
-                    file.setVoucherId(finVouchers.getVoucherId());
-                    file.setGroupid(finVouchers.getGroupid());
-                    file.setOpttime(new Date());
-                    count=count+finVourchesFileService.insertFinVourchesFile(file);
-                }
+        if(finVouchers.getFiles()!=null) {
+            for (FinVourchesFile file : finVouchers.getFiles()) {
+                file.setVoucherId(finVouchers.getVoucherId());
+                file.setGroupid(finVouchers.getGroupid());
+                file.setOpttime(new Date());
+                count=count+finVourchesFileService.insertFinVourchesFile(file);
             }
-            return count;
+        }
+        return count;
+    }
+
+    @Override
+    public List<FinVouchers> selectFinVouchersSimpleList(FinVouchers voucherQuery) {
+        FinVoucherDTO voucherQuerydto=new FinVoucherDTO();
+        voucherQuerydto.setGroupid(voucherQuery.getGroupid());
+        voucherQuerydto.setVoucherType(voucherQuery.getVoucherType());
+        return finVouchersMapper.selectFinVouchersSimpleList(voucherQuerydto);
     }
 
     /**

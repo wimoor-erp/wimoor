@@ -42,7 +42,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectFinReportItemsVo"/>
         <where>  
             <if test="groupid != null "> and groupid = #{groupid}</if>
-            and template_id = #{templateId}
+            and (template_id = #{templateId} OR template_id = 0)
             <if test="itemCode != null  and itemCode != ''"> and item_code = #{itemCode}</if>
             <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
             <if test="itemLevel != null "> and item_level = #{itemLevel}</if>
@@ -82,56 +82,56 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="templateId != null">template_id,</if>
             <if test="itemCode != null and itemCode != ''">item_code,</if>
             <if test="itemName != null and itemName != ''">item_name,</if>
-            <if test="itemLevel != null">item_level,</if>
-            <if test="parentCode != null">parent_code,</if>
-            <if test="formulaType != null">formula_type,</if>
-            <if test="formulaContent != null">formula_content,</if>
-            <if test="lineNumber != null">line_number,</if>
-            <if test="createdTime != null">created_time,</if>
+            <if test="itemLevel != null and itemLevel != ''">item_level,</if>
+            <if test="parentCode != null and parentCode != ''">parent_code,</if>
+            <if test="formulaType != null and formulaType != ''">formula_type,</if>
+            <if test="formulaContent != null and formulaContent != ''">formula_content,</if>
+            <if test="lineNumber != null and lineNumber != ''">line_number,</if>
+            <if test="createdTime != null and createdTime != ''">created_time,</if>
             <if test="createdBy != null and createdBy != ''">created_by,</if>
-            <if test="updatedTime != null">updated_time,</if>
+            <if test="updatedTime != null and updatedTime != ''">updated_time,</if>
             <if test="description != null and description != ''">description,</if>
-            <if test="itemType != null">item_type,</if>
-            <if test="itemCategory != null">item_category,</if>
+            <if test="itemType != null and itemType != ''">item_type,</if>
+            <if test="itemCategory != null and itemCategory != ''">item_category,</if>
             <if test="calculationRule != null">calculation_rule,</if>
             <if test="dataSource != null">data_source,</if>
             <if test="subjectCodes != null and subjectCodes != ''">subject_codes,</if>
-            <if test="amountType != null">amount_type,</if>
-            <if test="direction != null">direction,</if>
+            <if test="amountType != null and amountType != ''">amount_type,</if>
+            <if test="direction != null and direction != ''">direction,</if>
             <if test="displayFormat != null and displayFormat != ''">display_format,</if>
-            <if test="isShowZero != null">is_show_zero,</if>
-            <if test="isShow != null">is_show,</if>
-            <if test="isLeaf != null">is_leaf,</if>
-            <if test="sortOrder != null">sort_order,</if>
-            <if test="status != null">status,</if>
+            <if test="isShowZero != null and isShowZero != ''">is_show_zero,</if>
+            <if test="isShow != null and isShow != ''">is_show,</if>
+            <if test="isLeaf != null and isLeaf != ''">is_leaf,</if>
+            <if test="sortOrder != null and sortOrder != ''">sort_order,</if>
+            <if test="status != null and status != ''">status,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="groupid != null">#{groupid},</if>
             <if test="templateId != null">#{templateId},</if>
             <if test="itemCode != null and itemCode != ''">#{itemCode},</if>
             <if test="itemName != null and itemName != ''">#{itemName},</if>
-            <if test="itemLevel != null">#{itemLevel},</if>
-            <if test="parentCode != null">#{parentCode},</if>
-            <if test="formulaType != null">#{formulaType},</if>
-            <if test="formulaContent != null">#{formulaContent},</if>
-            <if test="lineNumber != null">#{lineNumber},</if>
-            <if test="createdTime != null">#{createdTime},</if>
+            <if test="itemLevel != null and itemLevel != ''">#{itemLevel},</if>
+            <if test="parentCode != null and parentCode != ''">#{parentCode},</if>
+            <if test="formulaType != null and formulaType != ''">#{formulaType},</if>
+            <if test="formulaContent != null and formulaContent != ''">#{formulaContent},</if>
+            <if test="lineNumber != null and lineNumber != ''">#{lineNumber},</if>
+            <if test="createdTime != null and createdTime != ''">#{createdTime},</if>
             <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
-            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="updatedTime != null and updatedTime != ''">#{updatedTime},</if>
             <if test="description != null and description != ''">#{description},</if>
-            <if test="itemType != null">#{itemType},</if>
-            <if test="itemCategory != null">#{itemCategory},</if>
+            <if test="itemType != null and itemType != ''">#{itemType},</if>
+            <if test="itemCategory != null and itemCategory != ''">#{itemCategory},</if>
             <if test="calculationRule != null">#{calculationRule},</if>
             <if test="dataSource != null">#{dataSource},</if>
             <if test="subjectCodes != null and subjectCodes != ''">#{subjectCodes},</if>
-            <if test="amountType != null">#{amountType},</if>
-            <if test="direction != null">#{direction},</if>
+            <if test="amountType != null and amountType != ''">#{amountType},</if>
+            <if test="direction != null and direction != ''">#{direction},</if>
             <if test="displayFormat != null and displayFormat != ''">#{displayFormat},</if>
-            <if test="isShowZero != null">#{isShowZero},</if>
-            <if test="isShow != null">#{isShow},</if>
-            <if test="isLeaf != null">#{isLeaf},</if>
-            <if test="sortOrder != null">#{sortOrder},</if>
-            <if test="status != null">#{status},</if>
+            <if test="isShowZero != null and isShowZero != ''">#{isShowZero},</if>
+            <if test="isShow != null and isShow != ''">#{isShow},</if>
+            <if test="isLeaf != null and isLeaf != ''">#{isLeaf},</if>
+            <if test="sortOrder != null and sortOrder != ''">#{sortOrder},</if>
+            <if test="status != null and status != ''">#{status},</if>
          </trim>
     </insert>
 

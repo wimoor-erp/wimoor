@@ -75,7 +75,7 @@ public interface IInventoryService extends IService<Inventory> {
 	 List<Map<String,Object>> findNotFbaBySku(String warehouseid,String skuid,String shopid);
 
 	//库存货值
-	IPage<Map<String,Object>> selectInventoryCost(Page<?> page,String warehouseid,String sku,String shopid,String byday);
+	IPage<Map<String,Object>> selectInventoryCost(Page<?> page,String warehouseid,String sku,String shopid,String byday,String isAvgPrice);
 
 	Map<String, Object> findInvByWarehouseId(String materialid, String warehouseid, String shopid);
 
@@ -88,7 +88,7 @@ public interface IInventoryService extends IService<Inventory> {
 
 	Map<String, Object> findSum(Map<String,Object> param);
 
-	List<Map<String, Object>> selectInventoryCostAll(String warehouseid, String sku, String shopid,String byday);
+	List<Map<String, Object>> selectInventoryCostAll(String warehouseid, String sku, String shopid,String byday,String isAvgPrice);
 
 
 

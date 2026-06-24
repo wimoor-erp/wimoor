@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -71,6 +72,13 @@ public interface IProductInPresaleService extends IService<ProductInPresale>{
 	public List<ProductInPresale> selectByGroup(String sku,String marketplaceid,String groupid );
 	public Map<String,ProductInPresale> getPresale(String sku,String marketplaceid,AmazonAuthority auth) ;
 	public Map<String,ProductInPresale> getPresale(String sku,String marketplaceid,String groupid) ;
+	/**
+	 * 批量获取多个SKU的预估销量数据
+	 * @param groupids
+	 * @param skus
+	 * @return key=groupid_sku_marketplaceid, value=Map(date->ProductInPresale)
+	 */
+	public Map<String, Map<String, ProductInPresale>> getPresaleBatch(Set<String> groupids, Set<String> skus);
 	public Chart getSales(String shopid,String marketplaceid,String amazonauthid,String sku) ;
 
 	String uploadPreSalesByExcel(Workbook workbook, UserInfo user);

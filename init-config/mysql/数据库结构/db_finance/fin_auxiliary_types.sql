@@ -17,12 +17,14 @@
 -- 导出  表 db_finance.fin_auxiliary_types 结构
 CREATE TABLE IF NOT EXISTS `fin_auxiliary_types` (
   `type_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '辅助核算类型ID',
-  `groupid` bigint unsigned NOT NULL COMMENT '租户ID',
+  `groupid` bigint unsigned DEFAULT NULL COMMENT '租户ID',
   `type_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '类型名称：部门、员工、客户等',
   `type_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '类型编码：DEPT、EMP、CUST等',
+  `status` tinyint unsigned DEFAULT '1' COMMENT '状态：0-停用，1-启用',
+  `is_system` bit(1) DEFAULT b'0',
   PRIMARY KEY (`type_id`) USING BTREE,
   UNIQUE KEY `tenant_id_type_name` (`groupid`,`type_code`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=442 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='辅助核算类别定义表';
+) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='辅助核算类别定义表';
 
 -- 数据导出被取消选择。
 

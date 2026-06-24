@@ -1,14 +1,7 @@
 package com.wimoor.amazon.profit.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
-import java.util.Map;
-
 import cn.hutool.core.math.Calculator;
-import com.wimoor.common.StringFormat;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.wimoor.amazon.profit.pojo.entity.FBAFormat;
 import com.wimoor.amazon.profit.pojo.entity.OutboundWeightFormat;
@@ -17,9 +10,14 @@ import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.StringFormat;
 import com.wimoor.common.mvc.BizException;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Map;
  
 @Service("UKProfitService")
 public class UKProfitServiceImpl extends ProfitServiceImpl {
@@ -115,24 +113,21 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 			}
 		}
 		if (fenpeiType.equals("EFN")) {
-			String warehousesite = profitConfigX.getWarehousesite();
-			if(warehousesite!=null && warehousesite.equals(country.toLowerCase())){
+			String warehousesite = profitConfigX.getWarehousesite().toUpperCase();
+			if(warehousesite!=null && warehousesite.equals(country)){
 				fenpeiType = "PAN_EU";
 			} 
 			else {
 				if(warehousesite.equals("UK")) {
-					 if(country.equals("DE")||country.equals("IT")||country.equals("ES")) {
-						 country = "UK-(DE,IT,ES)";
-					 }
-					 if(country.equals("FR")) {
-						 country = "UK-(FR)";
+					 if(country.equals("DE")||country.equals("IT")||country.equals("ES")||country.equals("FR")) {
+						 country = "UK-(DE,IT,ES,FR)";
 					 }
 				}else {
-					if(country.equals("DE")||country.equals("IT")||country.equals("ES")){
-						country = "DE,IT,ES";
+					if(country.equals("DE")||country.equals("IT")||country.equals("ES")||country.equals("FR")){
+						country = "DE,IT,ES,FR";
 					}else if(country.equals("UK")) {
-						if(country.equals("DE")||country.equals("FR")||country.equals("IT")||country.equals("ES")) {
-							country = "(DE,FR,IT,ES)-UK";
+						if(warehousesite.equals("DE")||warehousesite.equals("FR")||warehousesite.equals("IT")||warehousesite.equals("ES")) {
+							country = "(DE,IT,ES,FR)-UK";
 						}else {
 							fenpeiType = "PAN_EU";
 						}
@@ -158,21 +153,21 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 			if(GeneralUtil.isDouble(format)) {
 				FBA = new BigDecimal(format);
 			}
-			if("PAN_EU".equals(fenpeiType) && productTierId.contains("oversize")){//Pan-European Surcharge Oversize
-				if(country.equals("UK")){
-					FBA = FBA.add(new BigDecimal("0.93"));
-				}
-				if(country.equals("IT")||country.equals("ES")){
-					FBA = FBA.add(new BigDecimal("2.09"));
-				}
-				if(country.equals("FR")){
-					FBA = FBA.add(new BigDecimal("2.15"));
-				}
-				if(country.equals("SE")) {
-					FBA=FBA.add(new BigDecimal("20"));
-				}
-				
-			}
+//			if("PAN_EU".equals(fenpeiType) && productTierId.contains("oversize")){//Pan-European Surcharge Oversize
+//				if(country.equals("UK")){
+//					FBA = FBA.add(new BigDecimal("0.93"));
+//				}
+//				if(country.equals("IT")||country.equals("ES")){
+//					FBA = FBA.add(new BigDecimal("2.09"));
+//				}
+//				if(country.equals("FR")){
+//					FBA = FBA.add(new BigDecimal("2.15"));
+//				}
+//				if(country.equals("SE")) {
+//					FBA=FBA.add(new BigDecimal("20"));
+//				}
+//
+//			}
 		}
 		
 		return FBA;
@@ -228,9 +223,13 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 				fenpeiType = "PAN_EU";
 			} 
 			else {
-				if(country.equals("DE")||country.equals("IT")||country.equals("ES")) {
-					country="DE,IT,ES";
-				} 
+				if(country.equals("DE")||country.equals("IT")||country.equals("ES")||country.equals("FR")) {
+					if(country.equals("DE") && !hasAddedSite){
+						country="DE";
+					}else{
+						country="DE,IT,ES,FR";
+					}
+				}
 			}
 		}
 		FBAFormat fbaFormat = fbaFormatService.findByProductTierIdAndWeightSL(productTierId, outboundWeight,fenpeiType,country);
@@ -275,7 +274,7 @@ public class UKProfitServiceImpl extends ProfitServiceImpl {
 				}
 			}
 			if(warehousesite!=null && !warehousesite.equalsIgnoreCase("UK")){
-				if("DE,IT,ES,FR".contains(country)){
+				if("DE,IT,ES,FR,PL,CZ".contains(country)){
 					country = "DE,IT,ES,FR";
 				}else if("NL,BE".contains(country)){
 					country = "NL,BE";

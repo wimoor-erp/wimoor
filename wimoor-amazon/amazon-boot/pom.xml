@@ -11,7 +11,7 @@
 	<name>wimoor-amazon</name>
 	<description> for amazon</description>
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>9</java.version>
 		<spring.shiro.version>1.6.0</spring.shiro.version>
         <wimoor.version>2.0.0</wimoor.version>
 	</properties>
@@ -137,11 +137,17 @@
 			    <groupId>org.apache.poi</groupId>
 			    <artifactId>poi-ooxml</artifactId>
          </dependency>
+		<!-- XML处理 -->
+		<dependency>
+			<groupId>org.apache.xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+			<version>3.1.0</version>
+		</dependency>
       <!--表达式计算 https://mvnrepository.com/artifact/com.googlecode.aviator/aviator -->
 	<dependency>
 	    <groupId>com.googlecode.aviator</groupId>
 	    <artifactId>aviator</artifactId> 
-	    <version>3.0.0</version>
+	    <version>5.3.3</version>
 	</dependency>
 	<!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sqs -->
 	<dependency>
@@ -199,6 +205,14 @@
 			   <configuration>
 				   <fork>true</fork>
 			   </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>9</source>
+                    <target>9</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

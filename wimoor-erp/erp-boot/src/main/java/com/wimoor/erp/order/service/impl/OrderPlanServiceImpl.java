@@ -158,7 +158,7 @@ public class OrderPlanServiceImpl extends ServiceImpl<OrderPlanMapper, OrderPlan
         if (shipRecord != null && shipRecord.size() > 0) {
             int i=0;
             Map<String, Object> ship=shipRecord.get(i++);
-            while(ship.get("auditstatus")!=null&&ship.get("auditstatus").toString().equals("5")){
+            while(ship!=null && ship.get("auditstatus")!=null&&ship.get("auditstatus").toString().equals("5") && i>1){
                 ship=shipRecord.get(i++);
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

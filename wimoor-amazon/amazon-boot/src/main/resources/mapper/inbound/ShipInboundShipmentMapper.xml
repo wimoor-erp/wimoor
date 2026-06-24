@@ -380,7 +380,7 @@
 			order by item.SellerSKU
 	</select>
 
-	<select id="findBoxDetailByShipmentId" resultType="java.util.LinkedHashMap" parameterType="java.lang.String">
+	<select id="findBoxDetailByShipmentId" resultType="java.util.Map" parameterType="java.lang.String">
 		select ca.merchantsku sku,ca.quantity skunum,concat(box.shipmentid,'U',LPAD(ca.numberofcase,6,0)) boxnum,box.weight weight,
 			box.length length,box.width width,box.height height
 		from t_erp_ship_inboundcase ca
@@ -439,12 +439,13 @@
 	</select>
     <select id="getNeedAsyncShipment" resultType="java.util.Map" >
 		SELECT v2.amazonauthid,v2.marketplaceid,group_concat(v2.shipmentid) shipmentids FROM (
-																								 SELECT d.referenceID shipmentid,max(d.authid) amazonauthid,MAX(m.marketplaceId) marketplaceid from t_amz_rpt_inventory_detail d
-																																																		LEFT JOIN t_marketplace m ON m.market=d.country
-																																																		LEFT JOIN t_erp_ship_inboundshipment s ON s.ShipmentId=d.referenceID
-																								 WHERE d.referenceID LIKE 'FBA%' AND s.ShipmentId IS NULL
-																								   AND d.byday>date_sub(curdate(), INTERVAL 365 DAY) AND m.marketplaceId IS NOT null
-																								 GROUP BY d.referenceID
-																							 ) v2 GROUP BY v2.amazonauthid,v2.marketplaceid
+					SELECT d.referenceID shipmentid,max(d.authid) amazonauthid,MAX(m.marketplaceId) marketplaceid
+					from t_amz_rpt_inventory_detail d
+					LEFT JOIN t_marketplace m ON m.market=d.country
+					LEFT JOIN t_erp_ship_inboundshipment s ON s.ShipmentId=d.referenceID
+					WHERE d.referenceID LIKE 'FBA%' AND s.ShipmentId IS NULL
+					AND d.byday>date_sub(curdate(), INTERVAL 365 DAY) AND m.marketplaceId IS NOT null
+					GROUP BY d.referenceID
+		) v2 GROUP BY v2.amazonauthid,v2.marketplaceid
 	</select>
 </mapper>

@@ -52,6 +52,9 @@ public class ThirdPartyAPI {
     @TableField(value= "`opttime`")
     private Date opttime;
 
+    @TableField(value= "`runtime`")
+    private Date runtime;
+
     @TableField(value= "`isdelete`")
     private Boolean isdelete;
 

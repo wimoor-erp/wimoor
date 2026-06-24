@@ -325,9 +325,8 @@
 	</select>
 
        <select id="selectProductOrdersTodayOne" resultType="java.lang.Integer" parameterType="java.util.Map">
-			SELECT SUM(t.QuantityOrdered) QuantityOrdered
-			FROM t_amz_order_item t
-			left join t_amz_order_main mm on mm.amazon_order_id=t.amazon_order_id
+			SELECT SUM(t.quantity) QuantityOrdered
+			FROM t_orders_report t
 			left join t_marketplace m on m.marketplaceid=t.marketplaceid
 			left join t_amazon_auth au on au.id=t.amazonAuthId
 			where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
@@ -343,25 +342,21 @@
 			      and au.groupid=#{groupid,jdbcType=BIGINT}
 			    </if>
 		        and t.sku=#{sku,jdbcType=CHAR}
-		        and (mm.order_status='Shipped' or mm.order_status='Pending' or mm.order_status='Unshipped') 
+		        and (t.order_status='Shipped' or t.order_status='Pending' or t.order_status='Unshipped') 
      </select>
      
      
      <select id="selectProductOrdersTodayList_SalesOfYesterday" resultType="java.util.Map" parameterType="java.util.Map">
-     	SELECT SUM(t1.QuantityOrdered) QuantityOrdered_yy,
-					sum(ifnull(t1.item_price-ifnull(t.item_promotion_discount,0),t1.QuantityOrdered*info1.price)) totalprice_yy,
-					sum(ifnull(t1.item_price-ifnull(t.item_promotion_discount,0),t1.QuantityOrdered*info1.price))/sum(t1.QuantityOrdered) price_yy  
-				FROM t_amz_order_item t1
-				left join t_amz_order_main ma1 on 
-													ma1.amazon_order_id=t1.amazon_order_id 
-													and t1.marketplaceid=ma1.marketplaceid 
-													AND ma1.amazonAuthId=t1.amazonAuthId
-				left join t_product_info info1 on info1.sku=t1.sku and t1.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t1.marketplaceId
-				where t1.purchase_date >=#{yystartDate,jdbcType=TIMESTAMP} 
-					and t1.purchase_date &lt;#{yyendDate,jdbcType=TIMESTAMP}
-					and ma1.amazonAuthId=#{amazonAuthId,jdbcType=BIGINT}
-					and t1.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
-			        and t1.sku=#{sku,jdbcType=CHAR}
+     	SELECT SUM(t.quantity) QuantityOrdered_yy,
+					sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info1.price)) totalprice_yy,
+					sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info1.price))/sum(t.quantity) price_yy  
+				FROM t_orders_report t
+				left join t_product_info info1 on info1.sku=t.sku and t.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t.marketplaceId
+				where t.purchase_date >=#{yystartDate,jdbcType=TIMESTAMP} 
+					and t.purchase_date &lt;#{yyendDate,jdbcType=TIMESTAMP}
+					and t.amazonAuthId=#{amazonAuthId,jdbcType=BIGINT}
+					and t.marketplaceid=#{marketplaceid,jdbcType=CHAR} 
+			        and t.sku=#{sku,jdbcType=CHAR}
      </select>
      <select id="selectProductOrdersTodayList_SalesOfLast" resultType="java.util.Map" parameterType="java.util.Map">
                 SELECT   
@@ -383,35 +378,34 @@
 		left join t_amazon_auth au on au.id=maininfo.amazonAuthId
 		left join 
 		 (
-			SELECT t.sku sku0,max(ma.sales_channel) market0,max(t.currency) currency,
-				 SUM(t.QuantityOrdered) QuantityOrdered,
-				SUM(case when ma.order_status='Shipped' then t.QuantityOrdered ELSE 0 END ) Shipped,
-				SUM(case when ma.order_status='Pending' then t.QuantityOrdered ELSE 0 END ) Pending,
-				SUM(case when ma.order_status='Canceled' then t.QuantityOrdered ELSE 0 END ) Canceled,
-				SUM(case when ma.order_status='Unshipped' then t.QuantityOrdered ELSE 0 END ) Unshipped,
-				SUM(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),IFNULL(t.QuantityOrdered,0)*info.price)) total_price ,
-				sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.QuantityOrdered*info.price))/sum(t.QuantityOrdered) price 
-			FROM t_amz_order_item t
-			left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id 
+			SELECT t.sku sku0,max(t.sales_channel) market0,max(t.currency) currency,
+				 SUM(t.quantity) QuantityOrdered,
+				SUM(case when t.order_status='Shipped' then t.quantity ELSE 0 END ) Shipped,
+				SUM(case when t.order_status='Pending' then t.quantity ELSE 0 END ) Pending,
+				SUM(case when t.order_status='Canceled' then t.quantity ELSE 0 END ) Canceled,
+				SUM(case when t.order_status='Unshipped' then t.quantity ELSE 0 END ) Unshipped,
+				SUM(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),IFNULL(t.quantity,0)*info.price)) total_price ,
+				sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info.price))/sum(t.quantity) price 
+			FROM t_orders_report t
 			left join t_product_info info on info.amazonAuthId=t.amazonAuthId and info.marketplaceid=t.marketplaceId and  info.sku=t.sku 
 			where t.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
 			   	and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR}
 			    and t.purchase_date >=#{param.startDate,jdbcType=TIMESTAMP}
 				and t.purchase_date &lt;=#{param.endDate,jdbcType=TIMESTAMP}
-				and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+				and (t.quantity>0 or (ifnull(t.quantity,0)=0 and t.order_status='Canceled'))
 				<if test="param.status!=null">
-					and ma.order_status=#{param.status,jdbcType=CHAR}
+					and t.order_status=#{param.status,jdbcType=CHAR}
 				</if>
 				<if test="param.channel!=null">
 					<if test="param.channel=='Amazon'">
-						and ma.fulfillment_channel='AFN'
+						and t.fulfillment_channel='AFN'
 					</if>
 					<if test="param.channel=='Merchant'">
-						and ma.fulfillment_channel='MFN'
+						and t.fulfillment_channel='MFN'
 					</if>
 				</if>
 				<if test="param.isbusiness!=null">
-					and IFNULL(ma.isBusinessOrder,false) =#{param.isbusiness,jdbcType=CHAR}
+					and IFNULL(t.is_business_order,false) =#{param.isbusiness,jdbcType=CHAR}
 				</if>
 				<if test="param.sku!=null">
 					and t.sku like #{param.sku,jdbcType=CHAR}
@@ -425,87 +419,84 @@
 			GROUP BY t.sku
 		) today on  maininfo.sku=today.sku0
 		left join (
-			SELECT t1.sku sku1,max(ma1.sales_channel) market1,
-					SUM(t1.QuantityOrdered) QuantityOrdered_yy,
-					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price)) totalprice_yy,
-					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price))/sum(t1.QuantityOrdered) price_yy  
-				FROM t_amz_order_item t1
-				left join t_amz_order_main ma1 on ma1.amazon_order_id=t1.amazon_order_id 
-				left join t_amazon_auth au1 on au1.id=t1.amazonAuthId
-				left join t_product_info info1 on info1.sku=t1.sku and t1.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t1.marketplaceId
+			SELECT t.sku sku1,max(t.sales_channel) market1,
+					SUM(t.quantity) QuantityOrdered_yy,
+					sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info1.price)) totalprice_yy,
+					sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info1.price))/sum(t.quantity) price_yy  
+				FROM t_orders_report t
+				left join t_amazon_auth au1 on au1.id=t.amazonAuthId
+				left join t_product_info info1 on info1.sku=t.sku and t.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t.marketplaceId
 				where 
-				    t1.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
-				    and t1.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
-				    and t1.purchase_date >=#{param.yystartDate,jdbcType=TIMESTAMP} 
-					and t1.purchase_date &lt;#{param.yyendDate,jdbcType=TIMESTAMP}
-					and (t1.QuantityOrdered>0 or (ifnull(t1.QuantityOrdered,0)=0 and ma1.order_status='Canceled'))
+				    t.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
+				    and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+				    and t.purchase_date >=#{param.yystartDate,jdbcType=TIMESTAMP} 
+					and t.purchase_date &lt;#{param.yyendDate,jdbcType=TIMESTAMP}
+					and (t.quantity>0 or (ifnull(t.quantity,0)=0 and t.order_status='Canceled'))
 					<if test="param.status!=null">
-						and ma1.order_status=#{param.status,jdbcType=CHAR}
+						and t.order_status=#{param.status,jdbcType=CHAR}
 					</if>
 					<if test="param.channel!=null">
 						<if test="param.channel=='Amazon'">
-							and ma1.fulfillment_channel='AFN'
+							and t.fulfillment_channel='AFN'
 						</if>
 						<if test="param.channel=='Merchant'">
-							and ma1.fulfillment_channel='MFN'
+							and t.fulfillment_channel='MFN'
 						</if>
 					</if>
 					<if test="param.isbusiness!=null">
-						and IFNULL(ma1.isBusinessOrder,false) =#{param.isbusiness,jdbcType=CHAR}
+						and IFNULL(t.is_business_order,false) =#{param.isbusiness,jdbcType=CHAR}
 					</if>
 					<if test="param.sku!=null">
-						and t1.sku like #{param.sku,jdbcType=CHAR}
+						and t.sku like #{param.sku,jdbcType=CHAR}
 					</if>
 					<if test="param.asin!=null">
-						and t1.asin=#{param.asin,jdbcType=CHAR}
+						and t.asin=#{param.asin,jdbcType=CHAR}
 					</if>
 					<if test="param.orderid!=null">
-						and t1.amazon_order_id=#{param.orderid,jdbcType=CHAR}
+						and t.amazon_order_id=#{param.orderid,jdbcType=CHAR}
 					</if>
-				GROUP BY t1.sku
+				GROUP BY t.sku
 		) yy on  yy.sku1=maininfo.sku 
 		left join (
-			SELECT t1.sku sku2,max(ma1.sales_channel) market2,
-					SUM(t1.QuantityOrdered) QuantityOrdered_lw,
-					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price)) totalprice_lw,
-					sum(ifnull(t1.item_price-ifnull(t1.item_promotion_discount,0),t1.QuantityOrdered*info1.price))/sum(t1.QuantityOrdered) price_lw  
-				FROM t_amz_order_item t1
-				left join t_amz_order_main ma1 on ma1.amazon_order_id=t1.amazon_order_id and t1.marketplaceid=ma1.marketplaceid 
-				AND ma1.amazonAuthId=t1.amazonAuthId
-				left join t_amazon_auth au1 on au1.id=t1.amazonAuthId
-				left join t_product_info info1 on info1.sku=t1.sku and t1.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t1.marketplaceId
+			SELECT t.sku sku2,max(t.sales_channel) market2,
+					SUM(t.quantity) QuantityOrdered_lw,
+					sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info1.price)) totalprice_lw,
+					sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info1.price))/sum(t.quantity) price_lw  
+				FROM t_orders_report t
+				left join t_amazon_auth au1 on au1.id=t.amazonAuthId
+				left join t_product_info info1 on info1.sku=t.sku and t.amazonAuthId=info1.amazonAuthId and info1.marketplaceid=t.marketplaceId
 				where 
-				    t1.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
-				    and t1.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
-				    and t1.purchase_date >=#{param.lwstartDate,jdbcType=TIMESTAMP} 
-					and t1.purchase_date &lt;#{param.lwendDate,jdbcType=TIMESTAMP}
-					and (t1.QuantityOrdered>0 or (ifnull(t1.QuantityOrdered,0)=0 and ma1.order_status='Canceled'))
-					and t1.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+				    t.amazonAuthId=#{param.amazonAuthId,jdbcType=CHAR}
+				    and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
+				    and t.purchase_date >=#{param.lwstartDate,jdbcType=TIMESTAMP} 
+					and t.purchase_date &lt;#{param.lwendDate,jdbcType=TIMESTAMP}
+					and (t.quantity>0 or (ifnull(t.quantity,0)=0 and t.order_status='Canceled'))
+					and t.marketplaceid=#{param.marketplaceid,jdbcType=CHAR} 
 					and au1.groupid=#{param.groupid,jdbcType=BIGINT} 
 					<if test="param.status!=null">
-						and ma1.order_status=#{param.status,jdbcType=CHAR}
+						and t.order_status=#{param.status,jdbcType=CHAR}
 					</if>
 					<if test="param.channel!=null">
 						<if test="param.channel=='Amazon'">
-							and ma1.fulfillment_channel='AFN'
+							and t.fulfillment_channel='AFN'
 						</if>
 						<if test="param.channel=='Merchant'">
-							and ma1.fulfillment_channel='MFN'
+							and t.fulfillment_channel='MFN'
 						</if>
 					</if>
 					<if test="param.isbusiness!=null">
-						and IFNULL(ma1.isBusinessOrder,false) =#{param.isbusiness,jdbcType=CHAR}
+						and IFNULL(t.is_business_order,false) =#{param.isbusiness,jdbcType=CHAR}
 					</if>
 					<if test="param.sku!=null">
-						and t1.sku like #{param.sku,jdbcType=CHAR}
+						and t.sku like #{param.sku,jdbcType=CHAR}
 					</if>
 					<if test="param.asin!=null">
-						and t1.asin=#{param.asin,jdbcType=CHAR}
+						and t.asin=#{param.asin,jdbcType=CHAR}
 					</if>
 					<if test="param.orderid!=null">
-						and t1.amazon_order_id=#{param.orderid,jdbcType=CHAR}
+						and t.amazon_order_id=#{param.orderid,jdbcType=CHAR}
 					</if>
-				GROUP BY  t1.sku
+				GROUP BY  t.sku
 		) lw on  lw.sku2=maininfo.sku 
 	    left join t_picture p on p.id=maininfo.image
 		left join t_amazon_group g on au.groupid=g.id
@@ -584,107 +575,27 @@
 	</select>
 	
 	<select id="selectOrderTodaySummary" resultType="java.util.Map" parameterType="java.util.Map">
-		SELECT max(t2.skucount) total_skucount,max(t3.ordercount) total_order,
-			SUM(ifnull(t.QuantityOrdered,0)) total_quantity,max(t.currency) currency,
-			SUM(case when ma.order_status='Shipped' then t.QuantityOrdered ELSE 0 END ) total_Shipped,
-			SUM(case when ma.order_status='Pending' then t.QuantityOrdered ELSE 0 END ) total_Pending,
-			SUM(case when ma.order_status='Canceled' then case when t.QuantityOrdered=0 then 1 else t.QuantityOrdered end ELSE 0 END ) total_Canceled,
-			SUM(case when ma.order_status='Unshipped' then t.QuantityOrdered ELSE 0 END ) total_Unshipped,
-			SUM(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),IFNULL(t.QuantityOrdered,0)*info.price)) total_price ,
+		SELECT 
+			SUM(ifnull(t.quantity,0)) total_quantity,
+			max(t.currency) currency,
+			SUM(case when t.order_status='Shipped' then t.quantity ELSE 0 END ) total_Shipped,
+			SUM(case when t.order_status='Pending' then t.quantity ELSE 0 END ) total_Pending,
+			SUM(case when t.order_status='Canceled' then case when t.quantity=0 then 1 else t.quantity end ELSE 0 END ) total_Canceled,
+			SUM(case when t.order_status='Unshipped' then t.quantity ELSE 0 END ) total_Unshipped,
+			SUM(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),IFNULL(t.quantity,0)*info.price)) total_price ,
 	    	SUM(ifnull(t.item_tax,0)) total_tax,
 			SUM(ifnull(t.item_promotion_discount,0)) total_item_promotion_discount,
-			SUM(ifnull(t.shipping_price,0)) total_shipping_price 
-		FROM t_amz_order_item t
-		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.marketplaceid=ma.marketplaceid AND ma.amazonAuthId=t.amazonAuthId
+			SUM(ifnull(t.shipping_price,0)) total_shipping_price,
+			COUNT(DISTINCT t.amazon_order_id) total_order,
+			COUNT(DISTINCT t.sku) total_skucount
+		FROM t_orders_report t
 		left join t_amazon_auth au on au.id=t.amazonAuthId
 		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and info.marketplaceid=t.marketplaceId 
 		left join t_product_in_opt opt ON opt.pid=info.id
 		left join t_erp_material m on m.sku=ifnull(opt.msku,info.sku) and m.shopid=au.shop_id and m.isDelete = 0
-		cross join (SELECT count(1) skucount from (
-			SELECT max(it.sku) sku
-				from t_amz_order_item it 
-				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
-				and main.amazonAuthId=it.amazonAuthId
-				left join t_amazon_auth a on a.id=it.amazonAuthId 
-				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
-				left join t_product_in_opt pt ON pt.pid=p.id
-				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
-				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
-				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
-				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
-				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
-				<if test="color!=null">
-				and ml.color=#{color,jdbcType=CHAR}
-				</if>
-				<if test="status!=null">
-					and main.order_status=#{status,jdbcType=CHAR}
-				</if>
-				<if test="channel!=null">
-					<if test="channel=='Amazon'">
-						and main.fulfillment_channel='AFN'
-					</if>
-					<if test="channel=='Merchant'">
-						and main.fulfillment_channel='MFN'
-					</if>
-				</if>
-				<if test="isbusiness!=null">
-					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
-				</if>
-				<if test="sku!=null">
-						and it.sku like #{sku,jdbcType=CHAR}
-				</if>
-				<if test="asin!=null">
-					and it.asin=#{asin,jdbcType=CHAR}
-				</if>
-				<if test="orderid!=null">
-					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
-				</if>
-			group by it.sku
-		) t1) t2 
-		cross join (SELECT  SUM(t1.ordernum) ordercount from (
-	            SELECT max(case when main.order_status='Canceled' then 0 ELSE 1 end )  ordernum
-				from t_amz_order_item it 
-				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
-				and main.amazonAuthId=it.amazonAuthId
-				left join t_amazon_auth a on a.id=it.amazonAuthId 
-				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
-				left join t_product_in_opt pt ON pt.pid=p.id
-				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
-				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
-				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
-				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
-				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
-				<if test="color!=null">
-				and ml.color=#{color,jdbcType=CHAR}
-				</if>
-				<if test="status!=null">
-					and main.order_status=#{status,jdbcType=CHAR}
-				</if>
-				<if test="channel!=null">
-					<if test="channel=='Amazon'">
-						and main.fulfillment_channel='AFN'
-					</if>
-					<if test="channel=='Merchant'">
-						and main.fulfillment_channel='MFN'
-					</if>
-				</if>
-				<if test="isbusiness!=null">
-					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
-				</if>
-				<if test="sku!=null">
-					and it.sku like #{sku,jdbcType=CHAR}
-				</if>
-				<if test="asin!=null">
-					and it.asin=#{asin,jdbcType=CHAR}
-				</if>
-				<if test="orderid!=null">
-					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
-				</if>
-			group by it.amazon_order_id
-		) t1) t3 
 		where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
 			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
-			and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+			and (t.quantity>0 or (ifnull(t.quantity,0)=0 and t.order_status='Canceled'))
       		<if test="groupid!=null">
 				and au.groupid=#{groupid,jdbcType=BIGINT}
 			</if>
@@ -705,18 +616,18 @@
 				and m.color=#{color,jdbcType=CHAR}
 			</if>
 			<if test="status!=null">
-				and ma.order_status=#{status,jdbcType=CHAR}
+				and t.order_status=#{status,jdbcType=CHAR}
 			</if>
 			<if test="channel!=null">
 				<if test="channel=='Amazon'">
-					and ma.fulfillment_channel='AFN'
+					and t.fulfillment_channel='AFN'
 				</if>
 				<if test="channel=='Merchant'">
-					and ma.fulfillment_channel='MFN'
+					and t.fulfillment_channel='MFN'
 				</if>
 			</if>
 			<if test="isbusiness!=null">
-				and IFNULL(ma.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+				and IFNULL(t.is_business_order,false) =#{isbusiness,jdbcType=CHAR}
 			</if>
 			<if test="sku!=null">
 				and t.sku like #{sku,jdbcType=CHAR}
@@ -730,107 +641,27 @@
 	</select>
 	
 	<select id="selectOrderYesDaySummary" resultType="java.util.Map" parameterType="java.util.Map">
-		SELECT max(t2.skucount) total_skucount,max(t3.ordercount) total_order,
-			SUM(ifnull(t.QuantityOrdered,0)) total_quantity,max(t.currency) currency,
-			SUM(case when ma.order_status='Shipped' then t.QuantityOrdered ELSE 0 END ) total_Shipped,
-			SUM(case when ma.order_status='Pending' then t.QuantityOrdered ELSE 0 END ) total_Pending,
-		    SUM(case when ma.order_status='Canceled' then case when t.QuantityOrdered=0 then 1 else t.QuantityOrdered end ELSE 0 END ) total_Canceled,
-			SUM(case when ma.order_status='Unshipped' then t.QuantityOrdered ELSE 0 END ) total_Unshipped,
-			sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.QuantityOrdered*info.price)) total_price ,
+		SELECT 
+			SUM(ifnull(t.quantity,0)) total_quantity,
+			max(t.currency) currency,
+			SUM(case when t.order_status='Shipped' then t.quantity ELSE 0 END ) total_Shipped,
+			SUM(case when t.order_status='Pending' then t.quantity ELSE 0 END ) total_Pending,
+		    SUM(case when t.order_status='Canceled' then case when t.quantity=0 then 1 else t.quantity end ELSE 0 END ) total_Canceled,
+			SUM(case when t.order_status='Unshipped' then t.quantity ELSE 0 END ) total_Unshipped,
+			sum(ifnull(t.item_price-ifnull(t.item_promotion_discount,0),t.quantity*info.price)) total_price ,
 	    	SUM(ifnull(t.item_tax,0)) total_tax,
 			SUM(ifnull(t.item_promotion_discount,0)) total_item_promotion_discount,
-			SUM(ifnull(t.shipping_price,0)) total_shipping_price 
-		FROM t_amz_order_item t
-		left join t_amz_order_main ma on ma.amazon_order_id=t.amazon_order_id and t.marketplaceid=ma.marketplaceid AND ma.amazonAuthId=t.amazonAuthId
+			SUM(ifnull(t.shipping_price,0)) total_shipping_price,
+			COUNT(DISTINCT t.amazon_order_id) total_order,
+			COUNT(DISTINCT t.sku) total_skucount
+		FROM t_orders_report t
 		left join t_amazon_auth au on au.id=t.amazonAuthId
 		left join t_product_info info on info.sku=t.sku and t.amazonAuthId=info.amazonAuthId and info.marketplaceid=t.marketplaceId 
 		left join t_product_in_opt opt ON opt.pid=info.id
 		left join t_erp_material m on m.sku=ifnull(opt.msku,info.sku) and m.shopid=au.shop_id and m.isDelete = 0
-		cross join (SELECT count(1) skucount from (
-			SELECT max(it.sku) sku
-				from t_amz_order_item it 
-				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
-				and main.amazonAuthId=it.amazonAuthId
-				left join t_amazon_auth a on a.id=it.amazonAuthId 
-				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
-				left join t_product_in_opt pt ON pt.pid=p.id
-				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
-				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
-				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
-				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
-				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
-				<if test="color!=null">
-				     and ml.color=#{color,jdbcType=CHAR}
-				</if>
-				<if test="status!=null">
-					and main.order_status=#{status,jdbcType=CHAR}
-				</if>
-				<if test="channel!=null">
-					<if test="channel=='Amazon'">
-						and main.fulfillment_channel='AFN'
-					</if>
-					<if test="channel=='Merchant'">
-						and main.fulfillment_channel='MFN'
-					</if>
-				</if>
-				<if test="isbusiness!=null">
-					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
-				</if>
-				<if test="sku!=null">
-					and it.sku like #{sku,jdbcType=CHAR}
-				</if>
-				<if test="asin!=null">
-					and it.asin=#{asin,jdbcType=CHAR}
-				</if>
-				<if test="orderid!=null">
-					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
-				</if>
-			group by it.sku
-		) t1) t2 
-		cross join (SELECT SUM(t1.ordernum)  ordercount from (
-			SELECT max(case when main.order_status='Canceled' then 0 ELSE 1 end )  ordernum
-				from t_amz_order_item it 
-				left join t_amz_order_main main on main.amazon_order_id=it.amazon_order_id and it.marketplaceid=main.marketplaceid 
-				and main.amazonAuthId=it.amazonAuthId
-				left join t_amazon_auth a on a.id=it.amazonAuthId 
-				left join t_product_info p on p.sku=it.sku and it.amazonAuthId=p.amazonAuthId and p.marketplaceid=it.marketplaceId 
-				left join t_product_in_opt pt ON pt.pid=p.id
-				left join t_erp_material ml on ml.sku=ifnull(pt.msku,p.sku) and ml.shopid=a.shop_id and ml.isDelete = 0
-				where it.purchase_date >=#{startDate,jdbcType=TIMESTAMP} 
-				and it.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP} 
-				and (it.QuantityOrdered>0 or (ifnull(it.QuantityOrdered,0)=0 and main.order_status='Canceled'))
-				and it.marketplaceid=#{marketplaceid,jdbcType=CHAR} and a.groupid=#{groupid,jdbcType=BIGINT} 
-				<if test="color!=null">
-				and ml.color=#{color,jdbcType=CHAR}
-				</if>
-				<if test="status!=null">
-					and main.order_status=#{status,jdbcType=CHAR}
-				</if>
-				<if test="channel!=null">
-					<if test="channel=='Amazon'">
-						and main.fulfillment_channel='AFN'
-					</if>
-					<if test="channel=='Merchant'">
-						and main.fulfillment_channel='MFN'
-					</if>
-				</if>
-				<if test="isbusiness!=null">
-					and IFNULL(main.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
-				</if>
-				<if test="sku!=null">
-					and it.sku like #{sku,jdbcType=CHAR}
-				</if>
-				<if test="asin!=null">
-					and it.asin=#{asin,jdbcType=CHAR}
-				</if>
-				<if test="orderid!=null">
-					and it.amazon_order_id=#{orderid,jdbcType=CHAR}
-				</if>
-			group by it.amazon_order_id
-		) t1) t3 
 		where t.purchase_date >=#{startDate,jdbcType=TIMESTAMP}
 			and t.purchase_date &lt;=#{endDate,jdbcType=TIMESTAMP}
-			and (t.QuantityOrdered>0 or (ifnull(t.QuantityOrdered,0)=0 and ma.order_status='Canceled'))
+			and (t.quantity>0 or (ifnull(t.quantity,0)=0 and t.order_status='Canceled'))
       		<if test="groupid!=null">
 				and au.groupid=#{groupid,jdbcType=BIGINT}
 			</if>
@@ -851,18 +682,18 @@
 				and m.color=#{color,jdbcType=CHAR}
 			</if>
 			<if test="status!=null">
-				and ma.order_status=#{status,jdbcType=CHAR}
+				and t.order_status=#{status,jdbcType=CHAR}
 			</if>
 			<if test="channel!=null">
 				<if test="channel=='Amazon'">
-					and ma.fulfillment_channel='AFN'
+					and t.fulfillment_channel='AFN'
 				</if>
 				<if test="channel=='Merchant'">
-					and ma.fulfillment_channel='MFN'
+					and t.fulfillment_channel='MFN'
 				</if>
 			</if>
 			<if test="isbusiness!=null">
-				and IFNULL(ma.isBusinessOrder,false) =#{isbusiness,jdbcType=CHAR}
+				and IFNULL(t.is_business_order,false) =#{isbusiness,jdbcType=CHAR}
 			</if>
 			<if test="sku!=null">
 				and t.sku like #{sku,jdbcType=CHAR}

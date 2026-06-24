@@ -1,27 +1,29 @@
 package com.wimoor.amazon.inboundV2.controller;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cn.hutool.poi.excel.ExcelWriter;
 import com.wimoor.amazon.inboundV2.pojo.dto.BoxAnalysisDTO;
+import com.wimoor.amazon.inboundV2.pojo.entity.*;
+import com.wimoor.amazon.inboundV2.pojo.vo.ShipInboundItemVo;
+import com.wimoor.amazon.inboundV2.pojo.vo.ShipPlanVo;
 import com.wimoor.amazon.inboundV2.service.*;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.inbound.service.IFulfillmentInboundService;
 import com.wimoor.amazon.inboundV2.pojo.dto.PackingDTO;
 import com.wimoor.amazon.inboundV2.pojo.dto.ShipCartDTO;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundBox;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundItem;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanShipItemService;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
@@ -35,6 +37,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 @Api(tags = "发货单")
 @RestController
@@ -214,8 +220,133 @@ public class ShipInboundPlanBoxV2Controller {
 			return Result.success( shipInboundBoxAnalysis3Service.boxAnalysis(user,dto));
 		}
 	}
-	
-		
+	@PostMapping("/uploadExcelBoxDetail")
+	public Result<?> uploadExcelBoxDetailAction(@RequestParam("file") MultipartFile file, String formid, String packingGroupId){
+		try {
+			UserInfo user=UserInfoContext.get();
+			ShipCartDTO cart = shipInboundBoxV2Service.getDetailFromExcel(file, formid);
+			cart.setFormid(formid);
+			cart.setPackingGroupId(packingGroupId);
+			cart.setShipmentid(null);
+			for(ShipInboundBox box:cart.getBoxListDetail()){
+				box.setPackingGroupId(packingGroupId);
+				box.setShipmentid(null);
+			}
+			cart.setBoxnum(cart.getBoxListDetail().size());
+			shipInboundBoxV2Service.savePackingInformation(cart,user);
+			return Result.success();
+		}catch(FeignException e) {
+			 throw new BizException("提交失败" +e.getMessage());
+		 }catch(Exception e) {
+			 throw new BizException("提交失败" +e.getMessage());
+		 }
+
+	}
+	@PostMapping("/uploadShipmentExcelBoxDetail")
+	public Result<?> uploadShipmentExcelBoxDetailAction(@RequestParam("file") MultipartFile file, String formid, String shipmentid){
+		try {
+			UserInfo user=UserInfoContext.get();
+			ShipCartDTO cart = shipInboundBoxV2Service.getDetailFromExcel(file, formid);
+			cart.setFormid(formid);
+			cart.setPackingGroupId(null);
+			cart.setShipmentid(shipmentid);
+			for(ShipInboundBox box:cart.getBoxListDetail()){
+				box.setPackingGroupId(null);
+				box.setShipmentid(shipmentid);
+			}
+			cart.setBoxnum(cart.getBoxListDetail().size());
+			shipInboundBoxV2Service.savePackingInformation(cart,user);
+			return Result.success();
+		}catch(FeignException e) {
+			throw new BizException("提交失败" +e.getMessage());
+		}catch(Exception e) {
+			throw new BizException("提交失败" +e.getMessage());
+		}
+
+	}
+	@GetMapping("/downExcelBoxDetail")
+	public void downExcelBoxDetailAction(String formid,
+										 HttpServletResponse response) {
+		try {
+			// 创建新的Excel工作薄
+			SXSSFWorkbook workbook = new SXSSFWorkbook();
+			response.setContentType("application/force-download");// 设置强制下载不打开
+			response.addHeader("Content-Disposition", "attachment;fileName=boxDetail.xlsx");// 设置文件名
+			ServletOutputStream fOut = response.getOutputStream();
+			// 将数据写入Excel
+			UserInfo user=UserInfoContext.get();
+
+			shipInboundBoxV2Service.setExcelBoxDetail(user, workbook, formid);
+			workbook.write(fOut);
+			workbook.close();
+			fOut.flush();
+			fOut.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@PostMapping("/downExcelBoxCaseTemp")
+	public Result<?> downExcelBoxCaseTempAction(@RequestBody ShipPlanVo shipPlanVo,
+										 HttpServletResponse response) {
+		try {
+			// 创建新的Excel工作薄
+			response.setContentType("application/force-download");// 设置强制下载不打开
+			response.addHeader("Content-Disposition", "attachment;fileName=boxDetail.xlsx");// 设置文件名
+			ServletOutputStream fOut = response.getOutputStream();
+			// 将数据写入Excel
+			UserInfo user = UserInfoContext.get();
+
+			// 1. 从resources读取模板文件
+			InputStream templateStream = ExcelWriter.class
+					.getClassLoader()
+					.getResourceAsStream("template/package.xlsx");
+
+			if (templateStream == null) {
+				throw new BizException("模板文件未找到：template/package.xlsx");
+			}
+
+
+			Workbook workbook = WorkbookFactory.create(templateStream);
+			// 4. 获取第一个工作表（可根据需要调整）
+			Sheet sheet = workbook.getSheetAt(0);
+			sheet.getRow(1).getCell(7).setCellValue(shipPlanVo.getCountryname());
+			sheet.getRow(1).getCell(14).setCellValue(shipPlanVo.getGroupname());
+			Row oldsheetRow = sheet.getRow(5);
+			sheet.shiftRows(5, sheet.getLastRowNum(), shipPlanVo.getItemlist().size()-1,true,false);
+			
+			for(int rowaddnum=0;rowaddnum<shipPlanVo.getItemlist().size()-1;rowaddnum++) {
+				Row row = sheet.createRow(5+rowaddnum);
+				row.setRowStyle(oldsheetRow.getRowStyle());
+				for (int cellnum = 0; cellnum <= oldsheetRow.getLastCellNum(); cellnum++) {
+					Cell oldcell = oldsheetRow.getCell(cellnum);
+					Cell mycell = row.createCell(cellnum);
+					if(oldcell!=null) {
+						mycell.setCellValue(oldcell.getRichStringCellValue());
+						mycell.setCellStyle(oldcell.getCellStyle());
+					}else {
+						mycell.setCellValue("");
+					}
+
+				}
+			}
+			for(int i=0;i<shipPlanVo.getItemlist().size();i++){
+				ShipInboundItemVo item=shipPlanVo.getItemlist().get(i);
+				Row row=sheet.getRow(5+i);
+				row.getCell(0).setCellValue(item.getSku());
+				row.getCell(1).setCellValue(item.getQuantity());
+			}
+			workbook.write(fOut);
+			workbook.close();
+			fOut.flush();
+			fOut.close();
+
+		} catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+		return Result.success();
+    }
+
 }
 
 

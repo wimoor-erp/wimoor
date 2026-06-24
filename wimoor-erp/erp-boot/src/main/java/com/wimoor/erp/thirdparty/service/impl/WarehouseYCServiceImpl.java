@@ -1,26 +1,24 @@
 package com.wimoor.erp.thirdparty.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.HttpClientUtil;
 import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.order.mapper.OrderListingMapper;
-import com.wimoor.erp.order.pojo.entity.Order;
 import com.wimoor.erp.order.pojo.entity.OrderListing;
-import com.wimoor.erp.order.pojo.entity.OrderPlatform;
 import com.wimoor.erp.order.service.IOrderPlatformService;
 import com.wimoor.erp.order.service.IOrderService;
 import com.wimoor.erp.thirdparty.mapper.ThirdPartyAPIMapper;
-import com.wimoor.erp.thirdparty.mapper.ThirdPartyWarehouseInventoryMapperXL;
 import com.wimoor.erp.thirdparty.mapper.ThirdPartyWarehouseInventoryMapperYC;
 import com.wimoor.erp.thirdparty.mapper.ThirdPartyWarehouseMapper;
 import com.wimoor.erp.thirdparty.pojo.dto.ThirdpartyWarehouseInvDTO;
-import com.wimoor.erp.thirdparty.pojo.entity.*;
+import com.wimoor.erp.thirdparty.pojo.entity.ThirdPartyAPI;
+import com.wimoor.erp.thirdparty.pojo.entity.ThirdPartyWarehouse;
+import com.wimoor.erp.thirdparty.pojo.entity.ThirdPartyWarehouseBind;
+import com.wimoor.erp.thirdparty.pojo.entity.ThirdPartyWarehouseInventoryYC;
 import com.wimoor.erp.thirdparty.service.IThirdPartyWarehouseBindService;
 import com.wimoor.erp.thirdparty.service.IThirdPartyWarehouseService;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +28,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.math.BigDecimal;
 import java.security.Key;
-import java.time.Instant;
 import java.util.*;
 
 @Service("warehouseYCService")
@@ -99,7 +95,7 @@ public class WarehouseYCServiceImpl implements IThirdPartyWarehouseService {
                     for (int i = 0; i < records.size(); i++) {
                         JSONObject dataitem =   records.getJSONObject(i);
                         String itemsku = dataitem.getString("im_code");
-                        Integer amount = dataitem.containsKey("total_iv_quantity")? dataitem.getInteger("total_iv_quantity") : 0;
+                        Integer amount = dataitem.containsKey("iv_available_quantity")? dataitem.getInteger("iv_available_quantity") : 0;
                         qtyMap.put(itemsku, amount);
                         Map<String, Object> mparam = new HashMap<String, Object>();
                         mparam.put("skulist", Arrays.asList(itemsku));

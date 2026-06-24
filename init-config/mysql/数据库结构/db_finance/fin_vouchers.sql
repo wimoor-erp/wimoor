@@ -20,20 +20,23 @@ CREATE TABLE IF NOT EXISTS `fin_vouchers` (
   `groupid` bigint unsigned NOT NULL COMMENT '租户ID',
   `voucher_type` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `voucher_no` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '凭证编号，如记-001',
+  `period_id` bigint unsigned NOT NULL,
   `voucher_date` date NOT NULL COMMENT '凭证日期',
   `attachment_count` int DEFAULT '0' COMMENT '附件数量',
   `total_amount` decimal(15,2) NOT NULL COMMENT '凭证总金额',
   `voucher_status` tinyint DEFAULT '1' COMMENT '凭证状态：0-草稿，1-待审核，2-已审核，3-已过账，4-已作废',
+  `data_source` tinyint DEFAULT '1' COMMENT '1-手动录入，2-导入，3-结账模版生成，4-单据同步',
   `preparer_by` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '制单人',
   `auditor_by` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '审核人',
+  `remark` varchar(200) COLLATE utf8mb4_bin DEFAULT NULL,
   `post_time` datetime DEFAULT NULL COMMENT '过账时间',
   `created_time` datetime DEFAULT NULL COMMENT '创建时间',
   `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`voucher_id`),
-  UNIQUE KEY `uk_tenant_voucher_no` (`groupid`,`voucher_no`) USING BTREE,
+  UNIQUE KEY `uk_tenant_voucher_no` (`groupid`,`period_id`,`voucher_no`) USING BTREE,
   KEY `idx_vouchers_tenant_date` (`groupid`,`voucher_date`) USING BTREE COMMENT '租户凭证日期索引',
   KEY `idx_vouchers_tenant_status` (`groupid`,`voucher_status`) USING BTREE COMMENT '租户凭证状态索引'
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='记账凭证主表，存储凭证的基本信息';
+) ENGINE=InnoDB AUTO_INCREMENT=1262 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='记账凭证主表，存储凭证的基本信息';
 
 -- 数据导出被取消选择。
 

@@ -1,34 +1,13 @@
 package com.wimoor.amazon.summary.service.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-
-import javax.annotation.Resource;
-
-import com.wimoor.amazon.auth.pojo.entity.Marketplace;
-import com.wimoor.amazon.auth.service.IMarketplaceService;
-import com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
+import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
+import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.mapper.DimensionsInfoMapper;
 import com.wimoor.amazon.common.mapper.SummaryDataMapper;
 import com.wimoor.amazon.common.pojo.entity.DaysalesFormula;
@@ -40,23 +19,18 @@ import com.wimoor.amazon.common.service.IUserSalesRankService;
 import com.wimoor.amazon.common.service.impl.DaysalesFormulaServiceImpl;
 import com.wimoor.amazon.finances.mapper.FBAEstimatedFeeMapper;
 import com.wimoor.amazon.finances.pojo.entity.FBAEstimatedFee;
+import com.wimoor.amazon.finances.service.IFBAEstimatedFeeService;
 import com.wimoor.amazon.inbound.mapper.FBAShipCycleMapper;
 import com.wimoor.amazon.inbound.pojo.entity.FBAShipCycle;
+import com.wimoor.amazon.orders.mapper.AmzOrderReturnsMapper;
 import com.wimoor.amazon.orders.mapper.OrdersReportMapper;
 import com.wimoor.amazon.orders.mapper.OrdersSummaryMapper;
 import com.wimoor.amazon.orders.mapper.SummaryAllMapper;
 import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
 import com.wimoor.amazon.orders.pojo.entity.OrdersSummary;
 import com.wimoor.amazon.orders.pojo.entity.SummaryAll;
-import com.wimoor.amazon.product.mapper.ProductCategoryMapper;
-import com.wimoor.amazon.product.mapper.ProductInOptMapper;
-import com.wimoor.amazon.product.mapper.ProductInOrderMapper;
-import com.wimoor.amazon.product.mapper.ProductInProfitMapper;
-import com.wimoor.amazon.product.mapper.ProductInfoMapper;
-import com.wimoor.amazon.product.pojo.entity.ProductCategory;
-import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
-import com.wimoor.amazon.product.pojo.entity.ProductInOrder;
-import com.wimoor.amazon.product.pojo.entity.ProductInProfit;
+import com.wimoor.amazon.product.mapper.*;
+import com.wimoor.amazon.product.pojo.entity.*;
 import com.wimoor.amazon.product.service.IAmzProductSalesPlanService;
 import com.wimoor.amazon.product.service.IProductInfoService;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
@@ -78,8 +52,17 @@ import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.Future;
 
 @Service("summaryOrderReportService")
 public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService{
@@ -141,6 +124,8 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
     IEstimatedSalesService estimatedSalesService;
     @Resource
     IAmzProductSalesPlanService iAmzProductSalesPlanService;
+	@Resource
+	IFBAEstimatedFeeService iFBAEstimatedFeeService;
     ////////////////////////////////更新订单BEGIN//////////////////////////////////////////////////////
     public Boolean needAdd(OrdersReport record) {
 		if (record == null)
@@ -573,7 +558,15 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 		}
 		return shopset;
 	}
-	
+
+	@Override
+	public void dataAnalysisSingle(String pid) {
+		ProductInfo info = productInfoMapper.selectById(pid);
+		if(info!=null){
+			this.dataAnalysisSingleInfo(info.getAmazonAuthId().toString(),info.getSku(),info.getMarketplaceid());
+		}
+	}
+
 	public void saveMainReport(Set<String> mshopSet) {
 		// 遍历所有的shopid
 		if (mshopSet == null) {
@@ -751,7 +744,22 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 	public List<Map<String, Object>> weekReport(Map<String,Object> map) {
 		return   ordersSummaryMapper.weekAmount(map) ;
 	}
-	
+
+
+	public void dataAnalysisSingleInfo(String amazonauthid,String sku,String marketplaceid) {
+		QueryWrapper<AmazonAuthority> authqueryWrapper=new QueryWrapper<AmazonAuthority>();
+		authqueryWrapper.eq("id", amazonauthid);
+		authqueryWrapper.eq("disable", false);
+		AmazonAuthority auth = amazonAuthorityService.getOne(authqueryWrapper);
+		if(auth!=null) {
+			List<Map<String, Object>> list = productInfoMapper.selectByAuth(auth.getId(),sku,marketplaceid);
+			if(list!=null && list.size()>0){
+				productDateUpdate(auth,list);
+			}
+		}
+	}
+
+
 	public void dataAnalysis(Set<String> shopset) {
 		//productInfoReviewService.updateRunsAsin();
 		if(shopset==null) {
@@ -766,7 +774,7 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 		List<AmazonAuthority> amazonAuthorityList = amazonAuthorityService.list(authqueryWrapper);
 		if(amazonAuthorityList!=null && amazonAuthorityList.size()>0) {
 			for(AmazonAuthority auth:amazonAuthorityList) {
-				List<Map<String, Object>> list = productInfoMapper.selectByAuth(auth.getId());
+				List<Map<String, Object>> list = productInfoMapper.selectByAuth(auth.getId(),null,null);
 				if(list!=null && list.size()>0){
 					runnables.add(productDateUpdateThread(auth,list));
 				}
@@ -1070,12 +1078,7 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 		CostDetail deatail2=null;
 		FBAEstimatedFee fbaFee = null;
 		try {
-			QueryWrapper<FBAEstimatedFee> feequeryWrapper=new QueryWrapper<FBAEstimatedFee>();
-			feequeryWrapper.eq("sku", map.get("sku").toString());
-			feequeryWrapper.eq("asin", map.get("asin").toString());
-			feequeryWrapper.eq("amazonAuthId", map.get("id").toString());
-			feequeryWrapper.eq("marketplaceid", map.get("marketplaceid").toString());
-			fbaFee = fbaEstimatedFeeMapper.selectOne(feequeryWrapper);
+			fbaFee =iFBAEstimatedFeeService.getOneBySku( map.get("sku").toString(), map.get("asin").toString(),  map.get("id").toString(), map.get("marketplaceid").toString());
 			Boolean inSnl = map.get("inSnl") == null ? false : (Boolean) map.get("inSnl");
 			ReferralFee ref = null;
 			if(fbaFee != null) {
@@ -1141,11 +1144,13 @@ public class SummaryOrderReportServiceImpl implements ISummaryOrderReportService
 				if(ref == null || ref.getId() == null) {
 					ref = referralFeeService.findCommonOther(country);
 				}
-				Integer typeid = ref.getId();
-				String type = ref.getType();
-				String isMedia = this.profitService.isMedia(typeid);// 是否为媒介
-				deatail2 = this.profitService.getProfitByLocalData(country, profitcfg, inputDimension_amz,
-						inputDimension_local, isMedia, type, typeid, cost, "RMB", buyprice, "local", inSnl, shipmentfee);
+				Integer typeid =ref!=null? ref.getId():null;
+				String type = ref!=null?ref.getType():null;
+				String isMedia =typeid!=null? this.profitService.isMedia(typeid):null;// 是否为媒介
+				if(typeid!=null){
+					deatail2 = this.profitService.getProfitByLocalData(country, profitcfg, inputDimension_amz,
+							inputDimension_local, isMedia, type, typeid, cost, "RMB", buyprice, "local", inSnl, shipmentfee);
+				}
 			}else {
 				ref = referralFeeService.findByPgroup(fbaFee.getProductGroup(), country);
 				if(ref == null || ref.getId() == null) {

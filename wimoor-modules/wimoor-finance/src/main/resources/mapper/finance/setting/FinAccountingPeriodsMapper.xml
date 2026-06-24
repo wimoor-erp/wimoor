@@ -14,6 +14,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="periodStatus"    column="period_status"    />
         <result property="isCurrent"    column="is_current"    />
         <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
         <result property="closeTime"    column="close_time"    />
         <result property="remark" column="remark"/>
     </resultMap>
@@ -21,7 +22,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <sql id="selectFinAccountingPeriodsVo">
         select period_id, groupid, period_code,
                period_name, start_date, end_date, period_status,
-               is_current, created_time, close_time,remark
+               is_current, created_time, updated_time, close_time,remark
         from fin_accounting_periods
     </sql>
 
@@ -67,6 +68,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="periodStatus != null">period_status,</if>
             <if test="isCurrent != null">is_current,</if>
             <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
             <if test="closeTime != null">close_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -78,6 +80,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="periodStatus != null">#{periodStatus},</if>
             <if test="isCurrent != null">#{isCurrent},</if>
             <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
             <if test="closeTime != null">#{closeTime},</if>
          </trim>
     </insert>
@@ -93,13 +96,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="periodStatus != null">period_status = #{periodStatus},</if>
             <if test="isCurrent != null">is_current = #{isCurrent},</if>
             <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
             <if test="closeTime != null">close_time = #{closeTime},</if>
         </trim>
         where period_id = #{periodId}
     </update>
     <update id="updatePeriodStatus">
         update fin_accounting_periods
-        set period_status = #{periodStatus},close_time = case when  #{periodStatus} = 3 then now() else null end
+        set period_status = #{periodStatus},close_time = case when  #{periodStatus} = 3 then now() else null end, updated_time = now()
         where period_code = #{period} and groupid=#{groupid}
     </update>
 
@@ -113,4 +117,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{periodId}
         </foreach>
     </delete>
+
+    <select id="selectCurrentPeriod" parameterType="String" resultMap="FinAccountingPeriodsResult">
+        <include refid="selectFinAccountingPeriodsVo"/>
+        where is_current = 1 and groupid=#{groupid}
+    </select>
 </mapper>

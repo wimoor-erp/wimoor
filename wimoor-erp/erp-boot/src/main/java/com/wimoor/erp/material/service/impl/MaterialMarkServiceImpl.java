@@ -1,16 +1,10 @@
 package com.wimoor.erp.material.service.impl;
 
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
 import com.wimoor.erp.material.mapper.MaterialMarkHisMapper;
@@ -18,10 +12,13 @@ import com.wimoor.erp.material.mapper.MaterialMarkMapper;
 import com.wimoor.erp.material.pojo.entity.MaterialMark;
 import com.wimoor.erp.material.pojo.entity.MaterialMarkHis;
 import com.wimoor.erp.material.service.IMaterialMarkService;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Service("materialMarkService")
 @RequiredArgsConstructor
@@ -111,12 +108,10 @@ public MaterialMark showNotice(String materialid) {
 		   for(MaterialMarkHis item:list) {
 			   if(StrUtil.isNotBlank(item.getOperator())) {
 				   try {
-					   Result<Map<String, Object>> result = adminClientOneFeign.getUserByUserId(item.getOperator());
-					   if(Result.isSuccess(result)&&result.getData()!=null) {
-						   if(result.getData().get("userinfo")!=null) {
-							   Map<String, Object> infomap = (Map<String, Object>) result.getData().get("userinfo");
+					   UserInfo  userinfo = adminClientOneFeign.getUserByUserId(item.getOperator());
+			            if(userinfo!=null) {
+							   Map<String, Object> infomap = userinfo.getUserinfo();
 							   item.setOperator(infomap.get("name").toString()); 
-						   }
 					   }else {
 						   item.setOperator(""); 
 					   }
@@ -129,10 +124,10 @@ public MaterialMark showNotice(String materialid) {
 		   }
 		   if(StrUtil.isNotBlank(old.getOperator())) {
 			   try {
-				   Result<Map<String, Object>> result = adminClientOneFeign.getUserByUserId(old.getOperator());
-				   if(Result.isSuccess(result)&&result.getData()!=null) {
-					   if(result.getData().get("userinfo")!=null) {
-						   Map<String, Object> infomap = (Map<String, Object>) result.getData().get("userinfo");
+				   UserInfo  userinfo = adminClientOneFeign.getUserByUserId(old.getOperator());
+				   if(userinfo!=null) {
+					   if(userinfo.getUserinfo()!=null) {
+						   Map<String, Object> infomap = userinfo.getUserinfo();
 						   old.setOperator(infomap.get("name").toString()); 
 					   }
 				   }else {

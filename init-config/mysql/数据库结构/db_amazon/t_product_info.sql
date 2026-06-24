@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `t_product_info` (
   `invalid` bit(1) DEFAULT b'0' COMMENT '是否无效',
   `oldid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `inSnl` bit(1) DEFAULT b'0' COMMENT '是否轻小',
-  `fnsku` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `fnsku` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `pcondition` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `status` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `disable` bit(1) DEFAULT b'0',

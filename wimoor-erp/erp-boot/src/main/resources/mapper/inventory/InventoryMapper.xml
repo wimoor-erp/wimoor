@@ -624,13 +624,24 @@
 	</select>
 
 	<!-- 库存货值 -->
+	<sql id="invPriceExpr">
+		<choose>
+			<when test="isAvgPrice != null and isAvgPrice != '' and isAvgPrice =='true'">
+				ifnull(m.price_wavg, m.price)
+			</when>
+			<otherwise>
+				m.price
+			</otherwise>
+		</choose>
+	</sql>
+
 	<select id="findInventoryCost" parameterType="java.lang.String" resultType="java.util.Map">
 			select m.id id,m.sku,0 inbound, 
 			ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0)  quantity,
-			m.price price,
+			<include refid="invPriceExpr"/> price,
 			m.remark,
 			iv.fulfillable fulfillable,
-			(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.price totalprice,
+			(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*<include refid="invPriceExpr"/> totalprice,
 			(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.other_cost otherFeer
 			,0 inpasspay,0 inpasscost 
 			from t_erp_inventory_his_day  iv
@@ -649,7 +660,7 @@
 		     sum(0) inbound,
              sum(ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))  quantity,
 			 sum(iv.fulfillable) fulfillable,
-			 sum((ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.price) totalprice,
+			 sum((ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*<include refid="invPriceExpr"/>) totalprice,
 			 sum((ifnull(iv.fulfillable,0)+ifnull(iv.outbound,0))*m.other_cost) otherFeer,
 			 sum(0) inpasspay,
 			 sum(0) inpasscost 
@@ -667,13 +678,13 @@
 	<!-- 库存货值 -->
 	<select id="findInventoryNowCost" parameterType="java.lang.String" resultType="java.util.Map">
 		select * from (
-			select m.id id,m.sku,max(m.price) price,m.remark,
+			select m.id id,m.sku,max(<include refid="invPriceExpr"/>) price,m.remark,
 				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`) ) 
 				then iv.quantity else 0 end) quantity,
 				sum(case when (iv.`status`='fulfillable')  then iv.quantity else 0 end) fulfillable,
 				sum(case when POSITION('inbound' IN iv.`status`) then iv.quantity else '0' end) inbound,
 				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`) ) 
-				then iv.quantity else 0 end )*max(m.price) totalprice,
+				then iv.quantity else 0 end )*max(<include refid="invPriceExpr"/>) totalprice,
 				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`) ) 
 				then iv.quantity else 0 end )*max(m.other_cost) otherFeer
 			from t_erp_inventory iv
@@ -713,7 +724,7 @@
 				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end) quantity,
 				sum(case when (iv.`status`='fulfillable')  then iv.quantity else 0 end) fulfillable,
 				sum(case when POSITION('inbound' IN iv.`status`) then iv.quantity else 0 end) inbound,
-				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end*m.price) totalprice,
+				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end*<include refid="invPriceExpr"/>) totalprice,
 				sum(case when (iv.`status`='fulfillable' or POSITION('outbound' IN iv.`status`)) then iv.quantity else 0 end*m.other_cost) otherFeer
 			from t_erp_inventory iv
 			left join t_erp_material m on m.id=iv.materialid and iv.shopid=m.shopid

@@ -149,13 +149,17 @@
 				max(delivery.end_date) deliveryEnd,
 				max(delivery.editable_until) deliveryUntil,
 				max(inbound.transaction_name) transactionName,
-				max(inbound.isquote) isquote
+				max(inbound.isquote) isquote,
+				max(inbound.ordguid) ordguid,
+				max(inbound.invguid) invguid,
+				max(inbound.decguid) decguid
 			from t_erp_ship_v2_inboundshipment inbound
 			left join t_erp_ship_v2_inboundshipment_delivery delivery on delivery.delivery_window_option_id=inbound.delivery_window_option_id
 			left join t_erp_ship_inboundtrans trans on trans.shipmentid=inbound.shipment_confirmation_id
 			left join t_erp_ship_status stat on stat.`status`=inbound.ShipmentStatus
 			left join t_erp_ship_v2_destination_address ad on ad.code=inbound.destination
 			left join t_erp_ship_v2_inboundshipment_item item on item.shipmentid=inbound.shipmentid
+		     left join t_erp_ship_v2_inboundshipment_custom custom on custom.itemid=item.id
 			left join t_erp_ship_v2_inboundplan form on form.id=inbound.formid
 			left join t_erp_ship_transdetail detail on detail.id = trans.channel
 			left join t_erp_ship_transcompany c on c.id=detail.company
@@ -174,6 +178,13 @@
 			</foreach>
 			)
 		    </if>
+		<if test="param.shipmentids !=null">
+			and inbound.shipment_confirmation_id in(
+			<foreach collection="param.shipmentids" item="shipmentid" index="index" separator=",">
+				#{shipmentid,jdbcType=CHAR}
+			</foreach>
+			)
+		</if>
 			<if test="param.hasexceptionnum != null">
 				and (
 				(inbound.ignorerec=0 and stat.`status`='WORKING' and inbound.status>=5 )

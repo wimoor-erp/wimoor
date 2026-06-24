@@ -1,24 +1,9 @@
 package com.wimoor.amazon.profit.service.impl;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.api.AdminClientOneFeignManager;
-
 import com.wimoor.amazon.profit.mapper.IndividualFeeMapper;
 import com.wimoor.amazon.profit.mapper.InplaceFeeMapper;
 import com.wimoor.amazon.profit.mapper.ManualProcessingFeeMapper;
@@ -31,9 +16,20 @@ import com.wimoor.amazon.profit.service.IProfitCfgCountryService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
 import com.wimoor.amazon.profit.service.IProfitService;
 import com.wimoor.util.UUIDUtil;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Service("profitCfgService")
 @RequiredArgsConstructor
@@ -292,6 +288,18 @@ public class ProfitCfgServiceImpl extends ServiceImpl<ProfitConfigMapper, Profit
 	public List<ManualProcessingFee> findManualProcessingFee() {
 		List<ManualProcessingFee> manualProcessingFees = manualProcessingFeeMapper.findByCountry("US");
 		return manualProcessingFees;
+	}
+
+	@Override
+	public String findFinDefaultPlanIdByGroup(String groupid) {
+		String id = null;
+		ProfitConfig profitCfg =  this.baseMapper.findFinDefaultPlanIdByGroup(groupid);
+		if (profitCfg != null) {
+			id = profitCfg.getId();
+		}else{
+			return this.findDefaultPlanIdByGroup(groupid);
+		}
+		return id;
 	}
 
 	@Override

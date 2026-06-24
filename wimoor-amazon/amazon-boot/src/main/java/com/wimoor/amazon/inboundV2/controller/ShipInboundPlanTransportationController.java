@@ -1,24 +1,9 @@
 package com.wimoor.amazon.inboundV2.controller;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
-import com.wimoor.amazon.api.ErpClientOneFeignManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.ListTransportationOptionsResponse;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.TransportationSelection;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.inbound.mapper.ShipInboundTransHisMapper;
 import com.wimoor.amazon.inbound.pojo.dto.ShipInboundTransDTO;
 import com.wimoor.amazon.inbound.pojo.dto.ShipTransDTO;
@@ -26,10 +11,7 @@ import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTransHis;
 import com.wimoor.amazon.inbound.service.IShipInboundTransService;
 import com.wimoor.amazon.inboundV2.pojo.dto.TransportationDTO;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentCustoms;
+import com.wimoor.amazon.inboundV2.pojo.entity.*;
 import com.wimoor.amazon.inboundV2.service.IShipInboundPlanService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundTransportationService;
@@ -39,13 +21,19 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 @Api(tags = "发货单")
 @RestController
@@ -81,15 +69,22 @@ public class ShipInboundPlanTransportationController {
 			 ShipInboundPlan plan = shipInboundPlanV2Service.getById(shipment.getFormid());
 			 plan.setTranstype(dto.getTranstype()!=null?dto.getTranstype().toString():null);
 			 shipInboundPlanV2Service.updateById(plan);
+			 if(dto.getShipdate()!=null){
+				 shipment.setShipedDate(dto.getShipdate());
+				 if(plan.getShippingDate()!=null){
+					 shipment.setShipedDate(plan.getShippingDate());
+				 }
+				 if(shipment.getShipedDate()==null){
+					 shipment.setShipedDate(new Date());
+				 }
+			 }
+			 this.shipInboundShipmentV2Service.updateById(shipment);
 		 }
 
  		QueryWrapper<ShipInboundTrans> queryWrapper=new QueryWrapper<ShipInboundTrans>();
  		queryWrapper.eq("shipmentid", dto.getShipmentid());
  		List<ShipInboundTrans> list = shipInboundTransService.list(queryWrapper);
-		if(shipment.getShipedDate()==null){
-			shipment.setShipedDate(new Date());
-			this.shipInboundShipmentV2Service.updateById(shipment);
-		}
+
 		Map<String, Object> map=erpClientOneFeignManager.getShipTransChannelDetial(dto.getChannel());
 		if (list.size() > 0) {
  			ShipInboundTrans item = list.get(0);
@@ -334,6 +329,28 @@ public class ShipInboundPlanTransportationController {
 		    	 return Result.success();
 		 }
 
+	@ApiOperation(value = "获取海关信息")
+	@GetMapping("/getCustomList")
+	public Result<Map<String, ShipInboundShipmentCustom>> getCustomListAction(@ApiParam("货件ID")@RequestParam String shipmentid) {
+		List<ShipInboundShipmentCustom> list = iShipInboundTransportationService.getCustom(shipmentid);
+		Map<String,ShipInboundShipmentCustom> result=null;
+		if(list!=null&&list.size()>0) {
+			result=new HashMap<String,ShipInboundShipmentCustom>();
+			for(ShipInboundShipmentCustom item:list) {
+				result.put(item.getItemid(), item);
+			}
+
+		}
+		return Result.success(result);
+	}
+
+	@ApiOperation(value = "获取海关信息")
+	@PostMapping("/saveCustomList")
+	public Result<Map<String, ShipInboundShipmentCustom>> saveCustomListAction(@RequestBody List<ShipInboundShipmentCustom> list) {
+		UserInfo user=UserInfoContext.get();
+		iShipInboundTransportationService.saveCustom(user,list);
+		return Result.success();
+	}
 
 	@ApiOperation("同步已中标信息")
 	@PostMapping("/refreshShipment")

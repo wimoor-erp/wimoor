@@ -1,26 +1,19 @@
 package com.wimoor.finance.report.controller;
 
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.wimoor.finance.report.domain.FinReportItems;
-import com.wimoor.finance.report.service.IFinReportItemsService;
+import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.controller.BaseController;
 import com.wimoor.common.core.web.domain.Result;
-import com.wimoor.common.core.utils.poi.ExcelUtil;
-import com.wimoor.common.core.web.page.TableDataInfo;
+import com.wimoor.finance.report.domain.FinReportItems;
+import com.wimoor.finance.report.service.IFinReportItemsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * 报表项目Controller
- * 
+ *
  * @author wimoor
  * @date 2025-11-04
  */
@@ -38,6 +31,16 @@ public class FinReportItemsController extends BaseController
     public Result list(FinReportItems finReportItems)
     {
         List<FinReportItems> list = finReportItemsService.selectFinReportItemsList(finReportItems);
+        return success(list);
+    }
+
+    /**
+     * 查询所有父级项目列表（用于下拉选择）
+     */
+    @GetMapping("/parent-items/{templateId}")
+    public Result listParentItems(@PathVariable String templateId)
+    {
+        List<FinReportItems> list = finReportItemsService.selectAllParentItems(Long.valueOf(templateId));
         return success(list);
     }
 
@@ -82,7 +85,7 @@ public class FinReportItemsController extends BaseController
     /**
      * 删除报表项目
      */
-	@DeleteMapping("/{itemIds}")
+    @DeleteMapping("/{itemIds}")
     public Result remove(@PathVariable Long[] itemIds)
     {
         return toResult(finReportItemsService.deleteFinReportItemsByItemIds(itemIds));

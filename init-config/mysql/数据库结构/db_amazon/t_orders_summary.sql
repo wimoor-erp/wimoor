@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary` (
   `amazonAuthId` bigint unsigned NOT NULL,
   `marketplaceid` char(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `purchase_date` date NOT NULL,
-  `asin` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `asin` char(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `sku` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `quantity` int DEFAULT NULL,
   `ordersum` int DEFAULT NULL,
@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS `t_orders_summary` (
   `quantity2b` int DEFAULT NULL,
   `ordersum2b` int DEFAULT NULL,
   `orderprice2b` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`purchase_date`,`id`),
-  UNIQUE KEY `index_1` (`amazonAuthId`,`marketplaceid`,`sku`,`purchase_date`),
-  KEY `Index 2` (`marketplaceid`,`quantity`,`orderprice`,`ordersum`),
-  KEY `amazonauthid` (`sku`,`amazonAuthId`)
+  PRIMARY KEY (`purchase_date`,`id`) USING BTREE,
+  UNIQUE KEY `index_1` (`amazonAuthId`,`marketplaceid`,`sku`,`purchase_date`) USING BTREE,
+  KEY `Index 2` (`marketplaceid`,`quantity`,`orderprice`,`ordersum`) USING BTREE,
+  KEY `amazonauthid` (`sku`,`amazonAuthId`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

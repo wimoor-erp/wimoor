@@ -533,7 +533,7 @@ public class ShipTransCompanyController {
 	// 级联操作渠道(选了渠道带出其它信息)
 	@ApiOperation(value = "根据物流商获取渠道详细列表")
 	@GetMapping("/getCompanyDetail")
-	public Result<List<Map<String, Object>>> getcomDetailAction(
+	public Result<List<Map<String, Object>>> getComDetailAction(
 			@ApiParam("物流公司ID")@RequestParam String company,
 			@ApiParam("渠道ID")@RequestParam String channel,
 			@ApiParam("物流商类型")@RequestParam String transtype,
@@ -625,7 +625,13 @@ public class ShipTransCompanyController {
 	@GetMapping(value = "getShipTransChannelDetial")
 	@Cacheable(value="shipTransChannelDetial#60")
 	Result<ShipTransDetail> getShipTransChannelDetialAction(String channeDetaillid )   {
-		return Result.success(shipTransDetailService.getById(channeDetaillid));
+		ShipTransDetail trans=shipTransDetailService.getById(channeDetaillid);
+		ShipTransCompany company = shipTransCompanyService.getById(trans.getCompany());
+		if(company!=null) {
+			trans.setCname(company.getName());
+
+		}
+		return Result.success(trans);
 	}
 	@GetMapping(value = "shipTransDetial")
 	Result<JSONObject> shipTransDetialAction(String companyid , String shipmentid,String ordernum)   {

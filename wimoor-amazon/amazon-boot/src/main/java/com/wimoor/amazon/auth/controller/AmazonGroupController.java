@@ -18,7 +18,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
+import com.wimoor.amazon.auth.pojo.entity.AmazonGroupInfo;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
+import com.wimoor.amazon.auth.service.IAmazonGroupInfoService;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
@@ -41,16 +43,25 @@ import lombok.RequiredArgsConstructor;
 public class AmazonGroupController {
 	 private final IAmazonAuthorityService iAmazonAuthorityService;
 	 private final IAmazonGroupService iAmazonGroupService;
+	 private final IAmazonGroupInfoService iAmazonGroupInfoService;
  
 	    @ApiOperation(value = "获取店铺")
 	    @GetMapping("/list")
 	    public Result<List<AmazonGroup>> getAmazonGroupAction() {
 	    	UserInfo userinfo = UserInfoContext.get();
-	    	List<AmazonGroup> result =iAmazonGroupService.list(
-	    			new LambdaQueryWrapper<AmazonGroup>().eq(AmazonGroup::getShopid, userinfo.getCompanyid())
-	    			.eq(AmazonGroup::getIsdelete, false).orderByAsc(AmazonGroup::getFindex)
-	    			);
-	        return Result.success(result);
+			if(userinfo!=null){
+				List<AmazonGroup> result =iAmazonGroupService.list(
+						new LambdaQueryWrapper<AmazonGroup>().eq(AmazonGroup::getShopid, userinfo.getCompanyid())
+								.eq(AmazonGroup::getIsdelete, false).orderByAsc(AmazonGroup::getFindex)
+				);
+				return Result.success(result);
+			}else{
+				List<AmazonGroup> result =iAmazonGroupService.list(
+						new LambdaQueryWrapper<AmazonGroup>().eq(AmazonGroup::getIsdelete, false).orderByAsc(AmazonGroup::getFindex)
+				);
+				return Result.success(result);
+			}
+
 	    }
 	    
 	    @ApiOperation(value = "获取店铺")
@@ -143,5 +154,20 @@ public class AmazonGroupController {
 				flag=iAmazonGroupService.updateById(group);
 			}
 	        return Result.judge(flag);
+	    }
+	    
+	    @ApiOperation("获取店铺信息")
+	    @GetMapping("/info/{groupid}")
+	    public Result<AmazonGroupInfo> getGroupInfoAction(@PathVariable String groupid) {
+	    	AmazonGroupInfo result = iAmazonGroupInfoService.getByGroupid(groupid);
+	        return Result.success(result);
+	    }
+	    
+	    @ApiOperation("保存店铺信息")
+	    @SystemControllerLog("保存店铺信息")
+	    @PostMapping("/info/save")
+	    public Result<Boolean> saveGroupInfoAction(@RequestBody AmazonGroupInfo groupInfo) {
+	    	boolean result = iAmazonGroupInfoService.saveOrUpdateByGroupid(groupInfo);
+	        return Result.judge(result);
 	    }  
 }

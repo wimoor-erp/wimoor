@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_main_archive` (
   `hasItem` bit(1) DEFAULT b'0',
   `marketplaceId` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `amazonAuthId` bigint unsigned NOT NULL,
-  PRIMARY KEY (`amazon_order_id`),
-  KEY `amazonauth` (`amazonAuthId`,`purchase_date`,`hasItem`)
+  PRIMARY KEY (`amazon_order_id`) USING BTREE,
+  KEY `amazonauth` (`amazonAuthId`,`purchase_date`,`hasItem`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。

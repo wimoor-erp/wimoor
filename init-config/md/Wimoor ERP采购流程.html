@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wimoor ERP采购流程图</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.0.0/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .mermaid {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .flowchart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-left: 4px solid #1E90FF;
+            border-radius: 4px;
+        }
+        .step h3 {
+            color: #1E90FF;
+            margin-top: 0;
+        }
+        .file-list {
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .notice {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            color: #856404;
+        }
+        .download-button {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .download-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wimoor ERP采购流程图</h1>
+        
+        <h2>采购流程总览</h2>
+        <div class="flowchart-container">
+            <div class="mermaid">
+                flowchart TD
+                    A[开始采购流程] --> B[采购规划]
+                    B --> C[提交采购计划]
+                    C --> D[创建采购单]
+                    D --> E[采购单审核]
+                    E --> F[采购单付款]
+                    F --> G[采购单收货]
+                    G --> H[采购完成]
+            </div>
+        </div>
+        <button class="download-button" onclick="downloadMermaid(this.parentElement.querySelector('.mermaid'), '采购流程总览')">下载此流程图</button>
+        
+        <h2>详细采购流程图</h2>
+        <div class="flowchart-container">
+            <div class="mermaid">
+                flowchart TD
+                    subgraph 采购规划阶段
+                        A1[进入采购规划页面] --> A2[选择站点/仓库]
+                        A2 --> A3[查看产品列表]
+                        A3 --> A4[编辑实际采购量]
+                        A4 --> A5[选择入库仓库]
+                        A5 --> A6[提交采购计划]
+                    end
+                    
+                    subgraph 采购单创建阶段
+                        B1[进入采购单页面] --> B2[点击添加采购单]
+                        B2 --> B3[填写采购单基本信息]
+                        B3 --> B4[选择供应商]
+                        B4 --> B5[添加SKU及数量]
+                        B5 --> B6[设置预计到货日期]
+                        B6 --> B7[提交采购单]
+                    end
+                    
+                    subgraph 采购单审核阶段
+                        C1[待审核采购单]
+                        C1 --> C2{审核结果}
+                        C2 -->|通过| C3[审核通过]
+                        C2 -->|驳回| C4[审核驳回]
+                        C4 --> B1
+                    end
+                    
+                    subgraph 采购单付款阶段
+                        D1[待付款采购单]
+                        D1 --> D2[选择付款方式]
+                        D2 --> D3[填写付款信息]
+                        D3 --> D4[确认付款]
+                    end
+                    
+                    subgraph 采购单收货阶段
+                        E1[待收货采购单]
+                        E1 --> E2[确认收货数量]
+                        E2 --> E3[选择入库仓库]
+                        E3 --> E4[提交收货信息]
+                    end
+                    
+                    subgraph 采购完成阶段
+                        F1[采购完成]
+                        F1 --> F2[生成采购记录]
+                        F2 --> F3[更新库存]
+                        F3 --> F4[结束采购流程]
+                    end
+                    
+                    A6 --> B1
+                    B7 --> C1
+                    C3 --> D1
+                    D4 --> E1
+                    E4 --> F1
+            </div>
+        </div>
+        <button class="download-button" onclick="downloadMermaid(this.parentElement.querySelector('.mermaid'), '详细采购流程图')">下载此流程图</button>
+        
+        <h2>采购单状态流转图</h2>
+        <div class="flowchart-container">
+            <div class="mermaid">
+                flowchart LR
+                    A[创建采购单] --> B[待审核]
+                    B -->|审核通过| C[审核通过]
+                    B -->|审核驳回| D[已作废]
+                    C --> E[待付款]
+                    E --> F[待收货]
+                    F --> G[已完成]
+                    E --> H[换货中]
+                    H --> F
+                    F --> I[已作废]
+            </div>
+        </div>
+        <button class="download-button" onclick="downloadMermaid(this.parentElement.querySelector('.mermaid'), '采购单状态流转图')">下载此流程图</button>
+        
+        <h2>详细流程说明</h2>
+        
+        <div class="step">
+            <h3>1. 采购规划阶段</h3>
+            <p><strong>功能说明</strong>：根据销售需求和库存情况，制定采购计划。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入采购规划页面（路径：ERP → 采购 → 采购规划）</li>
+                <li>选择站点、仓库等筛选条件</li>
+                <li>查看系统建议的采购量</li>
+                <li>编辑实际采购量</li>
+                <li>为每个产品选择入库仓库</li>
+                <li>提交采购计划</li>
+            </ol>
+            <p><strong>核心文件</strong>：</p>
+            <ul>
+                <li><code>wimoor-ui/src/views/erp/purchase/plan_amz/index.vue</code> - 采购规划主页面</li>
+                <li><code>wimoor-ui/src/views/erp/purchase/plan_amz/plan_submit/index.vue</code> - 提交采购计划页面</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>2. 采购单创建阶段</h3>
+            <p><strong>功能说明</strong>：根据采购计划创建采购单，详细记录采购信息。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>进入采购单页面（路径：ERP → 采购 → 采购单）</li>
+                <li>点击"添加采购单"按钮</li>
+                <li>填写采购单基本信息（采购类型、供应商等）</li>
+                <li>添加需要采购的SKU及数量</li>
+                <li>设置预计到货日期</li>
+                <li>提交采购单</li>
+            </ol>
+            <p><strong>核心文件</strong>：</p>
+            <ul>
+                <li><code>wimoor-ui/src/views/erp/purchase/orders/index.vue</code> - 采购单主页面</li>
+                <li><code>wimoor-ui/src/views/erp/purchase/orders/components/create.vue</code> - 创建采购单组件</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>3. 采购单审核阶段</h3>
+            <p><strong>功能说明</strong>：审核采购单的合理性和必要性。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>在采购单页面切换到"待审核"标签</li>
+                <li>查看待审核的采购单</li>
+                <li>审核采购单（通过或驳回）</li>
+                <li>审核通过的采购单进入待付款状态</li>
+                <li>审核驳回的采购单变为已作废状态</li>
+            </ol>
+            <p><strong>核心文件</strong>：</p>
+            <ul>
+                <li><code>wimoor-ui/src/views/erp/purchase/orders/components/table.vue</code> - 采购单表格组件</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>4. 采购单付款阶段</h3>
+            <p><strong>功能说明</strong>：处理采购单的付款事宜。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>在采购单页面切换到"待付款"标签</li>
+                <li>查看待付款的采购单</li>
+                <li>选择付款方式</li>
+                <li>填写付款信息</li>
+                <li>确认付款</li>
+                <li>付款完成后采购单进入待收货状态</li>
+            </ol>
+            <p><strong>核心文件</strong>：</p>
+            <ul>
+                <li><code>wimoor-ui/src/views/erp/purchase/orders/components/payment.vue</code> - 付款组件</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>5. 采购单收货阶段</h3>
+            <p><strong>功能说明</strong>：处理采购货物的收货事宜。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>在采购单页面切换到"待收货"标签</li>
+                <li>查看待收货的采购单</li>
+                <li>确认实际收货数量</li>
+                <li>选择入库仓库</li>
+                <li>提交收货信息</li>
+                <li>收货完成后采购单进入已完成状态</li>
+            </ol>
+            <p><strong>核心文件</strong>：</p>
+            <ul>
+                <li><code>wimoor-ui/src/views/erp/purchase/orders/components/receipt.vue</code> - 收货组件</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>6. 采购完成阶段</h3>
+            <p><strong>功能说明</strong>：采购流程的最终阶段，完成采购记录和库存更新。</p>
+            <p><strong>操作步骤</strong>：</p>
+            <ol>
+                <li>在采购单页面切换到"已完成"标签</li>
+                <li>查看已完成的采购单</li>
+                <li>系统自动生成采购记录</li>
+                <li>系统自动更新库存</li>
+                <li>采购流程结束</li>
+            </ol>
+            <p><strong>核心文件</strong>：</p>
+            <ul>
+                <li><code>wimoor-ui/src/views/erp/purchase/orders/records.vue</code> - 采购记录页面</li>
+            </ul>
+        </div>
+        
+        <h2>关键操作说明</h2>
+        
+        <h3>批量操作</h3>
+        <ul>
+            <li><strong>批量审核</strong>：同时审核多个采购单</li>
+            <li><strong>批量付款</strong>：同时处理多个采购单的付款</li>
+            <li><strong>批量收货</strong>：同时处理多个采购单的收货</li>
+            <li><strong>批量修改备注</strong>：同时修改多个采购SKU的备注</li>
+        </ul>
+        
+        <h3>数据导入导出</h3>
+        <ul>
+            <li><strong>导入付款</strong>：通过Excel文件导入付款信息</li>
+            <li><strong>导出SKU列表</strong>：导出采购SKU的详细信息</li>
+        </ul>
+        
+        <h3>高级筛选</h3>
+        <ul>
+            <li>按SKU、订单号、运单号搜索</li>
+            <li>按创建日期、预计到货日期、审核日期筛选</li>
+            <li>按产品标签、产品负责人、产品分类筛选</li>
+            <li>按产品类型（单独产品、组合产品、待组装产品）筛选</li>
+        </ul>
+        
+        <div class="notice">
+            <h3>注意事项</h3>
+            <ol>
+                <li><strong>库存影响</strong>：采购单收货后会自动更新库存</li>
+                <li><strong>状态流转</strong>：采购单状态必须按流程顺序流转</li>
+                <li><strong>数据同步</strong>：采购数据会与其他模块（如库存、财务）同步</li>
+                <li><strong>权限控制</strong>：不同角色的用户有不同的操作权限</li>
+                <li><strong>审核流程</strong>：采购单必须经过审核才能进行后续操作</li>
+            </ol>
+        </div>
+        
+        <h2>相关文件路径</h2>
+        
+        <h3>前端文件</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>文件路径</th>
+                    <th>功能描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/plan_amz/index.vue</code></td>
+                    <td>采购规划主页面</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/plan_amz/plan_submit/index.vue</code></td>
+                    <td>提交采购计划页面</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/orders/index.vue</code></td>
+                    <td>采购单主页面</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/orders/components/create.vue</code></td>
+                    <td>创建采购单组件</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/orders/components/table.vue</code></td>
+                    <td>采购单表格组件</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/orders/components/payment.vue</code></td>
+                    <td>付款组件</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/orders/components/receipt.vue</code></td>
+                    <td>收货组件</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/views/erp/purchase/orders/records.vue</code></td>
+                    <td>采购记录页面</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/api/erp/purchase/plan/planApi.js</code></td>
+                    <td>采购规划API调用</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-ui/src/api/erp/purchase/form/listApi.js</code></td>
+                    <td>采购单API调用</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>后端文件</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>文件路径</th>
+                    <th>功能描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>wimoor-erp/erp-boot/src/main/java/com/wimoor/erp/purchase/controller/PurchaseFormController.java</code></td>
+                    <td>采购单控制器</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-erp/erp-boot/src/main/java/com/wimoor/erp/purchase/service/IPurchaseFormService.java</code></td>
+                    <td>采购单服务接口</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-erp/erp-boot/src/main/java/com/wimoor/erp/purchase/service/impl/PurchaseFormServiceImpl.java</code></td>
+                    <td>采购单服务实现</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-erp/erp-boot/src/main/java/com/wimoor/erp/purchase/controller/PurchasePlanController.java</code></td>
+                    <td>采购规划控制器</td>
+                </tr>
+                <tr>
+                    <td><code>wimoor-erp/erp-boot/src/main/java/com/wimoor/erp/purchase/service/IPurchasePlanService.java</code></td>
+                    <td>采购规划服务接口</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>流程图说明</h2>
+        <p>1. <strong>采购规划</strong>：根据销售数据和库存情况，制定合理的采购计划</p>
+        <p>2. <strong>采购单创建</strong>：将采购计划转化为具体的采购单</p>
+        <p>3. <strong>采购单审核</strong>：确保采购的合理性和必要性</p>
+        <p>4. <strong>采购单付款</strong>：处理采购资金的支付</p>
+        <p>5. <strong>采购单收货</strong>：确认货物的接收和入库</p>
+        <p>6. <strong>采购完成</strong>：完成采购流程，更新相关记录和库存</p>
+        <p>每个阶段都有明确的操作步骤和状态流转，确保采购流程的规范性和可追溯性。系统支持批量操作和数据导入导出，提高采购管理的效率。</p>
+    </div>
+    
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default'
+        });
+        
+        // 下载流程图为图片
+        function downloadMermaid(element, filename) {
+            // 获取SVG元素
+            const svg = element.querySelector('svg');
+            if (!svg) {
+                alert('无法找到流程图，请确保流程图已加载完成');
+                return;
+            }
+            
+            // 将SVG转换为图片
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置画布大小
+            const svgWidth = parseInt(svg.getAttribute('width'));
+            const svgHeight = parseInt(svg.getAttribute('height'));
+            canvas.width = svgWidth;
+            canvas.height = svgHeight;
+            
+            // 创建一个临时的img元素
+            const img = new Image();
+            img.onload = function() {
+                // 绘制图片到画布
+                ctx.drawImage(img, 0, 0);
+                
+                // 将画布转换为图片并下载
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename + '.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            };
+            
+            // 设置图片源为SVG数据
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            img.src = url;
+        }
+    </script>
+</body>
+</html>

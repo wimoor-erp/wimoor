@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.voucher.mapper.FinVoucherTypeMapper">
+    
+    <resultMap type="com.wimoor.finance.voucher.domain.FinVoucherType" id="FinVoucherTypeResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="opttime"    column="opttime"    />
+    </resultMap>
+
+    <sql id="selectFinVoucherTypeVo">
+        select id, name, groupid, opttime from fin_voucher_type
+    </sql>
+
+    <select id="selectFinVoucherTypeList" parameterType="com.wimoor.finance.voucher.domain.FinVoucherType" resultMap="FinVoucherTypeResult">
+        <include refid="selectFinVoucherTypeVo"/>
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <choose>
+                <when test="groupid != null  and groupid != ''"> and (groupid = #{groupid} or groupid is null)</when>
+            </choose>
+            <if test="opttime != null "> and opttime = #{opttime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinVoucherTypeById" parameterType="String" resultMap="FinVoucherTypeResult">
+        <include refid="selectFinVoucherTypeVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinVoucherType" parameterType="com.wimoor.finance.voucher.domain.FinVoucherType" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_voucher_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="groupid != null and groupid != ''">groupid,</if>
+            <if test="opttime != null">opttime,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="groupid != null and groupid != ''">#{groupid},</if>
+            <if test="opttime != null">#{opttime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinVoucherType" parameterType="com.wimoor.finance.voucher.domain.FinVoucherType">
+        update fin_voucher_type
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="groupid != null and groupid != ''">groupid = #{groupid},</if>
+            <if test="opttime != null">opttime = #{opttime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinVoucherTypeById" parameterType="String">
+        delete from fin_voucher_type where id = #{id}
+    </delete>
+
+    <delete id="deleteFinVoucherTypeByIds" parameterType="String">
+        delete from fin_voucher_type where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

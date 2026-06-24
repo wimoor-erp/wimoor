@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wimoor ERP发货流程</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .mermaid {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+        .flowchart-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        .flowchart-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wimoor ERP发货流程</h1>
+        
+        <div class="section">
+            <h2>1. 发货流程总览</h2>
+            <div class="flowchart-container" id="flowchart1">
+                <div class="flowchart-title">发货流程总览</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 发货流程总览
+                        A[开始] --> B[发货规划]
+                        B --> C[发货单创建]
+                        C --> D[发货处理]
+                        D --> E[发货完成]
+                        E --> F[结束]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart1', '发货流程总览')">下载此流程图</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2. 发货规划阶段</h2>
+            <div class="flowchart-container" id="flowchart2">
+                <div class="flowchart-title">发货规划阶段</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 发货规划阶段
+                        A1[开始发货规划] --> A2[创建发货计划]
+                        A2 --> A3[选择店铺和站点]
+                        A3 --> A4[选择需要发货的SKU]
+                        A4 --> A5[设置每个SKU的发货数量]
+                        A5 --> A6[选择发货仓库]
+                        A6 --> A7[系统计算可用库存]
+                        A7 --> A8[确认发货信息]
+                        A8 --> A9[提交计划]
+                        A9 --> A10[等待审核通过]
+                        A10 --> A11[审核通过]
+                        A11 --> A12[进入发货单创建阶段]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart2', '发货规划阶段')">下载此流程图</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. 发货单创建阶段</h2>
+            <div class="flowchart-container" id="flowchart3">
+                <div class="flowchart-title">发货单创建阶段</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 发货单创建阶段
+                        B1[开始创建发货单] --> B2[点击创建发货单按钮]
+                        B2 --> B3[选择已审核通过的发货计划]
+                        B3 --> B4[填写发货单基本信息]
+                        B4 --> B5[填写发货单名称]
+                        B5 --> B6[选择发货地址]
+                        B6 --> B7[选择收货地址FBA仓库]
+                        B7 --> B8[添加SKU]
+                        B8 --> B9[从计划中选择需要发货的SKU]
+                        B9 --> B10[确认SKU数量和规格]
+                        B10 --> B11[选择物流方式]
+                        B11 --> B12[选择运输方式SP或LTL]
+                        B12 --> B13[选择配送商]
+                        B13 --> B14[提交审核]
+                        B14 --> B15[等待审核通过]
+                        B15 --> B16[审核通过]
+                        B16 --> B17[进入发货处理阶段]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart3', '发货单创建阶段')">下载此流程图</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4. 发货处理阶段</h2>
+            
+            <h3>4.1 货件详情步骤</h3>
+            <div class="flowchart-container" id="flowchart4">
+                <div class="flowchart-title">货件详情步骤</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 货件详情步骤
+                        C1[进入货件详情标签页] --> C2[选择运输方式]
+                        C2 --> C3{选择运输类型}
+                        C3 -->|小包裹快递SP| C4[使用单独的箱子由快递配送]
+                        C3 -->|汽车零担LTL| C5[发送托拍]
+                        C4 --> C6[选择配送商]
+                        C5 --> C6
+                        C6 --> C7[输入箱子数量]
+                        C7 --> C8[为每个SKU分配箱子]
+                        C8 --> C9[填写每个箱子中各SKU的数量]
+                        C9 --> C10[确认总计数量与货件数量一致]
+                        C10 --> C11[完成货件详情填写]
+                        C11 --> C12[进入物流出库步骤]
+                        
+                        C7 -->|可选| C13[跳过箱子信息]
+                        C13 --> C12
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart4', '货件详情步骤')">下载此流程图</button>
+            </div>
+            
+            <h3>4.2 物流出库步骤</h3>
+            <div class="flowchart-container" id="flowchart5">
+                <div class="flowchart-title">物流出库步骤</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 物流出库步骤
+                        D1[进入物流出库标签页] --> D2[选择物流渠道]
+                        D2 --> D3[选择运输方式]
+                        D3 --> D4[选择物流承运商]
+                        D4 --> D5[选择物流渠道]
+                        D5 --> D6[填写物流系统编号]
+                        D6 --> D7[选择物流发货日期]
+                        D7 --> D8[选择预计到货日期]
+                        D8 --> D9[填写实际结算重量或体积]
+                        D9 --> D10[填写单价]
+                        D10 --> D11[确认物流信息无误]
+                        D11 --> D12[点击确认发货按钮]
+                        D12 --> D13[系统更新货件状态为已发货]
+                        D13 --> D14[进入海关申报步骤]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart5', '物流出库步骤')">下载此流程图</button>
+            </div>
+            
+            <h3>4.3 海关申报步骤</h3>
+            <div class="flowchart-container" id="flowchart6">
+                <div class="flowchart-title">海关申报步骤</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 海关申报步骤
+                        E1[进入海关申报标签页] --> E2[填写报关信息]
+                        E2 --> E3[填写商品名称]
+                        E3 --> E4[填写商品编码HS Code]
+                        E4 --> E5[填写申报价值]
+                        E5 --> E6[填写申报重量]
+                        E6 --> E7[上传报关资料]
+                        E7 --> E8[上传商业发票]
+                        E8 --> E9[上传装箱单]
+                        E9 --> E10[上传其他所需文件]
+                        E10 --> E11[确认报关信息无误]
+                        E11 --> E12[点击提交海关按钮]
+                        E12 --> E13[等待海关审核]
+                        E13 --> E14[进入接收详情步骤]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart6', '海关申报步骤')">下载此流程图</button>
+            </div>
+            
+            <h3>4.4 接收详情步骤</h3>
+            <div class="flowchart-container" id="flowchart7">
+                <div class="flowchart-title">接收详情步骤</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 接收详情步骤
+                        F1[进入接收详情标签页] --> F2[查看接收状态]
+                        F2 --> F3[查看各SKU的已发出数量]
+                        F3 --> F4[查看各SKU的已接收数量]
+                        F4 --> F5[查看货件状态]
+                        F5 --> F6[确认收货数量]
+                        F6 --> F7[核对实际收货数量]
+                        F7 --> F8{是否有差异}
+                        F8 -->|是| F9[记录差异原因]
+                        F8 -->|否| F10[确认所有SKU已正确接收]
+                        F9 --> F10
+                        F10 --> F11[点击本地完成按钮]
+                        F11 --> F12[系统提示确认]
+                        F12 --> F13[点击确认按钮]
+                        F13 --> F14[系统更新库存和货件状态]
+                        F14 --> F15[进入发货完成阶段]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart7', '接收详情步骤')">下载此流程图</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>5. 发货完成阶段</h2>
+            <div class="flowchart-container" id="flowchart8">
+                <div class="flowchart-title">发货完成阶段</div>
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph 发货完成阶段
+                        G1[进入发货完成阶段] --> G2[更新库存]
+                        G2 --> G3[系统自动扣减本地库存]
+                        G3 --> G4[系统自动增加FBA库存]
+                        G4 --> G5[生成报表]
+                        G5 --> G6[系统生成发货报表]
+                        G6 --> G7[导出Excel格式报表]
+                        G7 --> G8[结束发货]
+                        G8 --> G9[发货流程完成]
+                        G9 --> G10[在发货记录中查看历史记录]
+                        end
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart8', '发货完成阶段')">下载此流程图</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>6. 货件状态流转图</h2>
+            <div class="flowchart-container" id="flowchart9">
+                <div class="flowchart-title">货件状态流转图</div>
+                <div class="mermaid">
+                    flowchart LR
+                        A[草稿状态 0] -->|提交审核| B[待审核 1]
+                        B -->|审核通过| C[审核通过 2]
+                        C -->|填写箱子信息| D[已装箱 3]
+                        D -->|确认发货| E[已发货 4]
+                        E -->|物流更新| F[运输中 5]
+                        F -->|本地完成| G[已完成 6]
+                        
+                        A -->|删除| H[已取消 -1]
+                        B -->|删除| H
+                        C -->|删除| H
+                        
+                        style A fill:#f9f,stroke:#333,stroke-width:2px
+                        style B fill:#bbf,stroke:#333,stroke-width:2px
+                        style C fill:#bfb,stroke:#333,stroke-width:2px
+                        style D fill:#ffb,stroke:#333,stroke-width:2px
+                        style E fill:#fbf,stroke:#333,stroke-width:2px
+                        style F fill:#fbb,stroke:#333,stroke-width:2px
+                        style G fill:#bff,stroke:#333,stroke-width:2px
+                        style H fill:#bbb,stroke:#333,stroke-width:2px
+                </div>
+                <button class="download-btn" onclick="downloadFlowchart('flowchart9', '货件状态流转图')">下载此流程图</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>7. 操作说明</h2>
+            <p>点击每个流程图下方的"下载此流程图"按钮，即可将该流程图下载为图片文件。</p>
+            <p>所有流程图基于Wimoor ERP前端代码分析生成，展示了完整的发货流程。</p>
+        </div>
+    </div>
+    
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default'
+        });
+        
+        // 下载流程图函数
+        function downloadFlowchart(containerId, filename) {
+            const container = document.getElementById(containerId);
+            html2canvas(container, {
+                scale: 2, // 提高清晰度
+                useCORS: true, // 允许跨域图片
+                logging: false
+            }).then(canvas => {
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = filename + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

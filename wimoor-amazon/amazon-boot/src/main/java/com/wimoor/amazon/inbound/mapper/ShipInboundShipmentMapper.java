@@ -27,7 +27,7 @@ public interface ShipInboundShipmentMapper extends BaseMapper<ShipInboundShipmen
 	
 	List<Map<String, Object>> findLabelBySku(Map<String, Object> param);
 
-	List<LinkedHashMap<String, Object>> findBoxDetailByShipmentId(@Param("shipmentid") String shipmentid);
+	List<Map<String, Object>> findBoxDetailByShipmentId(@Param("shipmentid") String shipmentid);
 
 	List<ShipInboundShipment> selectBySellerSku(@Param("sku") String sku, @Param("shopid") String shopid);
 	

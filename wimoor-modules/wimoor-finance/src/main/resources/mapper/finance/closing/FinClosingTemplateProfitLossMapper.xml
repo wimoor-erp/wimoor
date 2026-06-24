@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.closing.mapper.FinClosingTemplateProfitLossMapper">
+    
+    <resultMap type="com.wimoor.finance.closing.domain.FinClosingTemplateProfitLoss" id="FinClosingTemplateProfitLossResult">
+        <result property="id"    column="id"    />
+        <result property="templateId"    column="template_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="transferCycle"    column="transfer_cycle"    />
+        <result property="transferMethod"    column="transfer_method"    />
+        <result property="voucherDate"    column="voucher_date"    />
+        <result property="summary"    column="summary"    />
+        <result property="directionHandling"    column="direction_handling"    />
+        <result property="profitLossSubjectCode"    column="profit_loss_subject_code"    />
+        <result property="currentYearProfitSubjectCode"    column="current_year_profit_subject_code"    />
+        <result property="priorYearAdjustmentSubjectCode"    column="prior_year_adjustment_subject_code"    />
+        <result property="priorYearAdjustTransferSubjectCode"    column="prior_year_adjust_transfer_subject_code"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="modifyBy"    column="modify_by"    />
+    </resultMap>
+
+    <sql id="selectFinClosingTemplateProfitLossVo">
+        select id, template_id, groupid, transfer_cycle, transfer_method, voucher_date, summary, direction_handling, profit_loss_subject_code, current_year_profit_subject_code, prior_year_adjustment_subject_code, prior_year_adjust_transfer_subject_code, created_time, updated_time, create_by, modify_by from fin_closing_template_profit_loss
+    </sql>
+
+    <select id="selectFinClosingTemplateProfitLossList" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateProfitLoss" resultMap="FinClosingTemplateProfitLossResult">
+        <include refid="selectFinClosingTemplateProfitLossVo"/>
+        <where>  
+            <if test="templateId != null  and templateId != ''"> and template_id = #{templateId}</if>
+            <if test="groupid != null  and groupid != ''"> and groupid = #{groupid}</if>
+            <if test="transferCycle != null  and transferCycle != ''"> and transfer_cycle = #{transferCycle}</if>
+            <if test="transferMethod != null  and transferMethod != ''"> and transfer_method = #{transferMethod}</if>
+            <if test="voucherDate != null  and voucherDate != ''"> and voucher_date = #{voucherDate}</if>
+            <if test="summary != null  and summary != ''"> and summary = #{summary}</if>
+            <if test="directionHandling != null "> and direction_handling = #{directionHandling}</if>
+            <if test="profitLossSubjectCode != null  and profitLossSubjectCode != ''"> and profit_loss_subject_code = #{profitLossSubjectCode}</if>
+            <if test="currentYearProfitSubjectCode != null  and currentYearProfitSubjectCode != ''"> and current_year_profit_subject_code = #{currentYearProfitSubjectCode}</if>
+            <if test="priorYearAdjustmentSubjectCode != null  and priorYearAdjustmentSubjectCode != ''"> and prior_year_adjustment_subject_code = #{priorYearAdjustmentSubjectCode}</if>
+            <if test="priorYearAdjustTransferSubjectCode != null  and priorYearAdjustTransferSubjectCode != ''"> and prior_year_adjust_transfer_subject_code = #{priorYearAdjustTransferSubjectCode}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+            <if test="modifyBy != null  and modifyBy != ''"> and modify_by = #{modifyBy}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinClosingTemplateProfitLossById" parameterType="String" resultMap="FinClosingTemplateProfitLossResult">
+        <include refid="selectFinClosingTemplateProfitLossVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinClosingTemplateProfitLoss" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateProfitLoss" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_closing_template_profit_loss
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="templateId != null and templateId != ''">template_id,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="transferCycle != null">transfer_cycle,</if>
+            <if test="transferMethod != null">transfer_method,</if>
+            <if test="voucherDate != null">voucher_date,</if>
+            <if test="summary != null">summary,</if>
+            <if test="directionHandling != null">direction_handling,</if>
+            <if test="profitLossSubjectCode != null">profit_loss_subject_code,</if>
+            <if test="currentYearProfitSubjectCode != null">current_year_profit_subject_code,</if>
+            <if test="priorYearAdjustmentSubjectCode != null">prior_year_adjustment_subject_code,</if>
+            <if test="priorYearAdjustTransferSubjectCode != null">prior_year_adjust_transfer_subject_code,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="modifyBy != null">modify_by,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="templateId != null and templateId != ''">#{templateId},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="transferCycle != null">#{transferCycle},</if>
+            <if test="transferMethod != null">#{transferMethod},</if>
+            <if test="voucherDate != null">#{voucherDate},</if>
+            <if test="summary != null">#{summary},</if>
+            <if test="directionHandling != null">#{directionHandling},</if>
+            <if test="profitLossSubjectCode != null">#{profitLossSubjectCode},</if>
+            <if test="currentYearProfitSubjectCode != null">#{currentYearProfitSubjectCode},</if>
+            <if test="priorYearAdjustmentSubjectCode != null">#{priorYearAdjustmentSubjectCode},</if>
+            <if test="priorYearAdjustTransferSubjectCode != null">#{priorYearAdjustTransferSubjectCode},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="modifyBy != null">#{modifyBy},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinClosingTemplateProfitLoss" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateProfitLoss">
+        update fin_closing_template_profit_loss
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="templateId != null and templateId != ''">template_id = #{templateId},</if>
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="transferCycle != null">transfer_cycle = #{transferCycle},</if>
+            <if test="transferMethod != null">transfer_method = #{transferMethod},</if>
+            <if test="voucherDate != null">voucher_date = #{voucherDate},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="directionHandling != null">direction_handling = #{directionHandling},</if>
+            <if test="profitLossSubjectCode != null">profit_loss_subject_code = #{profitLossSubjectCode},</if>
+            <if test="currentYearProfitSubjectCode != null">current_year_profit_subject_code = #{currentYearProfitSubjectCode},</if>
+            <if test="priorYearAdjustmentSubjectCode != null">prior_year_adjustment_subject_code = #{priorYearAdjustmentSubjectCode},</if>
+            <if test="priorYearAdjustTransferSubjectCode != null">prior_year_adjust_transfer_subject_code = #{priorYearAdjustTransferSubjectCode},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="modifyBy != null">modify_by = #{modifyBy},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinClosingTemplateProfitLossById" parameterType="String">
+        delete from fin_closing_template_profit_loss where id = #{id}
+    </delete>
+
+    <delete id="deleteFinClosingTemplateProfitLossByIds" parameterType="String">
+        delete from fin_closing_template_profit_loss where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

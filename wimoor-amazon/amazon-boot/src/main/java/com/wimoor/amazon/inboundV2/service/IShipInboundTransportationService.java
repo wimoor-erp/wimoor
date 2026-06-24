@@ -10,10 +10,7 @@ import com.amazon.spapi.model.fulfillmentinboundV20240320.TransportationSelectio
 import com.wimoor.amazon.inbound.pojo.dto.ShipTransDTO;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans;
 import com.wimoor.amazon.inboundV2.pojo.dto.TransportationDTO;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentCustoms;
+import com.wimoor.amazon.inboundV2.pojo.entity.*;
 import com.wimoor.common.user.UserInfo;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,5 +23,7 @@ public interface IShipInboundTransportationService {
     List<Map<String, Object>> getSelfTransHis(String companyid, String shipmentid);
 	List<ShipInboundShipmentCustoms> getCustoms(String shipmentid);
 	void saveCustoms(UserInfo user, List<ShipInboundShipmentCustoms> list);
-	 
+
+    List<ShipInboundShipmentCustom> getCustom(String shipmentid);
+	void saveCustom(UserInfo user, List<ShipInboundShipmentCustom> list);
 }

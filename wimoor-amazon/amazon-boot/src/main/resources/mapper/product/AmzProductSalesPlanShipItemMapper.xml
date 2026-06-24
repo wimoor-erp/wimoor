@@ -127,8 +127,15 @@
 </update>
 
 <delete id="moveBatch"  parameterType="java.lang.String">
-         insert into t_amz_product_sales_plan_ship_item_history
-		 select* from t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
+	INSERT INTO t_amz_product_sales_plan_ship_item_history
+	SELECT
+		UUID_SHORT() as id,  -- 让数据库自动生成新id
+		sku, msku, shopid, marketplaceid, groupid,
+		amazonauthid, warehouseid, overseaid, transtype,
+		batchnumber, amount, aftersalesday, isdefault,
+		NOW() as opttime, operator
+	FROM t_amz_product_sales_plan_ship_item
+	WHERE batchnumber=#{batchnumber,jdbcType=CHAR} AND shopid=#{shopid,jdbcType=CHAR};
 		 delete from  t_amz_product_sales_plan_ship_item where batchnumber=#{batchnumber,jdbcType=CHAR} and shopid=#{shopid,jdbcType=CHAR};
 </delete>
 

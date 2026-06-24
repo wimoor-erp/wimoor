@@ -18,15 +18,15 @@
 CREATE TABLE IF NOT EXISTS `t_product_rank_his` (
   `id` bigint unsigned NOT NULL,
   `byday` date DEFAULT NULL,
-  `categoryId` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `categoryId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `rank` int DEFAULT NULL,
   `product_id` bigint unsigned DEFAULT NULL,
   `isMain` bit(1) DEFAULT NULL,
   `isNewest` bit(1) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `FK_t_ranklist_t_produ` (`product_id`),
-  KEY `Index 3` (`byday`),
-  KEY `categoryId` (`categoryId`,`byday`)
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `FK_t_ranklist_t_produ` (`product_id`) USING BTREE,
+  KEY `Index 3` (`byday`) USING BTREE,
+  KEY `categoryId` (`categoryId`,`byday`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

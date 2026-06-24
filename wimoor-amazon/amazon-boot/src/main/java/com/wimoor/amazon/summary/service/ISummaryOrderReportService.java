@@ -1,9 +1,9 @@
 package com.wimoor.amazon.summary.service;
 
+import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
+
 import java.util.Date;
 import java.util.Set;
-
-import com.wimoor.amazon.orders.pojo.entity.OrdersReport;
 
 public interface ISummaryOrderReportService {
 
@@ -18,4 +18,5 @@ public interface ISummaryOrderReportService {
 	public void systemDataHandler();
 	public void saveMainReturnReport(Set<String> shopset);
 	public Set<String> getAvailableAmazonShop();
+	public void dataAnalysisSingle(String pid);
 }

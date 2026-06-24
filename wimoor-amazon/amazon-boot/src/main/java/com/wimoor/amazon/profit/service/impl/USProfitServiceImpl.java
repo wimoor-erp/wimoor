@@ -95,13 +95,14 @@ public class USProfitServiceImpl extends ProfitServiceImpl {
 			Object result = AviatorEvaluator.exec(format, dimensions);
 			// System.out.println(result+" "+result.getClass());//有时得到BigDecimal类型，有时得到Double类型
 			outboundWeight = new BigDecimal(result.toString());
-			BigDecimal intOut = outboundWeight.setScale(0,RoundingMode.DOWN);// 进位取整数，模拟不足一磅按一磅算；
-			BigDecimal flotOut = outboundWeight.subtract(intOut);
-			if(flotOut.compareTo(new BigDecimal("0.5"))>0) {
-				outboundWeight=intOut.add(new BigDecimal("1"));
-			}else if(flotOut.compareTo(new BigDecimal("0.00001"))>=0) {
-				outboundWeight=intOut.add(new BigDecimal("0.5"));
-			}
+			outboundWeight = outboundWeight.setScale(2,RoundingMode.UP);
+//			BigDecimal intOut = outboundWeight.setScale(0,RoundingMode.DOWN);// 进位取整数，模拟不足一磅按一磅算；
+//			BigDecimal flotOut = outboundWeight.subtract(intOut);
+//			if(flotOut.compareTo(new BigDecimal("0.5"))>0) {
+//				outboundWeight=intOut.add(new BigDecimal("1"));
+//			}else if(flotOut.compareTo(new BigDecimal("0.00001"))>=0) {
+//				outboundWeight=intOut.add(new BigDecimal("0.5"));
+//			}
 		}else {
 			outboundWeight=dimensions.getWeight().getValue();
 		}

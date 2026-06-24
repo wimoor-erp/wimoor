@@ -75,11 +75,12 @@
 
     </select>
   <select id="selectNeedProcess" resultType="java.lang.Integer" parameterType="java.lang.String">
-      SELECT SUM((f.amount-f.amount_handle)*e.subnumber) as needprocess
-      from t_erp_assembly_form f
-      LEFT JOIN t_erp_assembly_form_entry e ON e.formid=f.id
-      WHERE e.materialid=#{materialid,jdbcType=CHAR} AND f.shopid= #{shopid,jdbcType=CHAR}
-      and f.warehouseid=#{warehouseid,jdbcType=CHAR}
-      and f.auditstatus=2
+      SELECT SUM((CAST(f.amount AS SIGNED) - CAST(f.amount_handle AS SIGNED)) * e.subnumber) as needprocess
+      FROM t_erp_assembly_form f
+               LEFT JOIN t_erp_assembly_form_entry e ON e.formid = f.id
+      WHERE e.materialid = #{materialid,jdbcType=CHAR}
+        AND f.shopid = #{shopid,jdbcType=CHAR}
+        AND f.warehouseid = #{warehouseid,jdbcType=CHAR}
+        AND f.auditstatus = 2
   </select>
 </mapper>

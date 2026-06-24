@@ -246,4 +246,313 @@
 			)
 		</foreach>
 	</insert>
+
+
+	<select id="monthDetail" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT m.amazonAuthId,
+		m.marketplace_name,
+		m.transaction_type,
+		m.amount_type,
+		m.amount_description,
+		max(transaction_type.cname) transaction_typename,
+		max(amount_type.cname) amount_typename,
+		max(amount_description.cname) amount_descriptionname,
+		sum(
+		case when
+		    m.transaction_type='Order'
+		    and m.amount_type='ItemPrice'
+		    and m.amount_description='Principal'
+		    then m.quantity_orders ELSE 0 END
+
+		) orders,
+		sum(
+		case when
+		m.transaction_type='Refund'
+		and m.amount_type='ItemPrice'
+		and m.amount_description='Principal'
+		then m.quantity_orders ELSE 0 END
+
+		) refundOrders,
+		m.currency,
+		case when count(nosku.transaction_type) >0 then 1 ELSE 0 END isnosku,
+		sum(m.amount) amount
+		from t_amz_settlement_summary_month m
+		LEFT JOIN t_amz_settlement_amount_description transaction_type ON transaction_type.ename=m.transaction_type
+		LEFT JOIN t_amz_settlement_amount_description amount_type ON amount_type.ename=m.amount_type
+		LEFT JOIN t_amz_settlement_amount_description amount_description ON amount_description.ename=m.amount_description
+		LEFT JOIN t_amz_settlement_amount_type_nonsku nosku ON nosku.transaction_type=m.transaction_type
+		AND nosku.amount_type=m.amount_type
+		AND nosku.amount_description=case when nosku.amount_description='*' then nosku.amount_description ELSE  m.amount_description end
+		LEFT JOIN t_amazon_auth a ON a.id=m.amazonAuthId
+		LEFT JOIN t_amazon_group g ON g.id=a.groupid
+		<if test="datetype!=null">
+			left join t_amz_settlement_acc_report acc on acc.settlement_id=m.settlementid
+		</if>
+		where 1=1
+		<if test="datetype==null">
+			and m.posted_date>=#{fromDate,jdbcType=CHAR}
+			and m.posted_date&lt;=#{endDate,jdbcType=CHAR}
+		</if>
+		<if test="datetype!=null">
+			and acc.deposit_date&gt;=#{fromDate,jdbcType=CHAR}
+			and acc.deposit_date&lt;=#{endDate,jdbcType=CHAR}
+			<if test="marketplace_name != null">
+				and acc.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+			</if>
+		</if>
+		  AND g.shopid=#{shopid,jdbcType=CHAR}
+		  <if test="groupid != null">
+		  and g.id=#{groupid,jdbcType=CHAR}
+		  </if>
+		  <if test="marketplace_name != null">
+		  AND m.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		  </if>
+		  <if test="amazonAuthId != null">
+		  AND m.amazonAuthId=#{amazonAuthId,jdbcType=CHAR}
+		  </if>
+		GROUP BY m.amazonAuthId,m.marketplace_name,m.transaction_type,m.amount_type,m.amount_description,m.currency
+	</select>
+
+	<select id="monthReport" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+		m.posted_date,currency,
+
+		SUM(case when
+					 transaction_type='Order'
+						 and amount_type='ItemPrice'
+						 and amount_description='Principal'
+		                 and fulfillment_type='MFN'
+					 then  amount ELSE 0 END ) `Seller fulfilled product sales`,
+
+		SUM(case when
+					 (transaction_type='Refund'
+						 and amount_type='ItemPrice'
+						 and amount_description in ('Principal','Goodwill','RestockingFee')
+						 and fulfillment_type='MFN')
+					 then  amount ELSE 0 END ) `Seller_fulfilled product sale refunds`,
+
+		SUM(case when
+		transaction_type='Order'
+		and amount_type='ItemPrice'
+		and amount_description='Principal'
+		and fulfillment_type='AFN'
+		then  amount ELSE 0 END ) `FBA product sales`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemPrice'
+		and amount_description in ('Principal','Goodwill','RestockingFee')
+		and fulfillment_type='AFN')
+		then  amount ELSE 0 END ) `FBA product sale refunds`,
+
+		SUM(case when
+		(transaction_type='other-transaction'
+		and amount_type='FBA Inventory Reimbursement'
+		and amount_description IN ('REVERSAL_REIMBURSEMENT','WAREHOUSE_LOST','WAREHOUSE_DAMAGE','FREE_REPLACEMENT_REFUND_ITEMS') )
+		then amount ELSE 0 END ) `FBA inventory credit`,
+
+		SUM(case when
+		(transaction_type='Liquidations'
+		and amount_type='ItemPrice'
+		and amount_description = 'Principal' )
+		then amount ELSE 0 END ) `FBA liquidation proceeds`,
+
+		SUM(case when
+		(transaction_type='Liquidations Adjustments'
+		and amount_type='ItemPrice'
+		and amount_description = 'Principal' )
+		then amount ELSE 0 END ) `FBA Liquidations proceeds adjustments`,
+
+		SUM(case when
+		(transaction_type='Order'
+		and amount_type='ItemPrice'
+		and amount_description = 'Shipping' )
+		then amount ELSE 0 END ) `Postage credits`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemPrice'
+		and amount_description = 'Shipping' )
+		then amount ELSE 0 END ) `Delivery credit refunds`,
+
+		SUM(case when
+		(transaction_type='Order'
+		and amount_type='ItemPrice'
+		and amount_description = 'GiftWrap' )
+		then amount ELSE 0 END ) `Gift wrap credits`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemPrice'
+		and amount_description = 'GiftWrap' )
+		then amount ELSE 0 END ) `Gift wrap credits refunds`,
+
+		SUM(case when
+		(transaction_type='Order'
+		and amount_type='Promotion'
+		and amount_description = 'Shipping' )
+		then amount ELSE 0 END ) `Promotional rebates`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='Promotion'
+		and amount_description = 'Shipping' )
+		then amount ELSE 0 END ) `Promotional rebate refunds`,
+
+		SUM(case when
+					 (transaction_type='Order'
+						 and amount_type in ('ItemFees','ItemFee')
+						 and amount_description = 'Commission'
+					     and fulfillment_type='MFN')
+					 then amount ELSE 0 END ) `Seller_fulfilled selling fees`,
+
+		SUM(case when
+		(transaction_type='Order'
+		and amount_type in ('ItemFees','ItemFee')
+		and amount_description = 'Commission'
+		and fulfillment_type='AFN')
+		then amount ELSE 0 END ) `FBA selling fees`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemFees'
+		and amount_description = 'Commission' )
+		then amount ELSE 0 END ) `Selling fee refunds`,
+
+		SUM(case when
+		 (transaction_type='ServiceFee'
+		 and amount_type='Refund for Advertiser'
+		 and amount_description = 'TransactionTotalAmount' )
+		 then amount ELSE 0 END ) `Refund for Advertiser`,
+
+		SUM(case when
+		transaction_type in ('Order','FBAFees')
+		and amount_type in ('ItemFees','ItemFee','FBA Customer Returns Fee (Non-Apparel an')
+		and amount_description  IN( 'FBAPerUnitFulfillmentFee',
+		                            'ShippingChargeback',
+		                            'GiftwrapChargeback',
+		                            'Base fee' )
+		then amount ELSE 0 END ) `FBA transaction fees`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemFees'
+		and amount_description = 'ShippingChargeback' ) OR
+		(transaction_type='Fee Adjustment'
+		and amount_type='Item Fee Adjustment'
+		and amount_description = 'FBA Pick &amp; Pack Fee')
+		then amount ELSE 0 END ) `FBA transaction fee refunds`,
+
+		SUM(case when
+		(transaction_type='Order'
+		and amount_type='ItemFees'
+		and amount_description IN( 'Digital Services Fee','DigitalServicesFee' ))
+		then amount ELSE 0 END ) `Other transaction fees`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemFees'
+		and amount_description IN( 'Digital Services Fee','DigitalServicesFee' ))
+		then amount ELSE 0 END ) `Other transaction fee refunds`,
+
+		SUM(case when
+		(transaction_type='other-transaction'
+		and amount_type IN ('other-transaction','ItemFees' )
+		and amount_description IN( 'Storage Fee','StorageRenewalBilling','Inbound Transportation Fee',
+
+		                           'DisposalComplete','FBACustomerReturnPerUnitFee' ))
+		then amount ELSE 0 END ) `FBA inventory and inbound services fees`,
+
+		SUM(case when
+			 (transaction_type in ('other-transaction','AmazonFees')
+				 and amount_type in ('other-transaction','Deal Participation Fee','Deal Performance Based Fee')
+				 and amount_description  IN( 'Subscription Fee','Base fee' ))
+		then amount ELSE 0 END ) `Service fees`,
+
+		SUM(case when
+		(transaction_type='Refund'
+		and amount_type='ItemFees'
+		and amount_description = 'RefundCommission' )
+		then amount ELSE 0 END ) `Refund administration fees`,
+
+		SUM(case when
+		(transaction_type='other-transaction'
+		and amount_type in ('FBA Inventory Reimbursement','other-transaction')
+		and amount_description IN( 'COMPENSATED_CLAWBACK','REMOVAL_ORDER_LOST','Overpaid Fees Adjustment','BuyerRecharge') )
+		then amount ELSE 0 END ) `Adjustments`,
+
+		SUM(case when
+		(transaction_type='ServiceFee'
+		and amount_type='Cost of Advertising'
+		and amount_description = 'TransactionTotalAmount' )
+		then amount ELSE 0 END ) `Cost of Advertising`,
+
+		SUM(case when
+		(transaction_type IN ('Liquidations' ,'Liquidations Adjustments')
+		and amount_type IN ('ItemFees')
+		and amount_description IN( 'LiquidationsBrokerageFee','LiquidationsBrokerageFee' ))
+		then amount ELSE 0 END ) `Liquidations fees`,
+
+		SUM(case when
+		(transaction_type IN ('Order' ,'Liquidations','Order_Retrocharge','Liquidations Adjustments')
+		and amount_type IN ('ItemPrice','Promotion')
+		and amount_description IN( 'Tax','ShippingTax','GiftWrapTax','TaxDiscount' ))
+		then amount ELSE 0 END )  `Product, delivery and gift wrap taxes collected`,
+
+		SUM(case when
+		(transaction_type IN ('Refund','Refund_Retrocharge')
+		and amount_type IN ('ItemPrice','Promotion')
+		and amount_description IN( 'Tax','ShippingTax','GiftWrapTax','TaxDiscount' ))
+		then amount ELSE 0 END )  `Product, delivery and gift wrap taxes refunded`,
+
+		SUM(case when
+		amount_type ='ItemWithheldTax'
+		then amount ELSE 0 END )  `Amazon obligated tax withheld`,
+
+		sum(m.amount) `Total Income Expenses Tax`
+		from t_amz_settlement_summary_month m
+		WHERE m.amazonauthid=#{amazonauthid,jdbcType=CHAR}
+		AND  m.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		AND  m.posted_date>=#{fromDate,jdbcType=CHAR}
+		AND  m.posted_date&lt;#{endDate,jdbcType=CHAR}
+		group by m.posted_date,m.currency
+	</select>
+
+    <select id="TransfersToBankAccount" resultType="java.math.BigDecimal">
+		 SELECT SUM(r.total_amount)*-1
+		 FROM t_amz_settlement_acc_report r
+		 WHERE  r.amazonauthid=#{amazonauthid,jdbcType=CHAR}
+		   AND  r.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		   and
+			 ( (r.deposit_date>=#{fromDate,jdbcType=CHAR}
+				 and
+				r.deposit_date&lt;#{endDate,jdbcType=CHAR}
+				   )
+				 or
+			   ( r.settlement_start_date>=#{fromDate,jdbcType=CHAR}
+				   AND
+				 r.settlement_end_date&lt;#{endDate,jdbcType=CHAR}
+				   )
+				 )
+	</select>
+
+	<select id="FailedTransfersToBankAccount" resultType="java.math.BigDecimal">
+		 SELECT SUM(r.total_amount)*-1
+		 FROM t_amz_settlement_acc_report r
+		 WHERE
+			 r.amazonauthid=#{amazonauthid,jdbcType=CHAR}
+		   AND  r.marketplace_name=#{marketplace_name,jdbcType=CHAR}
+		   and
+			 ( (r.deposit_date>=#{fromDate,jdbcType=CHAR}
+				 and
+				r.deposit_date&lt;#{endDate,jdbcType=CHAR}
+				   )
+				 or
+			   ( r.settlement_start_date>=#{fromDate,jdbcType=CHAR}
+				   AND
+				 r.settlement_end_date&lt;#{endDate,jdbcType=CHAR}
+				   )
+				 )
+		   and r.invalid=1
+	</select>
 </mapper>

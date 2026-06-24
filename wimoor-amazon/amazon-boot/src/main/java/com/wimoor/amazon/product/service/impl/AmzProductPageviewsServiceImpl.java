@@ -1,39 +1,30 @@
 package com.wimoor.amazon.product.service.impl;
 
-import com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO;
-import com.wimoor.amazon.product.pojo.entity.AmzProductPageviews;
-import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsConditionVo;
-import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo;
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.product.mapper.AmzProductPageviewsMapper;
 import com.wimoor.amazon.product.mapper.ProductInOptMapper;
+import com.wimoor.amazon.product.pojo.dto.AmzProductPageviewsDTO;
+import com.wimoor.amazon.product.pojo.entity.AmzProductPageviews;
+import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsConditionVo;
+import com.wimoor.amazon.product.pojo.vo.AmzProductPageviewsVo;
 import com.wimoor.amazon.product.service.IAmzProductPageviewsService;
 import com.wimoor.amazon.report.service.IHandlerReportService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
-
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * <p>
@@ -62,7 +53,12 @@ public class AmzProductPageviewsServiceImpl extends ServiceImpl<AmzProductPagevi
 						continue;
 					}
 				   this.baseMapper.downloadRefresh(item);
-				   this.baseMapper.deleteByMarketplaceid(item.getMarketplaceid(), item.getAmazonAuthid().toString(), GeneralUtil.getStrDate(item.getByday()));
+                   try {
+                       Thread.sleep(1000);
+                   } catch (InterruptedException e) {
+                       throw new RuntimeException(e);
+                   }
+                   this.baseMapper.deleteByMarketplaceid(item.getMarketplaceid(), item.getAmazonAuthid().toString(), GeneralUtil.getStrDate(item.getByday()));
 			   }
 		}
 	}

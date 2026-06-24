@@ -17,7 +17,7 @@ public interface IFaccountService extends IService<FinAccount> {
 
 	public List<FinanceProject> findProList(String shopid, String search);
 
-	public FinAccount readFinAccount(String shopid,Integer paymethod);
+	public FinAccount readFinAccount(String shopid,Integer paymethod,String name);
 
 	public void updateFinAfterChange(FinAccount account, String projectid, Date createtime, BigDecimal amount,String ftype);
 

@@ -1,47 +1,41 @@
 package com.wimoor.amazon.inventory.controller;
 
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.inbound.service.IFBAShipCycleService;
 import com.wimoor.amazon.inventory.pojo.dto.InventoryCostDTO;
 import com.wimoor.amazon.inventory.pojo.dto.InventoryPlanningDTO;
+import com.wimoor.amazon.inventory.pojo.dto.InventoryQueryDTO;
 import com.wimoor.amazon.inventory.pojo.vo.AmzInventoryPlanningVo;
 import com.wimoor.amazon.inventory.pojo.vo.ProductInventoryVo;
 import com.wimoor.amazon.inventory.service.IFBAInventoryService;
 import com.wimoor.amazon.report.pojo.dto.InvDayDetailDTO;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
-
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * <p>
@@ -311,15 +305,17 @@ public class InventoryReportController {
 			if(dto.getCurrentpage()==1) {
 				Map<String, Object> summap = iFBAInventoryService.findSum(param);
 				ProductInventoryVo summary=new ProductInventoryVo();
-				summary.setAfnWarehouseQuantity(summap.get("afnWarehouseQuantity")!=null?summap.get("afnWarehouseQuantity").toString():null);
-				summary.setAfnFulfillableQuantity(summap.get("allafnFulfillableQuantity")!=null?summap.get("allafnFulfillableQuantity").toString():null);
-				summary.setAfnReservedQuantity(summap.get("afnReservedQuantity")!=null?summap.get("afnReservedQuantity").toString():null);
-				summary.setAfnInboundWorkingQuantity(summap.get("afnInboundWorkingQuantity")!=null?summap.get("afnInboundWorkingQuantity").toString():null);
-		        summary.setAfnInboundShippedQuantity(summap.get("afnInboundShippedQuantity")!=null?summap.get("afnInboundShippedQuantity").toString():null);
-                summary.setAfnInboundReceivingQuantity(summap.get("afnInboundReceivingQuantity")!=null?summap.get("afnInboundReceivingQuantity").toString():null);
-                summary.setAfnUnsellableQuantity(summap.get("afnUnsellableQuantity")!=null?summap.get("afnUnsellableQuantity").toString():null);
-				summary.setAfnResearchingQuantity(summap.get("afnResearchingQuantity")!=null?summap.get("afnResearchingQuantity").toString():null);
-				inventoryList.getRecords().get(0).setSummary(summary);	 
+				if(summap!=null){
+					summary.setAfnWarehouseQuantity(summap.get("afnWarehouseQuantity")!=null?summap.get("afnWarehouseQuantity").toString():null);
+					summary.setAfnFulfillableQuantity(summap.get("allafnFulfillableQuantity")!=null?summap.get("allafnFulfillableQuantity").toString():null);
+					summary.setAfnReservedQuantity(summap.get("afnReservedQuantity")!=null?summap.get("afnReservedQuantity").toString():null);
+					summary.setAfnInboundWorkingQuantity(summap.get("afnInboundWorkingQuantity")!=null?summap.get("afnInboundWorkingQuantity").toString():null);
+					summary.setAfnInboundShippedQuantity(summap.get("afnInboundShippedQuantity")!=null?summap.get("afnInboundShippedQuantity").toString():null);
+					summary.setAfnInboundReceivingQuantity(summap.get("afnInboundReceivingQuantity")!=null?summap.get("afnInboundReceivingQuantity").toString():null);
+					summary.setAfnUnsellableQuantity(summap.get("afnUnsellableQuantity")!=null?summap.get("afnUnsellableQuantity").toString():null);
+					summary.setAfnResearchingQuantity(summap.get("afnResearchingQuantity")!=null?summap.get("afnResearchingQuantity").toString():null);
+					inventoryList.getRecords().get(0).setSummary(summary);
+				}
 			}
 		}
 		return Result.success(inventoryList);
@@ -354,17 +350,19 @@ public class InventoryReportController {
 		String fileName = "";
 		ProductInventoryVo summary=new ProductInventoryVo();
 		fileName = "FBAInventoryReport";
-		summap.put("groupname", "");
-		summary.setGroupname("合计");
-		summary.setAfnWarehouseQuantity(summap.get("afnWarehouseQuantity")!=null?summap.get("afnWarehouseQuantity").toString():null);
-		summary.setAfnFulfillableQuantity(summap.get("allafnFulfillableQuantity")!=null?summap.get("allafnFulfillableQuantity").toString():null);
-		summary.setAfnReservedQuantity(summap.get("afnReservedQuantity")!=null?summap.get("afnReservedQuantity").toString():null);
-		summary.setAfnInboundWorkingQuantity(summap.get("afnInboundWorkingQuantity")!=null?summap.get("afnInboundWorkingQuantity").toString():null);
-        summary.setAfnInboundShippedQuantity(summap.get("afnInboundShippedQuantity")!=null?summap.get("afnInboundShippedQuantity").toString():null);
-        summary.setAfnInboundReceivingQuantity(summap.get("afnInboundReceivingQuantity")!=null?summap.get("afnInboundReceivingQuantity").toString():null);
-        summary.setAfnUnsellableQuantity(summap.get("allafnUnsellableQuantity")!=null?summap.get("allafnUnsellableQuantity").toString():null);
-		summary.setAfnResearchingQuantity(summap.get("allafnResearchingQuantity")!=null?summap.get("allafnResearchingQuantity").toString():null);
-		inventoryList.add(summary);
+		if(summap!=null){
+			summap.put("groupname", "");
+			summary.setGroupname("合计");
+			summary.setAfnWarehouseQuantity(summap.get("afnWarehouseQuantity")!=null?summap.get("afnWarehouseQuantity").toString():null);
+			summary.setAfnFulfillableQuantity(summap.get("allafnFulfillableQuantity")!=null?summap.get("allafnFulfillableQuantity").toString():null);
+			summary.setAfnReservedQuantity(summap.get("afnReservedQuantity")!=null?summap.get("afnReservedQuantity").toString():null);
+			summary.setAfnInboundWorkingQuantity(summap.get("afnInboundWorkingQuantity")!=null?summap.get("afnInboundWorkingQuantity").toString():null);
+			summary.setAfnInboundShippedQuantity(summap.get("afnInboundShippedQuantity")!=null?summap.get("afnInboundShippedQuantity").toString():null);
+			summary.setAfnInboundReceivingQuantity(summap.get("afnInboundReceivingQuantity")!=null?summap.get("afnInboundReceivingQuantity").toString():null);
+			summary.setAfnUnsellableQuantity(summap.get("allafnUnsellableQuantity")!=null?summap.get("allafnUnsellableQuantity").toString():null);
+			summary.setAfnResearchingQuantity(summap.get("allafnResearchingQuantity")!=null?summap.get("allafnResearchingQuantity").toString():null);
+			inventoryList.add(summary);
+		}
 		try {
 			// 创建新的Excel工作薄
 			SXSSFWorkbook workbook = new SXSSFWorkbook();
@@ -393,9 +391,9 @@ public class InventoryReportController {
 		if(dto.getMarketplaceid()!=null&&dto.getMarketplaceid().equals("IEU")) {
 			marketplaceid="EU";
 		}
-		return Result.success(iFBAInventoryService.selectInventoryCost(dto.getPage(),groupid, marketplaceid, sku, shopid, byday));
+		return Result.success(iFBAInventoryService.selectInventoryCost(dto.getPage(),groupid, marketplaceid, sku, shopid, byday, dto.getIsAvgPrice()));
 	}
-
+	
 	@PostMapping(value = "downloadInvCostFBA")
 	public void getInventoryCostFBAReportAction(@RequestBody InventoryCostDTO dto, HttpServletResponse response)  {
 		try {
@@ -411,7 +409,7 @@ public class InventoryReportController {
 			String byday = dto.getByday();
 			UserInfo user = UserInfoContext.get();
 			String shopid = user.getCompanyid();
-			List<Map<String, Object>> list = iFBAInventoryService.selectInventoryCostAll(groupid, marketplaceid, sku, shopid, byday);
+			List<Map<String, Object>> list = iFBAInventoryService.selectInventoryCostAll(groupid, marketplaceid, sku, shopid, byday, dto.getIsAvgPrice());
 			Sheet sheet = workbook.createSheet("sheet1");
 			Map<String, Integer> titlemap = new HashMap<String, Integer>();
 			Row row = sheet.createRow(0);
@@ -469,6 +467,25 @@ public class InventoryReportController {
 			fOut.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	@PostMapping(value = "/uploadInventoryFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public Result<String> uploadInventoryFileAction(@RequestParam("file") MultipartFile file, InventoryQueryDTO dto)  {
+		try {
+			UserInfo user = UserInfoContext.get();
+			if (file != null) {
+				InputStream inputStream = file.getInputStream();
+				Workbook workbook = WorkbookFactory.create(inputStream);
+				Sheet sheet = workbook.getSheetAt(0);
+				iFBAInventoryService.uploadInventoryFile(sheet,user);
+				workbook.close();
+				return Result.success("导入成功");
+			}
+			throw new BizException("导入失败,文件为空");
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new BizException("导入失败" + e.getMessage());
 		}
 	}
 	

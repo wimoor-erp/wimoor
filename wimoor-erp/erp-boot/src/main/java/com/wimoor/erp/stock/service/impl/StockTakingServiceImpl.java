@@ -115,11 +115,16 @@ public class StockTakingServiceImpl extends  ServiceImpl<StockTakingMapper,Stock
 				item.setStocktakingid(new BigInteger(entity.getId()));
 			}
 			this.iStocktakingWarehouseService.saveData(entity.getWarehouselist());
-		}else if(entity.getShelflist()!=null){
+		}else if(entity.getFtype()==2&&entity.getShelflist()!=null){
 			for(StocktakingShelf item:entity.getShelflist()) {
 				item.setStocktakingid(new BigInteger(entity.getId()));
 			}
 			this.iStocktakingShelfService.saveData(entity.getShelflist());
+		}else{
+			for(StocktakingWarehouse item:entity.getWarehouselist()) {
+				item.setStocktakingid(new BigInteger(entity.getId()));
+			}
+			this.iStocktakingWarehouseService.saveData(entity.getWarehouselist());
 		}
 		return this.baseMapper.insert(entity)>0;
 	}

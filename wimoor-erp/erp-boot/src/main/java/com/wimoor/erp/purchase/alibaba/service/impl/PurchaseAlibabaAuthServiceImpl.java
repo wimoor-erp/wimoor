@@ -319,6 +319,7 @@ public class PurchaseAlibabaAuthServiceImpl extends ServiceImpl<PurchaseAlibabaA
 		QueryWrapper<PurchaseAlibabaAuth> queryWrapper=new QueryWrapper<PurchaseAlibabaAuth>();
 		queryWrapper.eq("shopid", user.getCompanyid());
 		queryWrapper.eq("isDelete", 0);
+		queryWrapper.orderByDesc("opttime");
 		List<PurchaseAlibabaAuth> list = this.list(queryWrapper);
 		for(PurchaseAlibabaAuth item:list) {
 			item.setAppkey("******");
@@ -457,12 +458,14 @@ public class PurchaseAlibabaAuthServiceImpl extends ServiceImpl<PurchaseAlibabaA
 	public Object getAddress(String id) {
 		// TODO Auto-generated method stub
 		PurchaseAlibabaAuth alibabaAuth = this.getById(id);
-		checkAuthorityToken(alibabaAuth);
-		Map<String, String> param = new HashMap<String, String>();
-		param.put("access_token", alibabaAuth.getAccessToken());
-		String urlPath = CommonUtil.buildInvokeUrlPath("com.alibaba.trade","alibaba.trade.receiveAddress.get", 1, "param2", alibabaAuth.getAppkey());
-		JSONObject json = this.callApi(urlPath,alibabaAuth.getAppsecret(),param);
-		return json;
+		if(checkAuthorityToken(alibabaAuth)){
+			Map<String, String> param = new HashMap<String, String>();
+			param.put("access_token", alibabaAuth.getAccessToken());
+			String urlPath = CommonUtil.buildInvokeUrlPath("com.alibaba.trade","alibaba.trade.receiveAddress.get", 1, "param2", alibabaAuth.getAppkey());
+            return this.callApi(urlPath,alibabaAuth.getAppsecret(),param);
+		}else{
+			return null;
+		}
 	}
 
 	@Override

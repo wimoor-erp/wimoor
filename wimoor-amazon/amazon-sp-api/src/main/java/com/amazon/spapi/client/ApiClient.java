@@ -11,6 +11,7 @@
  */
 
 package com.amazon.spapi.client;
+
 import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationSigner;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.SellingPartnerAPIAA.RateLimitConfiguration;
@@ -18,6 +19,7 @@ import com.amazon.spapi.auth.ApiKeyAuth;
 import com.amazon.spapi.auth.Authentication;
 import com.amazon.spapi.auth.HttpBasicAuth;
 import com.amazon.spapi.auth.OAuth;
+import com.google.common.util.concurrent.RateLimiter;
 import okhttp3.*;
 import okhttp3.internal.http.HttpMethod;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -28,7 +30,7 @@ import org.threeten.bp.LocalDate;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,9 +48,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-
-import com.google.common.util.concurrent.RateLimiter;
 
 
 public class ApiClient {
@@ -83,7 +82,9 @@ public class ApiClient {
     public ApiClient(RateLimitConfiguration rateLimitConfiguration) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
-
+        builder.setConnectTimeout$okhttp(60000);
+        builder.setReadTimeout$okhttp(120000);
+        builder.setWriteTimeout$okhttp(60000);
         if (rateLimitConfiguration != null) {
             rateLimiter = RateLimiter.create(rateLimitConfiguration.getRateLimitPermit());
 

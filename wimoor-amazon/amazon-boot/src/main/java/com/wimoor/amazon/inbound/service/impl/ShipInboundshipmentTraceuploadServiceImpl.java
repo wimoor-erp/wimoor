@@ -1,21 +1,6 @@
 package com.wimoor.amazon.inbound.service.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxMapper;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentV2Mapper;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBox;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.inbound.mapper.ShipInboundBoxMapper;
@@ -23,10 +8,22 @@ import com.wimoor.amazon.inbound.mapper.ShipInboundshipmentTraceuploadMapper;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundBox;
 import com.wimoor.amazon.inbound.pojo.entity.ShipInboundshipmentTraceupload;
 import com.wimoor.amazon.inbound.service.IShipInboundshipmentTraceuploadService;
+import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxMapper;
+import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentV2Mapper;
+import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
+import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBox;
 import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
@@ -114,7 +111,7 @@ public class ShipInboundshipmentTraceuploadServiceImpl extends ServiceImpl<ShipI
 				LambdaQueryWrapper<ShipInboundShipmentBox> queryWrapperV2=new LambdaQueryWrapper<ShipInboundShipmentBox>();
 				queryWrapperV2.eq(ShipInboundShipmentBox::getShipmentid, shipment.getShipmentid());
 				if(boxnum!=null && StrUtil.isNotEmpty(boxnum.trim())) {
-					queryWrapperV2.eq(ShipInboundShipmentBox::getId, Integer.parseInt(boxnum));
+					queryWrapperV2.eq(ShipInboundShipmentBox::getId, boxnum.trim());
 				}
 				List<ShipInboundShipmentBox> boxlist = shipInboundShipmentBoxMapper.selectList(queryWrapperV2);
 				if(boxlist!=null && boxlist.size()>0) {

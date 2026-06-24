@@ -1,25 +1,6 @@
 package com.wimoor.amazon.report.controller;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.report.pojo.dto.SalesDTO;
@@ -30,8 +11,17 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
+import com.wimoor.common.user.UserType;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.web.bind.annotation.*;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/salessum")
@@ -89,8 +79,28 @@ public class SalesSummaryController {
 		parameter.put("marketplaceid", dto.getMarketplace() != null && !dto.getMarketplace().isEmpty() ? dto.getMarketplace().trim() : null);
 		return Result.success(ordersSumService.getSalesField(parameter)) ;
 	}
-	
-	
+
+	@PostMapping("/getOrderTotal")
+	public Result<Object> getOrderTotalAction(@RequestBody Map<String, Object> parameter)  {
+		String shopid = (String) parameter.get("shopid");
+		Date startdate =GeneralUtil.getDate(parameter.get("startdate"));
+		UserInfo userinfo = UserInfoContext.get();
+		if(userinfo.getUsertype().equals(UserType.support.getCode())||userinfo.getUsertype().equals(UserType.admin.getCode())){
+			//查询最近12个月的订单数据
+			Map<String, Object> result = ordersSumService.findorderSummaryTotal(shopid,GeneralUtil.fmtDate(startdate));
+			return Result.success(result);
+		}else{
+			return Result.failed("权限不够");
+		}
+	}
+
+	@PostMapping("/getMyOrderTotal")
+	public Result<Object> getMyOrderTotalAction(@RequestBody Map<String, Object> parameter)  {
+		Date startdate =GeneralUtil.getDate(parameter.get("startdate"));
+		UserInfo userinfo = UserInfoContext.get();
+		Map<String, Object> result = ordersSumService.findorderSummaryTotal(userinfo.getCompanyid(),GeneralUtil.fmtDate(startdate));
+		return Result.success(result);
+	}
  
 	@PostMapping("/getOrderData")
 	public Result<IPage<Map<String, Object>>> getOrderDataAction(@RequestBody SalesDTO dto)  {
@@ -103,6 +113,11 @@ public class SalesSummaryController {
 		String region =dto.getRegion();
 		if (StrUtil.isEmpty(region)) {
 			region = null;
+		}
+		if (StrUtil.isEmpty(dto.getSummaryData())) {
+			parameter.put("summaryData","quantity");
+		}else  {
+			parameter.put("summaryData",dto.getSummaryData());
 		}
 		parameter.put("region", region);
 		parameter.put("userid", userinfo.getId());
@@ -202,6 +217,11 @@ public class SalesSummaryController {
 		String region =dto.getRegion();
 		if (StrUtil.isEmpty(region)) {
 			region = null;
+		}
+		if (StrUtil.isEmpty(dto.getSummaryData())) {
+			parameter.put("summaryData","quantity");
+		}else  {
+			parameter.put("summaryData",dto.getSummaryData());
 		}
 		parameter.put("region", region);
 		parameter.put("userid", userinfo.getId());

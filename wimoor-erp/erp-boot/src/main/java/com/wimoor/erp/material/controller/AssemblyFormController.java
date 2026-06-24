@@ -1,36 +1,6 @@
 package com.wimoor.erp.material.controller;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import com.wimoor.erp.material.pojo.vo.MaterialVO;
-import com.wimoor.erp.ship.pojo.dto.ShipInboundItemVo;
-import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
-import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFRichTextString;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -43,32 +13,50 @@ import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
+import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
+import com.wimoor.erp.customer.pojo.entity.Customer;
+import com.wimoor.erp.customer.service.ICustomerService;
+import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.pojo.dto.AssemblyFormListDTO;
 import com.wimoor.erp.material.pojo.dto.AssemblySaveDTO;
 import com.wimoor.erp.material.pojo.entity.AssemblyEntryInstock;
 import com.wimoor.erp.material.pojo.entity.AssemblyForm;
 import com.wimoor.erp.material.pojo.entity.AssemblyFormEntry;
-import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
-import com.wimoor.erp.material.service.IAssemblyEntryInstockService;
-import com.wimoor.erp.material.service.IAssemblyFormEntryService;
-import com.wimoor.erp.material.service.IAssemblyFormService;
-import com.wimoor.erp.material.service.IAssemblyService;
-import com.wimoor.erp.customer.pojo.entity.Customer;
-import com.wimoor.erp.customer.service.ICustomerService;
-import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.service.IMaterialService;
+import com.wimoor.erp.material.pojo.vo.MaterialVO;
+import com.wimoor.erp.material.service.*;
 import com.wimoor.erp.purchase.pojo.dto.PurchaseSaveDTO;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
+import com.wimoor.erp.ship.pojo.dto.ShipInboundItemVo;
+import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
-
-import cn.hutool.core.util.StrUtil;
+import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.*;
 
 @Api(tags = "组装接口")
 @RestController
@@ -150,10 +138,8 @@ public class AssemblyFormController {
 			myName=userinfo.getUserinfo().get("name").toString();
 		}
 		try {
-			Result<UserInfo> infoResult = adminClientOneFeign.getUserAllByUserId(userinfo.getId());
-			if(Result.isSuccess(infoResult)&&infoResult.getData()!=null) {
-				UserInfo umap = infoResult.getData();
-				if(umap!=null) {
+			UserInfo umap= adminClientOneFeign.getUserByUserId(userinfo.getId());
+			if(umap!=null) {
 					Map<String, Object> imap =umap.getUserinfo();
 					if(imap.get("companyname")!=null) {
 						myCompany=imap.get("companyname").toString();
@@ -161,8 +147,6 @@ public class AssemblyFormController {
 					if(imap.get("name")!=null) {
 						myName=imap.get("name").toString();
 					}
-				}
-				
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -230,7 +214,7 @@ public class AssemblyFormController {
 			heCompany=customer.getName();
 			heName=customer.getContacts();
 			heAddress=customer.getAddress();
-			hePhone=customer.getPhone_num();
+			hePhone=customer.getPhoneNum();
 		}
 		 try {
 			 response.setContentType("application/force-download");// 设置强制下载不打开
@@ -462,6 +446,11 @@ public class AssemblyFormController {
 		}
 		if(StrUtil.isBlank(dto.getPreprocessingid())){
 			dto.setPreprocessingid(null);
+		}
+		//当auditstatus为2时，日期不作为查询条件
+		if("2".equals(dto.getAuditstatus())){
+			dto.setFromDate(null);
+			dto.setToDate(null);
 		}
 		IPage<Map<String, Object>> list = assemblyFormService.findByCondition(dto);
 		return Result.success(list);

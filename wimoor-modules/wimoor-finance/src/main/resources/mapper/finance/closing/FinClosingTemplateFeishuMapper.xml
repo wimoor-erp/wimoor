@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.closing.mapper.FinClosingTemplateFeishuMapper">
+    
+    <resultMap type="com.wimoor.finance.closing.domain.FinClosingTemplateFeishu" id="FinClosingTemplateFeishuResult">
+        <result property="templateid"    column="templateid"    />
+        <result property="feishuTableId"    column="feishu_table_id"    />
+        <result property="filter"    column="filter"    />
+        <result property="summaryField"    column="summary_field"    />
+        <result property="voucherDateField"    column="voucher_date_field"    />
+        <result property="subjectField"    column="subject_field"    />
+        <result property="amountField"    column="amount_field"    />
+        <result property="datetype"    column="datetype"    />
+    </resultMap>
+
+    <sql id="selectFinClosingTemplateFeishuVo">
+        select templateid, feishu_table_id, filter, summary_field, voucher_date_field, subject_field, amount_field,  datetype from fin_closing_template_feishu
+    </sql>
+
+    <select id="selectFinClosingTemplateFeishuList" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateFeishu" resultMap="FinClosingTemplateFeishuResult">
+        <include refid="selectFinClosingTemplateFeishuVo"/>
+        <where>  
+            <if test="feishuTableId != null  and feishuTableId != ''"> and feishu_table_id = #{feishuTableId}</if>
+            <if test="filter != null  and filter != ''"> and filter = #{filter}</if>
+            <if test="summaryField != null  and summaryField != ''"> and summary_field = #{summaryField}</if>
+            <if test="voucherDateField != null  and voucherDateField != ''"> and voucher_date_field = #{voucherDateField}</if>
+            <if test="subjectField != null  and subjectField != ''"> and subject_field = #{subjectField}</if>
+            <if test="datetype != null "> and datetype = #{datetype}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinClosingTemplateFeishuByTemplateid" parameterType="String" resultMap="FinClosingTemplateFeishuResult">
+        <include refid="selectFinClosingTemplateFeishuVo"/>
+        where templateid = #{templateid}
+    </select>
+
+    <insert id="insertFinClosingTemplateFeishu" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateFeishu">
+        insert into fin_closing_template_feishu
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="templateid != null">templateid,</if>
+            <if test="feishuTableId != null">feishu_table_id,</if>
+            <if test="filter != null">filter,</if>
+            <if test="summaryField != null">summary_field,</if>
+            <if test="voucherDateField != null">voucher_date_field,</if>
+            <if test="subjectField != null">subject_field,</if>
+            <if test="amountField != null">amount_field,</if>
+            <if test="datetype != null">datetype,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="templateid != null">#{templateid},</if>
+            <if test="feishuTableId != null">#{feishuTableId},</if>
+            <if test="filter != null">#{filter},</if>
+            <if test="summaryField != null">#{summaryField},</if>
+            <if test="voucherDateField != null">#{voucherDateField},</if>
+            <if test="subjectField != null">#{subjectField},</if>
+            <if test="amountField != null">#{amountField},</if>
+            <if test="datetype != null">#{datetype},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinClosingTemplateFeishu" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateFeishu">
+        update fin_closing_template_feishu
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="feishuTableId != null">feishu_table_id = #{feishuTableId},</if>
+            <if test="filter != null">filter = #{filter},</if>
+            <if test="summaryField != null">summary_field = #{summaryField},</if>
+            <if test="voucherDateField != null">voucher_date_field = #{voucherDateField},</if>
+            <if test="subjectField != null">subject_field = #{subjectField},</if>
+            <if test="amountField != null">amount_field = #{amountField},</if>
+            <if test="datetype != null">datetype = #{datetype},</if>
+        </trim>
+        where templateid = #{templateid}
+    </update>
+
+    <delete id="deleteFinClosingTemplateFeishuByTemplateid" parameterType="String">
+        delete from fin_closing_template_feishu where templateid = #{templateid}
+    </delete>
+
+    <delete id="deleteFinClosingTemplateFeishuByTemplateids" parameterType="String">
+        delete from fin_closing_template_feishu where templateid in 
+        <foreach item="templateid" collection="array" open="(" separator="," close=")">
+            #{templateid}
+        </foreach>
+    </delete>
+</mapper>

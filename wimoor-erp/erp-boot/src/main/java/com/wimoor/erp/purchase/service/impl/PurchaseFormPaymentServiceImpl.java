@@ -101,7 +101,7 @@ public class PurchaseFormPaymentServiceImpl extends  ServiceImpl<PurchaseFormPay
 			if("1".equals(status)) {
 				FinAccount account=payment.getAcct()!=null?faccountService.getById(payment.getAcct()): null;
 				if(account==null){
-					account=faccountService.readFinAccount(user.getCompanyid(),payment.getPaymentMethod());
+					account=faccountService.readFinAccount(user.getCompanyid(),payment.getPaymentMethod(),null);
 				}
 				saveRecord(account, payment, null, user);
 			}

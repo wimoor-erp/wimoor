@@ -1,15 +1,14 @@
 package com.wimoor.erp.stock.pojo.entity;
 
-import java.math.BigInteger;
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.erp.common.pojo.entity.ErpBaseForm;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigInteger;
+import java.util.Date;
 
 /**
  * <p>
@@ -32,6 +31,9 @@ public class ErpDispatchOverseaForm extends  ErpBaseForm {
     private BigInteger toWarehouseid;
 
     private BigInteger groupid;
+
+    @TableField("check_inv")
+    private BigInteger checkInv;
 
     private String remark;
     

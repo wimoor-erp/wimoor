@@ -29,7 +29,19 @@ public class FinAuxiliaryTypes extends BaseEntity
     @Excel(name = "类型编码：DEPT、EMP、CUST等")
     private String typeCode;
 
-    public void setTypeId(Long typeId) 
+     /** 状态：0-正常，1-停用 */
+    @Excel(name = "状态：0-正常，1-停用")
+    private Integer status;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public void setTypeId(Long typeId)
     {
         this.typeId = typeId;
     }

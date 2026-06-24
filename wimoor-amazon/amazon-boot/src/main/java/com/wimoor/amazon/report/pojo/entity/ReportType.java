@@ -37,6 +37,7 @@ public class ReportType {
 	public static final String BrandAnalyticsSearchTermsReport = "GET_BRAND_ANALYTICS_SEARCH_TERMS_REPORT";
 	public static final String FBAVatTransactionReport="GET_VAT_TRANSACTION_DATA";
 	public static final String FBAEPRMonthlyReport="GET_EPR_MONTHLY_REPORTS";
+	public static final String FBAPaymentReport="GET_DATE_RANGE_FINANCIAL_HOLDS_DATA";
 	public static Set<String> set=null;
 		public static Set<String> getSingleReport(){
 			if(set==null) {

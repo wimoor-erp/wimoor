@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_supplier_stepwise` (
   `materialid` bigint unsigned NOT NULL,
   `supplierid` bigint unsigned NOT NULL,
   `currency` char(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '',
-  `price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00',
+  `price` decimal(16,4) unsigned NOT NULL DEFAULT '0.0000',
   `amount` int unsigned NOT NULL DEFAULT '0',
   `operator` bigint unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,

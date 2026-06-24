@@ -84,7 +84,7 @@ public interface IShipInboundShipmentService extends IService<ShipInboundShipmen
 
 	ShipInboundOperation saveTransTrance(UserInfo user, ShipInboundShipment ship, List<Map<String, Object>> boxinfo);
 
-	void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, String shipmentid);
+	void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, ShipInboundShipment shipment);
 
 	void setExcelBox(UserInfo user, SXSSFWorkbook workbook, String shipmentid);
 

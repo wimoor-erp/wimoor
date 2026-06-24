@@ -45,7 +45,8 @@
 			max(a.createdate) createdate,
 			max(a.arrivalTime) arrivalTime,
 			sum(b.amount) amount,
-		    max(de.channame) channame
+		    max(de.channame) channame,
+		    max(a.check_inv) check_inv
 		from t_erp_dispatch_oversea_form a 
 		LEFT JOIN t_userinfo u on a.operator = u.id
 		left join t_erp_warehouse wfrom on a.from_warehouseid=wfrom.id

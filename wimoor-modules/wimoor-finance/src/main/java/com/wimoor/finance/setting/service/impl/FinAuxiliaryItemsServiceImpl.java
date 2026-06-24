@@ -81,7 +81,7 @@ public class FinAuxiliaryItemsServiceImpl implements IFinAuxiliaryItemsService
 
     /**
      * 删除辅助核算具体项目信息
-     * 
+     *
      * @param itemId 辅助核算具体项目主键
      * @return 结果
      */
@@ -89,5 +89,26 @@ public class FinAuxiliaryItemsServiceImpl implements IFinAuxiliaryItemsService
     public int deleteFinAuxiliaryItemsByItemId(Long itemId)
     {
         return finAuxiliaryItemsMapper.deleteFinAuxiliaryItemsByItemId(itemId);
+    }
+
+    /**
+     * 从ERP供应商表同步数据到辅助核算项目表
+     */
+    @Override
+    public int syncSupplierFromErp(FinAuxiliaryItems finAuxiliaryItems)
+    {
+        return finAuxiliaryItemsMapper.syncSupplierFromErp(finAuxiliaryItems);
+    }
+
+    @Override
+    public int syncEmployeeFromAdmin(FinAuxiliaryItems finAuxiliaryItems)
+    {
+        return finAuxiliaryItemsMapper.syncEmployeeFromAdmin(finAuxiliaryItems);
+    }
+
+    @Override
+    public int syncDeptFromAdmin(FinAuxiliaryItems finAuxiliaryItems)
+    {
+        return finAuxiliaryItemsMapper.syncDeptFromAdmin(finAuxiliaryItems);
     }
 }

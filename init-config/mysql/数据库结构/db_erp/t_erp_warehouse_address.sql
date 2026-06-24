@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_warehouse_address` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `shopid_number` (`shopid`,`number`),
   UNIQUE KEY `shopid_name` (`shopid`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=220 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=254 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

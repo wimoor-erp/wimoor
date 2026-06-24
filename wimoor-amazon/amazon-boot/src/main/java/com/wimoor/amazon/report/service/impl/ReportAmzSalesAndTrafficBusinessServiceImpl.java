@@ -1,20 +1,5 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.amazon.spapi.model.reports.CreateReportSpecification;
@@ -25,8 +10,15 @@ import com.wimoor.amazon.product.pojo.entity.AmzProductPageviews;
 import com.wimoor.amazon.product.service.IAmzProductPageviewsService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
  
  
 @Slf4j
@@ -34,16 +26,25 @@ import lombok.extern.slf4j.Slf4j;
 public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceImpl{
     @Autowired
     IAmzProductPageviewsService iAmzProductPageviewsService;
+
 	public  void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
 		  List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
+		    Calendar myStart=Calendar.getInstance();
+			myStart.setTime(cstart.getTime());
+			myStart.set(Calendar.HOUR_OF_DAY, 0);
+			myStart.set(Calendar.MINUTE, 0);
+			myStart.set(Calendar.SECOND, 0);
+		    Calendar myEnd=Calendar.getInstance();
+			myEnd.setTime(myStart.getTime());
+			myEnd.set(Calendar.HOUR_OF_DAY, 23);
+			myEnd.set(Calendar.MINUTE, 59);
+			myEnd.set(Calendar.SECOND, 59);
 		  for(Marketplace market:marketlist) {
 			  CreateReportSpecification body=new CreateReportSpecification();
 			  body.setReportType(myReportType());
-			  cstart.set(Calendar.HOUR_OF_DAY, 0);
-			  cstart.set(Calendar.MINUTE, 0);
-			  cstart.set(Calendar.SECOND, 0);
-			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(cstart));
-			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(cend));
+			  body.setDataStartTime(AmzDateUtils.getOffsetDateTimeUTC(myStart));
+			  body.setDataEndTime(AmzDateUtils.getOffsetDateTimeUTC(myEnd));
+			  body.setDataStartTime(body.getDataEndTime());
 			  ReportOptions reportOptions=getMyOptions();
 			  if(reportOptions!=null) {
 				body.setReportOptions(reportOptions);  
@@ -51,19 +52,19 @@ public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceIm
 			  List<String> list=new ArrayList<String>();
 			  list.add(market.getMarketplaceid());
 			  amazonAuthority.setMarketPlace(market);
-			  if(ignore==null||ignore==false) {
+			  if(ignore==null|| !ignore) {
 				  Map<String,Object> param=new HashMap<String,Object>();
 				  param.put("sellerid", amazonAuthority.getSellerid());
 				  param.put("reporttype", this.myReportType());
 				  param.put("marketplacelist", list);
-				  param.put("starttime", GeneralUtil.formatDate(cstart.getTime()));
+				  param.put("starttime", GeneralUtil.formatDate(myStart.getTime()));
 				  Date lastupdate= iReportRequestRecordService.lastUpdateRequestByType(param);  
 				  if(lastupdate!=null&&GeneralUtil.distanceOfHour(lastupdate, new Date())<6) {
 					  continue;
 				  }
 			  }
 			  body.setMarketplaceIds(list);
-			  callCreateAPI(this, body, amazonAuthority, market,cstart.getTime(),cend.getTime());
+			  callCreateAPI(this, body, amazonAuthority, market,myStart.getTime(),myEnd.getTime());
 			  list.clear();
 		  }
 }
@@ -78,6 +79,7 @@ public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceIm
 				JSONArray salesAndTrafficByAsin = json.getJSONArray("salesAndTrafficByAsin");
 				JSONObject reportSpecification = json.getJSONObject("reportSpecification");
 				String day=reportSpecification.getString("dataStartTime");
+				JSONArray salesAndTrafficByDate = json.getJSONArray("salesAndTrafficByDate");
 				JSONArray marketplaceIds = reportSpecification.getJSONArray("marketplaceIds");
 				String marketplaceid=marketplaceIds.getString(0);
 				List<AmzProductPageviews> list=new LinkedList<AmzProductPageviews>();
@@ -139,6 +141,7 @@ public class ReportAmzSalesAndTrafficBusinessServiceImpl extends ReportServiceIm
 				}
 				iAmzProductPageviewsService.uploadSessionFile(marketplaceid, amazonAuthority.getSellerid(), day, list);
 			}
+			System.out.println("ReportAmzSalesAndTrafficBusinessServiceImpl:"+mlog);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			log.info("ReportAmzInventoryService:"+e.getMessage());

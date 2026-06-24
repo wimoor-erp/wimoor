@@ -1,8 +1,5 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.util.List;
-import java.util.Map;
-
 import com.amazon.spapi.client.ApiCallback;
 import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.reports.GetReportsResponse;
@@ -10,6 +7,9 @@ import com.amazon.spapi.model.reports.Report;
 import com.amazon.spapi.model.reports.ReportList;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.report.service.IReportService;
+
+import java.util.List;
+import java.util.Map;
 
 public class ApiCallbackGetReports implements ApiCallback<GetReportsResponse> {
 	AmazonAuthority amazonAuthority=null;
@@ -21,7 +21,7 @@ public class ApiCallbackGetReports implements ApiCallback<GetReportsResponse> {
 	@Override
 	public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
 		// TODO Auto-generated method stub
-
+           e.printStackTrace();
 	}
 
 	@Override

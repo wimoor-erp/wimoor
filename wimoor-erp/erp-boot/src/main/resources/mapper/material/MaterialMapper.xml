@@ -23,6 +23,7 @@
 		<result column="MOQ" property="MOQ" jdbcType="INTEGER" />
 		<result column="badrate" property="badrate" jdbcType="FLOAT" />
 		<result column="vatrate" property="vatrate" jdbcType="FLOAT" />
+		<result column="drawback_rate" property="drawbackRate" jdbcType="FLOAT" />
 		<result column="purchaseUrl" property="purchaseUrl" jdbcType="VARCHAR" />
 		<result column="remark" property="remark" jdbcType="VARCHAR" />
 		<result column="issfg" property="issfg" jdbcType="CHAR" />
@@ -32,6 +33,7 @@
 		<result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
 		<result column="isSmlAndLight" property="isSmlAndLight" jdbcType="BIT" />
 		<result column="isDelete" property="isDelete" jdbcType="BIT" />
+		<result column="groupid" property="groupid" jdbcType="CHAR" />
 	</resultMap>
     <select id="getMaterailBySku" resultType="com.wimoor.erp.material.pojo.entity.Material" parameterType="java.lang.String">
     select *  from t_erp_material where sku= #{sku,jdbcType=CHAR} and shopid= #{shopid,jdbcType=CHAR} and isdelete=0
@@ -69,6 +71,7 @@
 		       m.sku,
 		       mn.mark notice,
 		       m.addfee addfee,
+			   mc.unit,
 		       case when mh.materialid is null then 0 else 1 end ishide,
 			   notepad.mark notepad,
 		       <if test="plantype=='ship'">
@@ -98,7 +101,8 @@
 		       ifnull(dd.weight,0) pkgweight,
 		       ifnull(bd.length,0)*ifnull(bd.width,0)*ifnull(bd.height,0) boxcm3,
 		       ifnull(bd.weight,0) boxweight
-        from  t_erp_material m 
+        from  t_erp_material m
+        left join t_erp_material_custom mc on mc.materialid=m.id
 		left join t_picture p1 on p1.id=m.image
 		left join t_dimensions dd on dd.id=m.pkgDimensions
 		left join t_dimensions bd on bd.id=m.boxDimensions
@@ -248,7 +252,7 @@
 	                                      case when needsuggest>=0 then stockingCycle-fulfillable+needsuggest else 0 end end 
 	                    end  suggest from (
 		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
-			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,m.brand brand,
+			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,b.name brand,
 			m.price price, ifnull(i.fulfillable,0) fulfillable,ifnull(i.inbound,0) inbound,m.isDelete isDelete,
 			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
 			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
@@ -272,6 +276,7 @@
 					group by c.submaterialid 
 		) subi on subi.materialid=m.id
 		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_material_brand b on b.id=m.brandid AND b.shopid=m.shopid
 		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
 		left join t_picture p on m.image=p.id
 		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
@@ -371,7 +376,7 @@
 	</select>
 	<select id="findPackage" resultType="java.util.Map" parameterType="java.util.Map">
 		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
-			   m.upc upc,g.name category,m.brand brand,
+			   m.upc upc,g.name category,b.name brand,
 			   m.price price, ifnull(i.fulfillable,0) fulfillable,ifnull(i.inbound,0) inbound,m.isDelete isDelete,
 			  c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
 			  m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
@@ -379,6 +384,7 @@
 		      w.id warehouseid,w.name warehousename
 		from t_erp_material m  
 		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_material_brand b on b.id=m.brandid AND b.shopid=m.shopid
 		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
 		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
 		left join t_erp_warehouse w on w.id= #{param.warehouseid,jdbcType=CHAR}
@@ -458,11 +464,11 @@
 	
 	<select id="findMaterial" resultType="java.util.Map" parameterType="java.util.Map">
 		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
-			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,ifnull(b.name,m.brand) brand,
+			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,b.name brand,
 			m.price price, ifnull(i.fulfillable,0) fulfillable,m.isDelete isDelete,
 			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
 			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate createdate,m.other_cost,
-			m.purchaseUrl, d.length,d.width,d.height ,d.weight,oinfo.name ownername,
+			m.purchaseUrl, d.length,d.width,d.height ,d.weight,oinfo.name ownername,mc.unit,
 			(
 			     SELECT GROUP_CONCAT(t.tagid) tagids
 				  FROM t_erp_material_tags t
@@ -472,14 +478,14 @@
 			  di.length ilength,di.width iwidth,di.height iheight,di.weight iweight,
 			  db.length blength,db.width bwidth,db.height bheight,db.weight bweight,
 			 </if>
-			m.specification
+			m.specification,m.is_ass_price
 		from t_erp_material m
 		left join t_dimensions d on d.id=m.pkgDimensions
 		<if test="param.isdownload!=null">
 		left join t_dimensions di on di.id=m.itemDimensions
 		left join t_dimensions db on db.id=m.boxDimensions
 		</if>
-		left join t_erp_material_brand b on b.id=m.brand
+		left join t_erp_material_brand b on b.id=m.brandid
 		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{param.shopid,jdbcType=CHAR}
 		left join t_picture p on m.image=p.id
 	    <if test='param.taglist != null '>
@@ -493,6 +499,7 @@
 				   group by t.mid
 		      ) vt on vt.mid=m.id
 		  </if>
+		left join t_erp_material_custom mc on mc.materialid=m.id
 		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{param.shopid,jdbcType=CHAR}
 		left join ( select MAX(iv.shopid) shopid,MAX(iv.warehouseid) warehouseid,iv.materialid ,
 					sum( case when iv.status like 'inbound_%' then iv.quantity else 0 end ) inbound,
@@ -599,13 +606,15 @@
 
 <select id="findAllByCondition" resultType="java.util.Map" parameterType="java.util.Map">
 		select m.id, m.sku sku,m.color color, m.name name,m.shopid shopid,ifnull(m.boxnum,0) boxnum,
-			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,m.brand brand,
+			g.color catecolor,m.upc upc,g.name category,IFNULL(p.location,p.url) image,b.name brand,
 			q.price price, ifnull(i.fulfillable,0) fulfillable,m.isDelete isDelete,
 			c.name supplier, m.issfg issfg, m.remark remark, u.name operator,m.supplier supplierid,
-			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate
-			createdate,m.purchaseUrl, d.length,d.width,d.height ,d.weight
+			m.opttime opttime,m.MOQ,m.delivery_cycle,m.effectivedate createdate,
+			m.purchaseUrl, d.length,d.width,d.height ,d.weight,mc.unit
 		from t_erp_material m
+		left join t_erp_material_custom mc on mc.materialid=m.id
 		left join t_dimensions d on d.id=m.pkgDimensions
+		left join t_erp_material_brand b on b.id=m.brandid AND b.shopid=m.shopid
 		left join t_erp_material_category g on g.id=m.categoryid AND g.shopid=#{shopid,jdbcType=CHAR}
 		left join t_picture p on m.image=p.id
 		left join t_erp_customer c on c.id=m.supplier AND c.shopid=#{shopid,jdbcType=CHAR}
@@ -663,17 +672,20 @@
 	<select id="findMaterialById" resultType="com.wimoor.erp.material.pojo.vo.MaterialVO" parameterType="java.lang.String">
 		select c.name supplier,g.name category,u.name ownername, m.supplier supplierId , IFNULL(p.location,p.url) image,IFNULL(p2.location,p2.url) location,
 		 m.id, m.sku,m.name,m.shopid,m.upc,bran.name brand,bran.id brandid,m.itemDimensions,m.pkgDimensions,m.boxDimensions,
-		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
+		 m.boxnum, m.specification,m.badrate,m.vatrate,m.drawback_rate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
 	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
 	     m.createdate, m.creator,m.isSmlAndLight,m.assembly_time,m.isDelete,m.effectivedate,m.image imageid,
-	     m.price_ship_wavg priceShipWavg,m.price_wavg priceWavg,m.specification,m.addfee
+	     m.price_ship_wavg priceShipWavg,m.price_wavg priceWavg,m.specification,m.addfee,mc.unit,m.is_ass_price isAssPrice,m.groupid,
+	     gp.name groupname
 		from t_erp_material m
+		left join t_erp_material_custom mc on mc.materialid=m.id
 		left join t_erp_material_category g on g.id=m.categoryid
+		left join t_amazon_group gp on gp.id=m.groupid
 		left join t_picture p on m.image=p.id
 		left join t_picture p2 on m.pkgimage=p2.id
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_userinfo u on u.id=m.owner
-		left join t_erp_material_brand bran on bran.id=m.brand
+		left join t_erp_material_brand bran on bran.id=m.brandid
 		where m.id=#{id,jdbcType=CHAR}
 	</select>
 	
@@ -706,20 +718,6 @@
 			and isDelete = 0 limit 0,1;
 	</select>
 	
-	<select id="findDimAndAsinBymid" resultType="java.util.Map" parameterType="java.lang.String">
-		select tp.sku,tp.asin,dm.*
-		from t_product_info tp
-		left join t_product_in_opt opt on opt.pid = tp.id
-		left join t_amazon_auth a on a.id=tp.amazonAuthId
-		left join t_erp_material m on m.sku = ifnull(opt.msku,tp.sku) and m.shopid = a.shop_id
-		left join t_dimensions dm on dm.id=m.pkgDimensions
-		where tp.sku = #{sku,jdbcType=CHAR}
-			and m.isDelete = 0
-			and a.shop_id = #{shopid,jdbcType=CHAR}
-			and a.groupid = #{groupid,jdbcType=CHAR}
-			and tp.marketplaceid = #{marketplaceid,jdbcType=CHAR}
-	</select>
-
 	<select id="getForSum" resultType="java.util.Map" parameterType="java.util.Map">
 		select m.id,m.sku,m.id materialid
 		from t_erp_material m
@@ -766,10 +764,11 @@
 			v2.ass asslist,
 			v3.consumablelist,
 			t.badrate,t.vatrate,
-			t.brand,t.specification,cate.name category,ui.name,t.effectivedate,cust.name supplier,
+			b.name brand,t.specification,cate.name category,ui.name,t.effectivedate,cust.name supplier,
 			t.delivery_cycle deliverycycle,t.other_cost othercost,t.productCode purchasecode,t.purchaseUrl purchaseurl,
 			t.color color,t.remark,sum(v.inbound) inbound,sum(v.qty) qty,ui.name owner, case when t.isDelete=1 then '是' else '否' end isDelete 
 		FROM t_erp_material t 
+		left join t_erp_material_brand b on b.id=m.brandid AND b.shopid=m.shopid
 		LEFT JOIN t_dimensions d ON t.pkgDimensions=d.id
 		LEFT JOIN t_dimensions d2 ON t.itemDimensions=d2.id
 		LEFT JOIN t_dimensions d3 ON t.boxDimensions=d3.id
@@ -853,13 +852,13 @@
 		 m.boxnum, m.specification,m.badrate,m.vatrate,m.productCode,m.delivery_cycle,m.other_cost,m.MOQ,
 	     m.purchaseUrl, m.remark,m.categoryid,m.issfg,m.color,m.owner,m.operator,m.opttime,m.price,
 	     m.createdate, m.creator,m.isSmlAndLight,m.assembly_time,m.isDelete,m.effectivedate,m.image imageid,
-	     i.inbound,i.outbound,i.fulfillable
+	     i.inbound,i.outbound,i.fulfillable,m.groupid
 		from t_erp_material m
 		left join t_erp_material_category g on g.id=m.categoryid
 		left join t_picture p on m.image=p.id
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_userinfo u on u.id=m.owner
-		left join t_erp_material_brand bran on bran.id=m.brand
+		left join t_erp_material_brand bran on bran.id=m.brandid
 		left join ( select shopid,materialid,max(warehouseid) warehouseid ,
 					sum( case when status like 'inbound_%' then quantity else 0 end ) inbound,
 					sum( case when status like 'outbound_%' then quantity else 0 end ) outbound,
@@ -868,11 +867,11 @@
 					 where shopid=#{shopid,jdbcType=CHAR}
 					 group by shopid, materialid
 		) i on i.materialid=m.id
-	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
-	  	<if test="owner!=null">
-	  	    and m.owner=#{owner,jdbcType=CHAR}
-	  	</if>
-	  	<if test="mskulist!=null">
+	   where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
+	   <if test="owner!=null">
+	   	and m.owner=#{owner,jdbcType=CHAR}
+	   </if>
+	   <if test="mskulist!=null">
 			and m.sku in
 			<foreach collection="mskulist" item="msku" index="i" open="(" separator="," close=" )">
 				 #{msku,jdbcType=CHAR}
@@ -882,7 +881,7 @@
   <select id="getDimensions" resultType="java.util.Map"  parameterType="java.util.Map" >
    select  IFNULL(p.location,p.url) image, 
            m.sku,m.name,
-           m.boxnum,m.price cost,
+           m.boxnum,m.price cost,mc.unit,
            m.owner ownerid,
            g.name catename,
            c.name suppliername,c.address,
@@ -891,11 +890,12 @@
            d.`length`, d.`length_units`, d.`width`, d.`width_units`,
 	       d.`height`, d.`height_units`, d.`weight`, d.`weight_units` 
 		from t_erp_material m
+		left join t_erp_material_custom mc on mc.materialid=m.id
 		left join t_erp_material_category g on g.id=m.categoryid
 		left join t_picture p on m.image=p.id
 	    left join t_dimensions d on d.id=m.pkgDimensions
 		left join t_erp_customer c on c.id=m.supplier
-		left join t_erp_material_brand bran on bran.id=m.brand
+		left join t_erp_material_brand bran on bran.id=m.brandid
 	  	where m.shopid=#{shopid,jdbcType=CHAR} and m.isdelete=false
 	  	<if test="skulist!=null">
 			and m.sku in

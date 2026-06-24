@@ -1,30 +1,25 @@
 package com.wimoor.swagger.config;
 
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.context.annotation .Bean;
-import org.springframework.context.annotation.Configuration;
-
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.oas.annotations.EnableOpenApi;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.ApiKey;
-import springfox.documentation.service.AuthorizationScope;
-import springfox.documentation.service.Contact;
-import springfox.documentation.service.SecurityReference;
+import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.util.Arrays;
+import java.util.List;
 
 @EnableOpenApi
 @Configuration
@@ -83,7 +78,7 @@ public class SwaggerConfig {
         return new ApiInfoBuilder()
                 .title("Wimoor 接口文档")
                 .description("如有疑问，请联系开发工程师")
-                .contact(new Contact("深圳市万墨信息科技", "https://www.wimoor.com", "developer@wimoor.com"))
+                .contact(new Contact("深圳市深码创科技", "https://www.wimoor.com", "developer@wimoor.com"))
                 .version("1.0")
                 .build();
     }

@@ -1,24 +1,6 @@
 package com.wimoor.amazon.product.service.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.Resource;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -48,10 +30,18 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
  
 
 @Service("productInPresaleService")
@@ -187,12 +177,18 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
         	     for(Map<String, Object> item:list) {
         	    	 String msku=item.get("msku").toString();
         	    	 String psku=item.get("psku").toString();
+					 String groupid=item.get("groupid").toString();
+					 String groupname=item.get("groupname").toString();
+					 String marketplaceid=item.get("marketplaceid").toString();
         	    	 if(mskuInfoMap.get(msku)!=null) {
         	    		 @SuppressWarnings("unchecked")
 						 Map<String, Object> mskuinfo =  (Map<String, Object>)mskuInfoMap.get(msku);
         	    		 item.putAll(mskuinfo);
         	    		 item.put("msku", msku);
         	    		 item.put("psku", psku);
+					     item.put("groupid", groupid);
+					     item.put("groupname", groupname);
+					     item.put("marketplaceid", marketplaceid);
         	    		 listMap.add(item);
         	    	 }
         	     }
@@ -258,6 +254,24 @@ public class ProductInPresaleServiceImpl extends ServiceImpl<ProductInPresaleMap
 		HashMap<String,ProductInPresale> result=new HashMap<String,ProductInPresale>();
 		for(ProductInPresale item:list) {
 			result.put(GeneralUtil.formatDate(item.getDate()), item);
+		}
+		return result;
+	}
+
+	@Override
+	public Map<String, Map<String, ProductInPresale>> getPresaleBatch(Set<String> groupids, Set<String> skus) {
+		Map<String, Map<String, ProductInPresale>> result = new HashMap<>();
+		if (skus == null || skus.isEmpty() || groupids == null || groupids.isEmpty()) {
+			return result;
+		}
+		LambdaQueryWrapper<ProductInPresale> query = new LambdaQueryWrapper<>();
+		query.in(ProductInPresale::getGroupid, groupids);
+		query.in(ProductInPresale::getSku, skus);
+		List<ProductInPresale> list = this.list(query);
+		for (ProductInPresale item : list) {
+			String key = item.getGroupid() + "_" + item.getSku() + "_" + item.getMarketplaceid();
+			result.computeIfAbsent(key, k -> new HashMap<>())
+			      .put(GeneralUtil.formatDate(item.getDate()), item);
 		}
 		return result;
 	}

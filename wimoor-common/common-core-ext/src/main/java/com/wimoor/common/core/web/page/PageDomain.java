@@ -30,6 +30,21 @@ public class PageDomain
         {
             return "";
         }
+        // 支持多列排序，列名用逗号分隔
+        if (orderByColumn.contains(","))
+        {
+            StringBuilder orderBy = new StringBuilder();
+            String[] columns = orderByColumn.split(",");
+            for (int i = 0; i < columns.length; i++)
+            {
+                if (i > 0)
+                {
+                    orderBy.append(",");
+                }
+                orderBy.append(StringUtils.toUnderScoreCase(columns[i].trim())).append(" ").append(isAsc);
+            }
+            return orderBy.toString();
+        }
         return StringUtils.toUnderScoreCase(orderByColumn) + " " + isAsc;
     }
 

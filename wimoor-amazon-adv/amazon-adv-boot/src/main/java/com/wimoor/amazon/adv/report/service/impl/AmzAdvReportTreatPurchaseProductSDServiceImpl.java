@@ -38,10 +38,10 @@ public class AmzAdvReportTreatPurchaseProductSDServiceImpl extends AmzAdvReportT
                 amzAdvReportPurchaseProduct.setAdGroupId(item.getBigInteger("adGroupId"));
 
 // String 类型字段
-                amzAdvReportPurchaseProduct.setAdGroupName(item.getString("adGroupName"));
+                //amzAdvReportPurchaseProduct.setAdGroupName(item.getString("adGroupName"));
                 amzAdvReportPurchaseProduct.setAsinBrandHalo(item.getString("asinBrandHalo"));
                 amzAdvReportPurchaseProduct.setCampaignBudgetCurrencyCode(item.getString("campaignBudgetCurrencyCode"));
-                amzAdvReportPurchaseProduct.setCampaignName(item.getString("campaignName"));
+                //amzAdvReportPurchaseProduct.setCampaignName(item.getString("campaignName"));
                 amzAdvReportPurchaseProduct.setPromotedAsin(item.getString("promotedAsin"));
                 amzAdvReportPurchaseProduct.setPromotedSku(item.getString("promotedSku"));
 

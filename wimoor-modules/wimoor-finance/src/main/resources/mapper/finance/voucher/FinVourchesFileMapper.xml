@@ -85,4 +85,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <delete id="deleteFinVourchesFileByVoucherId" parameterType="com.wimoor.finance.voucher.domain.FinVouchers">
         delete from fin_vourches_file where voucher_id = #{voucherId}
     </delete>
+
+    <!-- 批量查询附件（按凭证ID列表），用于消除 N+1 查询 -->
+    <select id="selectByVoucherIds" resultMap="FinVourchesFileResult">
+        <include refid="selectFinVourchesFileVo"/>
+        where voucher_id in
+        <foreach item="vid" collection="list" open="(" separator="," close=")">
+            #{vid}
+        </foreach>
+    </select>
 </mapper>

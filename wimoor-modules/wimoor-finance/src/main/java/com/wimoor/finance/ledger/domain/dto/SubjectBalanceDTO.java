@@ -8,6 +8,7 @@ public class SubjectBalanceDTO {
     private String subjectCode;
     private String subjectName;
     private Integer subjectType;
+    private String subjectTypeName;
     private Integer direction;
     private BigDecimal beginBalance;
     private Integer beginDirection;
@@ -15,6 +16,9 @@ public class SubjectBalanceDTO {
     private BigDecimal creditTotal;
     private BigDecimal endBalance;
     private Integer endDirection;
+    private BigDecimal endBalanceSigned; // 带符号的期末余额：借方为正，贷方为负
+    private BigDecimal yearDebitTotal;
+    private BigDecimal yearCreditTotal;
     private String period;
     private Integer subjectLevel;
     private String parentSubjectCode;
@@ -26,6 +30,7 @@ public class SubjectBalanceDTO {
         this.debitTotal = BigDecimal.ZERO;
         this.creditTotal = BigDecimal.ZERO;
         this.endBalance = BigDecimal.ZERO;
+        this.endBalanceSigned = BigDecimal.ZERO;
     }
 
     // Getter 和 Setter 方法
@@ -51,6 +56,14 @@ public class SubjectBalanceDTO {
 
     public void setSubjectType(Integer subjectType) {
         this.subjectType = subjectType;
+    }
+
+    public String getSubjectTypeName() {
+        return subjectTypeName;
+    }
+
+    public void setSubjectTypeName(String subjectTypeName) {
+        this.subjectTypeName = subjectTypeName;
     }
 
     public Integer getDirection() {
@@ -107,6 +120,30 @@ public class SubjectBalanceDTO {
 
     public void setEndDirection(Integer endDirection) {
         this.endDirection = endDirection;
+    }
+
+    public BigDecimal getEndBalanceSigned() {
+        return endBalanceSigned != null ? endBalanceSigned : BigDecimal.ZERO;
+    }
+
+    public void setEndBalanceSigned(BigDecimal endBalanceSigned) {
+        this.endBalanceSigned = endBalanceSigned;
+    }
+
+    public BigDecimal getYearDebitTotal() {
+        return yearDebitTotal != null ? yearDebitTotal : BigDecimal.ZERO;
+    }
+
+    public void setYearDebitTotal(BigDecimal yearDebitTotal) {
+        this.yearDebitTotal = yearDebitTotal;
+    }
+
+    public BigDecimal getYearCreditTotal() {
+        return yearCreditTotal != null ? yearCreditTotal : BigDecimal.ZERO;
+    }
+
+    public void setYearCreditTotal(BigDecimal yearCreditTotal) {
+        this.yearCreditTotal = yearCreditTotal;
     }
 
     public String getPeriod() {

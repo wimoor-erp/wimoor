@@ -1,24 +1,22 @@
 package com.wimoor.amazon.auth.service.impl;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.mapper.MarketplaceMapper;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.common.mvc.BizException;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
  
 
 /**
@@ -157,6 +155,12 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 				marketname = "A1C3SOZRARQ6R3";
 			}else if("SAR".equals(mcurrency)) {
 				marketname = "A17E79C6D8DWNP";
+			}else if("SGD".equals(mcurrency)) {
+				marketname = "A19VAU5U5O7RUS";
+			}else if("BRL".equals(mcurrency)) {
+				marketname = "A2Q3Y263D00KWC";
+			}else if("TRY".equals(mcurrency)) {
+				marketname = "A33AVAJ2PDY3EV";
 			}
 		}
 		return marketname;
@@ -195,8 +199,7 @@ public class MarketplaceServiceImpl extends ServiceImpl<MarketplaceMapper, Marke
 	public List<Marketplace> findMarketplaceByRegion(String region) {
 		QueryWrapper<Marketplace> query = new QueryWrapper<Marketplace>();
 		if(region.equals("UK")) {
-			query.eq("region", "EU");
-			query.eq("region", "UK");
+			query.in("region", "UK","EU");
 		}else {
 			query.eq("region", region);
 		}

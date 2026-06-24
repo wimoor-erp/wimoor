@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.closing.mapper.FinClosingTemplateMapper">
+    
+    <resultMap type="com.wimoor.finance.closing.domain.FinClosingTemplate" id="FinClosingTemplateResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="ftype"    column="ftype"    />
+        <result property="voucherType"    column="voucher_type"    />
+        <result property="country"    column="country"    />
+        <result property="issystem"    column="issystem"    />
+        <result property="disabled"    column="disabled"    />
+        <result property="findex"    column="findex"    />
+        <result property="carryoverType"    column="carryover_type"    />
+        <result property="voucherClass"    column="voucher_class"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="modifyBy"    column="modify_by"    />
+        <result property="createBy"    column="create_by"    />
+    </resultMap>
+
+    <sql id="selectFinClosingTemplateVo">
+        select id, name, groupid, ftype, voucher_type, country, issystem, disabled,`findex`, carryover_type, voucher_class, created_time, updated_time, modify_by, create_by from fin_closing_template
+    </sql>
+
+    <select id="selectFinClosingTemplateList" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplate" resultMap="FinClosingTemplateResult">
+        <include refid="selectFinClosingTemplateVo"/>
+        <where>
+            groupid = #{groupid}
+            <if test="ftype != null and ftype != ''"> and ftype = #{ftype}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="issystem != null "> and issystem = #{issystem}</if>
+            <if test="disabled != null "> and disabled = #{disabled}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+            <if test="modifyBy != null  and modifyBy != ''"> and modify_by = #{modifyBy}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinClosingTemplateById" parameterType="String" resultMap="FinClosingTemplateResult">
+        <include refid="selectFinClosingTemplateVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinClosingTemplate" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplate" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_closing_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="groupid != null">groupid,</if>
+            <if test="ftype != null">ftype,</if>
+            <if test="voucherType != null">voucher_type,</if>
+            <if test="country != null">country,</if>
+            <if test="issystem != null">issystem,</if>
+            <if test="disabled != null">disabled,</if>
+            <if test="findex != null">`findex`,</if>
+            <if test="carryoverType != null">carryover_type,</if>
+            <if test="voucherClass != null">voucher_class,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="modifyBy != null">modify_by,</if>
+            <if test="createBy != null">create_by,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="groupid != null">#{groupid},</if>
+            <if test="ftype != null">#{ftype},</if>
+            <if test="voucherType != null">#{voucherType},</if>
+            <if test="country != null">#{country},</if>
+            <if test="issystem != null">#{issystem},</if>
+            <if test="disabled != null">#{disabled},</if>
+            <if test="findex != null">#{findex},</if>
+            <if test="carryoverType != null">#{carryoverType},</if>
+            <if test="voucherClass != null">#{voucherClass},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="modifyBy != null">#{modifyBy},</if>
+            <if test="createBy != null">#{createBy},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinClosingTemplate" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplate">
+        update fin_closing_template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="groupid != null">groupid = #{groupid},</if>
+            <if test="ftype != null">ftype = #{ftype},</if>
+            <if test="voucherType != null">voucher_type = #{voucherType},</if>
+            <if test="country != null">country = #{country},</if>
+            <if test="issystem != null">issystem = #{issystem},</if>
+            <if test="disabled != null">disabled = #{disabled},</if>
+            <if test="findex != null">`findex` = #{findex},</if>
+            <if test="carryoverType != null">carryover_type = #{carryoverType},</if>
+            <if test="voucherClass != null">voucher_class = #{voucherClass},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="modifyBy != null">modify_by = #{modifyBy},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinClosingTemplateById" parameterType="String">
+        delete from fin_closing_template where id = #{id}
+    </delete>
+
+    <delete id="deleteFinClosingTemplateByIds" parameterType="String">
+        delete from fin_closing_template where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

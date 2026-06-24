@@ -1,16 +1,14 @@
 package com.wimoor.amazon.finances.pojo.entity;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.Date;
  
 
 @Data
@@ -31,15 +29,15 @@ public class AmzSettlementAccReport  {
 	
     @ApiModelProperty(value = "账期开始日期")
 	@TableField(value= "settlement_start_date")
-    private LocalDateTime settlementStartDate;
+    private Date settlementStartDate;
 
     @ApiModelProperty(value = "账期结束日期")
 	@TableField(value= "settlement_end_date")
-    private LocalDateTime settlementEndDate;
+    private Date settlementEndDate;
 
     @ApiModelProperty(value = "转账日期")
 	@TableField(value= "deposit_date")
-    private LocalDateTime depositDate;
+    private Date depositDate;
 
     @ApiModelProperty(value = "创建时间")
    	@TableField(value= "capturetime")

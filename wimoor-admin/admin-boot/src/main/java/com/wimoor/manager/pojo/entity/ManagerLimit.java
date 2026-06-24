@@ -86,8 +86,12 @@ public class ManagerLimit extends BaseEntity implements Serializable {
     private Integer tariffpackage;
 
     @ApiModelProperty(value = "失效时间")
-    @TableField("losingEffect")
-    private LocalDate losingEffect;
+    @TableField("expirationTime")
+    private LocalDate expirationTime;
+
+    @ApiModelProperty(value = "生效时间")
+    @TableField("effectiveTime")
+    private LocalDate effectiveTime;
 
     @ApiModelProperty(value = "备注")
     private String remark;

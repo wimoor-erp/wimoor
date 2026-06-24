@@ -49,6 +49,10 @@ public class ShipPlanListDTO extends BasePageQuery{
 	@ApiModelProperty(value = "planid")
 	private String planid;
 
+	@ApiModelProperty(value = "打包方案id")
+	private String packingOptionId;
+
+
 	List<ShipInboundItemVo> itemlist;
 	
 }

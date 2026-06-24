@@ -1,44 +1,6 @@
 package com.wimoor.erp.material.controller;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import com.wimoor.common.pojo.entity.BasePageQuery;
-import com.wimoor.common.service.impl.SystemControllerLog;
-import com.wimoor.erp.warehouse.service.IWhseReportService;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -48,39 +10,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
+import com.wimoor.common.pojo.entity.BasePageQuery;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.service.ISerialNumService;
+import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
-import com.wimoor.erp.material.pojo.entity.Assembly;
 import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
-import com.wimoor.erp.material.service.IAssemblyService;
 import com.wimoor.erp.common.pojo.entity.Status;
 import com.wimoor.erp.common.service.IExcelDownLoadService;
 import com.wimoor.erp.inventory.pojo.entity.Inventory;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.pojo.dto.MaterialDTO;
 import com.wimoor.erp.material.pojo.dto.PlanDTO;
-import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
-import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.pojo.entity.MaterialCategory;
-import com.wimoor.erp.material.pojo.entity.MaterialConsumable;
-import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
-import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
-import com.wimoor.erp.material.pojo.entity.StepWisePrice;
+import com.wimoor.erp.material.pojo.entity.*;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialInfoVO;
 import com.wimoor.erp.material.pojo.vo.MaterialSupplierVO;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
-import com.wimoor.erp.material.service.IDimensionsInfoService;
-import com.wimoor.erp.material.service.IMaterialCategoryService;
-import com.wimoor.erp.material.service.IMaterialConsumableService;
-import com.wimoor.erp.material.service.IMaterialService;
-import com.wimoor.erp.material.service.IMaterialSupplierService;
-import com.wimoor.erp.material.service.IStepWisePriceService;
+import com.wimoor.erp.material.service.*;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
 import com.wimoor.erp.stock.pojo.entity.OutWarehouseForm;
@@ -89,15 +40,27 @@ import com.wimoor.erp.stock.service.IOutWarehouseFormEntryService;
 import com.wimoor.erp.stock.service.IOutWarehouseFormService;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
-
-import cn.hutool.core.util.StrUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import com.wimoor.erp.warehouse.service.IWhseReportService;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.Map.Entry;
  
 
 @Api(tags = "产品接口")
@@ -131,8 +94,10 @@ public class MaterialController {
 	   final IWarehouseService warehouseService;
 	   
 	   final IPurchaseFormEntryService purchaseFormEntryService;
-	   
-	   final IExcelDownLoadService excelDownLoadService;
+
+		@Autowired
+		@Lazy
+	   IExcelDownLoadService excelDownLoadService;
 	   
 	   final IMaterialSupplierService iMaterialSupplierService;
 	   
@@ -237,7 +202,7 @@ public class MaterialController {
 			if (list != null) {
 				for (int i = 0; i < list.length; i++) {
 					if (StrUtil.isNotEmpty(list[i])) {
-						skulist.add("%" + list[i] + "%");
+						skulist.add(list[i]);
 					}
 				}
 			} else {
@@ -575,6 +540,7 @@ public class MaterialController {
 			List<MaterialConsumableVO> consumablePList=  iMaterialConsumableService.selectConsumableBySubmid(data.getId(),null,shopid);
 			List<MaterialSupplierVO> supplierList =iMaterialSupplierService.selectSupplierByMainmid(data.getId());
 			List<MaterialCustoms> Customs=iMaterialService.selectCustomsByMaterialId(data.getId());
+			MaterialCustom custom=iMaterialService.selectCustomByMaterialId(data.getId());
 			List<Map<String, Object>> parentList = assemblyService.selectBySubid(data.getId(),shopid);
 			if (data.getOperator() != null) {
 				data.setOperator(adminClientOneFeign.getUserName(data.getOperator()));
@@ -660,6 +626,7 @@ public class MaterialController {
 			vo.setStepWisePrice(priceList);
 			vo.setSupplierList(supplierList);
 			vo.setTaglist(tagliststr);
+			vo.setCustom(custom);
 			vo.setParentList(parentList);
 			return Result.success(vo);
 		}
@@ -1081,34 +1048,49 @@ public class MaterialController {
 			iMaterialService.updateReductionSKUMaterial(user, id, sku);
 			Material material = iMaterialService.getById(id);
 			if(material.getIssfg().equals("1")){
-				QueryWrapper<Assembly> assqueryWrapper=new QueryWrapper<Assembly>();
-				assqueryWrapper.eq("mainmid", id);
-				List<Assembly> subasslist = assemblyService.list(assqueryWrapper);
-				if(subasslist!=null && subasslist.size()>0) {
-					for(Assembly subitem:subasslist) {
-						QueryWrapper<Assembly> mainassqueryWrapper=new QueryWrapper<Assembly>();
-						mainassqueryWrapper.eq("submid", subitem.getSubmid());
-						List<Assembly> mainasslist = assemblyService.list(mainassqueryWrapper);
+				List<Assembly> subasslist2 = assemblyService.selectAssemblySub(id);
+				if(subasslist2!=null && subasslist2.size()>0) {
+					for(Assembly subitem:subasslist2) {
 						Boolean issub=false;
 						Material subMaterial = iMaterialService.getById(subitem.getSubmid());
-						for(Assembly mianitem:mainasslist){
-							String mainid = subitem.getMainmid();
-							Material mainMaterial = iMaterialService.getById(mainid);
-							if(mainMaterial==null||mainMaterial.isDelete()==true) {
-								continue;
-							}else{
-								issub=true;
-							}
-						}
-						if(issub==true&&subMaterial.getIssfg().equals("0")){
+						if(subMaterial.getIssfg().equals("0")){
 							subMaterial.setIssfg("2");
 							iMaterialService.updateById(subMaterial);
+						}else if(subMaterial.getIssfg().equals("1")){
+							QueryWrapper<Assembly> deleteQuery=new QueryWrapper<Assembly>();
+							deleteQuery.eq("mainmid", id);
+							deleteQuery.eq("submid", subMaterial.getId());
+							assemblyService.remove(deleteQuery);
 						}
-
 					}
-
+				}else{
+					material.setIssfg("0");
+					iMaterialService.updateById(material);
 				}
+
+			}else if(material.getIssfg().equals("2")){
+				List<Assembly> mlist3 = assemblyService.selectBySubid(material.getId());
+				 if(mlist3!=null && mlist3.size()>0) {
+					 for(Assembly mitem:mlist3) {
+						 Material mainMaterial = iMaterialService.getById(mitem.getMainmid());
+						 if(mainMaterial.getIssfg().equals("0")){
+							 mainMaterial.setIssfg("1");
+							 iMaterialService.updateById(mainMaterial);
+						 }
+						 if(mainMaterial.getIssfg().equals("2")){
+							 QueryWrapper<Assembly> deleteQuery=new QueryWrapper<Assembly>();
+							 deleteQuery.eq("mainmid", mainMaterial.getId());
+							 deleteQuery.eq("submid", material.getId());
+							 assemblyService.remove(deleteQuery);
+						 }
+					 }
+				 }else{
+					 material.setIssfg("0");
+					 iMaterialService.updateById(material);
+				 }
 			}
+
+
 
 			return Result.success("SKU:"+sku+"还原成功!");
 	    }
@@ -1298,7 +1280,12 @@ public class MaterialController {
 						list.add("规格");
 						list.add("备注");
 						list.add("生效日期");
-						list.add("负责人");
+						if(mtype.equals("product")){
+							list.add("负责人");
+							list.add("是否使用\n" +
+									"子SKU成本");
+						}
+
 						if(sheet.getLastRowNum()>0){
 							Row row = sheet.getRow(0);
 							for (int i = 0; i <=row.getLastCellNum()&&i<list.size() ; i++) {
@@ -1538,6 +1525,10 @@ public class MaterialController {
 						listtitle.add("海关编码");
 						listtitle.add("税率");
 						listtitle.add("产品链接");
+						listtitle.add("海关要素");
+						listtitle.add("单位");
+						listtitle.add("子单位");
+						listtitle.add("子单位比例");
 						if(sheet.getLastRowNum()>0){
 							Row row = sheet.getRow(0);
 							for (int i = 0; i <=row.getLastCellNum()&&i<listtitle.size() ; i++) {
@@ -1700,4 +1691,18 @@ public class MaterialController {
 			iMaterialService.saveCustoms(user,list);
 			return Result.success();
 		}
+
+	@GetMapping("/getCustom")
+	public Result<MaterialCustom> getCustomAction(String msku) {
+		UserInfo user = UserInfoContext.get();
+		String shopid = user.getCompanyid();
+		return Result.success(iMaterialService.getCustom(shopid,msku));
+	}
+
+	@PostMapping("/saveCustom")
+	public Result<?> saveCustomAction(@RequestBody MaterialCustom custom) {
+		UserInfo user = UserInfoContext.get();
+		iMaterialService.saveCustom(user,custom);
+		return Result.success();
+	}
 }

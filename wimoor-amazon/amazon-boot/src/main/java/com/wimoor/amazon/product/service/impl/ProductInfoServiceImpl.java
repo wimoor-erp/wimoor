@@ -1,28 +1,7 @@
 package com.wimoor.amazon.product.service.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Resource;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -50,30 +29,10 @@ import com.wimoor.amazon.inbound.service.IShipInboundTransService;
 import com.wimoor.amazon.inventory.mapper.AmzInventoryCountryReportMapper;
 import com.wimoor.amazon.inventory.pojo.entity.AmzInventoryCountryReport;
 import com.wimoor.amazon.orders.service.IOrderManagerService;
-import com.wimoor.amazon.product.mapper.AmzProductPriceOptMapper;
-import com.wimoor.amazon.product.mapper.FollowOfferChangeMapper;
-import com.wimoor.amazon.product.mapper.ProductFollowMapper;
-import com.wimoor.amazon.product.mapper.ProductInOptMapper;
-import com.wimoor.amazon.product.mapper.ProductInOrderMapper;
-import com.wimoor.amazon.product.mapper.ProductInProfitMapper;
-import com.wimoor.amazon.product.mapper.ProductInTagsMapper;
-import com.wimoor.amazon.product.mapper.ProductInfoMapper;
-import com.wimoor.amazon.product.mapper.ProductInfoStatusDefineMapper;
-import com.wimoor.amazon.product.mapper.ProductPriceLockedMapper;
-import com.wimoor.amazon.product.mapper.ProductPriceMapper;
-import com.wimoor.amazon.product.mapper.ProductRemarkHistoryMapper;
+import com.wimoor.amazon.product.mapper.*;
 import com.wimoor.amazon.product.pojo.dto.ProductListDTO;
 import com.wimoor.amazon.product.pojo.dto.ProductListQuery;
-import com.wimoor.amazon.product.pojo.entity.AmzProductPriceOpt;
-import com.wimoor.amazon.product.pojo.entity.ProductFollow;
-import com.wimoor.amazon.product.pojo.entity.ProductInOpt;
-import com.wimoor.amazon.product.pojo.entity.ProductInOrder;
-import com.wimoor.amazon.product.pojo.entity.ProductInProfit;
-import com.wimoor.amazon.product.pojo.entity.ProductInfo;
-import com.wimoor.amazon.product.pojo.entity.ProductInfoStatusDefine;
-import com.wimoor.amazon.product.pojo.entity.ProductPrice;
-import com.wimoor.amazon.product.pojo.entity.ProductPriceLocked;
-import com.wimoor.amazon.product.pojo.entity.ProductRemarkHistory;
+import com.wimoor.amazon.product.pojo.entity.*;
 import com.wimoor.amazon.product.pojo.vo.AmzProductListVo;
 import com.wimoor.amazon.product.pojo.vo.ProductInfoListVo;
 import com.wimoor.amazon.product.service.IProductInOptService;
@@ -91,10 +50,19 @@ import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.util.*;
 
 /**
  * <p>
@@ -304,7 +272,7 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 					,Arrays.asList(parameter.get("marketplace")),false));
 		}
 		IPage<AmzProductListVo> productList = this.baseMapper.selectDetialByAuth(query.getPage(),parameter);
-		if(productList!=null && productList.getRecords()!=null && productList.getRecords().size()>0) {
+		if(productList!=null && productList.getRecords()!=null && !productList.getRecords().isEmpty() &&!query.getDownloadMSku()) {
 			handleProductListVo(userinfo,parameter,productList.getRecords());
 		}
 		return productList;
@@ -591,13 +559,13 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 				parameter.put("productpricetype", "has");
 				parameter.put("onlymargin", "has");
 				
-				item.setInSnl(profitService.checkLight(item.getCountry(), true, item.getLandedAmount())?"1":null);
+				item.setInSnl(profitService.checkLight(item.getCountry(), true, item.getLandedAmount(),item.getPgroup()!=null?item.getPgroup():item.getTypename())?"1":null);
 				ProductInfo info =new ProductInfo();
 				info.setAmazonAuthId(new BigInteger(item.getAmazonAuthId()));
 				info.setId(item.getId());
 				info.setSku(item.getSku());
 				info.setAsin(item.getAsin());
-				info.setInSnl(profitService.checkLight(item.getCountry(), true, item.getLandedAmount()));
+				info.setInSnl(profitService.checkLight(item.getCountry(), true, item.getLandedAmount(),item.getPgroup()!=null?item.getPgroup():item.getTypename()));
 				info.setName(item.getName());
 				info.setTypename(item.getTypename());
 				info.setManufacturer(item.getManufacturer());
@@ -1077,7 +1045,7 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 						if(mpriceMap.get("totalamount")!=null) {
 							BigDecimal currPrice=new BigDecimal(mpriceMap.get("totalamount").toString());
 							BigDecimal repriceRMB=new BigDecimal(mpriceMap.get("totalamount").toString());
-							currPrice=exchangeRateHandlerService.changeCurrencyByLocal("CNY", market.getCurrency(), currPrice);
+							currPrice=exchangeRateHandlerService.changeCurrencyByLocal(auth.getShopId(),"CNY", market.getCurrency(), currPrice);
 							currPrice=currPrice.setScale(2, RoundingMode.HALF_UP);
 							map.put("reprice",currPrice);
 							map.put("repricetime","实时计算,最近10个采购单的均价,第一笔订单的时间:"
@@ -1093,7 +1061,7 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoMapper, Produ
 				if(mcurrShipmentFee!=null) {
 					BigDecimal currShipmentFeeRMB=new BigDecimal(mcurrShipmentFee.toString());
 					currShipmentFeeRMB=currShipmentFeeRMB.setScale(2, RoundingMode.HALF_UP);
-					currShipmentFee=exchangeRateHandlerService.changeCurrencyByLocal("CNY", market.getCurrency(), currShipmentFeeRMB);
+					currShipmentFee=exchangeRateHandlerService.changeCurrencyByLocal(auth.getShopId(),"CNY", market.getCurrency(), currShipmentFeeRMB);
 					currShipmentFee=currShipmentFee.setScale(2, RoundingMode.HALF_UP);
 					currtotal=currtotal.add(currShipmentFee);
 					map.put("reshipmentfee",currShipmentFee);

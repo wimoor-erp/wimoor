@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_thirdparty_inventory_ops` (
   `shopid` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku_houseid` (`shopid`,`api`,`houseid`,`sku`)
-) ENGINE=InnoDB AUTO_INCREMENT=1993469895956119554 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=2069631669184659459 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

@@ -56,6 +56,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         left join fin_accounting_subjects s on s.subject_id=fgl.subject_id
         <where>
             and fgl.groupid = #{groupid}
+            AND fgl.period &gt;= #{startPeriod} AND fgl.period &lt;= #{endPeriod}
             <if test="subjectId != null  and subjectId != ''"> and fgl.subject_id = #{subjectId}</if>
             <if test="period != null  and period != ''"> and fgl.period = #{period}</if>
         </where>
@@ -99,7 +100,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                d.end_balance endBalance,
                d.end_direction endDirection
         from fin_accounting_subjects s
-        left join fin_general_ledger d on s.subject_id=d.subject_id and s.groupid=d.groupid   and d.period = #{period}
+        left join fin_general_ledger d on s.subject_id=d.subject_id and s.groupid=d.groupid and d.period = #{period}
         where s.groupid = #{groupid}
     </select>
 
@@ -169,5 +170,164 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectByPeriod" resultMap="FinGeneralLedgerResult">
         <include refid="selectFinGeneralLedgerVo"/>
         where groupid = #{groupid} and period = #{period}
+    </select>
+
+    <!-- 查询顶级科目总账汇总 -->
+    <select id="selectTopLevelSummary" parameterType="com.wimoor.finance.ledger.domain.dto.FinLedgerDTO" resultType="java.util.Map">
+        SELECT
+            top_subject.subject_id as subjectId,
+            top_subject.subject_code as subjectCode,
+            top_subject.subject_name as subjectName,
+            fgl.period as period,
+            IFNULL(SUM(fgl.begin_balance), 0) as beginBalance,
+            CASE 
+                WHEN SUM(fgl.begin_balance) > 0 THEN 1
+                WHEN SUM(fgl.begin_balance) &lt; 0 THEN 2
+                ELSE 0
+            END as beginDirection,
+            IFNULL(SUM(fgl.debit_total), 0) as debitTotal,
+            IFNULL(SUM(fgl.credit_total), 0) as creditTotal,
+            IFNULL(SUM(fgl.end_balance), 0) as endBalance,
+            CASE 
+                WHEN SUM(fgl.end_balance) > 0 THEN 1
+                WHEN SUM(fgl.end_balance) &lt; 0 THEN 2
+                ELSE 0
+            END as endDirection
+        FROM fin_accounting_subjects top_subject
+        INNER JOIN fin_accounting_subjects child_subject 
+            ON child_subject.groupid = top_subject.groupid 
+            AND child_subject.subject_code LIKE CONCAT(top_subject.subject_code, '%')
+        LEFT JOIN fin_general_ledger fgl 
+            ON fgl.subject_id = child_subject.subject_id 
+            AND fgl.groupid = top_subject.groupid
+            AND fgl.period &gt;= #{startPeriod} AND fgl.period &lt;= #{endPeriod}
+        WHERE top_subject.groupid = #{groupid}
+          AND (top_subject.parent_code IS NULL OR top_subject.parent_code = '' OR top_subject.subject_level = 1)
+          <if test="subjectCodes != null and subjectCodes != ''">
+            AND top_subject.subject_code IN
+            <foreach item="code" collection="subjectCodes.split(',')" open="(" separator="," close=")">
+              #{code}
+            </foreach>
+          </if>
+        GROUP BY top_subject.subject_id, top_subject.subject_code, top_subject.subject_name, fgl.period
+        HAVING SUM(fgl.debit_total) IS NOT NULL 
+           OR SUM(fgl.credit_total) IS NOT NULL 
+           OR SUM(fgl.end_balance) IS NOT NULL
+        ORDER BY top_subject.subject_code, fgl.period
+    </select>
+
+    <!-- 查询指定期间的顶级科目总账汇总 -->
+    <select id="selectTopLevelSummaryByPeriod" resultType="java.util.Map">
+        SELECT
+            top_subject.subject_id as subjectId,
+            top_subject.subject_code as subjectCode,
+            top_subject.subject_name as subjectName,
+            fgl.period as period,
+            IFNULL(SUM(fgl.begin_balance), 0) as beginBalance,
+            CASE 
+                WHEN SUM(fgl.begin_balance) > 0 THEN 1
+                WHEN SUM(fgl.begin_balance) &lt; 0 THEN 2
+                ELSE 0
+            END as beginDirection,
+            IFNULL(SUM(fgl.debit_total), 0) as debitTotal,
+            IFNULL(SUM(fgl.credit_total), 0) as creditTotal,
+            IFNULL(SUM(fgl.end_balance), 0) as endBalance,
+            CASE 
+                WHEN SUM(fgl.end_balance) > 0 THEN 1
+                WHEN SUM(fgl.end_balance) &lt; 0 THEN 2
+                ELSE 0
+            END as endDirection
+        FROM fin_accounting_subjects top_subject
+        INNER JOIN fin_accounting_subjects child_subject 
+            ON child_subject.groupid = top_subject.groupid 
+            AND child_subject.subject_code LIKE CONCAT(top_subject.subject_code, '%')
+        INNER JOIN fin_general_ledger fgl 
+            ON fgl.subject_id = child_subject.subject_id 
+            AND fgl.groupid = top_subject.groupid
+            AND fgl.period = #{period}
+        WHERE top_subject.groupid = #{groupid}
+          AND (top_subject.parent_code IS NULL OR top_subject.parent_code = '' OR top_subject.subject_level = 1)
+        GROUP BY top_subject.subject_id, top_subject.subject_code, top_subject.subject_name, fgl.period
+        HAVING SUM(fgl.end_balance) IS NOT NULL AND SUM(fgl.end_balance) != 0
+        ORDER BY top_subject.subject_code, fgl.period
+    </select>
+
+    <!-- 查询日期范围内有余额的顶级科目总账汇总（取最新一期的期末余额） -->
+    <select id="selectTopLevelSummaryByDateRange" resultType="java.util.Map">
+        SELECT 
+            t.subjectId,
+            t.subjectCode,
+            t.subjectName,
+            t.period,
+            t.endBalance,
+            t.endDirection
+        FROM (
+            SELECT
+                top_subject.subject_id as subjectId,
+                top_subject.subject_code as subjectCode,
+                top_subject.subject_name as subjectName,
+                fgl.period as period,
+                IFNULL(SUM(fgl.end_balance), 0) as endBalance,
+                CASE 
+                    WHEN SUM(fgl.end_balance) > 0 THEN 1
+                    WHEN SUM(fgl.end_balance) &lt; 0 THEN 2
+                    ELSE 0
+                END as endDirection,
+                ROW_NUMBER() OVER (PARTITION BY top_subject.subject_id ORDER BY fgl.period DESC) as rn
+            FROM fin_accounting_subjects top_subject
+            INNER JOIN fin_accounting_subjects child_subject 
+                ON child_subject.groupid = top_subject.groupid 
+                AND child_subject.subject_code LIKE CONCAT(top_subject.subject_code, '%')
+            INNER JOIN fin_general_ledger fgl 
+                ON fgl.subject_id = child_subject.subject_id 
+                AND fgl.groupid = top_subject.groupid
+                AND fgl.period &gt;= #{startPeriod} AND fgl.period &lt;= #{endPeriod}
+            WHERE top_subject.groupid = #{groupid}
+              AND (top_subject.parent_code IS NULL OR top_subject.parent_code = '' OR top_subject.subject_level = 1)
+            GROUP BY top_subject.subject_id, top_subject.subject_code, top_subject.subject_name, fgl.period
+            HAVING IFNULL(SUM(fgl.end_balance), 0) != 0
+        ) t
+        WHERE t.rn = 1
+        ORDER BY t.subjectCode
+    </select>
+
+    <!-- 查询日期范围内的累计借方和贷方发生额 -->
+    <select id="selectCumulativeDebitCredit" resultType="java.util.Map">
+        SELECT
+            top_subject.subject_id as subjectId,
+            top_subject.subject_code as subjectCode,
+            IFNULL(SUM(fgl.debit_total), 0) as cumulativeDebit,
+            IFNULL(SUM(fgl.credit_total), 0) as cumulativeCredit
+        FROM fin_accounting_subjects top_subject
+        INNER JOIN fin_accounting_subjects child_subject 
+            ON child_subject.groupid = top_subject.groupid 
+            AND child_subject.subject_code LIKE CONCAT(top_subject.subject_code, '%')
+        INNER JOIN fin_general_ledger fgl 
+            ON fgl.subject_id = child_subject.subject_id 
+            AND fgl.groupid = top_subject.groupid
+            AND fgl.period &gt;= #{startPeriod} AND fgl.period &lt;= #{endPeriod}
+        WHERE top_subject.groupid = #{groupid}
+          AND (top_subject.parent_code IS NULL OR top_subject.parent_code = '' OR top_subject.subject_level = 1)
+        GROUP BY top_subject.subject_id, top_subject.subject_code
+        ORDER BY top_subject.subject_code
+    </select>
+
+    <!-- 按租户删除所有总账记录 -->
+    <delete id="deleteAllByGroupid">
+        DELETE FROM fin_general_ledger WHERE groupid = #{groupid}
+    </delete>
+
+    <!-- 从凭证分录汇总各科目各期间的借贷发生额（实时过账模式：所有凭证都参与） -->
+    <select id="sumEntriesBySubjectAndPeriod" resultType="java.util.Map">
+        SELECT
+            e.subject_id AS subjectId,
+            DATE_FORMAT(v.voucher_date, '%Y%m') AS period,
+            IFNULL(SUM(e.debit_amount), 0) AS debitTotal,
+            IFNULL(SUM(e.credit_amount), 0) AS creditTotal
+        FROM fin_voucher_entries e
+        INNER JOIN fin_vouchers v ON e.voucher_id = v.voucher_id
+        WHERE e.groupid = #{groupid}
+        GROUP BY e.subject_id, DATE_FORMAT(v.voucher_date, '%Y%m')
+        ORDER BY e.subject_id, period
     </select>
 </mapper>

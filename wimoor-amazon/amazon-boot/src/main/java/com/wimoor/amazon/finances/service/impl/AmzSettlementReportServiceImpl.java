@@ -1,42 +1,15 @@
 package com.wimoor.amazon.finances.service.impl;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.annotation.Resource;
-
-import com.wimoor.amazon.api.AdvClientOneFeignManager;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.api.AdminClientOneFeignManager;
+import com.wimoor.amazon.api.AdvClientOneFeignManager;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.AmazonGroup;
@@ -47,11 +20,7 @@ import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.mapper.AmzAmountDescriptionMapper;
 import com.wimoor.amazon.common.pojo.entity.AmzAmountDescription;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
-import com.wimoor.amazon.finances.mapper.AmzSettlementAccStatementMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryDayMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryMonthMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
+import com.wimoor.amazon.finances.mapper.*;
 import com.wimoor.amazon.finances.pojo.entity.AmzFinSettlementFormula;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccStatement;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
@@ -66,9 +35,27 @@ import com.wimoor.amazon.profit.service.ICalculateProfitService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.util.StrUtil;
+import com.wimoor.util.ExcelExportUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
 @Service
 @RequiredArgsConstructor
 public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementReportMapper, AmzSettlementReport> implements IAmzSettlementReportService {
@@ -104,6 +91,7 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
     final AdminClientOneFeignManager adminClientOneFeign ;
 	final AdvClientOneFeignManager advClientOneFeign;
     final IAmzSettlementAccStatementService iAmzSettlementAccStatementService;
+
  	AmzSettlementReport findOldOne(AmazonAuthority amazonAuthority, AmzSettlementReport report) {
  		LambdaQueryWrapper<AmzSettlementReport> queryWrapper = new LambdaQueryWrapper<AmzSettlementReport>();
  		queryWrapper.eq(AmzSettlementReport::getPostedDate, report.getPostedDate());
@@ -1602,12 +1590,21 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
  		return new BigDecimal("0");
  	}
  	
- 	@Cacheable(value = "findSettlementSKUCache#60", key = "#ekey")
+ 	//@Cacheable(value = "findSettlementSKUCache#60", key = "#ekey")
  	public List<Map<String, Object>> findCommodity(String ekey,Map<String, Object> map) {
  		 return findCommodity(map);
  	}
-  
- 	public List<Map<String, Object>> findCommodity(Map<String, Object> map) {
+
+	@Override
+	public IPage<Map<String,Object>> findSettlementSummarySku(Page<Object> page, Map<String, Object> param) {
+	    return this.baseMapper.findSettlementSummarySku(page, param);
+	}
+
+	@Override
+	public List<Map<String,Object>> findSettlementSummarySku(Map<String, Object> param) {
+		return this.baseMapper.findSettlementSummarySku( param);
+	}
+	public List<Map<String, Object>> findCommodity(Map<String, Object> map) {
  		String tocurrency = "RMB";
  		if (map.get("currency") != null) {
  			tocurrency = map.get("currency").toString();
@@ -1717,8 +1714,8 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
 			initAmount(shopid, item, "shipping", fromCurrency, tocurrency);
 			initAmount(shopid, item, "promotion", fromCurrency, tocurrency);
  			initAmount(shopid, item, "otherfee", fromCurrency, tocurrency);
- 			initAmount(shopid, item, "setincome", fromCurrency, tocurrency);
- 			BigDecimal income=initAmount(shopid, item, "income", fromCurrency, tocurrency);
+ 			//initAmount(shopid, item, "setincome", fromCurrency, tocurrency);
+ 			BigDecimal setincome=initAmount(shopid, item, "setincome", fromCurrency, tocurrency);
  			initAmount(shopid, item, "share_adv_spend_fee", fromCurrency, tocurrency);
  			initAmount(shopid, item, "share_storage_fee", fromCurrency, tocurrency);
  			initAmount(shopid, item, "share_long_storage_fee", fromCurrency, tocurrency);
@@ -1738,17 +1735,17 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
  			BigDecimal profit_lostrate=initAmount(shopid, item, "profit_lostrate", fromCurrency, tocurrency);
  			BigDecimal profit_otherfee=initAmount(shopid, item, "profit_otherfee", fromCurrency, tocurrency);
  			BigDecimal profit = new BigDecimal(0);
- 			profit=income.subtract(local_other_cost)
- 					     .subtract(local_price)
- 					     .subtract(local_return_tax)
- 					     .subtract(profit_local_shipmentfee)
- 					     .subtract(profit_marketfee)
- 					     .subtract(profit_vat)
- 					     .subtract(profit_companytax)
- 					     .subtract(profit_customstax)
- 					     .subtract(profit_exchangelost)
- 					     .subtract(profit_lostrate)
- 					     .subtract(profit_otherfee);
+			profit=setincome.subtract(local_other_cost)
+					     .subtract(local_price)
+					     .add(local_return_tax)
+					     .subtract(profit_local_shipmentfee)
+					     .subtract(profit_marketfee)
+					     .subtract(profit_vat)
+					     .subtract(profit_companytax)
+					     .subtract(profit_customstax)
+					     .subtract(profit_exchangelost)
+					     .subtract(profit_lostrate)
+					     .subtract(profit_otherfee);
   
  			BigDecimal profitrate = new BigDecimal("0");
  			BigDecimal refundrate = new BigDecimal("0"); 
@@ -1844,50 +1841,103 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
 
 	public void setExcelBookOverall(SXSSFWorkbook workbook, List<Map<String, Object>> list) {
     	
-		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
-		titlemap.put("groupname", "店铺名称");
-		titlemap.put("marketname", "站点");
-		titlemap.put("principal", "销售额");
-		titlemap.put("commission", "销售佣金");
-		titlemap.put("fbafee", "FBA费用");
-		titlemap.put("refund", "退款金额");
-		titlemap.put("storagefee", "仓储费");
-		titlemap.put("advfee", "广告费");
-		titlemap.put("shipcharge", "国际物流");
-		titlemap.put("reserve", "预留金差额");
-		titlemap.put("savefee", "折扣");
-		titlemap.put("untransfer", "转账失败补");
-		titlemap.put("other", "其他");
-		titlemap.put("setin", "结算收入");		
-		titlemap.put("price", "采购成本");
-		titlemap.put("profit", "利润");		
+//		Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
+//		titlemap.put("groupname", "店铺名称");
+//		titlemap.put("marketname", "站点");
+//		titlemap.put("principal", "销售额");
+//		titlemap.put("commission", "销售佣金");
+//		titlemap.put("fbafee", "FBA费用");
+//		titlemap.put("refund", "退款金额");
+//		titlemap.put("storagefee", "仓储费");
+//		titlemap.put("advfee", "广告费");
+//		titlemap.put("shipcharge", "国际物流");
+//		titlemap.put("reserve", "预留金差额");
+//		titlemap.put("savefee", "折扣");
+//		titlemap.put("untransfer", "转账失败补");
+//		titlemap.put("other", "其他");
+//		titlemap.put("setin", "结算收入");
+//		titlemap.put("price", "采购成本");
+//		titlemap.put("profit", "利润");
+//
+//		if (list.size() > 0 && list != null) {
+//			Sheet sheet = workbook.createSheet("sheet1");
+//			// 在索引0的位置创建行（最顶端的行）
+//			Row trow = sheet.createRow(0);
+//			Cell cell = null;
+//			Object[] titlearray = titlemap.keySet().toArray();
+//			for (int i = 0; i < titlearray.length; i++) {
+//				cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
+//				Object value = titlemap.get(titlearray[i].toString());
+//				cell.setCellValue(value.toString());
+//			}
+//			for (int i = 0; i < list.size(); i++) {
+//				Row row = sheet.createRow(i + 1);
+//				Map<String, Object> map = list.get(i);
+//				for (int j = 0; j < titlearray.length; j++) {
+//					cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
+//					Object value = map.get(titlearray[j].toString());
+//					if (value != null) {
+//						if(value instanceof BigDecimal) {
+//							cell.setCellValue(  Double.parseDouble(value.toString()));
+//						}else {
+//							cell.setCellValue(value.toString());
+//						}
+//					}
+//				}
+//			}
+//		} else {
+//			try {
+//				throw new Exception("没有数据可导出！");
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+		// 检查数据（修复原代码逻辑错误）
+		if (list == null || list.isEmpty()) {
+			throw new RuntimeException("没有数据可导出！");
+		}
 
-		if (list.size() > 0 && list != null) {
-			Sheet sheet = workbook.createSheet("sheet1");
-			// 在索引0的位置创建行（最顶端的行）
-			Row trow = sheet.createRow(0);
-			Cell cell = null;
-			Object[] titlearray = titlemap.keySet().toArray();
-			for (int i = 0; i < titlearray.length; i++) {
-				cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
-				Object value = titlemap.get(titlearray[i].toString());
-				cell.setCellValue(value.toString());
-			}
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				Map<String, Object> map = list.get(i);
-				for (int j = 0; j < titlearray.length; j++) {
-					cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
-					Object value = map.get(titlearray[j].toString());
-					if (value != null) {
-						if(value instanceof BigDecimal) {
-							cell.setCellValue(  Double.parseDouble(value.toString()));
-						}else {
-							cell.setCellValue(value.toString());
-						}
-					}
+		// 定义表头
+		LinkedHashMap<String, String> headers = new LinkedHashMap<>();
+		headers.put("groupname", "店铺名称");
+		headers.put("marketname", "站点");
+		headers.put("principal", "销售额");
+		headers.put("commission", "销售佣金");
+		headers.put("fbafee", "FBA费用");
+		headers.put("refund", "退款金额");
+		headers.put("storagefee", "仓储费");
+		headers.put("advfee", "广告费");
+		headers.put("shipcharge", "国际物流");
+		headers.put("reserve", "预留金差额");
+		headers.put("savefee", "折扣");
+		headers.put("untransfer", "转账失败补");
+		headers.put("other", "其他");
+		headers.put("setin", "结算收入");
+		headers.put("price", "采购成本");
+		headers.put("profit", "利润");
+
+		// 创建转换器（只处理BigDecimal）
+		Map<String, Function<Object, Object>> converters = new HashMap<String, Function<Object, Object>>();
+
+		// 添加所有数值字段的转换器
+		String[] numericFields = {
+				"principal", "commission", "fbafee", "refund", "storagefee",
+				"advfee", "shipcharge", "reserve", "savefee", "untransfer",
+				"other", "setin", "price", "profit"
+		};
+
+		for (String field : numericFields) {
+			converters.put(field, value -> {
+				if (value instanceof BigDecimal) {
+					return ((BigDecimal) value).doubleValue();
 				}
-			}
+				return value; // 保持原值
+			});
+		}
+
+		// 使用ExcelExportUtil导出
+		if (list.size() > 0 && list != null) {
+			ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, list, converters);
 		} else {
 			try {
 				throw new Exception("没有数据可导出！");
@@ -1929,13 +1979,6 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
 		titlemap.put("promotion", "促销费");
 		titlemap.put("otherfee", "其它费用");
 		titlemap.put("setincome", "SKU结算");
-		titlemap.put("share_storage_fee", "店铺分摊-仓储费");
-		titlemap.put("share_long_storage_fee", "店铺分摊-长期仓储费");
-		titlemap.put("share_adv_spend_fee", "店铺分摊-广告费");
-		titlemap.put("share_reserve_fee", "店铺分摊-预留金");
-		titlemap.put("share_coupon_redemption_fee", "店铺分摊-折扣券");
-		titlemap.put("share_shop_other_fee", "店铺分摊-其它");
-		titlemap.put("income", "店铺结算");
 		titlemap.put("local_price", "本地-采购成本");
 		titlemap.put("local_other_cost", "本地-其它");
 		titlemap.put("local_return_tax", "本地-退税");
@@ -2193,6 +2236,157 @@ public class AmzSettlementReportServiceImpl extends ServiceImpl<AmzSettlementRep
 		}
 	}
 	
- 
+
+
+	public List<Map<String,Object>> monthDetail(Map<String,Object> param){
+		 String currency=param.get("currency")!=null?param.get("currency").toString():"";
+		 String shopid=param.get("shopid")!=null?param.get("shopid").toString():"";
+		String fromdate = param.get("fromDate").toString().replaceAll("/", "-");
+		String enddate = param.get("endDate").toString().replaceAll("/", "-");
+		param.put("fromDate", fromdate);
+		param.put("endDate", enddate);
+		BigDecimal total=BigDecimal.ZERO;
+		List<Map<String,Object>> list= amzSettlementReportSummaryMonthMapper.monthDetail(param);
+		Map<String,Map<String,Object>> map=new HashMap<>();
+		for(Map<String,Object> item:list) {
+			String transaction_type=item.get("transaction_type")!=null?item.get("transaction_type").toString():"";
+			String amount_type=item.get("amount_type")!=null?item.get("amount_type").toString():"";
+			String amount_description=item.get("amount_description")!=null?item.get("amount_description").toString():"";
+			String key=transaction_type+amount_type+amount_description;
+			BigDecimal newamount = new BigDecimal(item.get("amount").toString());
+			total=total.add(newamount);
+			String currencyitem=item.get("currency")!=null?item.get("currency").toString():"";
+			if(!currency.equals(currencyitem)) {
+				 if(!currency.isEmpty() && !"market".equals(currency)) {
+					 newamount=exchangeRateHandlerService.changeCurrencyByLocal(shopid,currencyitem,currency,newamount);
+				 }
+			}
+			Map<String,Object> old=map.get(key);
+			if(old!=null) {
+				BigDecimal oldamount = new BigDecimal(old.get("amount").toString());
+				old.put("amount", oldamount.add(newamount));
+			}else {
+				item.put("amount",newamount);
+				map.put(key, item);
+			}
+
+		}
+		System.out.println(total);
+		return list;
+	}
+
+	public Map<String,Object> monthReport(Map<String,Object> param){
+		String fromDate = param.get("fromDate").toString().replaceAll("/", "-");
+		String endDate = param.get("endDate").toString().replaceAll("/", "-");
+		param.put("fromDate", fromDate);
+		param.put("endDate", endDate);
+		List<Map<String,Object>> mapList= amzSettlementReportSummaryMonthMapper.monthReport(param);
+		Map<String,Object> result=new HashMap<String,Object>();
+		String currency=null;
+		BigDecimal totals=new BigDecimal("0");
+		BigDecimal total_other=new BigDecimal("0");
+		BigDecimal totals_rmb=new BigDecimal("0");
+		BigDecimal total_other_rmb=new BigDecimal("0");
+		for(Map<String,Object> map:mapList){
+			if(map==null){continue;}
+			BigDecimal total=map.get("Total Income Expenses Tax")!=null?new BigDecimal(map.get("Total Income Expenses Tax").toString()):null;
+			totals=totals.add(total);
+			BigDecimal others=new BigDecimal("0");
+			Date postdate=map.get("posted_date")!=null?GeneralUtil.getDate(map.get("posted_date")):null;
+			currency=map.get("currency").toString();
+			for(Map.Entry<String, Object> entry:map.entrySet()){
+				if(entry.getKey().equals("currency")||entry.getKey().equals("posted_date")){continue;}
+				if(entry.getValue() instanceof BigDecimal){
+					BigDecimal value=new BigDecimal(entry.getValue().toString());
+					BigDecimal rmb=exchangeRateHandlerService.changeCurrencyByLocal(postdate,currency,"CNY",value);
+					if(result.get(entry.getKey())!=null){
+						result.put(entry.getKey(),value.add(new BigDecimal(result.get(entry.getKey()).toString())));
+                        result.put(entry.getKey()+"_rmb",rmb.add(new BigDecimal(result.get(entry.getKey()+"_rmb").toString())));
+                    }else{
+						result.put(entry.getKey(),value);
+						result.put(entry.getKey()+"_rmb",rmb);
+					}
+					if(!entry.getKey().equals("Total Income Expenses Tax")){
+						others=others.add(value);
+					}
+				}
+			}
+			//-----------------------------others----------------------------
+            assert total != null;
+            others=total.subtract(others);
+			map.put("Others",others);
+			BigDecimal others_rmb=exchangeRateHandlerService.changeCurrencyByLocal(postdate,currency,"CNY",others);
+			map.put("Others_rmb",others_rmb);
+			total_other=total_other.add(others);
+			total_other_rmb=total_other_rmb.add(others_rmb);
+		}
+		result.put("Others",total_other);
+		result.put("Others_rmb",total_other_rmb);
+		BigDecimal transfer = amzSettlementReportSummaryMonthMapper.TransfersToBankAccount(param);
+		result.put("Transfers to bank account",transfer);
+		if(transfer!=null){
+			BigDecimal rmb=exchangeRateHandlerService.changeCurrencyByLocal(GeneralUtil.getDatez(endDate),currency,"CNY",transfer);
+			result.put("Transfers to bank account_rmb",rmb);
+		}
+
+		BigDecimal transferFail=amzSettlementReportSummaryMonthMapper.FailedTransfersToBankAccount(param);
+		result.put("Failed transfers to bank account",transferFail);
+		if(transferFail!=null){
+			BigDecimal rmb=exchangeRateHandlerService.changeCurrencyByLocal(GeneralUtil.getDatez(endDate),currency,"CNY",transferFail);
+			result.put("Transfers to bank account_rmb",rmb);
+		}
+		List<String> list = getTransactionTypes();
+		for(String item:list){
+			if(result.get(item)==null){
+				result.put(item,new BigDecimal(0));
+				result.put(item+"_rmb",new BigDecimal(0));
+			}
+		}
+		BigDecimal total=new BigDecimal("0");
+		for(Map.Entry<String, Object> item:result.entrySet()){
+			if(!item.getKey().contains("_rmb")){continue;}
+		    System.out.println(item.getKey()+" "+item.getValue());
+		}
+		return result;
+	}
+
+	public static List<String>  getTransactionTypes(){
+		return Arrays.asList(
+				"Seller fulfilled product sales",
+				"Seller_fulfilled product sale refunds",
+				"FBA product sales",
+				"FBA product sale refunds",
+				"FBA inventory credit",
+				"FBA liquidation proceeds",
+				"FBA Liquidations proceeds adjustments",
+				"Postage credits",
+				"Delivery credit refunds",
+				"Gift wrap credits",
+				"Gift wrap credits refunds",
+				"Promotional rebates",
+				"Promotional rebate refunds",
+				"Seller_fulfilled selling fees",
+				"FBA selling fees",
+				"Selling fee refunds",
+				"Refund for Advertiser",
+				"FBA transaction fees",
+				"FBA transaction fee refunds",
+				"Other transaction fees",
+				"Other transaction fee refunds",
+				"FBA inventory and inbound services fees",
+				"Service fees",
+				"Refund administration fees",
+				"Adjustments",
+				"Cost of Advertising",
+				"Liquidations fees",
+				"Transfers to bank account",
+				"Product, delivery and gift wrap taxes collected",
+				"Product, delivery and gift wrap taxes refunded",
+				"Amazon obligated tax withheld",
+				"Failed transfers to bank account",
+				"Total Income Expenses Tax",
+				"Others"
+		);
+	}
   
 }

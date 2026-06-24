@@ -26,10 +26,20 @@ public class FinLedgerDTO extends BaseEntity
     @Excel(name = "租户ID")
     private String groupid;
 
+    private String startPeriod;
+    private String endPeriod;
     private String period;
+    private Date startDate;
+    private Date endDate;
     /** 会计科目ID */
     @Excel(name = "会计科目ID")
     private String subjectId;
+
+    /** 会计科目编码（用于父科目点击时前缀匹配子科目） */
+    private String subjectCode;
+
+    /** 多个会计科目编码（逗号分隔） */
+    private String subjectCodes;
 
     /** 凭证ID */
     @Excel(name = "凭证ID")
@@ -73,7 +83,32 @@ public class FinLedgerDTO extends BaseEntity
     @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date createdTime;
 
-    public void setDetailId(Long detailId) 
+    public void setPeriod(String period)
+    {
+        this.period = period;
+    }
+    public String getPeriod()
+    {
+        return period;
+    }
+    public void setStartPeriod(String startPeriod)
+    {
+        this.startPeriod = startPeriod;
+    }
+    public String getStartPeriod()
+    {
+        return startPeriod;
+    }
+    public void setEndPeriod(String endPeriod)
+    {
+        this.endPeriod = endPeriod;
+    }
+    public String getEndPeriod()
+    {
+        return endPeriod;
+    }
+
+    public void setDetailId(Long detailId)
     {
         this.detailId = detailId;
     }
@@ -101,6 +136,26 @@ public class FinLedgerDTO extends BaseEntity
     public String getSubjectId() 
     {
         return subjectId;
+    }
+
+    public void setSubjectCode(String subjectCode) 
+    {
+        this.subjectCode = subjectCode;
+    }
+
+    public String getSubjectCode() 
+    {
+        return subjectCode;
+    }
+
+    public void setSubjectCodes(String subjectCodes) 
+    {
+        this.subjectCodes = subjectCodes;
+    }
+
+    public String getSubjectCodes() 
+    {
+        return subjectCodes;
     }
 
     public void setVoucherId(Long voucherId) 
@@ -132,6 +187,12 @@ public class FinLedgerDTO extends BaseEntity
     {
         return voucherDate;
     }
+
+    public void setStartDate(Date startDate) {this.startDate = startDate;}
+    public Date getStartDate() {return startDate;}
+
+    public void setEndDate(Date endDate) {this.endDate = endDate;}
+    public Date getEndDate() {return endDate;}
 
     public void setVoucherNo(String voucherNo) 
     {

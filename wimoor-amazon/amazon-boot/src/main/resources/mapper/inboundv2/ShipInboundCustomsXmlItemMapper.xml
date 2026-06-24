@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipInboundCustomsXmlItemMapper">
+    <select id="findList" resultType="java.util.Map" parameterType="com.wimoor.amazon.inboundV2.pojo.dto.ShipCustomXmlDTO">
+        select
+        i.sku,
+        max(i.name) name,
+        max(v.market) market,
+        max(v.groupname) groupname,
+        sum(i.quantity) as quantity,
+        max(i.price) as price,
+        sum(i.total_price) as total_price
+        from t_erp_ship_v2_inboundshipment_customs_xml_item i
+        left join t_erp_ship_v2_inboundshipment_customs_xml x on x.guid=i.guid
+        left join (
+        select
+        p.groupid,
+        g.shopid,
+        max(g.name) groupname,
+        max(m.name) market,
+        <if test="dto.xmlType=='CEB303'">
+            i.ordguid guid,
+        </if>
+        <if test="dto.xmlType=='CEB603'">
+            i.invguid guid,
+        </if>
+        <if test="dto.xmlType=='DEC001'">
+            i.decguid guid,
+        </if>
+        <if test="dto.xmlType=='DEC002'">
+            i.decguid guid,
+        </if>
+        p.marketplaceid marketplaceid
+        from t_erp_ship_v2_inboundshipment i
+        left join t_erp_ship_v2_inboundplan p on p.id = i.formid
+        left join t_erp_ship_inboundtrans t on t.shipmentid = i.shipment_confirmation_id
+        left join t_amazon_group g on g.id = p.groupid
+        left join t_marketplace m on m.marketplaceid = p.marketplaceid
+        where p.shopid=#{dto.shopid}
+        <if test="dto.marketplaceid!=null">
+            and p.marketplaceid=#{dto.marketplaceid}
+        </if>
+        <if test="dto.groupid!=null">
+            and p.groupid=#{dto.groupid}
+        </if>
+        <if test="dto.xmlType=='CEB303'">
+            group by p.groupid,p.marketplaceid,i.ordguid
+        </if>
+        <if test="dto.xmlType=='CEB603'">
+            group by p.groupid,p.marketplaceid,i.invguid
+        </if>
+        <if test="dto.xmlType=='DEC001'">
+            group by p.groupid,p.marketplaceid,i.decguid
+        </if>
+        <if test="dto.xmlType=='DEC002'">
+            group by p.groupid,p.marketplaceid,i.decguid
+        </if>
+        ) v on v.guid=x.guid
+        where v.shopid=#{dto.shopid}
+        <if test="dto.groupid!=null">
+            and x.groupid=#{dto.groupid}
+        </if>
+        and x.xml_type=#{dto.xmlType}
+        <if test="dto.marketplaceid!=null">
+            and v.marketplaceid=#{dto.marketplaceid}
+        </if>
+        <if test="dto.dateType==null or dto.dateType=='app_time'">
+            and x.app_time &gt;=#{dto.fromDate,jdbcType=DATE}
+            and x.app_time &lt;=#{dto.toDate,jdbcType=DATE}
+        </if>
+        <if test="dto.dateType=='opttime'">
+            and x.opttime &gt;=#{dto.fromDate,jdbcType=DATE}
+            and x.opttime &lt;=#{dto.toDate,jdbcType=DATE}
+        </if>
+        group by i.sku
+    </select>
+
+
+</mapper>

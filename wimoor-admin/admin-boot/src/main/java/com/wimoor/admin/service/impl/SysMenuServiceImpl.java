@@ -192,6 +192,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         boolean ismanager=user.getUsertype().equals(UserType.manager.getCode());
         if(isadmin) {
         	menuList = this.baseMapper.listRouteAll();
+        	menuList = filterMenuBySystemId(menuList, "1010");
         }else if(ismanager){
         	menuList = this.baseMapper.listRoute(user.getId());
         }else {
@@ -223,6 +224,66 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
          	list.get(0).setMeta(meta);
         }
         return list;
+    }
+
+    /**
+     * 根据系统ID过滤菜单，只保留指定系统及其子菜单
+     * 用于系统管理员登录时只显示指定系统的菜单
+     *
+     * @param menuList 原始菜单列表
+     * @param systemId 系统菜单ID
+     * @return 过滤后的菜单列表
+     */
+    private List<SysMenu> filterMenuBySystemId(List<SysMenu> menuList, String systemId) {
+        if (menuList == null || menuList.isEmpty()) {
+            return menuList;
+        }
+        // 找出指定系统的菜单及其所有上级菜单
+        Set<String> menuIdsToKeep = new HashSet<>();
+        for (SysMenu menu : menuList) {
+            if (menu.getId().equals(systemId)) {
+                // 找到了目标系统菜单，收集其所有上级菜单ID
+                collectParentIds(menu, menuList, menuIdsToKeep);
+                menuIdsToKeep.add(systemId);
+                break;
+            }
+        }
+        // 收集目标系统的所有子菜单ID
+        if (menuIdsToKeep.contains(systemId)) {
+            collectChildIds(systemId, menuList, menuIdsToKeep);
+        }
+        // 过滤菜单列表，只保留需要显示的菜单
+        return menuList.stream()
+                .filter(menu -> menuIdsToKeep.contains(menu.getId()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 递归收集父菜单ID
+     */
+    private void collectParentIds(SysMenu menu, List<SysMenu> allMenus, Set<String> parentIds) {
+        String parentId = menu.getParentId();
+        if (parentId != null && !"0".equals(parentId) && !"".equals(parentId)) {
+            parentIds.add(parentId);
+            for (SysMenu parent : allMenus) {
+                if (parent.getId().equals(parentId)) {
+                    collectParentIds(parent, allMenus, parentIds);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 递归收集子菜单ID
+     */
+    private void collectChildIds(String parentId, List<SysMenu> allMenus, Set<String> childIds) {
+        for (SysMenu menu : allMenus) {
+            if (parentId.equals(menu.getParentId())) {
+                childIds.add(menu.getId());
+                collectChildIds(menu.getId(), allMenus, childIds);
+            }
+        }
     }
 
     /**

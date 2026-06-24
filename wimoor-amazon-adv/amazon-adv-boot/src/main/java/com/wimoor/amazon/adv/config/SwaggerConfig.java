@@ -34,7 +34,7 @@ public class SwaggerConfig {
         return new ApiInfoBuilder()
                 .title("Wimoor Amazon ADV模块接口文档")
                 .description("如有疑问，请联系开发工程师")
-                .contact(new Contact("深圳市万墨信息科技有限公司", "https://www.wimoor.com", "418981026@qq.com"))
+                .contact(new Contact("深圳市深码创科技有限公司", "https://www.wimoor.com", "418981026@qq.com"))
                 .version("1.0")
                 .build();
     }

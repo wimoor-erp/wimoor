@@ -1,125 +1,65 @@
 package com.wimoor.finance.ledger.domain.dto;
 
-/**
- * 科目余额查询参数
- */
+import lombok.Data;
+
+import java.util.List;
+
+@Data
 public class SubjectBalanceQueryDTO {
-
     /**
-     * 科目编码 (支持模糊查询)
+     * 集团ID
      */
-    private String subjectCode;
-
+    private String groupid;
+    
     /**
-     * 科目名称 (支持模糊查询)
+     * 开始会计期间 (YYYYMM格式)
      */
-    private String subjectName;
-
+    private String beginPeriod;
+    
     /**
-     * 开始期间 (yyyy-MM)
-     */
-    private String startPeriod;
-
-    /**
-     * 结束期间 (yyyy-MM)
+     * 结束会计期间 (YYYYMM格式)
      */
     private String endPeriod;
-
+    
     /**
-     * 科目级别
+     * 会计期间 (YYYYMM格式，兼容旧版单期间查询)
      */
-    private Integer subjectLevel;
-
+    private String period;
+    
+    /**
+     * 科目编码（支持模糊查询）
+     */
+    private String subjectCode;
+    
+    /**
+     * 科目名称（支持模糊查询）
+     */
+    private String subjectName;
+    
     /**
      * 科目类型
      */
     private Integer subjectType;
-
-    /**
-     * 公司代码
-     */
-    private String companyCode;
-
+    
     /**
      * 是否只查询末级科目
      */
-    private Boolean leafOnly = false;
-
+    private Boolean leafOnly;
+    
     /**
-     * 余额不为零的科目
+     * 科目编码列表（批量查询）
      */
-    private Boolean nonZeroBalanceOnly = false;
+    private List<String> subjectCodes;
+    
+    /**
+     * 层级过滤
+     */
+    private Integer level;
+    
+    /**
+     * 上级科目编码
+     */
+    private String parentCode;
 
-    // Getter 和 Setter 方法
-    public String getSubjectCode() {
-        return subjectCode;
-    }
-
-    public void setSubjectCode(String subjectCode) {
-        this.subjectCode = subjectCode;
-    }
-
-    public String getSubjectName() {
-        return subjectName;
-    }
-
-    public void setSubjectName(String subjectName) {
-        this.subjectName = subjectName;
-    }
-
-    public String getStartPeriod() {
-        return startPeriod;
-    }
-
-    public void setStartPeriod(String startPeriod) {
-        this.startPeriod = startPeriod;
-    }
-
-    public String getEndPeriod() {
-        return endPeriod;
-    }
-
-    public void setEndPeriod(String endPeriod) {
-        this.endPeriod = endPeriod;
-    }
-
-    public Integer getSubjectLevel() {
-        return subjectLevel;
-    }
-
-    public void setSubjectLevel(Integer subjectLevel) {
-        this.subjectLevel = subjectLevel;
-    }
-
-    public Integer getSubjectType() {
-        return subjectType;
-    }
-
-    public void setSubjectType(Integer subjectType) {
-        this.subjectType = subjectType;
-    }
-
-    public String getCompanyCode() {
-        return companyCode;
-    }
-
-    public void setCompanyCode(String companyCode) {
-        this.companyCode = companyCode;
-    }
-
-    public Boolean getLeafOnly() {
-        return leafOnly;
-    }
-
-    public void setLeafOnly(Boolean leafOnly) {
-        this.leafOnly = leafOnly;
-    }
-
-    public Boolean getNonZeroBalanceOnly() {
-        return nonZeroBalanceOnly;
-    }
-
-    public void setNonZeroBalanceOnly(Boolean nonZeroBalanceOnly) {
-        this.nonZeroBalanceOnly = nonZeroBalanceOnly;
-    }
+    private Boolean isFilterZero;
 }

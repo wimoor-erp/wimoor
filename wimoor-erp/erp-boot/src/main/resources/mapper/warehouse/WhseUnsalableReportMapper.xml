@@ -189,6 +189,41 @@
  
 	</select>
 
+	<!-- 批量查询：某仓库所有物料在指定日期范围内的出库量 -->
+	<select id="batchLocalOutInventoryByRange" parameterType="java.util.Map" resultType="java.util.Map">
+		select re.materialid, ifnull(sum(quantity),0) salesum
+		from t_erp_inventory_record re
+		where re.opttime&gt;=#{fromDate,jdbcType=CHAR}
+			and re.operate='out' and (re.`status`='fulfillable' or re.`status`='outbound')
+			and re.shopid=#{shopid,jdbcType=CHAR}
+			and re.warehouseid=#{warehouseid,jdbcType=CHAR}
+		group by re.materialid
+	</select>
+
+	<!-- 批量查询：某仓库所有物料在指定日期的历史库存 -->
+	<select id="batchLocalByDay" parameterType="java.util.Map" resultType="java.util.Map">
+		select materialid, sum(ifnull(fulfillable,0) + ifnull(inbound,0)) invqty
+		from t_erp_inventory_his_day
+		where shopid=#{shopid,jdbcType=BIGINT}
+			and warehouseid=#{warehouseid,jdbcType=BIGINT}
+			and byday = #{byday,jdbcType=DATE}
+		group by materialid
+	</select>
+
+	<!-- 批量查询：海外仓某仓库所有物料在指定日期范围内的出库量 -->
+	<select id="batchOverseaOutInventoryByRange" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.id materialid, ifnull(sum(d.quantity),0) salesum
+		from t_erp_order d
+		LEFT JOIN t_erp_thirdparty_warehouse tw ON tw.id=d.thirdparty_warehouseid
+		LEFT JOIN t_erp_thirdparty_warehouse_bind wb ON wb.thirdparty_warehouse_id=tw.id
+		LEFT JOIN t_erp_warehouse w ON w.id=wb.local_warehouse_id
+		LEFT JOIN t_erp_material m ON m.sku=d.sku AND m.shopid=d.shopid AND m.isDelete=0
+		WHERE w.ftype='oversea_usable'
+			and d.purchase_date&gt;=#{fromDate,jdbcType=CHAR} and d.shopid=#{shopid,jdbcType=CHAR}
+			and w.id=#{warehouseid,jdbcType=CHAR}
+		group by m.id
+	</select>
+
 	<select id="OverseaOutInventoryByRange" parameterType="java.util.Map" resultType="java.util.Map">
 		select sum(quantity) salesum
 		 from t_erp_order d

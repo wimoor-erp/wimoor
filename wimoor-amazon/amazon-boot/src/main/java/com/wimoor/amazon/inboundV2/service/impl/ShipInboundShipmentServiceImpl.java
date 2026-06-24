@@ -128,8 +128,6 @@ public class ShipInboundShipmentServiceImpl extends  ServiceImpl<ShipInboundShip
 
 	final ShipInboundCaseV2Mapper shipInboundCaseV2Mapper;
 
-	final IShipInboundTransService shipInboundTransService;
-
 	final ShipInboundTransHisMapper shipInboundTransHisMapper;
 
 	final IShipInboundshipmentTraceuploadService iShipInboundshipmentTraceuploadService;
@@ -541,7 +539,7 @@ public ListShipmentItemsResponse getshipmentItems(ShipmentItemsDTO dto) {
 		LambdaQueryWrapper<ShipInboundShipmentItem> query=new LambdaQueryWrapper<ShipInboundShipmentItem>();
 		query.eq(ShipInboundShipmentItem::getShipmentid, dto.getShipmentid());
 		List<ShipInboundShipmentItem> itemlist = shipInboundShipmentItemV2Mapper.selectList(query);
-		if(ship!=null&&itemlist.size()>0&&itemlist.get(0).getQuantity()>0) {
+		if(ship!=null&& !itemlist.isEmpty() &&itemlist.get(0).getQuantity()>0) {
 			ListShipmentItemsResponse response =new ListShipmentItemsResponse();
             for(ShipInboundShipmentItem item:itemlist){
 				Item entity=new Item();
@@ -679,10 +677,85 @@ public String saveShipment(ShipInboundPlan inplan, List<String> shipmentids) {
 	}
 	if(inplan.getSubmitbox()){
 		syncBoxId(inplan);
+	}else {
+		syncBoxNum(inplan,shipmentids);
 	}
 	return placementOptionId;
 }
-private void asyncShipmentBox(ShipmentItemsDTO boxdto,Shipment shipment){
+
+	private void syncBoxNum(ShipInboundPlan inplan,List<String> shipmentids) {
+		for(String shipmentid:shipmentids){
+			LambdaQueryWrapper<ShipInboundShipmentBox> queryShipmentbox=new LambdaQueryWrapper<ShipInboundShipmentBox>();
+			queryShipmentbox.eq(ShipInboundShipmentBox::getFormid, inplan.getId());
+			queryShipmentbox.eq(ShipInboundShipmentBox::getShipmentid, shipmentid);
+			queryShipmentbox.orderByAsc(ShipInboundShipmentBox::getId);
+			List<ShipInboundShipmentBox> shipmentboxlist = shipInboundShipmentBoxMapper.selectList(queryShipmentbox);
+			Map<String, TreeSet<ShipInboundShipmentBox>> boxIdMap=new HashMap<String,TreeSet<ShipInboundShipmentBox>>();
+
+			for(ShipInboundShipmentBox entity:shipmentboxlist){
+				String key=entity.getHeight().setScale(2, RoundingMode.HALF_UP).toPlainString()
+						+entity.getLength().setScale(2, RoundingMode.HALF_UP).toPlainString()
+						+entity.getWidth().setScale(2, RoundingMode.HALF_UP).toPlainString()
+						+entity.getWeight().setScale(2, RoundingMode.HALF_UP).toPlainString();
+				LambdaQueryWrapper<ShipInboundShipmentBoxItem> boxitemQuery=new LambdaQueryWrapper<ShipInboundShipmentBoxItem>();
+				boxitemQuery.eq(ShipInboundShipmentBoxItem::getBoxid, entity.getId());
+				boxitemQuery.orderByAsc(ShipInboundShipmentBoxItem::getSku);
+				List<ShipInboundShipmentBoxItem> shipmentBoxItemList = shipInboundShipmentBoxItemMapper.selectList(boxitemQuery);
+				for(ShipInboundShipmentBoxItem itementity:shipmentBoxItemList){
+					key=key+itementity.getSku()+itementity.getQuantity().toString();
+				}
+				key=key.replace(".","");
+				TreeSet<ShipInboundShipmentBox> boxidlist = boxIdMap.get(key);
+				if(boxidlist==null){
+					boxidlist=new TreeSet<ShipInboundShipmentBox>(new Comparator<ShipInboundShipmentBox>() {
+								@Override
+								public int compare(ShipInboundShipmentBox e1, ShipInboundShipmentBox e2) {
+									// 按薪资降序
+									return  e1.getId().compareTo(e2.getId());
+								}
+							}
+					);
+					boxIdMap.put(key, boxidlist);
+				}
+				boxidlist.add(entity);
+				boxIdMap.put(key, boxidlist);
+			}
+
+			LambdaQueryWrapper<ShipInboundBox> querybox=new LambdaQueryWrapper<ShipInboundBox>();
+			querybox.eq(ShipInboundBox::getFormid, inplan.getId());
+			querybox.eq(ShipInboundBox::getShipmentid, shipmentid);
+			querybox.orderByAsc(ShipInboundBox::getBoxnum);
+			List<ShipInboundBox> planboxlist = shipInboundBoxV2Mapper.selectList(querybox);
+			if(planboxlist!=null){
+				for(ShipInboundBox planbox:planboxlist){
+					LambdaQueryWrapper<ShipInboundCase> querycase=new LambdaQueryWrapper<ShipInboundCase>();
+					querycase.eq(ShipInboundCase::getBoxid, planbox.getId());
+					querycase.orderByAsc(ShipInboundCase::getSku);
+					List<ShipInboundCase> plancaselist = shipInboundCaseV2Mapper.selectList(querycase);
+					String key=planbox.getHeight().setScale(2, RoundingMode.HALF_UP).toPlainString()
+							+planbox.getLength().setScale(2, RoundingMode.HALF_UP).toPlainString()
+							+planbox.getWidth().setScale(2, RoundingMode.HALF_UP).toPlainString()
+							+planbox.getWeight().setScale(2, RoundingMode.HALF_UP).toPlainString();
+					for(ShipInboundCase plancase:plancaselist){
+						key=key+plancase.getSku()+plancase.getQuantity().toString();
+					}
+					key=key.replace(".","");
+					TreeSet<ShipInboundShipmentBox> boxidlist = boxIdMap.get(key);
+					if(boxidlist!=null){
+						ShipInboundShipmentBox shipbox = boxidlist.pollFirst();
+							if(shipbox!=null){
+								shipbox.setBoxnum(planbox.getBoxnum());
+								shipInboundShipmentBoxMapper.updateById(shipbox);
+							}
+					}
+				}
+			}
+		}
+
+
+	}
+
+	private void asyncShipmentBox(ShipmentItemsDTO boxdto,Shipment shipment){
 	boxdto.setNeedsync(true);
 	ListShipmentBoxesResponse boxs = this.listShipmentBoxes(boxdto);
 	List<ShipInboundShipmentBox> boxlist = shipInboundShipmentBoxMapper.selectList(new LambdaQueryWrapper<ShipInboundShipmentBox>().eq(ShipInboundShipmentBox::getShipmentid, boxdto.getShipmentid()));
@@ -893,7 +966,7 @@ public void setTranStyle(ShipInboundShipment ship){
 			ship.setPlacementOptionId(shipment.getPlacementOptionId());
 			ship.setTransportationOptionId(shipment.getSelectedTransportationOptionId());
 			ship.setFormid(inplan.getId());
-			//ship.setTranstyle(inplan.getTranstyle());
+			ship.setTranstyle(inplan.getTranstyle());
 			ship.setCarrier(inplan.getShippingSolution());
 			ship.setShipedDate(inplan.getShippingDate());
 			ship.setDeliveryWindowOptionId(deliveryWindowOptionId);
@@ -902,9 +975,14 @@ public void setTranStyle(ShipInboundShipment ship){
 			if(inplan.getInvtype()==2 && ship.getStatus()!=8&& ship.getStatus()!=0){
 				ship.setStatus(7);
 			}
-			if(ship.getTransportationOptionId()!=null&&ship.getTranstyle()==null){
-				setTranStyle(ship);
+			if(ship.getTranstyle()==null){
+				if(ship.getTransportationOptionId()!=null){
+					setTranStyle(ship);
+				}else if(inplan.getTranstyle()!=null){
+					ship.setTranstyle(inplan.getTranstyle());
+				}
 			}
+
 			this.save(ship);
 		}else {
 			oldOne.setDestination(addressCode);
@@ -926,8 +1004,12 @@ public void setTranStyle(ShipInboundShipment ship){
 			if(oldOne.getTranstype()==null&&inplan.getTranstype()!=null){
 				oldOne.setTranstype(inplan.getTranstype());
 			}
-			if(oldOne.getTransportationOptionId()!=null&&oldOne.getTranstyle()==null){
-				setTranStyle(oldOne);
+			if(oldOne.getTranstyle()==null){
+				if(oldOne.getTransportationOptionId()!=null){
+					setTranStyle(oldOne);
+				}else if(inplan.getTranstyle()!=null){
+					oldOne.setTranstyle(inplan.getTranstyle());
+				}
 			}
 			this.updateById(oldOne);
 		}
@@ -944,11 +1026,13 @@ public void setTranStyle(ShipInboundShipment ship){
 	void syncBoxId(ShipInboundPlan inplan){
 	LambdaQueryWrapper<ShipInboundBox> querybox=new LambdaQueryWrapper<ShipInboundBox>();
 	querybox.eq(ShipInboundBox::getFormid, inplan.getId());
+	querybox.orderByAsc(ShipInboundBox::getBoxnum);
 	List<ShipInboundBox> planboxlist = shipInboundBoxV2Mapper.selectList(querybox);
 	if(planboxlist!=null){
-		Map<String, HashSet<String>> boxIdMap=new HashMap<String,HashSet<String>>();
+		Map<String, TreeSet<String>> boxIdMap=new HashMap<String,TreeSet<String>>();
 		LambdaQueryWrapper<ShipInboundShipmentBox> queryShipmentbox=new LambdaQueryWrapper<ShipInboundShipmentBox>();
 		queryShipmentbox.eq(ShipInboundShipmentBox::getFormid, inplan.getId());
+		queryShipmentbox.orderByAsc(ShipInboundShipmentBox::getId);
 		List<ShipInboundShipmentBox> shipmentboxlist = shipInboundShipmentBoxMapper.selectList(queryShipmentbox);
 		for(ShipInboundShipmentBox entity:shipmentboxlist){
 			String key=entity.getHeight().setScale(2, RoundingMode.HALF_UP).toPlainString()
@@ -963,9 +1047,9 @@ public void setTranStyle(ShipInboundShipment ship){
 				key=key+itementity.getSku()+itementity.getQuantity().toString();
 			}
 			key=key.replace(".","");
-			HashSet<String> boxidlist = boxIdMap.get(key);
+			TreeSet<String> boxidlist = boxIdMap.get(key);
 			if(boxidlist==null){
-				boxidlist=new HashSet<String>();
+				boxidlist=new TreeSet<String>();
 				boxIdMap.put(key, boxidlist);
 			}
 			boxidlist.add(entity.getId());
@@ -984,7 +1068,7 @@ public void setTranStyle(ShipInboundShipment ship){
 				key=key+plancase.getSku()+plancase.getQuantity().toString();
 			}
 			key=key.replace(".","");
-			HashSet<String> boxidlist = boxIdMap.get(key);
+			TreeSet<String> boxidlist = boxIdMap.get(key);
 			if(boxidlist!=null){
 				Iterator<String> iterator = boxidlist.iterator();
 				String shipboxid=null;
@@ -1054,10 +1138,11 @@ public ShipInboundOperation generateDeliveryWindowOptions(String formid, String 
 	ShipInboundPlan inplan = shipInboundPlanV2Service.getById(formid);
 	AmazonAuthority auth=amazonAuthorityService.selectByGroupAndMarket(inplan.getGroupid(), inplan.getMarketplaceid());
 	ShipInboundShipment ship = this.getById(shipmentId);
-	if(ship!=null&&ship.getDeliveryWindowOptionId()!=null) {
-		return iShipInboundOperationService.getOperation(auth, formid, "generateDeliveryWindowOptions");
-	}
 	shipInboundPlanDeliveryOptionsMapper.delete(new LambdaQueryWrapper<ShipInboundPlanDeliveryOptions>().eq(ShipInboundPlanDeliveryOptions::getShipmentid,shipmentId));
+	if(ship!=null&&ship.getDeliveryWindowOptionId()!=null) {
+		ship.setDeliveryWindowOptionId(null);
+		this.updateById(ship);
+	}
 	GenerateDeliveryWindowOptionsResponse response = this.iInboundApiHandlerService.generateDeliveryWindowOptions(auth, inplan.getInboundPlanId(), shipmentId);
 	if(response!=null) {
 		return iShipInboundOperationService.setOperationID(auth, inplan.getId(), response.getOperationId());
@@ -1187,6 +1272,9 @@ public List<Map<String, Object>> findInboundItemByShipmentId(String shipmentid) 
 			if(mskuinfo.get("image")!=null){
 				itemvo.put("image",mskuinfo.get("image").toString());
 			}
+		}
+		if(itemvo.get("unit")==null){
+			itemvo.put("unit","套");
 		}
 	}
 	return itemvoList;
@@ -1373,11 +1461,14 @@ public ShipInboundOperation saveTransTrance(UserInfo user, ShipInboundShipment s
 	}
 
 @Override
-public void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, String shipmentid) {
+public void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, ShipInboundShipment shipment) {
 	Sheet sheet = workbook.createSheet("sheet1");
-	List<LinkedHashMap<String, Object>> boxlist = this.baseMapper.findBoxDetailByShipmentId(shipmentid);
+	List<LinkedHashMap<String, Object>> boxlist = this.baseMapper.findBoxDetailByShipmentId(shipment.getShipmentid());
 	Row row = sheet.createRow(0);
 	int index = 0;
+	if (boxlist == null || boxlist.size() == 0) {
+		boxlist = this.shipInboundBoxV2Service.findBoxDetailByFormId(shipment.getFormid(),shipment.getShipmentid());
+	}
 	if (boxlist == null || boxlist.size() == 0) {
 		return;
 	}

@@ -1,14 +1,14 @@
 package com.wimoor.finance.voucher.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.wimoor.common.core.annotation.Excel;
+import com.wimoor.common.core.web.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import com.wimoor.common.core.annotation.Excel;
-import com.wimoor.common.core.web.domain.BaseEntity;
 
 /**
  * 凭证分录明细对象 fin_voucher_entries
@@ -24,8 +24,10 @@ public class FinVoucherEntries extends BaseEntity
     private Long entryId;
 
     /** 租户ID */
-    @Excel(name = "租户ID")
     private String groupid;
+
+    @Excel(name = "账套公司")
+    private String groupName;
 
     /** 关联的凭证ID */
     @Excel(name = "关联的凭证ID")
@@ -36,9 +38,10 @@ public class FinVoucherEntries extends BaseEntity
     private Long entryNo;
 
     /** 会计科目ID */
-    @Excel(name = "会计科目ID")
     private String subjectId;
 
+    @Excel(name = "会计科目")
+    private String subjectName;
     /** 借方金额 */
     @Excel(name = "借方金额")
     private BigDecimal debitAmount;
@@ -51,27 +54,74 @@ public class FinVoucherEntries extends BaseEntity
     @Excel(name = "摘要说明")
     private String summary;
 
-    /** 辅助核算类型：1-部门，2-员工，3-客户，4-供应商，5-项目 */
-    @Excel(name = "辅助核算类型：1-部门，2-员工，3-客户，4-供应商，5-项目")
-    private Long auxiliaryType;
+    @Excel(name = "币种")
+    private String currency;
 
-    /** 辅助核算对象ID */
-    @Excel(name = "辅助核算对象ID")
-    private Long auxiliaryId;
+    @Excel(name = "原始金额")
+    private BigDecimal originalAmount;
+
+    @Excel(name = "汇率")
+    private BigDecimal exchangeRate;
+
+    @Excel(name = "数量")
+    Integer quantity;
+
+    @Excel(name = "价格")
+    Integer unitPrice;
 
     /** 创建时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date createdTime;
 
+    /** 辅助核算列表 */
+    private List<FinVoucherEntriesAuxiliary> auxiliaryList;
 
-    private String subjectName;
 
     /** 凭证日期参数 */
     private List<String> voucherDateStr;
     private Date startDate;
     private Date endDate;
 
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public BigDecimal getOriginalAmount() {
+        return originalAmount;
+    }
+
+    public void setOriginalAmount(BigDecimal originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
+    public BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    public void setExchangeRate(BigDecimal exchangeRate) {
+        this.exchangeRate = exchangeRate;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Integer getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Integer unitPrice) {
+        this.unitPrice = unitPrice;
+    }
 
     public void setEntryId(Long entryId)
     {
@@ -114,6 +164,10 @@ public class FinVoucherEntries extends BaseEntity
     {
         return groupid;
     }
+
+    public void setGroupName(String groupName) {this.groupName = groupName;}
+
+    public String getGroupName() {return groupName;}
 
     public void setVoucherId(Long voucherId)
     {
@@ -175,26 +229,6 @@ public class FinVoucherEntries extends BaseEntity
         return summary;
     }
 
-    public void setAuxiliaryType(Long auxiliaryType)
-    {
-        this.auxiliaryType = auxiliaryType;
-    }
-
-    public Long getAuxiliaryType()
-    {
-        return auxiliaryType;
-    }
-
-    public void setAuxiliaryId(Long auxiliaryId)
-    {
-        this.auxiliaryId = auxiliaryId;
-    }
-
-    public Long getAuxiliaryId()
-    {
-        return auxiliaryId;
-    }
-
     public void setCreatedTime(Date createdTime)
     {
         this.createdTime = createdTime;
@@ -203,6 +237,14 @@ public class FinVoucherEntries extends BaseEntity
     public Date getCreatedTime()
     {
         return createdTime;
+    }
+
+    public List<FinVoucherEntriesAuxiliary> getAuxiliaryList() {
+        return auxiliaryList;
+    }
+
+    public void setAuxiliaryList(List<FinVoucherEntriesAuxiliary> auxiliaryList) {
+        this.auxiliaryList = auxiliaryList;
     }
 
     @Override
@@ -216,8 +258,6 @@ public class FinVoucherEntries extends BaseEntity
                 .append("debitAmount", getDebitAmount())
                 .append("creditAmount", getCreditAmount())
                 .append("summary", getSummary())
-                .append("auxiliaryType", getAuxiliaryType())
-                .append("auxiliaryId", getAuxiliaryId())
                 .append("createdTime", getCreatedTime())
                 .toString();
     }

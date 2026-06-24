@@ -1,11 +1,13 @@
 package com.wimoor.finance.ledger.service;
 
+import com.wimoor.finance.ledger.domain.FinDetailLedger;
+import com.wimoor.finance.ledger.domain.dto.FinLedgerDTO;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import com.wimoor.finance.ledger.domain.FinDetailLedger;
-import com.wimoor.finance.ledger.domain.dto.FinLedgerDTO;
 
 /**
  * 明细账表Service接口
@@ -31,6 +33,7 @@ public interface IFinDetailLedgerService
      */
     public List<FinDetailLedger> selectFinDetailLedgerList(FinDetailLedger finDetailLedger);
     public List<Map<String,Object>> selectList(FinLedgerDTO finDetailLedger);
+    public List<Map<String,Object>> selectSubjectTree(FinLedgerDTO finDetailLedger);
     /**
      * 新增明细账表
      * 
@@ -68,4 +71,10 @@ public interface IFinDetailLedgerService
     FinDetailLedger selectLastDetailLedger(String groupid, String subjectId, Date voucherDate);
 
     List<FinDetailLedger> selectByVoucherId(Long voucherId);
+
+    // 获取指定科目的期初余额（上期最后一条记录的余额）
+    List<FinDetailLedger> selectLatestBalanceBeforeDate(String groupid, String subjectCode, LocalDate startDate);
+
+    // 计算父科目下所有子科目的期初余额总和
+    BigDecimal sumChildSubjectsOpeningBalance(String groupid, String parentSubjectCode, LocalDate startDate);
 }

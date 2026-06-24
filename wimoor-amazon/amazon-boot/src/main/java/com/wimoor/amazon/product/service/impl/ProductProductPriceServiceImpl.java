@@ -3,6 +3,7 @@ package com.wimoor.amazon.product.service.impl;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -176,8 +177,23 @@ public void handleResultItemOffers(AmazonAuthority amazonAuthority, String asin,
 					OffersList offerlist = product.getOffers();
 					if(offerlist==null&&refresh!=null) {
 						refresh.setPriceRefreshTime(LocalDateTime.now());
-					    refresh.setNotfound(false);
-						iAmzProductRefreshService.updateById(refresh);		
+						refresh.setNotfound(false);
+						iAmzProductRefreshService.updateById(refresh);
+						List<ProductPrice> list = productPriceMapper.findbyProductID(info.getId());
+						if(list!=null&&list.size()>0) {
+							//for根据byday日期最新 找出这个oldprice
+							 ProductPrice oldprice = list.stream().max(Comparator.comparing(ProductPrice::getByday)).get();
+							if(oldprice!=null&&(oldprice.getLandedAmount()!=info.getPrice())){
+								info.setPrice(oldprice.getLandedAmount());
+								iProductInfoService.updateById(info);
+								ProductInOpt productInOpt = productInOptMapper.selectById(info.getId());
+								if(productInOpt!=null) {
+									productInOpt.setBuyprice(oldprice.getLandedAmount());
+									productInOpt.setLastupdate(new Date());
+									productInOptMapper.updateById(productInOpt);
+								}
+							}
+						}
 						continue;
 					}
 					if(offerlist!=null) {

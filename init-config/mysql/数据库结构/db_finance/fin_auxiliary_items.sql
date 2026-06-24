@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `fin_auxiliary_items` (
   PRIMARY KEY (`item_id`),
   UNIQUE KEY `uk_tenant_item_code` (`groupid`,`type_id`,`item_code`) USING BTREE,
   KEY `idx_auxiliary_items_tenant_type` (`groupid`,`type_id`) USING BTREE COMMENT '租户辅助核算类型索引'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='辅助核算具体项目表，如具体的部门、客户等信息';
+) ENGINE=InnoDB AUTO_INCREMENT=4178 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='辅助核算具体项目表，如具体的部门、客户等信息';
 
 -- 数据导出被取消选择。
 

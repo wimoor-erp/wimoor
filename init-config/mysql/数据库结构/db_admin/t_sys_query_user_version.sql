@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_query_user_version` (
   `createtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`,`fquery`)
-) ENGINE=InnoDB AUTO_INCREMENT=123457052 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=123457058 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

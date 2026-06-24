@@ -47,7 +47,9 @@ public class ApiCallbackGetShipmentItems implements ApiCallback<GetShipmentItems
 			needshipqty=true;
 		}
 		iFulfillmentInboundService.handlerItemResult(auth,market,result,shipment,needshipqty);
-		iShipInboundItemService.handlerItemResult(auth,market,result,this.shipment.getShipmentid(),needshipqty);
+		if(shipment!=null){
+			iShipInboundItemService.handlerItemResult(auth,market,result,this.shipment.getShipmentid(),needshipqty);
+		}
 	}
 
 	@Override

@@ -16,10 +16,6 @@ import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
-import com.wimoor.erp.inventory.pojo.entity.Inventory;
-import com.wimoor.erp.inventory.service.IInventoryFormAgentService;
-import com.wimoor.erp.material.service.IAssemblyFormEntryService;
-import com.wimoor.erp.material.service.IAssemblyService;
 import com.wimoor.erp.common.pojo.entity.ERPBizException;
 import com.wimoor.erp.common.service.IDownloadReportService;
 import com.wimoor.erp.finance.pojo.entity.FinAccount;
@@ -27,12 +23,10 @@ import com.wimoor.erp.finance.pojo.entity.FinanceProject;
 import com.wimoor.erp.finance.service.IFaccountService;
 import com.wimoor.erp.finance.service.IFinanceProjectService;
 import com.wimoor.erp.inventory.pojo.vo.InventoryVo;
+import com.wimoor.erp.inventory.service.IInventoryFormAgentService;
 import com.wimoor.erp.inventory.service.IInventoryHisService;
 import com.wimoor.erp.inventory.service.IInventoryService;
-import com.wimoor.erp.material.service.IMaterialConsumableService;
-import com.wimoor.erp.material.service.IMaterialService;
-import com.wimoor.erp.material.service.IMaterialSupplierService;
-import com.wimoor.erp.material.service.IStepWisePriceService;
+import com.wimoor.erp.material.service.*;
 import com.wimoor.erp.purchase.alibaba.service.IPurchaseFormEntryAlibabaInfoService;
 import com.wimoor.erp.purchase.pojo.dto.*;
 import com.wimoor.erp.purchase.pojo.entity.*;
@@ -309,7 +303,7 @@ public class PurchaseFormController {
 				}
 			}
 			String auditstatusparam =dto.getAuditstatusparam();
-			if (GeneralUtil.isNotEmpty(auditstatus)) {
+			if (GeneralUtil.isNotEmpty(auditstatusparam)) {
 				param.put("auditstatusparam", auditstatusparam);
 			}
 			if (userinfo.isLimit(UserLimitDataType.owner)) {
@@ -1329,7 +1323,7 @@ public class PurchaseFormController {
 			  param.put("toDate", null);
 			  param.put("auditstatus", null);
 			  param.put("supplierid", null);
-			  param.put("datetype", null);
+			  param.put("datetype", "createdate");
 			  param.put("name",null);
 			  param.put("supplier", null);
 			  param.put("categoryId", null);
@@ -1337,6 +1331,8 @@ public class PurchaseFormController {
 			  param.put("remark", null);
 			  param.put("owner",null);
 			  param.put("auditstatusparam", null);
+			  param.put("searchtype", null);
+			  param.put("entryList", null);
 			  String search = dto.getSearch();
 				if (GeneralUtil.isNotEmpty(search)) {
 					search = "%"+search.trim() + "%";
@@ -1349,10 +1345,10 @@ public class PurchaseFormController {
 					datetype = "createdate";
 				param.put("datetype", datetype.trim());
 				String auditstatus =dto.getAuditstatus();
-				if (GeneralUtil.isNotEmpty(auditstatus)) {
-					param.put("auditstatus", auditstatus);
-				}
-				String supplierid = dto.getSupplierid();
+			if (GeneralUtil.isNotEmpty(auditstatus) && !"all".equals(auditstatus)) {
+				param.put("auditstatus", auditstatus);
+			}
+			String supplierid = dto.getSupplierid();
 				if (GeneralUtil.isNotEmpty(supplierid)) {
 					param.put("supplierid", supplierid);
 				}
@@ -1395,15 +1391,19 @@ public class PurchaseFormController {
 					}
 				}
 				String auditstatusparam =dto.getAuditstatusparam();
-				if (GeneralUtil.isNotEmpty(auditstatus)) {
-					param.put("auditstatusparam", auditstatusparam);
-				}
-			
-				String ftype = dto.getFtype();
+			if (GeneralUtil.isNotEmpty(auditstatusparam)) {
+				param.put("auditstatusparam", auditstatusparam);
+			}
+		
+			String ftype = dto.getFtype();
 				List<String> entrylist = null;
 				if (GeneralUtil.isNotEmpty(ftype)) {
+				if ("order".equals(ftype)) {
+					param.put("searchtype", "number");
+				} else {
 					param.put("searchtype", ftype);
-					if ("logistics".equals(ftype)) {
+				}
+				if ("logistics".equals(ftype)) {
 						if (GeneralUtil.isNotEmpty(search) && formid == null) {
 							search = search.replaceAll("%", "");
 							entrylist = purchaseFormEntryAlibabaInfoService.getEntryIdList(search, userinfo.getCompanyid());
@@ -1520,6 +1520,41 @@ public class PurchaseFormController {
 			}
 			purchaseFormEntryService.downloadPurchaseInfoWord(response, map,userinfo);
 		}
+
+	@PostMapping("/downloadPurchaseInfoData")
+	public Result<Object> downloadPurchaseInfoDataAction(@RequestBody PurchaseFormDownloadDTO dto) {
+		UserInfo userinfo = UserInfoContext.get();
+		String shopid = userinfo.getCompanyid();
+		String number = dto.getNumber();
+		String warehouseid =dto.getWarehouseid();
+		String buyerName = dto.getBuyerName();
+		String buyerDate = dto.getBuyerDate();
+		String totalprice = dto.getTotalprice();
+		String orderRemark = dto.getRemark();
+		String creator = dto.getCreator();
+		String supplierid=dto.getSupplierid();
+		PurchaseForm  form = purchaseFormService.getById(dto.getFormid());
+		String formid = form.getId();// form id
+		// 创建word文件 并下载
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("formid", formid);
+		map.put("shopid", shopid);
+		map.put("supplierid", supplierid);
+		map.put("orderRemark", orderRemark);
+		map.put("totalprice", totalprice);
+		map.put("buyerDate", buyerDate);
+		map.put("buyerName", buyerName);
+		map.put("warehouseid", warehouseid);
+		map.put("number", number);
+		map.put("creator", creator);
+		if(userinfo.getUserinfo().get("companyname")!=null) {
+			String company=URLDecoder.decode(userinfo.getUserinfo().get("companyname").toString(), Charset.defaultCharset());
+			map.put("company", company);
+		}else {
+			map.put("company", "");
+		}
+		return Result.success(purchaseFormEntryService.downloadPurchaseInfoData(map,userinfo));
+	}
 		
 		@PostMapping(value = "/uploadPaymentFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 		public Result<String> uploadPaymentFileAction(@RequestParam("file")MultipartFile file)  {
@@ -1562,25 +1597,30 @@ public class PurchaseFormController {
 							sku=sku.trim();
 
 							Cell feetypecell=info.getCell(2);
-							String feetype=feetypecell.getStringCellValue();
+							String feetype=feetypecell!=null?feetypecell.getStringCellValue():null;
 							if(StrUtil.isBlank(feetype)){
 								throw new BizException("第"+(i+1)+"行，采购单号"+number+"对应"+sku+"费用类型不能为空");
 							}
 							feetype=feetype.replaceAll(" ", "");
 							feetype=feetype.trim();
 							Cell paytypecell=info.getCell(3);
-							String paytype=paytypecell.getStringCellValue();
+							String paytype=paytypecell!=null?paytypecell.getStringCellValue():null;
 							if(StrUtil.isBlank(paytype)){
 								throw new BizException("第"+(i+1)+"行，采购单号"+number+"对应"+sku+"支付方式不能为空");
 							}
 							paytype=paytype.replaceAll(" ", "");
 							paytype=paytype.trim();
-							Cell amountcell=info.getCell(4);
-							Double amount = amountcell.getNumericCellValue();
+							Cell payacctcell=info.getCell(4);
+							String payacct=payacctcell!=null?payacctcell.getStringCellValue():null;
+							payacct=payacct.replaceAll(" ", "");
+							payacct=payacct.trim();
+
+							Cell amountcell=info.getCell(5);
+							Double amount =amountcell!=null? amountcell.getNumericCellValue():null;
 							if(amount==null){
 								throw new BizException("第"+(i+1)+"行，采购单号"+number+"对应"+sku+"支付费用不能为空");
 							}
-							Cell remarkcell=info.getCell(5);
+							Cell remarkcell=info.getCell(6);
 							String remark=null;
 							if(remarkcell!=null) {
 								remark=remarkcell.getStringCellValue();
@@ -1589,6 +1629,9 @@ public class PurchaseFormController {
 							PurchaseFormEntry entry = entryMap.get(key);
 							if(entry==null) {
 								  entry = purchaseFormEntryService.getByNumberSku(user.getCompanyid(),number,sku);
+							}
+							if(entry!=null && entry.getPaystatus()!=null && entry.getPaystatus()==1) {
+								throw new BizException("第"+(i+1)+"行，采购单号"+number+"对应"+sku+"订单已付款结清，不支持再次付款！");
 							}
 							FinanceProject feetypeEntity = projectMap.get(feetype);
 							PurchaseFormPaymentMethod paytypeEntity = paymethMap.get(paytype);
@@ -1602,7 +1645,7 @@ public class PurchaseFormController {
 								pay.setProjectname(feetypeEntity.getName());
 								pay.setPaymentMethod(paytypeEntity.getId());
 								pay.setMethodname(paytypeEntity.getName());
-								FinAccount fin = iFaccountService.readFinAccount(user.getCompanyid(), pay.getPaymentMethod());
+								FinAccount fin = iFaccountService.readFinAccount(user.getCompanyid(), pay.getPaymentMethod(),payacct);
 								pay.setAcct(fin.getId());
 								pay.setAuditstatus(1);
 								pay.setCreatedate(new Date());
@@ -1610,7 +1653,7 @@ public class PurchaseFormController {
 								pay.setOperator(user.getId());
 								pay.setFormentryid(entry.getId());
 								pay.setPayprice(new BigDecimal(amount));
-								pay.setRemark(remark+" 批量导入");
+								pay.setRemark((remark==null?"":remark)+" 批量导入");
 								paylist.add(pay);
 								entry.setPayList(paylist);
 								entryMap.put(key,entry);

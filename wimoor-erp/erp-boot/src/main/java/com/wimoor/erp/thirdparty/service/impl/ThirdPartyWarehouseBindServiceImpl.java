@@ -135,6 +135,7 @@ IThirdPartyWarehouseService warehouseYCService;
                 stocktaking.setNumber(number);
                 stocktaking.setIsworking(false);// 正在盘点
                 stocktaking.setCreator(user.getId());
+                stocktaking.setFtype(3);
                 List<StocktakingWarehouse> warehouselist = new ArrayList<StocktakingWarehouse>();
                 StocktakingWarehouse iteme = new StocktakingWarehouse();
                 iteme.setStocktakingid(new BigInteger(stocktaking.getId()));
@@ -145,7 +146,6 @@ IThirdPartyWarehouseService warehouseYCService;
                 stocktaking.setOperator(user.getId());
                 stocktaking.setOpttime(new Date());
                 stocktaking.setRemark("海外仓同步库存");
-                boolean result = stockTakingService.save(stocktaking);
                 Map<String, Map<String, Object>> needRemove = new HashMap<String, Map<String, Object>>();
                 List<StockTakingItem> itemlist = new java.util.ArrayList<StockTakingItem>();
                 for (Map<String, Object> inv : invlist) {
@@ -183,11 +183,11 @@ IThirdPartyWarehouseService warehouseYCService;
                         itemlist.add(e);
                     }
                 }
-                if (qtyMap != null && qtyMap.size() > 0) {
+                if (!qtyMap.isEmpty()) {
                     qtyMap.forEach((k, v) -> {
                         StockTakingItem e = new StockTakingItem();
                         Material m = materialService.getBySku(shopid, k);
-                        if (m == null) {
+                        if (m == null||v==0) {
                             return;
                         } else {
                             e.setMaterialid(m.getId());
@@ -199,7 +199,13 @@ IThirdPartyWarehouseService warehouseYCService;
                         itemlist.add(e);
                     });
                 }
-                if (itemlist != null && itemlist.size() > 0) {
+                if ( !itemlist.isEmpty() &&stocktaking.getWarehouselist()!=null&& !stocktaking.getWarehouselist().isEmpty()) {
+                    if(!qtyMap.isEmpty()&&!warehouselist.isEmpty()&&invlist!=null&& !invlist.isEmpty()){
+                        stockTakingService.save(stocktaking);
+                    }
+                    for(StockTakingItem sitem:itemlist){
+                        sitem.setStocktakingid(stocktaking.getId());
+                    }
                     stockTakingItemService.saveBatch(itemlist);
                     stockTakingService.updateTotalProfitAndLoss(stocktaking);
                     stockTakingService.endAction(stocktaking, user);
@@ -218,13 +224,16 @@ IThirdPartyWarehouseService warehouseYCService;
 
     public void runTask(){
         List<ThirdPartyAPI> apiList = iThirdPartyAPIService.lambdaQuery().in(ThirdPartyAPI::getSystem,
-                "K5","OPS","XL","YC").list();
+                "K5","OPS","XL","YC").eq(ThirdPartyAPI::getIsdelete, false)
+                .orderByAsc(ThirdPartyAPI::getRuntime).list();
         Calendar c=Calendar.getInstance();
         c.add(Calendar.DATE,-5);
         Set<String> shopidSet=new HashSet<String>();
         for(ThirdPartyAPI api:apiList){
                 List<ThirdPartyWarehouse> list=null;
                  shopidSet.add(api.getShopid());
+                 api.setRuntime(new Date());
+                 iThirdPartyAPIService.lambdaUpdate().eq(ThirdPartyAPI::getId, api.getId()).set(ThirdPartyAPI::getRuntime, api.getRuntime()).update();
                 if(api.getSystem().equals("K5")){
                     try {
                          list= warehouseK5Service.searchStartHouse(api);
@@ -292,7 +301,17 @@ IThirdPartyWarehouseService warehouseYCService;
             dto.setShopid(api.getShopid());
             dto.setApi(api.getApi());
             dto.setAction("sync");
-            dto.setCreatedStartTime(LocalDateTime.of(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE),1,1,1).toString()+".550Z");
+            if (c != null) {
+                dto.setCreatedStartTime(LocalDateTime.of(
+                        c.get(Calendar.YEAR),
+                        c.get(Calendar.MONTH) + 1,
+                        c.get(Calendar.DATE),
+                        1, 1, 1
+                ).toString() + ".550Z");
+            } else {
+                // 处理 c 为 null 的情况
+                dto.setCreatedStartTime(null); // 或者设置一个默认值
+            }
             dto.setCreatedEndTime(null);
             if(api.getSystem().equals("K5")){
                 try {

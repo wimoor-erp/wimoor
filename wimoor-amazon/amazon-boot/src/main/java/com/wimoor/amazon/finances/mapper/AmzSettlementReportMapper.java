@@ -1,15 +1,16 @@
 package com.wimoor.amazon.finances.mapper;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
+import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
-import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
  
 @Mapper
 public interface AmzSettlementReportMapper extends BaseMapper<AmzSettlementReport> {
@@ -46,5 +47,7 @@ public interface AmzSettlementReportMapper extends BaseMapper<AmzSettlementRepor
     Integer hasData(AmzSettlementAccReport acc);
     Integer hasDataArchive(AmzSettlementAccReport acc);
     void moveDataArchive(AmzSettlementAccReport acc);
-    
+
+    IPage<Map<String,Object>> findSettlementSummarySku(Page<Object> page, @Param("params")Map<String, Object> param);
+	List<Map<String,Object>> findSettlementSummarySku( @Param("params")Map<String, Object> param);
 }

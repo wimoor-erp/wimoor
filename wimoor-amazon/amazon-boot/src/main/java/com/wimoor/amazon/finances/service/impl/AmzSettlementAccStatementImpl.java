@@ -26,7 +26,7 @@ import com.wimoor.amazon.finances.service.IAmzSettlementAccStatementService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
-import com.wimoor.util.DownloadExcelUtil;
+import com.wimoor.util.ExcelExportUtil;
 
 import cn.hutool.core.util.StrUtil;
 @Service
@@ -169,7 +169,7 @@ public class AmzSettlementAccStatementImpl extends ServiceImpl<AmzSettlementAccS
 		titlemap.put("amount", "金额");
 		titlemap.put("quantity", "数量");
 		if (list.size() > 0 && list != null) { 
-			DownloadExcelUtil.setWorkbook(workbook, titlemap, list);
+			ExcelExportUtil.setWorkbook(workbook, titlemap, list);
 		} else {
 			try {
 				throw new Exception("没有数据可导出！");

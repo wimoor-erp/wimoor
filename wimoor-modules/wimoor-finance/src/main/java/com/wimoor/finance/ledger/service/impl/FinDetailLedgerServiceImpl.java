@@ -1,5 +1,7 @@
 package com.wimoor.finance.ledger.service.impl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,12 @@ public class FinDetailLedgerServiceImpl implements IFinDetailLedgerService
         return finDetailLedgerMapper.selectList(finDetailLedger);
     }
 
+    @Override
+    public List<Map<String,Object>> selectSubjectTree(FinLedgerDTO finDetailLedger)
+    {
+        return finDetailLedgerMapper.subjectTree(finDetailLedger);
+    }
+
 
     /**
      * 新增明细账表
@@ -115,11 +123,21 @@ public class FinDetailLedgerServiceImpl implements IFinDetailLedgerService
 
     @Override
     public FinDetailLedger selectLastDetailLedger(String groupid, String subjectId, Date voucherDate) {
-        return null;
+        return finDetailLedgerMapper.selectLastDetailLedger(groupid, subjectId, voucherDate);
     }
 
     @Override
     public List<FinDetailLedger> selectByVoucherId(Long voucherId) {
         return finDetailLedgerMapper.selectByVoucherId(voucherId);
+    }
+
+    @Override
+    public List<FinDetailLedger> selectLatestBalanceBeforeDate(String groupid, String subjectCode, LocalDate startDate) {
+        return finDetailLedgerMapper.selectLatestBalanceBeforeDate(groupid, subjectCode, startDate);
+    }
+
+    @Override
+    public BigDecimal sumChildSubjectsOpeningBalance(String groupid, String parentSubjectCode, LocalDate startDate) {
+        return finDetailLedgerMapper.sumChildSubjectsOpeningBalance(groupid, parentSubjectCode, startDate);
     }
 }

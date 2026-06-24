@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.manager.mapper.SysCustomerInvoiceMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.manager.pojo.entity.SysCustomerInvoice">
+        <id column="id" property="id" />
+        <result column="shopid" property="shopid" />
+        <result column="orderid" property="orderid" />
+        <result column="company" property="company" />
+        <result column="invoice" property="invoice" />
+        <result column="address" property="address" />
+        <result column="phone" property="phone" />
+        <result column="bank" property="bank" />
+        <result column="card_no" property="cardNo" />
+        <result column="ftype" property="ftype" />
+        <result column="location" property="location" />
+        <result column="sendAddress" property="sendAddress" />
+        <result column="sendPhone" property="sendPhone" />
+        <result column="sendName" property="sendName" />
+        <result column="isSend" property="isSend" />
+        <result column="ivctype" property="ivctype" />
+        <result column="opttime" property="opttime" />
+    </resultMap>
+
+    <select id="selectByOrderId" resultMap="BaseResultMap">
+        SELECT * FROM t_sys_customer_invoice WHERE orderid = #{orderid}
+    </select>
+
+</mapper>

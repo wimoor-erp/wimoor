@@ -29,4 +29,5 @@ public interface IAssemblyService extends IService<Assembly> {
 	Integer findCanAssembly(String materialid, String warehouseid, String shopid);
 	List<Map<String, Object>> selectMainsDetailBySku(Map<String, Object> param);
 
+	public List<Map<String, Object>> selectMainBySubid(String submid, String shopid);
 }

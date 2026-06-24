@@ -1,11 +1,6 @@
 package com.wimoor.amazon.finances.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.springframework.stereotype.Service;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryDayMapper;
 import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
@@ -15,8 +10,14 @@ import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfigCountry;
 import com.wimoor.amazon.profit.service.IProfitCfgCountryService;
 import com.wimoor.amazon.profit.service.IProfitCfgService;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -391,8 +392,7 @@ public class AmzSettlementSKUShareServiceImpl implements IAmzSettlementSKUShareS
 	            }
 				String groupid=localitem.get("groupid").toString();
 				BigDecimal volume=localitem.get("volume")!=null?(BigDecimal)localitem.get("volume"):new BigDecimal(0);
-				String configid = profitCfgService.findDefaultPlanIdByGroup(groupid);
-			
+				String configid = profitCfgService.findFinDefaultPlanIdByGroup(groupid);
 				BigDecimal setincome =item.getPrincipal().add(item.getCommission().add(item.getFbafee().add(item.getRefund().add(item.getTax().add(item.getOtherfee().add(item.getShipping().add(item.getPromotion())))))));
 					 
 				List<ProfitConfigCountry> list = profitCfgCountryService.findByProfitId(configid);
@@ -445,30 +445,35 @@ public class AmzSettlementSKUShareServiceImpl implements IAmzSettlementSKUShareS
 					  BigDecimal weight=localitem.get("weight")!=null?(BigDecimal)localitem.get("weight"):new BigDecimal(0);
 					  BigDecimal basedim=mycountryconfig.getConstantd();
 					  BigDecimal baseweight = mycountryconfig.getConstantw();
-					  //BigDecimal basem1 = mycountryconfig.getConstantm();
-					  if("weight".equals(style)) {
-						  // 重量
-						  shipmentfee=weight.multiply(baseweight).multiply(salenum);
-					  }else if("volume".equals(style)) {
-						   //材积
-						  shipmentfee=volume.divide(basedim,8,RoundingMode.HALF_UP).multiply(baseweight).multiply(salenum);
-					  }else if(style==null||"dim_weight".equals(style) || "manually".equals(style)) {
-						  // 重量材积 取大者
-						  BigDecimal value1 = volume.divide(basedim,8,RoundingMode.HALF_UP);
-						  BigDecimal value2 = weight;
-						  if(value1.compareTo(value2)>0) {
-							  shipmentfee=value1.multiply(baseweight).multiply(salenum);
-						  }else {
-							  shipmentfee=value2.multiply(baseweight).multiply(salenum);
+					  BigDecimal first_leg_charges=localitem.get("first_leg_charges")!=null?(BigDecimal)localitem.get("first_leg_charges"):null;
+					//BigDecimal basem1 = mycountryconfig.getConstantm();
+					  if(first_leg_charges!=null && first_leg_charges.compareTo(BigDecimal.ZERO)>0){
+						  shipmentfee=first_leg_charges.multiply(salenum);
+					  }else{
+						  if("weight".equals(style)) {
+							  // 重量
+							  shipmentfee=weight.multiply(baseweight).multiply(salenum);
+						  }else if("volume".equals(style)) {
+							  //材积
+							  shipmentfee=volume.divide(basedim,8,RoundingMode.HALF_UP).multiply(baseweight).multiply(salenum);
+						  }else if(style==null||"dim_weight".equals(style) || "manually".equals(style)) {
+							  // 重量材积 取大者
+							  BigDecimal value1 = volume.divide(basedim,8,RoundingMode.HALF_UP);
+							  BigDecimal value2 = weight;
+							  if(value1.compareTo(value2)>0) {
+								  shipmentfee=value1.multiply(baseweight).multiply(salenum);
+							  }else {
+								  shipmentfee=value2.multiply(baseweight).multiply(salenum);
+							  }
 						  }
-					  } 
+					  }
 				}
 				
 				BigDecimal realySales = salenum;
 				realySales=realySales.subtract(item.getRefundsales()==null?new BigDecimal("0"):new BigDecimal(item.getRefundsales()));
 				item.setLocalPrice(localitem.get("itemprice")!=null?new BigDecimal(localitem.get("itemprice").toString()).multiply(realySales):new BigDecimal(0)); 
 				item.setLocalOtherCost(localitem.get("otherCost")!=null?new BigDecimal(localitem.get("otherCost").toString()).multiply(realySales):new BigDecimal(0));
-				item.setLocalReturnTax(item.getLocalPrice().multiply(localitem.get("vatrate")==null?new BigDecimal("0"):new BigDecimal(localitem.get("vatrate").toString())));
+				item.setLocalReturnTax(item.getLocalPrice().multiply(localitem.get("drawback_rate")==null?new BigDecimal("0"):new BigDecimal(localitem.get("drawback_rate").toString())));
 				item.setProfitLocalShipmentfee(shipmentfee);
 				
 				item.setProfitCompanytax(companytax);

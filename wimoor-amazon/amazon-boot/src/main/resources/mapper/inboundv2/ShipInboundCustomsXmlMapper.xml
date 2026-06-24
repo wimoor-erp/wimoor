@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.inboundV2.mapper.ShipInboundCustomsXmlMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundCustomsXml">
+            <id property="guid" column="guid" />
+            <result property="number" column="number" />
+            <result property="xmlType" column="xml_type" />
+            <result property="groupid" column="groupid" />
+            <result property="appTime" column="app_time" />
+            <result property="appType" column="app_type" />
+            <result property="appStatus" column="app_status" />
+            <result property="filePath" column="file_path" />
+            <result property="fileName" column="file_name" />
+            <result property="returnStatus" column="return_status" />
+            <result property="returnTime" column="return_time" />
+            <result property="returnInfo" column="return_info" />
+            <result property="opttime" column="opttime" />
+            <result property="operator" column="operator" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        guid,number,xmltype,groupid,app_time,app_type,
+        app_status,file_path,file_name,return_status,return_time,return_info,opttime,
+        operator
+    </sql>
+    <select id="getNextSequenceNumber" resultType="java.lang.String">
+        select  LPAD(COALESCE(MAX(CAST(SUBSTRING(ifnull(sequence,'0'), 1) AS UNSIGNED)), 0) + 1, 4, '0')
+            from t_erp_ship_v2_inboundshipment_customs_xml
+                      where groupid=#{groupid}
+                        and xml_type=#{xmlType}
+                          AND YEAR(app_time) = YEAR(#{appTime})
+                          AND MONTH(app_time) = MONTH(#{appTime})
+                          AND DAY(app_time) = DAY(#{appTime})
+                      order by sequence desc limit 1
+    </select>
+    <select id="findSummary" resultType="java.util.Map" parameterType="com.wimoor.amazon.inboundV2.pojo.dto.ShipCustomXmlDTO">
+        select
+         count(x.guid) num,
+         sum(x.total_price) total_price,
+         sum(total_quantity) total_quantity,
+         sum(net_weight) net_weight,
+         sum(gross_weight) gross_weight,
+         sum(v.shipmentnum) shipmentnum,
+         sum(boxweight) boxweight,
+         sum(boxnum) boxnum,
+         sum(v.transweight) transweight
+        from t_erp_ship_v2_inboundshipment_customs_xml x
+        left join (
+        select
+        p.shopid,p.groupid,p.marketplaceid,
+        <if test="xmlType=='CEB303'">
+            i.ordguid guid,
+        </if>
+        <if test="xmlType=='CEB603'">
+            i.invguid guid,
+        </if>
+        <if test="xmlType=='DEC001'">
+            i.decguid guid,
+        </if>
+        <if test="xmlType=='DEC002'">
+            i.decguid guid,
+        </if>
+        max(m.name) market,
+        max(g.name) groupname,
+        count(i.shipmentid) shipmentnum,
+        -- 修正boxweight计算：先计算每个shipment的boxweight，再求和
+        sum(
+        (select coalesce(sum(b.weight), 0)
+        from t_erp_ship_v2_inboundshipment_box b
+        where b.shipmentid = i.shipmentid)
+        ) boxweight,
+        -- 修正boxnum计算：统计每个shipment的box数量，再求和
+        sum(
+        (select count(b.id)
+        from t_erp_ship_v2_inboundshipment_box b
+        where b.shipmentid = i.shipmentid)
+        ) boxnum,
+        sum(t.transweight) transweight
+        from t_erp_ship_v2_inboundshipment i
+        left join t_erp_ship_v2_inboundplan p on p.id = i.formid
+        left join t_erp_ship_inboundtrans t on t.shipmentid = i.shipment_confirmation_id
+        left join t_amazon_group g on g.id = p.groupid
+        left join t_marketplace m on m.marketplaceid = p.marketplaceid
+        where p.shopid=#{shopid}
+        <if test="marketplaceid!=null">
+            and p.marketplaceid=#{marketplaceid}
+        </if>
+        <if test="groupid!=null">
+            and p.groupid=#{groupid}
+        </if>
+        <if test="xmlType=='CEB303'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.ordguid
+        </if>
+        <if test="xmlType=='CEB603'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.invguid
+        </if>
+        <if test="xmlType=='DEC001'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.decguid
+        </if>
+        <if test="xmlType=='DEC002'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.decguid
+        </if>
+        ) v on v.guid=x.guid
+        where   v.shopid=#{shopid}
+        <if test="groupid!=null ">
+            and x.groupid=#{groupid}
+        </if>
+        and x.xml_type=#{xmlType}
+        <if test="marketplaceid!=null ">
+            and v.marketplaceid=#{marketplaceid}
+        </if>
+        <if test="dateType==null or dateType=='app_time'">
+            and x.app_time &gt;=#{fromDate,jdbcType=DATE}
+            and x.app_time &lt;=#{toDate,jdbcType=DATE}
+        </if>
+        <if test="dateType=='opttime'">
+            and x.opttime &gt;=#{fromDate,jdbcType=DATE}
+            and x.opttime &lt;=#{toDate,jdbcType=DATE}
+        </if>
+    </select>
+    <select id="findList" resultType="java.util.Map"  >
+        select
+        x.*,v.market,v.groupname,v.shipmentnum,v.boxnum,v.boxweight,v.transweight
+        from t_erp_ship_v2_inboundshipment_customs_xml x
+        left join (
+        select
+        p.shopid,p.groupid,p.marketplaceid,
+        <if test="dto.xmlType=='CEB303'">
+            i.ordguid guid,
+        </if>
+        <if test="dto.xmlType=='CEB603'">
+            i.invguid guid,
+        </if>
+        <if test="dto.xmlType=='DEC001'">
+            i.decguid guid,
+        </if>
+        <if test="dto.xmlType=='DEC002'">
+            i.decguid guid,
+        </if>
+           max(m.name) market,
+           max(g.name) groupname,
+           count(i.shipmentid) shipmentnum,
+        -- 修正boxweight计算：先计算每个shipment的boxweight，再求和
+        sum(
+        (select coalesce(sum(b.weight), 0)
+        from t_erp_ship_v2_inboundshipment_box b
+        where b.shipmentid = i.shipmentid)
+        ) boxweight,
+        -- 修正boxnum计算：统计每个shipment的box数量，再求和
+        sum(
+        (select count(b.id)
+        from t_erp_ship_v2_inboundshipment_box b
+        where b.shipmentid = i.shipmentid)
+        ) boxnum,
+        sum(t.transweight) transweight
+        from t_erp_ship_v2_inboundshipment i
+        left join t_erp_ship_v2_inboundplan p on p.id = i.formid
+        left join t_erp_ship_inboundtrans t on t.shipmentid = i.shipment_confirmation_id
+        left join t_amazon_group g on g.id = p.groupid
+        left join t_marketplace m on m.marketplaceid = p.marketplaceid
+        where p.shopid=#{dto.shopid}
+          <if test="dto.marketplaceid!=null">
+              and p.marketplaceid=#{dto.marketplaceid}
+          </if>
+        <if test="dto.groupid!=null">
+            and p.groupid=#{dto.groupid}
+        </if>
+        <if test="dto.xmlType=='CEB303'">
+           group by p.shopid,p.groupid,p.marketplaceid,i.ordguid
+        </if>
+        <if test="dto.xmlType=='CEB603'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.invguid
+        </if>
+        <if test="dto.xmlType=='DEC001'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.decguid
+        </if>
+        <if test="dto.xmlType=='DEC002'">
+            group by p.shopid,p.groupid,p.marketplaceid,i.decguid
+        </if>
+        ) v on v.guid=x.guid
+        where v.shopid=#{dto.shopid}
+        <if test="dto.groupid!=null">
+           and x.groupid=#{dto.groupid}
+        </if>
+              and x.xml_type=#{dto.xmlType}
+        <if test="dto.marketplaceid!=null">
+            and v.marketplaceid=#{dto.marketplaceid}
+        </if>
+        <if test="dto.dateType==null or dto.dateType=='app_time'">
+            and x.app_time &gt;=#{dto.fromDate,jdbcType=DATE}
+            and x.app_time &lt;=#{dto.toDate,jdbcType=DATE}
+        </if>
+        <if test="dto.dateType=='opttime'">
+            and x.opttime &gt;=#{dto.fromDate,jdbcType=DATE}
+            and x.opttime &lt;=#{dto.toDate,jdbcType=DATE}
+        </if>
+    </select>
+</mapper>

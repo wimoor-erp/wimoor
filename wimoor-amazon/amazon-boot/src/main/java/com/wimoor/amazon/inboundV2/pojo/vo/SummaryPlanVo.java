@@ -2,6 +2,7 @@ package com.wimoor.amazon.inboundV2.pojo.vo;
 
 
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -47,6 +48,8 @@ public class SummaryPlanVo {
    String companyid;
    @ApiModelProperty(value = "渠道ID")
    String channelid;
+   @ApiModelProperty(value = "发货费用")
+   BigDecimal transfee;
    @ApiModelProperty(value = "产品列表")
    List<ShipInboundItemVo> itemlist;
 }

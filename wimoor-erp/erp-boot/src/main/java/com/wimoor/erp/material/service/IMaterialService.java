@@ -3,15 +3,6 @@
 package com.wimoor.erp.material.service;
 
 
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -21,10 +12,19 @@ import com.wimoor.erp.material.pojo.dto.MaterialDTO;
 import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.entity.MaterialCategory;
+import com.wimoor.erp.material.pojo.entity.MaterialCustom;
 import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.pojo.vo.MaterialInfoVO;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 public interface IMaterialService extends IService<Material> {
 	MaterialVO findMaterialById(String id);
@@ -47,8 +47,6 @@ public interface IMaterialService extends IService<Material> {
 	public List<MaterialCategory> selectAllCateByShopid(String shopid);
 
 	String saveAllInfo(MaterialInfoVO vo, MultipartFile file,MultipartFile pkgfile, UserInfo userinfo) throws  ERPBizException;
-
-	Map<String, Object> findDimAndAsinBymid(String sku, String shopid, String marketplaceid, String groupid);
 
 	public List<Map<String, Object>> getForSum(String shopid,String groupid);
 
@@ -136,4 +134,14 @@ public interface IMaterialService extends IService<Material> {
 	void saveCustoms(UserInfo user, List<MaterialCustoms> list);
 
     List<Map<String, Object>> getCountrys();
+
+    MaterialCustom getCustom(String shopid, String msku);
+
+	void saveCustom(UserInfo user, MaterialCustom custom);
+
+	MaterialCustom selectCustomByMaterialId(String id);
+
+	public void calcAssMainPrice(String materialId,String shopId);
+
+	public void calcAssPrice(String materialId);
 }

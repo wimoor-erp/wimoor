@@ -1,9 +1,11 @@
 package com.wimoor.finance.setting.mapper;
 
-import java.util.List;
 import com.wimoor.finance.setting.domain.FinAccountingSubjects;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * 会计科目Mapper接口
@@ -70,21 +72,26 @@ public interface FinAccountingSubjectsMapper
     public int initFin(@Param("groupId") String groupId);
 
 
+    @ResultMap("FinAccountingSubjectsResult")
     FinAccountingSubjects selectByTenantIdAndSubjectCode(
             @Param("groupid") String groupid,
             @Param("subjectCode") String subjectCode);
 
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectByTenantIdAndStatus(
             @Param("groupid") String groupid);
 
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectByTenantIdAndSubjectCodes(
             @Param("groupid") String groupid,
             @Param("subjectCodes") List<String> subjectCodes);
 
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectByTenantIdAndSubjectCodeLike(
             @Param("groupid") String groupid,
             @Param("subjectCodePattern") String subjectCodePattern);
 
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectByTenantIdAndParentCode(
             @Param("groupid") String groupid,
             @Param("parentCode") String parentCode);
@@ -95,7 +102,7 @@ public interface FinAccountingSubjectsMapper
     @Select("<script>" +
             "SELECT * FROM fin_accounting_subjects " +
             "WHERE groupid = #{groupid} " +
-            "AND status = 1 " + // 启用状态
+            "AND status = 1 " +
             "AND (" +
             "<foreach collection='prefixes' item='prefix' separator=' OR '>" +
             "subject_code LIKE CONCAT(#{prefix}, '%')" +
@@ -103,6 +110,7 @@ public interface FinAccountingSubjectsMapper
             ") " +
             "ORDER BY subject_code" +
             "</script>")
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectBySubjectCodePrefixes(@Param("groupid") String groupid,
                                                             @Param("prefixes") List<String> prefixes);
 
@@ -113,6 +121,7 @@ public interface FinAccountingSubjectsMapper
             "WHERE groupid = #{groupid} " +
             "AND subject_code = #{subjectCode} " +
             "AND status = 1")
+    @ResultMap("FinAccountingSubjectsResult")
     FinAccountingSubjects selectBySubjectCode(@Param("groupid") String groupid,
                                                     @Param("subjectCode") String subjectCode);
 
@@ -129,6 +138,7 @@ public interface FinAccountingSubjectsMapper
             "AND status = 1 " +
             "ORDER BY subject_code" +
             "</script>")
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectBySubjectCodes(@Param("groupid") String groupid,
                                                      @Param("subjectCodes") List<String> subjectCodes);
 
@@ -140,8 +150,12 @@ public interface FinAccountingSubjectsMapper
             "AND subject_code BETWEEN #{startCode} AND #{endCode} " +
             "AND status = 1 " +
             "ORDER BY subject_code")
+    @ResultMap("FinAccountingSubjectsResult")
     List<FinAccountingSubjects> selectBySubjectCodeRange(@Param("groupid") String groupid,
                                                          @Param("startCode") String startCode,
                                                          @Param("endCode") String endCode);
 
+    @ResultMap("FinAccountingSubjectsResult")
+    FinAccountingSubjects selectByGroupCode(@Param("groupid") String groupid,
+                                            @Param("subjectCode") String subjectCode);
 }

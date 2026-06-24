@@ -38,10 +38,10 @@ public class StocktakingShelfServiceImpl extends ServiceImpl<StocktakingShelfMap
 	    	for(StocktakingShelf item:list) {
 				  WarehouseShelf shelf = iWarehouseShelfService.getById(item.getShelfid());
 				if (shelf==null) {
-					throw new BizException("该仓库已不存在或者删除！");
+					throw new BizException("该库位已不存在或者删除！");
 				} 
 				if (shelf.getIsfrozen()!=null&&shelf.getIsfrozen()==true) {
-					throw new BizException("该仓库正在盘点，请稍后再试！");
+					throw new BizException("该库位正在盘点，请稍后再试！");
 				}  
 				shelf.setIsfrozen(true);
 				iWarehouseShelfService.updateById(shelf);

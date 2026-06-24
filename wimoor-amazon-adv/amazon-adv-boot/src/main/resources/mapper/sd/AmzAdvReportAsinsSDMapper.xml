@@ -89,7 +89,7 @@
     <if test="dateType == 'daily'">
       t.bydate,
     </if>
-    c.name campaignName,g.name adGroupName,k.expressionType expressionType,k.expression expressionText,
+    ifnull(c.name,'无对应广告活动') campaignName,ifnull(g.name,'无对应广告组') adGroupName,ifnull(k.expressionType,'无对应target类型') expressionType,ifnull(k.expression,'无对应target文本') expressionText,
     t.asin 'Advertised ASIN',t.sku 'Advertised SKU',t.otherAsin 'Purchased ASIN',
     sum(attributedSales7dOtherSKU) '7 Day Other SKU Sales' ,
     sum(attributedUnitsOrdered7dOtherSKU) '7 Day Other SKU Orders'

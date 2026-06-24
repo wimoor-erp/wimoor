@@ -30,7 +30,8 @@
    </select>
   <select id="findByCondition" resultType="java.util.Map" parameterType="java.util.Map">
 	select * from (
-	SELECT t.id,tp.name name,'' number ,'' sku,ftype,amount,remark,date_format(createtime, '%Y-%m-%d %H:%i') createtime,t.operator,1 isable  
+	SELECT t.id,tp.name name,'' number ,'' sku,ftype,amount,remark,date_format(createtime, '%Y-%m-%d %H:%i') createtime,t.operator,1 isable,
+	  '' supplier
 	from t_erp_fin_journalaccount t 
 	left join t_erp_fin_project tp on tp.id=t.projectid  
 	where t.shopid=#{shopid,jdbcType=CHAR} and
@@ -46,10 +47,12 @@
 	union 
 		   select p.id,tp2.name name,form.number,m.sku,case when p.payprice&gt;0 then 'out'
 			else 'in' end ftype,case when p.payprice&lt;0 then p.payprice*-1 else p.payprice end amount,p.remark, 
-			 date_format(p.createdate, '%Y-%m-%d %H:%i') createtime,p.operator,0 isable
+			 date_format(p.createdate, '%Y-%m-%d %H:%i') createtime,p.operator,0 isable,
+			  c.name supplier
 	    from t_erp_purchase_form_payment p
 	    left join t_erp_fin_project tp2 on tp2.id=p.projectid  
 	    left join t_erp_purchase_form_entry e on e.id=p.formentryid
+	    left join t_erp_customer c on c.id=e.supplier
 	    left join t_erp_material m on m.id=materialid
 	    left join t_erp_purchase_form form on form.id=e.formid
 	    where form.shopid=#{shopid,jdbcType=CHAR} and p.auditstatus=1 and

@@ -32,4 +32,6 @@ public interface AssemblyMapper  extends BaseMapper<Assembly> {
 	Integer findCanAssembly(@Param("materialid")String materialid,@Param("warehouseid") String warehouseid,@Param("shopid") String shopid);
 	
 	Integer findCanAssemblyByInventory(@Param("materialid")String materialid,@Param("warehouseid") String warehouseid,@Param("shopid") String shopid);
+
+    List<Assembly> selectMainList(String materialid);
 }

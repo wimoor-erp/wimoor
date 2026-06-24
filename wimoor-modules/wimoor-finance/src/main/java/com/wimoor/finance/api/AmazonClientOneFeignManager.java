@@ -21,4 +21,27 @@ public class AmazonClientOneFeignManager {
 			return null;
 		}
     }
+
+	public Map<String,Object> getMonthReport(Map<String,Object> param) {
+		Result<?>  result = 	remoteAmazonService.getMonthReportAction(param);
+		if(Result.isSuccess(result)&&result.getData()!=null) {
+			return (Map<String,Object>)result.getData();
+		}else {
+			return null;
+		}
+	}
+
+	/**
+	 * 获取自定义汇率
+	 * @param byday 日期，格式 yyyy-MM-dd
+	 * @return 汇率列表
+	 */
+	public List<Map<String, Object>> getMyCurrencyRate(String byday) {
+		Result<List<Map<String, Object>>> result = remoteAmazonService.getMyCurrencyRate(byday);
+		if (Result.isSuccess(result) && result.getData() != null) {
+			return result.getData();
+		} else {
+			return null;
+		}
+	}
 }

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_inboundshipment_record` (
   `operator` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ShipmentId` (`shipmentid`)
-) ENGINE=InnoDB AUTO_INCREMENT=967187 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=1033802 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

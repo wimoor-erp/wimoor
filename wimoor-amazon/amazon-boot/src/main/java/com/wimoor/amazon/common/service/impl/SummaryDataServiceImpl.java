@@ -1,15 +1,7 @@
 package com.wimoor.amazon.common.service.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
@@ -30,10 +22,11 @@ import com.wimoor.amazon.orders.pojo.vo.ProductSalesRankVo;
 import com.wimoor.amazon.util.ChartPoint;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.user.UserInfo;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -209,23 +202,23 @@ public ChartLine findOrderSummaryBySku(String groupid,String amazonAuthId, Strin
 		for (int i = 0; i <= daysize; i++, c.add(Calendar.DATE, 1)) {
 			String tempkey = sdf.format(c.getTime());
 			Integer value = tempmap.get(mysku + tempkey) == null ? Integer.valueOf("0") : Integer.valueOf(tempmap.get(mysku + tempkey).toString());
-			if(yesterday.equals(tempkey)&&summarySales>0) {
-				param.put("sku", mysku);
-				if("EU".equals(marketplaceid)) {
-					param.put("marketplaceid", null);
-					param.put("region", marketplaceid);
-				}else {
-					param.put("marketplaceid", marketplaceid);
-					param.put("region", null);
-				}
-				param.put("startDate", GeneralUtil.formatDate(today.getTime()));
-				param.put("endDate",  GeneralUtil.formatDate(new Date()));
-				Integer mvalue = ordersReportMapper.selectProductOrdersTodayOne(param);
-				if(mvalue!=null) {
-					value=mvalue;
-				}
-				
-			}
+//			if(yesterday.equals(tempkey)&&summarySales>0) {
+//				param.put("sku", mysku);
+//				if("EU".equals(marketplaceid)) {
+//					param.put("marketplaceid", null);
+//					param.put("region", marketplaceid);
+//				}else {
+//					param.put("marketplaceid", marketplaceid);
+//					param.put("region", null);
+//				}
+//				param.put("startDate", GeneralUtil.formatDate(today.getTime()));
+//				param.put("endDate",  GeneralUtil.formatDate(new Date()));
+//				Integer mvalue = ordersReportMapper.selectProductOrdersTodayOne(param);
+//				if(mvalue!=null) {
+//					value=mvalue;
+//				}
+//
+//			}
 			myskuData.add(value);
 			summarySales += value;
 			Integer inventoryStatus = inventoryMap.get(mysku + tempkey);

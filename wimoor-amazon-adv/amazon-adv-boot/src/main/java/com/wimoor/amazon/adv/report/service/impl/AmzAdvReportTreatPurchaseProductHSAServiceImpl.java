@@ -40,13 +40,13 @@ public class AmzAdvReportTreatPurchaseProductHSAServiceImpl extends AmzAdvReport
                 amzAdvReportPurchaseProduct.setCampaignId(item.getBigInteger("campaignId"));
                 amzAdvReportPurchaseProduct.setAdGroupId(item.getBigInteger("adGroupId"));
                 amzAdvReportPurchaseProduct.setCampaignBudgetCurrencyCode(item.getString("campaignBudgetCurrencyCode"));
-                amzAdvReportPurchaseProduct.setCampaignName(item.getString("campaignName"));
+                //amzAdvReportPurchaseProduct.setCampaignName(item.getString("campaignName"));
                 amzAdvReportPurchaseProduct.setCampaignPriceTypeCode(item.getString("campaignPriceTypeCode"));
-                amzAdvReportPurchaseProduct.setAdGroupName(item.getString("adGroupName"));
+                //amzAdvReportPurchaseProduct.setAdGroupName(item.getString("adGroupName"));
                 amzAdvReportPurchaseProduct.setAttributionType(item.getString("attributionType"));
                 amzAdvReportPurchaseProduct.setPurchasedAsin(item.getString("purchasedAsin"));
                 amzAdvReportPurchaseProduct.setOrdersClicks14d(item.getInteger("ordersClicks14d"));
-                amzAdvReportPurchaseProduct.setProductName(item.getString("productName"));
+                //amzAdvReportPurchaseProduct.setProductName(item.getString("productName"));
                 amzAdvReportPurchaseProduct.setProductCategory(item.getString("productCategory"));
                 amzAdvReportPurchaseProduct.setSales14d(item.getBigDecimal("sales14d"));
                 amzAdvReportPurchaseProduct.setSalesClicks14d(item.getBigDecimal("salesClicks14d"));

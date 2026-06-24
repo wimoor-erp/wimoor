@@ -46,10 +46,10 @@ CREATE TABLE IF NOT EXISTS `t_amz_order_item_archive` (
   `ScheduledDeliveryStartDate` datetime DEFAULT NULL,
   `ScheduledDeliveryEndDate` datetime DEFAULT NULL,
   `amazonAuthId` bigint unsigned NOT NULL,
-  `marketplaceId` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  PRIMARY KEY (`amazon_order_id`,`orderItemId`),
-  KEY `sku` (`sku`),
-  KEY `amazonAuthId_shopid_groupid` (`amazonAuthId`,`marketplaceId`,`purchase_date`)
+  `marketplaceId` char(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  PRIMARY KEY (`amazon_order_id`,`orderItemId`) USING BTREE,
+  KEY `sku` (`sku`) USING BTREE,
+  KEY `amazonAuthId_shopid_groupid` (`amazonAuthId`,`marketplaceId`,`purchase_date`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='purchase_order_number';
 
 -- 数据导出被取消选择。

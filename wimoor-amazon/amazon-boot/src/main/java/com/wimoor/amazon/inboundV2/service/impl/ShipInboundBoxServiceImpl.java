@@ -1,78 +1,39 @@
 package com.wimoor.amazon.inboundV2.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
-import com.amazon.spapi.model.fulfillmentinboundV20240320.BoxContentInformationSource;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.BoxInput;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.ConfirmPackingOptionResponse;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.Currency;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.Dimensions;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.GeneratePackingOptionsResponse;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.Incentive;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.Item;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.ItemInput;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.LabelOwner;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.ListPackingGroupItemsResponse;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.ListPackingOptionsResponse;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.PackageGroupingInput;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.PackingOption;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.PrepOwner;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.SetPackingInformationRequest;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.SetPackingInformationResponse;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.UnitOfMeasurement;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.UnitOfWeight;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.Weight;
+import com.amazon.spapi.model.fulfillmentinboundV20240320.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundBoxV2Mapper;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundPlanPackingGroupItemMapper;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundPlanPackingOptionsMapper;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxItemMapper;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxMapper;
-import com.wimoor.amazon.inboundV2.pojo.dto.ShipCartDTO;
+import com.wimoor.amazon.inboundV2.mapper.*;
 import com.wimoor.amazon.inboundV2.pojo.dto.PackingDTO;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundBox;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundCase;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundItem;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlanPackingGroupItem;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlanPackingOptions;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBox;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBoxItem;
+import com.wimoor.amazon.inboundV2.pojo.dto.ShipCartDTO;
+import com.wimoor.amazon.inboundV2.pojo.entity.*;
 import com.wimoor.amazon.inboundV2.pojo.vo.ShipInboundItemVo;
-import com.wimoor.amazon.inboundV2.service.IInboundApiHandlerService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundBoxService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundCaseService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundItemService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundOperationService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundPlanService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentService;
+import com.wimoor.amazon.inboundV2.service.*;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static cn.hutool.poi.excel.cell.CellUtil.getCellValue;
 
 @Service("shipInboundBoxV2Service")
 public class ShipInboundBoxServiceImpl extends  ServiceImpl<ShipInboundBoxV2Mapper,ShipInboundBox> implements IShipInboundBoxService {
@@ -132,7 +93,193 @@ public List<Map<String,Object>> findListAllByShipmentid(String formid,String shi
 	return this.baseMapper.findListAllByShipmentid(formid,shipmentid);
 }
 
-public List<Map<String, Object>> findShipInboundBox(String inboundPlanId) {
+public List<LinkedHashMap<String, Object>> findBoxDetailByFormId(String formid,String shipmentid){
+	return this.baseMapper.findBoxDetailByFormId(formid,shipmentid);
+}
+	@Override
+	public void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, String formid) {
+		Sheet sheet = workbook.createSheet("sheet1");
+		List<LinkedHashMap<String, Object>> boxlist = this.baseMapper.findBoxDetailByFormId(formid,null);
+		Row row = sheet.createRow(0);
+		int index = 0;
+		if (boxlist == null || boxlist.size() == 0) {
+			return;
+		}
+		Cell cell = row.createCell(0);
+		cell.setCellValue("SKU");
+		cell = row.createCell(1);
+		cell.setCellValue("装箱数量");
+		cell = row.createCell(2);
+		cell.setCellValue("箱号");
+		cell = row.createCell(3);
+		cell.setCellValue("重量(Kg)");
+		cell = row.createCell(4);
+		cell.setCellValue("长度(cm)");
+		cell = row.createCell(5);
+		cell.setCellValue("宽度(cm)");
+		cell = row.createCell(6);
+		cell.setCellValue("高度(cm)");
+
+		for (int i = 0; i < boxlist.size(); i++) {
+			Row skurow = sheet.createRow(i + 1);
+			Map<String, Object> skumap = boxlist.get(i);
+			index = 0;
+			for (String key : skumap.keySet()) {
+				cell = skurow.createCell(index++);
+				cell.setCellValue(skumap.get(key).toString());
+			}
+		}
+	}
+
+	@Override
+	public ShipCartDTO getDetailFromExcel(MultipartFile file, String formid) throws IOException {
+		InputStream inputStream = file.getInputStream();
+		Workbook workbook = WorkbookFactory.create(inputStream);
+		Sheet sheet = workbook.getSheetAt(0);
+		ShipCartDTO result = new ShipCartDTO();
+		Map<String, ShipInboundBox> boxMap = new HashMap<String, ShipInboundBox>();
+		Row headerRow = sheet.getRow(0);
+		String title = StrUtil.toStringOrNull(getCellValue(headerRow.getCell(0)));
+		if("打包明细记录表".equals(title)) {
+			List<ShipInboundBox> boxListDetail=result.getBoxListDetail();
+			if(boxListDetail==null){
+				boxListDetail=new ArrayList<ShipInboundBox>();
+				result.setBoxListDetail(boxListDetail);
+			}
+			Row boxNumRow = sheet.getRow(4);
+			for(int i=2;i<=boxNumRow.getLastCellNum();i++){
+				String boxNum = StrUtil.toStringOrNull(getCellValue(boxNumRow.getCell(i)));
+				if (StrUtil.isBlank(boxNum)) {
+					continue;
+				}
+                String[] boxNums = boxNum.trim().split(",");
+				List<Integer> boxNumList=new ArrayList<Integer>();
+				for(String bn:boxNums) {
+						bn = bn.trim();
+						if(bn.contains("-")) {
+							 String[] boxNumRange = bn.split("-");
+							 int start = Integer.parseInt(boxNumRange[0]);
+							 int end = Integer.parseInt(boxNumRange[1]);
+							 for(int j=start;j<=end;j++) {
+								 boxNumList.add(j);
+							 }
+						}else{
+							 boxNumList.add(Integer.parseInt(bn));
+						}
+				}
+				for(int s=5;s<=sheet.getLastRowNum();s++){
+					    Row row = sheet.getRow(s);
+						String sku = StrUtil.toStringOrNull(getCellValue(row.getCell(0)));
+					    String quantity = StrUtil.toStringOrNull(getCellValue(row.getCell(i)));
+						if(StrUtil.isBlank(sku)||StrUtil.isBlank(quantity)) {
+							continue;
+						}
+						if("箱子重量".equals(sku)) {
+							String weight;
+                            weight = quantity;
+                            for(Integer bn:boxNumList) {
+								ShipInboundBox	box = boxMap.get(bn.toString());
+								if(box==null) {
+									box = new ShipInboundBox();
+									box.setFormid(formid);
+									box.setBoxnum(bn);
+								}
+								box.setWeight(new BigDecimal(weight));
+								box.setWunit("kg");
+								boxMap.put(bn.toString(), box);
+							}
+						}else if("箱子尺寸".equals(sku)) {
+							String dim;
+                            dim = quantity;
+                            for(Integer bn:boxNumList) {
+								ShipInboundBox	box = boxMap.get(bn.toString());
+								if(box==null) {
+									box = new ShipInboundBox();
+									box.setFormid(formid);
+									box.setBoxnum(bn);
+								}
+								if(StrUtil.isBlank(dim)) {
+									continue;
+								}
+
+								String[] dims =dim.contains("x")?dim.trim().split("x"):dim.trim().split("\\*");
+								box.setLength(new BigDecimal(dims[0]));
+								box.setWidth(new BigDecimal(dims[1]));
+								box.setHeight(new BigDecimal(dims[2]));
+								box.setUnit("cm");
+								boxMap.put(bn.toString(), box);
+							}
+						} else{
+							for(Integer bn:boxNumList) {
+								ShipInboundBox	box = boxMap.get(bn.toString());
+								if(box==null) {
+									box = new ShipInboundBox();
+									box.setFormid(formid);
+									box.setBoxnum(bn);
+								}
+								List<ShipInboundCase> caseListDetail = box.getCaseListDetail();
+								if (caseListDetail == null) {
+									caseListDetail = new ArrayList<ShipInboundCase>();
+								}
+								ShipInboundCase itemCase = new ShipInboundCase();
+								itemCase.setBoxid(box.getId());
+								itemCase.setSku(sku);
+								itemCase.setQuantity(Integer.parseInt(quantity));
+								caseListDetail.add(itemCase);
+								box.setCaseListDetail(caseListDetail);
+								boxMap.put(bn.toString(), box);
+							}
+						}
+				}
+			}
+
+		}else{
+			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+				Row row = sheet.getRow(i);
+				String sku = StrUtil.toStringOrNull(getCellValue(row.getCell(0)));
+				String quantity = StrUtil.toStringOrNull(getCellValue(row.getCell(1)));
+				String boxNum = StrUtil.toStringOrNull(getCellValue(row.getCell(2)));
+				String weight = StrUtil.toStringOrNull(getCellValue(row.getCell(3)));
+				String length = StrUtil.toStringOrNull(getCellValue(row.getCell(4)));
+				String width = StrUtil.toStringOrNull(getCellValue(row.getCell(5)));
+				String height = StrUtil.toStringOrNull(getCellValue(row.getCell(6)));
+				ShipInboundBox box = boxMap.get(boxNum);
+				if (box == null) {
+					box = new ShipInboundBox();
+				}
+				box.setFormid(formid);
+				box.setBoxnum(Integer.parseInt(boxNum));
+				box.setWeight(new BigDecimal(weight));
+				box.setLength(new BigDecimal(length));
+				box.setWidth(new BigDecimal(width));
+				box.setHeight(new BigDecimal(height));
+				box.setUnit("cm");
+				box.setWunit("kg");
+				List<ShipInboundCase> caseListDetail = box.getCaseListDetail();
+				if (caseListDetail == null) {
+					caseListDetail = new ArrayList<ShipInboundCase>();
+				}
+				ShipInboundCase itemcase = new ShipInboundCase();
+				itemcase.setBoxid(box.getId());
+				itemcase.setSku(sku);
+				itemcase.setQuantity(Integer.parseInt(quantity));
+				caseListDetail.add(itemcase);
+				box.setCaseListDetail(caseListDetail);
+				boxMap.put(boxNum, box);
+			}
+		}
+
+		for (ShipInboundBox box : boxMap.values()) {
+			List<ShipInboundBox> boxListDetail=result.getBoxListDetail();
+			if(boxListDetail==null){
+				boxListDetail=new ArrayList<ShipInboundBox>();
+				result.setBoxListDetail(boxListDetail);
+			}
+			boxListDetail.add(box);
+		}
+		return result;
+	}
+	public List<Map<String, Object>> findShipInboundBox(String inboundPlanId) {
 	return this.baseMapper.findShipInboundBox(inboundPlanId);
 }
 
@@ -343,7 +490,22 @@ public ShipInboundOperation generatePackingOptions(String formid) {
 		AmazonAuthority auth=amazonAuthorityService.selectByGroupAndMarket(plan.getGroupid(), plan.getMarketplaceid());
 		GeneratePackingOptionsResponse response = iInboundApiHandlerService.generatePackingOptions(auth, plan.getInboundPlanId());
 		if(response!=null) {
-			return iShipInboundOperationService.setOperationID(auth,formid,response.getOperationId());
+			ShipInboundOperation one = iShipInboundOperationService.setOperationID(auth, formid, response.getOperationId());
+			if(one!=null&&!one.getOperationStatus().equals(OperationStatus.FAILED.getValue())){
+				LambdaQueryWrapper<ShipInboundPlanPackingOptions> query=new LambdaQueryWrapper<ShipInboundPlanPackingOptions>();
+				query.eq(ShipInboundPlanPackingOptions::getFormid, formid);
+				this.shipInboundPlanPackingOptionsMapper.delete(query);
+				plan.setPackingOptionId(null);
+				iShipInboundPlanService.updateById(plan);
+				LambdaQueryWrapper<ShipInboundBox> querybox=new LambdaQueryWrapper<ShipInboundBox>();
+				querybox.eq(ShipInboundBox::getFormid, formid);
+				List<ShipInboundBox> list = this.baseMapper.selectList(querybox);
+				for(ShipInboundBox box:list){
+					this.shipInboundCaseV2Service.remove(new LambdaQueryWrapper<ShipInboundCase>().eq(ShipInboundCase::getBoxid,box.getId()));
+					this.baseMapper.deleteById(box.getId());
+				}
+			}
+			return one;
 		}else {
 			return null;
 		}
@@ -513,7 +675,7 @@ public ShipInboundOperation setPackingInformation(ShipInboundPlan plan, UserInfo
     		skumap.put(item.getSku(), item);
     }
     Boolean isshipment=false;
-    List<ShipInboundBox> list = this.lambdaQuery().eq(ShipInboundBox::getFormid, plan.getId()).list();
+    List<ShipInboundBox> list = this.lambdaQuery().eq(ShipInboundBox::getFormid, plan.getId()).orderByAsc(ShipInboundBox::getBoxnum).list();
     for(ShipInboundBox item:list) {
     	String key="#";
     	 if(StrUtil.isNotBlank(item.getShipmentid())) {
@@ -524,7 +686,7 @@ public ShipInboundOperation setPackingInformation(ShipInboundPlan plan, UserInfo
     	    }
     	    List<ShipInboundBox> mlist = map.get(key);
 	    	if(mlist==null) {
-	    		mlist=new ArrayList<ShipInboundBox>();
+	    		mlist=new LinkedList<ShipInboundBox>();
 	    		map.put(key, mlist);
 	    	}
 	    	mlist.add(item);
@@ -683,6 +845,8 @@ public ShipInboundOperation confirmPackingOption(PackingDTO dto) {
 	// TODO Auto-generated method stub
 	ShipInboundPlan plan = iShipInboundPlanService.getById(dto.getFormid());
     AmazonAuthority auth = amazonAuthorityService.getById(plan.getAmazonauthid());
+	plan.setPackingOptionId(dto.getPackingOptionId());
+	iShipInboundPlanService.updateById(plan);
     if(plan.getInvtype()==1) {
     	LambdaQueryWrapper<ShipInboundPlanPackingOptions> query=new LambdaQueryWrapper<ShipInboundPlanPackingOptions>();
 		if(plan.getInboundPlanId()!=null) {

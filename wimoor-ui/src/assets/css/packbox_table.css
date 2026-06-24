@@ -1,0 +1,108 @@
+.sd-table{
+	width:100%;
+	table-layout: fixed;
+	border-collapse: separate;
+	font-size: 12px;
+	border: 1px solid #ebeef5;
+	border-right: none;
+	border-bottom: none;
+	color:#606266
+	}
+.sd-table thead{
+	color: #909399;
+	font-weight: 500;
+}
+.sd-table th{
+	background-color: var(--el-bg-color);
+	border-bottom: 1px solid #ebeef5;
+
+}
+.sd-table td{
+	border-bottom: 1px solid #ebeef5;
+	font-size: 14px;
+}
+
+.sd-table th,.sd-table td{
+	border-right: 1px solid #ebeef5;
+	padding: 8px 0;
+	box-sizing: border-box;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+	position: relative;
+	text-align: left;
+	
+	    overflow: hidden;
+	    text-overflow: ellipsis;
+	    white-space: normal;
+	    word-break: break-all;
+	    line-height: 23px;
+	    padding-left: 10px;
+	    padding-right: 10px;
+}
+.sd-table tbody tr:hover{
+    background-color: #f5f7fa;
+}
+.sd-table tbody tr{
+  	transition: background-color .25s ease;
+}
+.sd-table td .sku{
+	color: var(--el-color-blue);
+}
+.sd-table .h-bg td{
+	background-color: var(--el-bg-color);
+}
+
+
+.dark .sd-table{
+	width:100%;
+	table-layout: fixed;
+	border-collapse: separate;
+	font-size: 12px;
+	border: 1px solid #1b1b1d;
+	border-right: none;
+	border-bottom: none;
+	color:#606266
+	}
+.dark .sd-table thead{
+	color: #fff;
+	font-weight: 500;
+}
+.dark .sd-table th{
+	background-color: var(--el-bg-color);
+	border-bottom: 1px solid #1b1b1d;
+
+}
+.dark .sd-table td{
+	border-bottom: 1px solid #1b1b1d;
+	font-size: 14px;
+}
+
+.dark .sd-table th,.dark .sd-table td{
+	border-right: 1px solid #1b1b1d;
+	padding: 8px 0;
+	box-sizing: border-box;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+	position: relative;
+	text-align: left;
+	
+	    overflow: hidden;
+	    text-overflow: ellipsis;
+	    white-space: normal;
+	    word-break: break-all;
+	    line-height: 23px;
+	    padding-left: 10px;
+	    padding-right: 10px;
+}
+.dark .sd-table tbody tr:hover{
+    background-color: #1b1b1d;
+}
+.dark .sd-table tbody tr{
+  	transition: background-color .25s ease;
+}
+.dark .sd-table td .sku{
+	color: var(--el-color-blue);
+}
+.dark .sd-table .h-bg td{
+	background-color: var(--el-bg-color);
+}

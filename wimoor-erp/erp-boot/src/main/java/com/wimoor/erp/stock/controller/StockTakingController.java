@@ -92,7 +92,7 @@ public class StockTakingController {
 		maps.put("isworking", data.isIsworking());
 		maps.put("isNew", isNew);
 		maps.put("id", id);
-		if(data.getFtype()==1) {
+		if(data.getFtype()==1||data.getFtype()==3) {
 			maps.put("warehouselist", this.iStocktakingWarehouseService.listData(id));
 		}else {
 			maps.put("shelflist", this.iStocktakingShelfService.listData(id));

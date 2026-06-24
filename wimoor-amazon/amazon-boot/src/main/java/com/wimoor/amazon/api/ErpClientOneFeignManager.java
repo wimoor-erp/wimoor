@@ -1,13 +1,6 @@
 package com.wimoor.amazon.api;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
-
+import cn.hutool.core.bean.BeanUtil;
 import com.wimoor.amazon.product.pojo.dto.PlanDTO;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
@@ -15,9 +8,14 @@ import com.wimoor.erp.api.ErpClientOneFeign;
 import com.wimoor.erp.inventory.pojo.dto.InventoryParameter;
 import com.wimoor.erp.ship.pojo.dto.QuotaInfoDTO;
 import com.wimoor.erp.ship.pojo.dto.ShipFormDTO;
-
-import cn.hutool.core.bean.BeanUtil;
 import feign.FeignException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
  
@@ -126,7 +124,8 @@ public class ErpClientOneFeignManager {
     public Result<Map<String, Object>> getMSkuDeliveryAndInv(    String shopid,
 													    		 String groupid,
 													    		 String msku,
-													    		 String country,String needDeliveryCycle){
+													    		 String country,
+																 String needDeliveryCycle){
     	return erpClientOneFeign.getMSkuDeliveryAndInv(shopid, groupid, msku, country,needDeliveryCycle);
     }
     

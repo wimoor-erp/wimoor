@@ -27,8 +27,6 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_rpt2_sp_purchaseproduct` (
   `royaltyQualifiedBorrows` int DEFAULT NULL COMMENT '版税合格借阅',
   `royaltyQualifiedBorrowsFromClicks` int DEFAULT NULL COMMENT '从点击产生的版税合格借阅',
   `portfolioId` bigint unsigned DEFAULT NULL COMMENT '组合ID',
-  `campaignName` char(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '广告活动名称',
-  `adGroupName` char(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '广告组名称',
   `keyword` char(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '关键词',
   `keywordType` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '关键词类型',
   `advertisedAsin` char(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '广告ASIN',

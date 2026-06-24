@@ -1,11 +1,11 @@
 package com.wimoor.finance.setting.domain;
 
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.wimoor.common.core.annotation.Excel;
 import com.wimoor.common.core.web.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.math.BigInteger;
 
 /**
  * 辅助核算具体项目对象 fin_auxiliary_items
@@ -18,13 +18,19 @@ public class FinAuxiliaryItems extends BaseEntity
     private static final long serialVersionUID = 1L;
 
     /** 辅助核算项目ID */
-    private Long itemId;
+    private BigInteger itemId;
 
     /** 租户ID */
     private String groupid;
 
+    /** 公司ID */
+    private String shopid;
+
     /** 辅助核算类型ID */
     private Long typeId;
+
+    /** 辅助核算类型编码 */
+    private String typeCode;
 
     /** 项目编码 */
     @Excel(name = "项目编码")
@@ -38,19 +44,27 @@ public class FinAuxiliaryItems extends BaseEntity
     @Excel(name = "状态")
     private Long status;
 
-    /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
-    private Date createdTime;
 
-    public void setItemId(Long itemId) 
+
+    public void setItemId(BigInteger itemId)
     {
         this.itemId = itemId;
     }
 
-    public Long getItemId() 
+    public BigInteger getItemId()
     {
         return itemId;
+    }
+
+
+    public void setShopid(String shopid)
+    {
+        this.shopid = shopid;
+    }
+
+    public String getShopid()
+    {
+        return shopid;
     }
 
     public void setGroupid(String groupid) 
@@ -71,6 +85,16 @@ public class FinAuxiliaryItems extends BaseEntity
     public Long getTypeId() 
     {
         return typeId;
+    }
+
+    public void setTypeCode(String typeCode)
+    {
+        this.typeCode = typeCode;
+    }
+
+    public String getTypeCode()
+    {
+        return typeCode;
     }
 
     public void setItemCode(String itemCode) 
@@ -103,15 +127,6 @@ public class FinAuxiliaryItems extends BaseEntity
         return status;
     }
 
-    public void setCreatedTime(Date createdTime) 
-    {
-        this.createdTime = createdTime;
-    }
-
-    public Date getCreatedTime() 
-    {
-        return createdTime;
-    }
 
     @Override
     public String toString() {
@@ -119,10 +134,10 @@ public class FinAuxiliaryItems extends BaseEntity
             .append("itemId", getItemId())
             .append("groupid", getGroupid())
             .append("typeId", getTypeId())
+            .append("typeCode", getTypeCode())
             .append("itemCode", getItemCode())
             .append("itemName", getItemName())
             .append("status", getStatus())
-            .append("createdTime", getCreatedTime())
             .toString();
     }
 }

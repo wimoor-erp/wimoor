@@ -1,16 +1,14 @@
 package com.wimoor.amazon.finances.pojo.entity;
 
-import java.math.BigDecimal;
-import java.util.Date;
- 
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.amazon.common.pojo.entity.BaseEntity;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigDecimal;
+import java.util.Date;
  
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -64,6 +62,9 @@ public class AmzSettlementReport extends BaseEntity {
 	@TableField(value= "posted_date_time")
     private Date postedDateTime;
 
+	@TableField(value= "posted_date_time_utc")
+	private Date postedDateTimeUTC;
+
 	@TableField(value= "order_item_code")
     private String orderItemCode;
 
@@ -84,6 +85,31 @@ public class AmzSettlementReport extends BaseEntity {
 	
 	@TableField(value= "amazonAuthId")
 	private String amazonAuthId;
-	 
-    
+
+	@Override
+	public String toString() {
+		return "AmzSettlementReport{" +
+				"settlementId='" + settlementId + '\'' +
+				", currency='" + currency + '\'' +
+				", transactionType='" + transactionType + '\'' +
+				", orderId='" + orderId + '\'' +
+				", merchantOrderId='" + merchantOrderId + '\'' +
+				", adjustmentId='" + adjustmentId + '\'' +
+				", shipmentId='" + shipmentId + '\'' +
+				", marketplaceName='" + marketplaceName + '\'' +
+				", amountType='" + amountType + '\'' +
+				", amountDescription='" + amountDescription + '\'' +
+				", amount=" + amount +
+				", fulfillmentId='" + fulfillmentId + '\'' +
+				", postedDate=" + postedDate +
+				", postedDateTime=" + postedDateTime +
+				", orderItemCode='" + orderItemCode + '\'' +
+				", merchantOrderItemId='" + merchantOrderItemId + '\'' +
+				", merchantAdjustmentItemId='" + merchantAdjustmentItemId + '\'' +
+				", sku='" + sku + '\'' +
+				", quantityPurchased=" + quantityPurchased +
+				", promotionId='" + promotionId + '\'' +
+				", amazonAuthId='" + amazonAuthId + '\'' +
+				'}';
+	}
 }

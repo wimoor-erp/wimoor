@@ -10,7 +10,7 @@ public class ServiceNameConstants
     /**
      * 认证服务的serviceid
      */
-    public static final String AUTH_SERVICE = "wimoor-admin";
+    public static final String ADMIN_SERVICE = "wimoor-admin";
 
     /**
      * 亚马逊模块的serviceid

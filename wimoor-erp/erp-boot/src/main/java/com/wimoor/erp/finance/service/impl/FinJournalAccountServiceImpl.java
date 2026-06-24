@@ -24,9 +24,9 @@ import com.wimoor.erp.finance.pojo.entity.FinAccount;
 import com.wimoor.erp.finance.pojo.entity.FinJournalAccount;
 import com.wimoor.erp.finance.service.IFaccountService;
 import com.wimoor.erp.finance.service.IFinJournalAccountService;
-
+import com.wimoor.util.ExcelExportUtil;
 import lombok.RequiredArgsConstructor;
-
+import java.util.function.Function;
 @Service("finJournalAccountService")
 @RequiredArgsConstructor
 public class FinJournalAccountServiceImpl  extends ServiceImpl<FinJournalAccountMapper,FinJournalAccount> implements IFinJournalAccountService {
@@ -113,43 +113,32 @@ public class FinJournalAccountServiceImpl  extends ServiceImpl<FinJournalAccount
 		}
 
 		public void setExcelBook(SXSSFWorkbook workbook, Map<String, Object> param) {
-			Map<String, Object> titlemap = new LinkedHashMap<String, Object>();
-			titlemap.put("name", "项目");
-			titlemap.put("number", "订单编码");
-			titlemap.put("sku", "SKU");
-			titlemap.put("createtime", "日期");
-			titlemap.put("ftype", "支付类型");
-			titlemap.put("amount", "金额（￥）");
-			titlemap.put("remark", "备注");
+			// 定义表头
+			LinkedHashMap<String, String> headers = new LinkedHashMap<>();
+			headers.put("name", "项目");
+			headers.put("number", "订单编码");
+			headers.put("sku", "SKU");
+			headers.put("createtime", "日期");
+			headers.put("ftype", "支付类型");
+			headers.put("amount", "金额（￥）");
+			headers.put("remark", "备注");
+			headers.put("supplier", "供应商");
+
+			// 获取数据
 			List<Map<String, Object>> list = this.baseMapper.findByCondition(param);
 
-			Sheet sheet = workbook.createSheet("sheet1");
-			// 在索引0的位置创建行（最顶端的行）
-			Row trow = sheet.createRow(0);
-			Object[] titlearray = titlemap.keySet().toArray();
-			for (int i = 0; i < titlearray.length; i++) {
-				Cell cell = trow.createCell(i); // 在索引0的位置创建单元格(左上端)
-				Object value = titlemap.get(titlearray[i].toString());
-				cell.setCellValue(value.toString());
-			}
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				Map<String, Object> map = list.get(i);
-				for (int j = 0; j < titlearray.length; j++) {
-					Cell cell = row.createCell(j); // 在索引0的位置创建单元格(左上端)
-					Object value = map.get(titlearray[j].toString());
-					if (value != null) {
-						if ("ftype".equals(titlearray[j].toString())) {
-							if ("out".equals(value)) {
-								value = "支出";
-							} else {
-								value = "收入";
-							}
-						}
-						cell.setCellValue(value.toString());
-					}
+			// 定义值转换器
+			Map<String, Function<Object, Object>> converters = new HashMap<>();
+			converters.put("ftype", value -> {
+				if ("out".equals(value)) {
+					return "支出";
+				} else {
+					return "收入";
 				}
-			}
+			});
+
+			// 调用通用导出方法
+			ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, list, converters);
 		}
 
 

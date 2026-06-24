@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.setting.mapper.FinSubjectTypeMapper">
+    
+    <resultMap type="com.wimoor.finance.setting.domain.FinSubjectType" id="FinSubjectTypeResult">
+        <result property="id"    column="id"    />
+        <result property="code"    column="code"    />
+        <result property="name"    column="name"    />
+        <result property="parentCode"    column="parent_code"    />
+        <result property="level"    column="level"    />
+        <result property="categoryType"    column="category_type"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="isFixed"    column="is_fixed"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectFinSubjectTypeVo">
+        select id, code, name, parent_code, level, category_type, sort_order, is_fixed, created_time, updated_time from fin_subject_type
+    </sql>
+
+    <select id="selectFinSubjectTypeList" parameterType="com.wimoor.finance.setting.domain.FinSubjectType" resultMap="FinSubjectTypeResult">
+        <include refid="selectFinSubjectTypeVo"/>
+        <where>  
+            <if test="code != null  and code != ''"> and code = #{code}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="parentCode != null  and parentCode != ''"> and parent_code = #{parentCode}</if>
+            <if test="level != null "> and level = #{level}</if>
+            <if test="categoryType != null  and categoryType != ''"> and category_type = #{categoryType}</if>
+            <if test="sortOrder != null "> and sort_order = #{sortOrder}</if>
+            <if test="isFixed != null "> and is_fixed = #{isFixed}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinSubjectTypeById" parameterType="Integer" resultMap="FinSubjectTypeResult">
+        <include refid="selectFinSubjectTypeVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinSubjectType" parameterType="com.wimoor.finance.setting.domain.FinSubjectType" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_subject_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code != null and code != ''">code,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="parentCode != null">parent_code,</if>
+            <if test="level != null">level,</if>
+            <if test="categoryType != null and categoryType != ''">category_type,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="isFixed != null">is_fixed,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code != null and code != ''">#{code},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="parentCode != null">#{parentCode},</if>
+            <if test="level != null">#{level},</if>
+            <if test="categoryType != null and categoryType != ''">#{categoryType},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="isFixed != null">#{isFixed},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinSubjectType" parameterType="com.wimoor.finance.setting.domain.FinSubjectType">
+        update fin_subject_type
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="code != null and code != ''">code = #{code},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="parentCode != null">parent_code = #{parentCode},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="categoryType != null and categoryType != ''">category_type = #{categoryType},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="isFixed != null">is_fixed = #{isFixed},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinSubjectTypeById" parameterType="Integer">
+        delete from fin_subject_type where id = #{id}
+    </delete>
+
+    <delete id="deleteFinSubjectTypeByIds" parameterType="String">
+        delete from fin_subject_type where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectFinSubjectTypeByCategoryType" parameterType="String" resultMap="FinSubjectTypeResult">
+        <include refid="selectFinSubjectTypeVo"/>
+        where category_type = #{categoryType} and parent_code is not null order by sort_order asc
+    </select>
+</mapper>

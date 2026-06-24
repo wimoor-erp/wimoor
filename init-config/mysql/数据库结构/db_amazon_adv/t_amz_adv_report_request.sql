@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_adv_report_request` (
   `creativeType` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `startDate` date DEFAULT NULL,
   `endDate` date DEFAULT NULL,
-  `location` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `location` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `fileSize` int DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `requesttime` datetime DEFAULT NULL,

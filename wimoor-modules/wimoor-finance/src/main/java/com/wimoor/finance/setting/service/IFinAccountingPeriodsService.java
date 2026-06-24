@@ -1,7 +1,11 @@
 package com.wimoor.finance.setting.service;
 
-import java.util.List;
+import com.wimoor.common.user.UserInfo;
 import com.wimoor.finance.setting.domain.FinAccountingPeriods;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 会计期间管理Service接口
@@ -90,4 +94,53 @@ public interface IFinAccountingPeriodsService
      * @return 后续已关闭的会计期间列表
      */
     List<FinAccountingPeriods> selectSubsequentClosedPeriods(String groupid, String period);
+
+    FinAccountingPeriods selectFinAccountingPeriodsByDate(String groupid,Date voucherDate);
+
+    /**
+     * 开期操作
+     * @param groupid 账套ID
+     * @param periodCode 期间编码
+     * @return 操作结果
+     */
+    boolean openPeriod(String groupid, String periodCode);
+
+    /**
+     * 过账操作
+     * @param groupid 账套ID
+     * @param periodCode 期间编码
+     * @return 操作结果
+     */
+    boolean postPeriod(String groupid, String periodCode);
+
+    /**
+     * 结账操作
+     * @param groupid 账套ID
+     * @param periodCode 期间编码
+     * @return 操作结果
+     */
+    boolean closePeriod(String groupid, String periodCode);
+
+    /**
+     * 反结账操作
+     * @param groupid 账套ID
+     * @param periodCode 期间编码
+     * @return 操作结果
+     */
+    boolean reverseClosePeriod(String groupid, String periodCode);
+
+    /**
+     * 获取当前会计期间
+     * @param groupid 租户ID
+     * @return 当前会计期间
+     */
+    FinAccountingPeriods getCurrentPeriod(String groupid);
+
+    List<Map<String,Object>> getGroups(UserInfo user);
+
+    /**
+     * 修正会计期间状态
+     * @param groupid 租户ID
+     */
+    void fixCurrentPeriod(String groupid);
 }

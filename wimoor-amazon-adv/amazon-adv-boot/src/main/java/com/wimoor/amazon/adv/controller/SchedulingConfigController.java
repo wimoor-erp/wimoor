@@ -1,29 +1,26 @@
 package com.wimoor.amazon.adv.controller;
 
 
-import java.math.BigInteger;
-
-import javax.annotation.Resource;
-
-import com.wimoor.amazon.adv.common.pojo.CampaignType;
-import com.wimoor.amazon.adv.common.service.*;
-import com.wimoor.amazon.adv.exports.service.impl.AdvExportType;
-import com.wimoor.amazon.adv.report.service.impl.AmzAdvReportHandlerServiceImpl;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.wimoor.amazon.adv.common.pojo.AmzAdvAuth;
 import com.wimoor.amazon.adv.common.pojo.AmzAdvProfile;
+import com.wimoor.amazon.adv.common.pojo.CampaignType;
+import com.wimoor.amazon.adv.common.service.*;
+import com.wimoor.amazon.adv.exports.service.IAmzAdvSnapshotHandlerService;
+import com.wimoor.amazon.adv.exports.service.impl.AdvExportType;
 import com.wimoor.amazon.adv.report.dao.AmzAdvReportRequestTypeMapper;
 import com.wimoor.amazon.adv.report.pojo.AmzAdvReportRequestType;
 import com.wimoor.amazon.adv.report.service.IAmzAdvReportHandlerService;
 import com.wimoor.amazon.adv.report.service.IAmzAdvReportService;
 import com.wimoor.amazon.adv.report.service.IAmzAdvReportTreatService;
-import com.wimoor.amazon.adv.exports.service.IAmzAdvSnapshotHandlerService;
 import com.wimoor.common.result.Result;
 import com.wimoor.util.SpringUtil;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import java.math.BigInteger;
 
 
 @Component("schedulingConfigController")
@@ -179,11 +176,7 @@ public class SchedulingConfigController {
 		 iAmzAdvSnapshotHandlerService.readSnapshot();
 		 return Result.success();
 	}
-	@GetMapping("/readSnapshotNA")
-	public Result<?> readSnapshotNA(){
-           iAmzAdvSnapshotHandlerService.readSnapshotScheduled();
-		 return Result.success();
-	}
+
 	@GetMapping("/readSnapshotById")
 	public Result<?> readSnapshotById(String id){
 		 iAmzAdvSnapshotHandlerService.readSnapshot(id);

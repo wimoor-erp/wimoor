@@ -66,13 +66,13 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
 	List<Map<String,Object>>  getInvChangeRate(Map<String, Object> param);
 	List<Map<String,Object>> findNotFBABySku(@Param("whparentid")String warehouseid,@Param("skuid") String skuid,@Param("shopid")String shopid);
 	
-	IPage<Map<String,Object>> findInventoryCost(Page<?>  page,@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday);
-	List<Map<String, Object>> findInventoryCost(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday);
-	Map<String,Object> findInventoryCostTotal(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday);
+	IPage<Map<String,Object>> findInventoryCost(Page<?>  page,@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday,@Param("isAvgPrice")String isAvgPrice);
+	List<Map<String, Object>> findInventoryCost(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday,@Param("isAvgPrice")String isAvgPrice);
+	Map<String,Object> findInventoryCostTotal(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday,@Param("isAvgPrice")String isAvgPrice);
 	
-	IPage<Map<String,Object>> findInventoryNowCost(Page<?>  page,@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid);
-	List<Map<String, Object>> findInventoryNowCost(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid);
-	Map<String,Object> findInventoryNowCostTotal(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid);
+	IPage<Map<String,Object>> findInventoryNowCost(Page<?>  page,@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("isAvgPrice")String isAvgPrice);
+	List<Map<String, Object>> findInventoryNowCost(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("isAvgPrice")String isAvgPrice);
+	Map<String,Object> findInventoryNowCostTotal(@Param("warehouseid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("isAvgPrice")String isAvgPrice);
 	
 	List<Map<String, Object>> findInventoryNowCostByShopId(@Param("shopid") String shopid);
 	List<Map<String, Object>> findFulByMaterial(String id);

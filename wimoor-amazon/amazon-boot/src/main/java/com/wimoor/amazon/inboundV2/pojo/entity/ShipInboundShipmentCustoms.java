@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value="ShipInboundCustoms对象", description="货件海关信息")
+@ApiModel(value="ShipInboundCustoms对象", description="货件海关-海外报关信息")
 @TableName("t_erp_ship_v2_inboundshipment_customs")
 public class ShipInboundShipmentCustoms  {
  
@@ -59,9 +59,13 @@ public class ShipInboundShipmentCustoms  {
     @TableField(value= "cname")
     private String cname;
 
-	@ApiModelProperty(value = "creator")
+    @ApiModelProperty(value = "creator")
     @TableField(value= "creator")
     private String creator;
+
+	@ApiModelProperty(value = "elements")
+    @TableField(value= "elements")
+    private String elements;
 
 	@ApiModelProperty(value = "createtime")
     @JsonInclude(value = JsonInclude.Include.NON_NULL)

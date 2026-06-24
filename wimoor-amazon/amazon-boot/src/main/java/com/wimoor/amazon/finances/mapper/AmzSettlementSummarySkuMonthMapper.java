@@ -1,17 +1,15 @@
 package com.wimoor.amazon.finances.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementSummarySkuMonth;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 /**
  * <p>
@@ -32,4 +30,10 @@ public interface AmzSettlementSummarySkuMonthMapper extends BaseMapper<AmzSettle
 	Map<String,Object> findSummaryByCondition(@Param("param") Map<String,Object> param);
 	List<Map<String,Object>> findByCondition(@Param("param") Map<String,Object> param);
 	BigDecimal summaryPrincipal(String amazonAuthId, String marketplaceName, String fromDate);
+
+    List<Map<String, Object>> summaryQuarter(@Param("params") Map<String, Object> param);
+
+	List<Map<String, Object>> getSummaryMonth(@Param("params") Map<String, Object> param);
+
+	List<Map<String, Object>> getSummaryMonthStorage(@Param("params") Map<String, Object> param);
 }

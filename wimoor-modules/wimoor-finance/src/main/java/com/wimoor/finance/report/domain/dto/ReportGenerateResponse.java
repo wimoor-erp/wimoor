@@ -15,6 +15,7 @@ public class ReportGenerateResponse {
     private Map<String, Object> financialRatios;
     private Map<String, Object> chartData;
     private Map<String, Object> summary;
+    private List<String> warnings;
 
     // Getters and Setters
     public boolean isSuccess() { return success; }
@@ -46,4 +47,7 @@ public class ReportGenerateResponse {
 
     public Map<String, Object> getSummary() { return summary; }
     public void setSummary(Map<String, Object> summary) { this.summary = summary; }
+
+    public List<String> getWarnings() { return warnings; }
+    public void setWarnings(List<String> warnings) { this.warnings = warnings; }
 }

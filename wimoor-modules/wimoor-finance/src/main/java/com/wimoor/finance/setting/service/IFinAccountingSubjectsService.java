@@ -1,8 +1,16 @@
 package com.wimoor.finance.setting.service;
 
-import java.util.Arrays;
-import java.util.List;
+import com.wimoor.common.core.web.page.TableDataInfo;
+import com.wimoor.finance.closing.domain.FinClosingTemplateAmazon;
+import com.wimoor.finance.closing.domain.FinClosingTemplateItem;
 import com.wimoor.finance.setting.domain.FinAccountingSubjects;
+import com.wimoor.finance.voucher.domain.FinVouchers;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 会计科目Service接口
@@ -110,4 +118,31 @@ public interface IFinAccountingSubjectsService
      * 获取利润分配科目
      */
     FinAccountingSubjects getProfitDistributionSubject(String groupid);
+
+    List<FinAccountingSubjects> selectFinAccountingSubjectsListAll(FinAccountingSubjects finAccountingSubjects);
+
+    void setFinVoucherSubject(List<FinVouchers> list);
+
+    void setFinLedgerSubject(TableDataInfo page);
+
+    void setFinTemplateSubject(List<FinClosingTemplateAmazon> list);
+    void setFinTemplateItemSubject(List<FinClosingTemplateItem> list);
+    /**
+     * 导入会计科目
+     * @param inputStream Excel文件输入流
+     * @return 导入成功的记录数
+     * @throws IOException 异常
+     */
+    int importSubjects(InputStream inputStream, String groupId) throws IOException;
+
+    /**
+     * 下载会计科目模板
+     * @param response 响应对象
+     * @throws IOException 异常
+     */
+    void downloadTemplate(HttpServletResponse response) throws IOException;
+
+    String buildFullSubjectName(FinAccountingSubjects subject, Map<String, FinAccountingSubjects> codeMap);
+
+    FinAccountingSubjects selectByGroupCode(String groupid, String subjectCode);
 }

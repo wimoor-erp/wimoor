@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `t_product_in_presale` (
   `opttime` datetime DEFAULT NULL,
   `start` date DEFAULT NULL,
   `end` date DEFAULT NULL,
-  `month` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `month` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `hasdaysales` bit(1) DEFAULT b'0',
   PRIMARY KEY (`sku`,`marketplaceid`,`groupid`,`date`),
   UNIQUE KEY `idx` (`id`),

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_ship_v2_inbound_record` (
   PRIMARY KEY (`id`),
   KEY `key` (`formid`,`status`) USING BTREE,
   KEY `shipmentid_status` (`shipmentid`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=246134 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=394675 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

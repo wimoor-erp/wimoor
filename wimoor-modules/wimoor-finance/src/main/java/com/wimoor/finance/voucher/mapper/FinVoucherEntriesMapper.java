@@ -1,9 +1,12 @@
 package com.wimoor.finance.voucher.mapper;
 
-import java.util.List;
 import com.wimoor.finance.voucher.domain.FinVoucherEntries;
 import com.wimoor.finance.voucher.domain.FinVouchers;
+import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 凭证分录明细Mapper接口
@@ -28,6 +31,14 @@ public interface FinVoucherEntriesMapper
      * @return 凭证分录明细集合
      */
     public List<FinVoucherEntries> selectFinVoucherEntriesList(FinVoucherEntries finVoucherEntries);
+
+    /**
+     * 查询凭证分录明细列表（联表查询，包含科目名称）
+     *
+     * @param dto 凭证分录明细DTO
+     * @return 凭证分录明细集合（含科目名称）
+     */
+    public List<Map<String, Object>> selectFinVoucherEntriesListWithJoin(FinVoucherDTO dto);
 
     /**
      * 新增凭证分录明细
@@ -75,4 +86,7 @@ public interface FinVoucherEntriesMapper
     List<FinVoucherEntries> selectByVoucherId(@Param("voucherId") Long voucherId);
 
     int deleteByVoucherId(@Param("voucherId")Long voucherId);
+
+    /** 批量查询分录（按凭证ID列表），用于消除 N+1 查询 */
+    List<FinVoucherEntries> selectByVoucherIds(@Param("list") List<Long> voucherIds);
 }

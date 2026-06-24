@@ -32,11 +32,11 @@ public interface InventoryReportMapper extends BaseMapper<InventoryReport> {
 
 	Date findMinbyProduct(Map<String, Object> map);
 	
-	IPage<Map<String,Object>> findInventoryCost(Page<?> page,@Param("groupid")String groupid,@Param("marketplaceid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday);
+	IPage<Map<String,Object>> findInventoryCost(Page<?> page,@Param("groupid")String groupid,@Param("marketplaceid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday,@Param("isAvgPrice")String isAvgPrice);
 	
-	Map<String,Object> findInventoryCostTotal(@Param("groupid")String groupid,@Param("marketplaceid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday);
+	Map<String,Object> findInventoryCostTotal(@Param("groupid")String groupid,@Param("marketplaceid")String warehouseid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday,@Param("isAvgPrice")String isAvgPrice);
 
-	List<Map<String, Object>> findInventoryCost(@Param("groupid")String groupid,@Param("marketplaceid")String marketplaceid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday);
+	List<Map<String, Object>> findInventoryCost(@Param("groupid")String groupid,@Param("marketplaceid")String marketplaceid,@Param("sku")String sku,@Param("shopid")String shopid,@Param("byday")String byday,@Param("isAvgPrice")String isAvgPrice);
 
 	Map<String, Object> getFbaSnapDate(Map<String,Object> map);
 	

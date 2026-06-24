@@ -82,6 +82,12 @@ SELECT id,shopid,concat(YEAR,case when MONTH>9 then '-' ELSE '-0' end, MONTH,
 case when day>9 then '-' ELSE '-0' END ,DAY) AS `day`,week_name,
 1 `type` ,creator,createtime,ifnull(operator,creator) operator,opttime from db_admin.t_sys_local_holiday
 WHERE TYPE=1 OR TYPE=2) v;
+
+UPDATE  
+t_report_requestrecord 
+SET report_processing_status='DONE' , isrun=0
+WHERE report_processing_status='treat' AND isrun=1
+AND lastupdate<DATE_SUB(NOW(),INTERVAL 1 HOUR);
 END//
 DELIMITER ;
 

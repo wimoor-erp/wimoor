@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_quartz_task` (
   `createdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_fgroup` (`name`,`fgroup`)
-) ENGINE=InnoDB AUTO_INCREMENT=236 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

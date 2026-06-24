@@ -16,6 +16,7 @@
 		<result column="currency" property="currency" jdbcType="CHAR" />
 		<result column="developer_url" property="developerUrl" jdbcType="VARCHAR" />
 		<result column="bytecode" property="bytecode" jdbcType="VARCHAR" />
+		<result column="amazonauthid" property="amazonauthid" jdbcType="VARCHAR" />
 	</resultMap>
 	<sql id="Base_Column_List">
 		marketplaceId, market, name, region_name, region, end_point, point_name, accessKey,
@@ -80,7 +81,7 @@
 	<select id="findByGroup" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select * from(
 		select distinct m.marketplaceId, m.market, m.name, m.region_name, m.region, m.end_point, m.point_name,
-			m.accessKey, m.secretKey, m.dim_units, m.weight_units, m.currency,m.findex,m.language
+			m.accessKey, m.secretKey, m.dim_units, m.weight_units, m.currency,m.findex,m.language,a.id amazonauthid
 		from t_marketplace m
 		left join t_amazonseller_market s on s.marketplace_id=m.marketplaceId
 		left join t_amazon_auth a on a.sellerid=s.sellerid

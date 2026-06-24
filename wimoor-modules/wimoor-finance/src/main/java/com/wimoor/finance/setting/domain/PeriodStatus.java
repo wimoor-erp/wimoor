@@ -1,8 +1,9 @@
 package com.wimoor.finance.setting.domain;
 
 public enum PeriodStatus {
-    OPEN(1,"开启"),
-    CLOSED(2,"关闭");
+    NOT_OPEN(1,"未开启"),
+    OPEN(2,"已开启"),
+    CLOSED(3,"已关闭");
 
     private final Integer value;
     private final String name;

@@ -85,6 +85,7 @@ public class ShipInboundTransportationServiceImpl implements IShipInboundTranspo
 	@Resource
 	private IShipInboundItemService shipInboundItemV2Service;
 	final ShipInboundShipmentCustomsMapper shipInboundShipmentCustomsMapper;
+	final ShipInboundShipmentCustomMapper shipInboundShipmentCustomMapper;
 	final IShipInboundShipmentRecordV2Service shipInboundV2ShipmentRecordService;
 	final ShipInboundPlanTransportationOptionsMapper shipInboundPlanTransportationOptionsMapper;
 	final ErpClientOneFeignManager erpClientOneFeignManager;
@@ -332,14 +333,13 @@ public class ShipInboundTransportationServiceImpl implements IShipInboundTranspo
 				shipment.setTransactionName(dto.getTransactionName());
 				if(dto.getTransactionName()!=null){
 					shipment.setTransactionName(dto.getTransactionName());
-					if(dto.getTransactionName().contains("PARCEL")){
-						shipment.setTranstyle("SP");
-					}
-					else if(dto.getTransactionName().contains("LTL")){
-						shipment.setTranstyle("LTL");
-					}
-					else{
-						shipment.setTranstyle("SP");
+					if(shipment.getTranstyle()==null){
+						if(dto.getTransactionName().contains("PARCEL")){
+							shipment.setTranstyle("SP");
+						}
+						else if(dto.getTransactionName().contains("LTL")){
+							shipment.setTranstyle("LTL");
+						}
 					}
 					shipInboundShipmentService.updateById(shipment);
 				}
@@ -546,7 +546,34 @@ public class ShipInboundTransportationServiceImpl implements IShipInboundTranspo
 		
 		
 	}
-	
- 
+
+	@Override
+	public List<ShipInboundShipmentCustom> getCustom(String shipmentid) {
+		return shipInboundShipmentCustomMapper.listByShipmentid(shipmentid);
+	}
+
+	@Override
+	public void saveCustom(UserInfo user, List<ShipInboundShipmentCustom> list) {
+// TODO Auto-generated method stub
+		String itemid=null;
+		for(ShipInboundShipmentCustom item:list) {
+			ShipInboundShipmentCustom old=shipInboundShipmentCustomMapper.selectById(item.getItemid());
+			if(old!=null) {
+				item.setOperator(user.getId());
+				item.setOpttime(new Date());
+				shipInboundShipmentCustomMapper.updateById(item);
+			}else {
+				item.setCreator(user.getId());
+				item.setCreatetime(new Date());
+				item.setOperator(user.getId());
+				item.setOpttime(new Date());
+				shipInboundShipmentCustomMapper.insert(item);
+			}
+			if(itemid==null) {
+				itemid=item.getItemid();
+			}
+		}
+	}
+
 
 }

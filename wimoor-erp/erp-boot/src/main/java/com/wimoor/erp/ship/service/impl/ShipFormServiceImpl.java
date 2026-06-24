@@ -1,34 +1,35 @@
 package com.wimoor.erp.ship.service.impl;
 
-import java.util.*;
-
-import javax.annotation.Resource;
-
-import com.wimoor.common.service.impl.SystemLogAspect;
-import com.wimoor.erp.ship.pojo.dto.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.qrcode.QrConfig;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
+import com.wimoor.common.service.impl.SystemLogAspect;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AmazonClientOneFeignManager;
-import com.wimoor.erp.material.service.IAssemblyFormService;
 import com.wimoor.erp.common.pojo.entity.EnumByInventory;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.service.IInventoryFormAgentService;
 import com.wimoor.erp.inventory.service.IInventoryService;
 import com.wimoor.erp.material.pojo.entity.Material;
+import com.wimoor.erp.material.service.IAssemblyFormService;
 import com.wimoor.erp.material.service.IMaterialConsumableService;
 import com.wimoor.erp.material.service.IMaterialService;
 import com.wimoor.erp.ship.mapper.ShipPlanItemMapper;
+import com.wimoor.erp.ship.pojo.dto.ShipFormDTO;
+import com.wimoor.erp.ship.pojo.dto.ShipItemDTO;
 import com.wimoor.erp.ship.service.IShipFormService;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryOptRecordService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.qrcode.QrConfig;
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class ShipFormServiceImpl implements IShipFormService{
@@ -72,7 +73,7 @@ public class ShipFormServiceImpl implements IShipFormService{
 		String number=dto.getNumber();
 		for (int i = 0; i < dto.getList().size(); i++) {
 			ShipItemDTO item = dto.getList().get(i);
-			int shipqty =item.getQuantity();
+			int shipqty =item.getQuantity()!=null?item.getQuantity():0;
 		    String sellersku=item.getSku();
 			String materialid=null;
 			if(materialid==null) {

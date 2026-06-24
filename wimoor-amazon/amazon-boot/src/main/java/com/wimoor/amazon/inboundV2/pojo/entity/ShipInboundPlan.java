@@ -139,6 +139,10 @@ public class ShipInboundPlan  extends AmazonBaseEntity{
 	@TableField(value="placement_option_id")
 	String placementOptionId;
 
+	@ApiModelProperty(value = "打包方案id")
+	@TableField(value="packing_option_id")
+	String packingOptionId;
+
 	@ApiModelProperty(value = "Transportation Token")
 	@TableField(value="transportation_token")
 	String transportationToken;

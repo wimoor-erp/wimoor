@@ -1,0 +1,14 @@
+[	
+	{"label":"1x2 Letter-UPS(US,CA)","value":"PackageLabel_Letter_2"},
+	{"label":"1x4 Letter(US,CA)","value":"PackageLabel_Letter_4"},
+	{"label":"1x6 Letter(US,CA)","value":"PackageLabel_Letter_6"},
+	{"label":"1x6 Letter(CarrierLeft)","value":"PackageLabel_Letter_6_CarrierLeft"	},
+	{"label":"1x2 A4","value":"PackageLabel_A4_2"},
+	{"label":"1x4 A4","value":"PackageLabel_A4_4"},
+	{"label":"1x1 Letter","value":"PackageLabel_Plain_Paper"},
+	{"label":"1x1 Letter(CarrierBottom)","value":"PackageLabel_Plain_Paper_CarrierBottom"},
+	{"label":"热敏打印(UPS)","value":"PackageLabel_Thermal"},
+	{"label":"热敏打印(ATS)","value":"PackageLabel_Thermal_Unified"},
+	{"label":"热敏打印","value":"PackageLabel_Thermal_NonPCP"},
+	{"label":"热敏打印(DHL)","value":"PackageLabel_Thermal_No_Carrier_Rotation"}
+]

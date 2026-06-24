@@ -555,6 +555,7 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
        		    	    	 if(region!=null) {
     	          			     region.setAdvid(authAdvItem.get("id").toString());
     	          				 region.setAdauth(authAdvItem.get("adauth").toString());
+								 region.setAdvtime(AmzDateUtils.getDate(authAdvItem.get("createtime")));
     	          		     }else {
     	          			    region=new AmazonRegionVO();
     	        				region.setRegion(authAdvItem.get("region").toString());
@@ -563,7 +564,7 @@ public class AmazonAuthorityServiceImpl extends ServiceImpl<AmazonAuthorityMappe
     	        				region.setSellerid(null);
     	        			    region.setAdvid(authAdvItem.get("id").toString());
     	  				        region.setAdauth(authAdvItem.get("adauth").toString());
-    	        				region.setTime(AmzDateUtils.getDate(authAdvItem.get("opttime")));
+    	        				region.setAdvtime(AmzDateUtils.getDate(authAdvItem.get("createtime")));
     	        				regions.put(sellerid, region);
     	          		     }
        		    	   

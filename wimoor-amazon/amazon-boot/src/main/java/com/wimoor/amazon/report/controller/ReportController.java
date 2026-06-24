@@ -1,31 +1,12 @@
 package com.wimoor.amazon.report.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
+import cn.hutool.core.util.StrUtil;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.common.service.IUserSalesRankService;
 import com.wimoor.amazon.inbound.service.IShipInboundShipmentService;
+import com.wimoor.amazon.product.service.IDataKioskRequestService;
 import com.wimoor.amazon.product.service.IProductFollowHandlerService;
 import com.wimoor.amazon.product.service.IProductInPresaleService;
 import com.wimoor.amazon.report.mapper.ReportRequestRecordMapper;
@@ -38,12 +19,25 @@ import com.wimoor.amazon.summary.service.ISummaryOrderReportService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 @Api(tags = "报表接口")
 @RestController
 @Component("reportController")
@@ -72,6 +66,8 @@ public class ReportController {
 	IAmazonGroupService iAmazonGroupService;
 	@Autowired
 	IShipInboundShipmentService iShipInboundShipmentService;
+    @Autowired
+    IDataKioskRequestService iDataKioskRequestService;
     /**
      * 提供用于用户登录认证信息
      */
@@ -259,6 +255,7 @@ public class ReportController {
     public Result<?> processReportAction() {
     	log.info("处理报表-----"+new Date());
         handlerReportService.refreshProcessReportList(null);
+        iDataKioskRequestService.refresh();
         return Result.success();
     }
     
@@ -329,7 +326,15 @@ public class ReportController {
     	
     	return Result.success();
     }
-    
+
+
+    @ApiOperation(value = "更新单个产品利润")
+    @GetMapping("/dataAnalysisSingle")
+    public Result<?> dataAnalysisSingleAction(String pid) {
+    	summaryOrderReportService.dataAnalysisSingle(pid);
+    	return Result.success();
+    }
+
     @ApiOperation(value = "产品利润计算")
     @GetMapping("/dataAnalysis")
     public Result<?> dataAnalysisAction() {
@@ -397,8 +402,14 @@ public class ReportController {
     
     //查询任务进度列表
     @GetMapping("/selectTaskInfoList")
-    public Result<?> selectTaskInfoListAction(String sellerid,String marketplaceid) {
-    	return Result.success(iAmazonGroupService.selectTaskInfoList(sellerid,marketplaceid));
+    public Result<?> selectTaskInfoListAction(String sellerid,String marketplaceid,String reportType,String groupid) {
+        if(StrUtil.isNotBlank(groupid)){
+            AmazonAuthority auth = amazonAuthorityService.selectByGroupAndMarket(groupid, marketplaceid);
+            if(auth!=null){
+                sellerid=auth.getSellerid();
+            }
+        }
+    	return Result.success(iAmazonGroupService.selectTaskInfoList(sellerid,marketplaceid,reportType));
     }
     
     @PostMapping(value = "/uploadReportFile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

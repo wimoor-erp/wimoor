@@ -1,0 +1,65 @@
+/** When your routing erp is too long, you can split it into small modules **/
+export default [
+ {
+ 		path:"shipmentdetails",
+ 		name:'shipmentdetails',
+ 		component:()=>import("@/views/erp/ship/shipment_add/approve/index.vue")  
+  },
+  {
+  		path:"newshipmentdetails",
+  		name:'newshipmentdetails',
+  		component:()=>import("@/views/erp/shipv2/shipment_add/approve/index.vue")  
+   },
+  {
+  	path:"invoice/addshipment",
+  	name:'addshipment',
+	meta:{ keepAlive:true},
+  	component:()=>import("@/views/erp/ship/shipment_add/create/index.vue")  
+  },
+  {
+  	path:"invoice/new/addshipment",
+  	name:'addnewshipment',
+  	meta:{ keepAlive:true},
+  	component:()=>import("@/views/erp/shipv2/shipment_add/create/index.vue")  
+  },
+  {
+  	path:"a/p/c",
+  	name:'edit_calcuiation_plan',
+  	component:()=>import("@/views/amazon/profit/config/components/edit_plan.vue")  
+  },
+  {
+  	path:"amazon/listing/catalog",
+  	name:'amz_lst_catalog',
+  	component:()=>import("@/views/amazon/listing/catalog/index.vue")  
+  },
+  {
+  	path:"amazon/listing/edit",
+  	name:'amz_lst_edit',
+  	component:()=>import("@/views/amazon/listing/product_edit/index.vue")  
+  },
+  {
+  	path:"f/c/c",
+  	name:'costSharing_create',
+  	component:()=>import("@/views/amazon/payment/costSharing/components/create.vue")  
+  },
+  {
+  	path:"f/j/e",
+  	name:'jobCosting_edit',
+  	component:()=>import("@/views/amazon/payment/jobCosting/components/edit.vue")  
+  },
+  {
+  	path:"a/a/sp",
+  	name:'spad_create',
+  	component:()=>import("@/views/amazon/advertisement/manager/components/sp/create.vue")  
+  },
+  {
+  	path:"a/a/sd",
+  	name:'sdad_create',
+  	component:()=>import("@/views/amazon/advertisement/manager/components/sd/create.vue")  
+  },
+  {
+  	path:"a/a/sb",
+  	name:'sbad_create',
+  	component:()=>import("@/views/amazon/advertisement/manager/components/hsa/create.vue")  
+  },
+]

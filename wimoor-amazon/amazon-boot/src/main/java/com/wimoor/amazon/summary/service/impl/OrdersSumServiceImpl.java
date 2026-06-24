@@ -1,25 +1,6 @@
 package com.wimoor.amazon.summary.service.impl;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.util.StrUtil;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -38,8 +19,18 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserLimitDataType;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
  
 @Service("ordersSumService")  
 public class OrdersSumServiceImpl implements IOrdersSumService {
@@ -676,5 +667,32 @@ public class OrdersSumServiceImpl implements IOrdersSumService {
 		param.put("shopid", user.getCompanyid());
 		list = ordersSummaryMapper.selectBySkuMarketplace(param);
 		return list;
+	}
+
+	@Override
+	@Cacheable(value = "ordersummary#600")
+	public Map<String, Object> findorderSummaryTotal(String shopid,String startdate) {
+		Map<String, Object> parameter = new HashMap<String, Object>();
+		parameter.put("shopid", shopid);
+		//查询最近12个月的订单数据
+		Calendar cTime = Calendar.getInstance();
+		Date endDate = cTime.getTime();
+		parameter.put("endDate", endDate);
+		parameter.put("startDate", GeneralUtil.getDatez(startdate));
+		List<Map<String, Object>> list = ordersSummaryMapper.selectTotal(parameter);
+		BigDecimal orderpricesum = new BigDecimal("0");
+		BigDecimal ordersum = new BigDecimal("0");
+		Map<String, Object> mapresult = new HashMap<String, Object>();
+		for (int i = 0; i < list.size(); i++) {
+			Map<String, Object> item = list.get(i);
+			BigDecimal orderprice = (BigDecimal) item.get("orderprice");
+			BigDecimal ordernumber = new BigDecimal(item.get("ordersum").toString());
+			orderpricesum = orderpricesum.add(orderprice);
+			ordersum = ordersum.add(ordernumber);
+			mapresult.put(item.get("purchase_date").toString(), item);
+			}
+		mapresult.put("orderpricesum", orderpricesum);
+		mapresult.put("ordersum", ordersum);
+		return mapresult;
 	}
 }

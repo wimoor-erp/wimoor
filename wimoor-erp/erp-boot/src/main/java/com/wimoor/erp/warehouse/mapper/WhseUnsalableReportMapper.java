@@ -22,6 +22,9 @@ public interface WhseUnsalableReportMapper extends BaseMapper<WhseUnsalableRepor
 	Map<String, Object> localByDay(Map<String,Object> param);
 	Map<String, Object> localOutInventoryByRange(Map<String,Object> param);
 	Map<String, Object> OverseaOutInventoryByRange(Map<String,Object> param);
+	List<Map<String, Object>> batchLocalOutInventoryByRange(Map<String,Object> param);
+	List<Map<String, Object>> batchLocalByDay(Map<String,Object> param);
+	List<Map<String, Object>> batchOverseaOutInventoryByRange(Map<String,Object> param);
 	List<Map<String, Object>> findAllShop();
 	void deleteAllData();
   

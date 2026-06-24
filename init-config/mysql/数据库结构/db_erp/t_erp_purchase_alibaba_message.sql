@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_alibaba_message` (
   `signature` varchar(50) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `opttime` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23772 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=88660 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

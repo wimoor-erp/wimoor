@@ -1,29 +1,23 @@
 package com.wimoor.finance.voucher.controller;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
-
-import com.wimoor.finance.voucher.domain.FinVoucherEntries;
-import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
-import com.wimoor.finance.voucher.service.util.BatchPostingResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.wimoor.finance.voucher.domain.FinVouchers;
-import com.wimoor.finance.voucher.service.IFinVouchersService;
+import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.controller.BaseController;
 import com.wimoor.common.core.web.domain.Result;
-import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.page.TableDataInfo;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.finance.setting.service.IFinAccountingSubjectsService;
+import com.wimoor.finance.util.QueryParamUtil;
+import com.wimoor.finance.voucher.domain.FinVouchers;
+import com.wimoor.finance.voucher.domain.dto.FinVoucherDTO;
+import com.wimoor.finance.voucher.service.IFinVouchersService;
+import com.wimoor.finance.voucher.service.util.BatchPostingResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 记账凭证Controller
@@ -37,7 +31,8 @@ public class FinVouchersController extends BaseController
 {
     @Autowired
     private IFinVouchersService finVouchersService;
-
+    @Autowired
+    private IFinAccountingSubjectsService finAccountingSubjectsService;
     /**
      * 查询记账凭证列表
      */
@@ -45,17 +40,19 @@ public class FinVouchersController extends BaseController
     public TableDataInfo list(FinVoucherDTO dto)
     {
         startPage();
-        handlerDateStr(dto);
+        handlerDatePeriod(dto);
         List<FinVouchers> list = finVouchersService.selectFinVouchersList(dto);
+        finAccountingSubjectsService.setFinVoucherSubject(list);
         return getDataTable(list);
     }
+
 
     /**
      * 导出记账凭证列表
      */
     @PostMapping("/export")
     public void export(HttpServletResponse response, FinVoucherDTO dto)
-    {   handlerDateStr(dto);
+    {   handlerDatePeriod(dto);
         List<FinVouchers> list = finVouchersService.selectFinVouchersList(dto);
         ExcelUtil<FinVouchers> util = new ExcelUtil<FinVouchers>(FinVouchers.class);
         util.exportExcel(response, list, "记账凭证数据");
@@ -85,6 +82,11 @@ public class FinVouchersController extends BaseController
     @PostMapping
     public Result add(@RequestBody FinVouchers finVouchers)
     {
+        UserInfo userinfo = UserInfoContext.get();
+        finVouchers.setPreparerBy(userinfo.getUserName());
+        if (finVouchers.getDataSource() == null) {
+            finVouchers.setDataSource(1); // 默认手动录入
+        }
         return toResult(finVouchersService.insertFinVouchers(finVouchers));
     }
 
@@ -111,30 +113,15 @@ public class FinVouchersController extends BaseController
     {
         return toResult(finVouchersService.deleteFinVouchersByVoucherIds(voucherIds));
     }
-    private  void handlerDateStr(FinVoucherDTO finVoucherEntries){
-        if(finVoucherEntries.getVoucherDateStr()!=null){
-            String dateStr = finVoucherEntries.getVoucherDateStr().get(0);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z '('中国标准时间')'", Locale.ENGLISH);
-            ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateStr, formatter);
-            // 转换为传统的Date对象
-            Date start_date = Date.from(zonedDateTime.toInstant());
-            finVoucherEntries.setStartDate(start_date);
-
-            String dateStr2 = finVoucherEntries.getVoucherDateStr().get(1);
-            DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z '('中国标准时间')'", Locale.ENGLISH);
-            ZonedDateTime zonedDateTime2 = ZonedDateTime.parse(dateStr2, formatter2);
-            // 转换为传统的Date对象
-            Calendar calendar = Calendar.getInstance();
-            Date end_date = Date.from(zonedDateTime2.toInstant());
-            calendar.setTime(end_date);
-            // 设置为该月第一天
-            calendar.set(Calendar.DAY_OF_MONTH, 1);
-            // 然后设置为下个月的第一天
-            calendar.add(Calendar.MONTH, 1);
-            // 再减去一天，得到当前月的最后一天
-            calendar.add(Calendar.DAY_OF_MONTH, -1);
-            finVoucherEntries.setEndDate(calendar.getTime());
+    private  void handlerDatePeriod(FinVoucherDTO finVoucherEntries){
+        if(finVoucherEntries.getVoucherId()!=null){
+            return;
         }
+        Date[] dateRange = QueryParamUtil.parseDatePeriodRange(finVoucherEntries.getStartPeriod(), finVoucherEntries.getEndPeriod());
+        Date startDate = dateRange[0];
+        Date endDate = dateRange[1];
+        finVoucherEntries.setStartDate(startDate);
+        finVoucherEntries.setEndDate(endDate);
     }
 
 

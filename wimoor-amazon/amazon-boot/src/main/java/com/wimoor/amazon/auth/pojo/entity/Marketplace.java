@@ -85,4 +85,7 @@ public class Marketplace implements Serializable{
 
 	@TableField(value =  "language")
 	private String language;
+
+	@TableField(exist = false)
+	private String amazonauthid;
 }

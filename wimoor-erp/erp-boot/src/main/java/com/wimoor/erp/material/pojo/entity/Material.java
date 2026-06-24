@@ -1,21 +1,18 @@
 package com.wimoor.erp.material.pojo.entity;
 
-import java.math.BigDecimal;
-import java.util.Date;
- 
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.erp.common.pojo.entity.ErpBaseEntity;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.util.Date;
  
 
 /**
@@ -63,7 +60,11 @@ public class Material  extends ErpBaseEntity{
 	@Size(min=0,max=40,message="品牌的长度不能超过40个字符")
     @TableField(value = "brand")
     private String brand;
-    
+
+    @ApiModelProperty(value = "品牌ID")
+    @TableField(value = "brandid")
+    private String brandid;
+
     @ApiModelProperty(value = "产品尺寸重量ID")
 	@TableField(value = "itemDimensions")
     private String itemdimensions;
@@ -96,6 +97,10 @@ public class Material  extends ErpBaseEntity{
     @ApiModelProperty(value = "vat税率")
     @TableField(value="vatrate")
     private Float vatrate;
+    
+    @ApiModelProperty(value = "退税率")
+    @TableField(value="drawback_rate")
+    private Float drawbackRate;
     
     @ApiModelProperty(value = "产品编码")
 	@Size( max=36,message="编码的长度不能超过36个字符")
@@ -143,7 +148,11 @@ public class Material  extends ErpBaseEntity{
     @ApiModelProperty(value = "价格")
     @TableField(value="price")
     private BigDecimal price;
-    
+
+    @ApiModelProperty(value = "是否组装价格")
+    @TableField(value="is_ass_price")
+    private Boolean isAssPrice;
+
     @ApiModelProperty(value = "创建人ID【系统填写】")
     @TableField(value = "creator")
     private String creator;
@@ -155,7 +164,11 @@ public class Material  extends ErpBaseEntity{
     @ApiModelProperty(value = "产品负责人")
     @TableField(value = "owner")
     private String owner;
-    
+
+    @ApiModelProperty(value = "店铺ID")
+    @TableField(value = "groupid")
+    private String groupid;
+
     @ApiModelProperty(value = "加权价格")
     @TableField(value="price_wavg")
     private BigDecimal priceWavg;

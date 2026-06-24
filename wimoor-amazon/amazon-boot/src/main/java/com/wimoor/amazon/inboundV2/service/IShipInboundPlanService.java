@@ -1,17 +1,13 @@
 package com.wimoor.amazon.inboundV2.service;
 
-import java.util.List;
-import java.util.Map;
-
 import com.amazon.spapi.model.fulfillmentinboundV20240320.InboundPlan;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.service.IRunAmazonService;
-import com.wimoor.amazon.inbound.pojo.dto.ShipInboundPlanDTO;
-import com.wimoor.amazon.inboundV2.pojo.dto.ShipPlanListDTO;
 import com.wimoor.amazon.inboundV2.pojo.dto.InboundPlansDTO;
+import com.wimoor.amazon.inboundV2.pojo.dto.ShipPlanListDTO;
 import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundItem;
 import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
 import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
@@ -19,6 +15,9 @@ import com.wimoor.amazon.inboundV2.pojo.vo.ShipPlanVo;
 import com.wimoor.amazon.inboundV2.pojo.vo.SummaryPlanVo;
 import com.wimoor.common.user.UserInfo;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+
+import java.util.List;
+import java.util.Map;
 
 public interface IShipInboundPlanService extends IService<ShipInboundPlan>, IRunAmazonService {
 
@@ -65,4 +64,6 @@ public interface IShipInboundPlanService extends IService<ShipInboundPlan>, IRun
 	IPage<Map<String, Object>> getShipmentReport(Page<Object> page, Map<String, Object> param);
 
 	void setExcelBookByType(SXSSFWorkbook workbook, Map<String, Object> params);
+
+    void changeShipInboundPlanItem(ShipInboundPlan old, String itemid, Integer qty);
 }

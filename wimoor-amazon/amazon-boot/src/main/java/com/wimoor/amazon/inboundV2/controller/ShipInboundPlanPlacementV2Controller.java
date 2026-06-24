@@ -1,56 +1,25 @@
 package com.wimoor.amazon.inboundV2.controller;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import com.wimoor.amazon.api.AdminClientOneFeignManager;
-import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
-import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans;
-import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxMapper;
-import com.wimoor.amazon.inboundV2.pojo.dto.*;
-import com.wimoor.amazon.inboundV2.service.*;
-import com.wimoor.amazon.util.LockCheckUtils;
-import com.wimoor.common.GeneralUtil;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.ListShipmentBoxesResponse;
 import com.amazon.spapi.model.fulfillmentinboundV20240320.ListShipmentItemsResponse;
-import com.amazon.spapi.model.fulfillmentinboundV20240320.Shipment;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wimoor.amazon.api.AdminClientOneFeignManager;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
+import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
 import com.wimoor.amazon.inbound.pojo.dto.ShipInboundShipmenSummaryDTO;
 import com.wimoor.amazon.inbound.pojo.dto.ShipTransDTO;
 import com.wimoor.amazon.inbound.pojo.entity.ShipAddress;
+import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans;
 import com.wimoor.amazon.inbound.pojo.vo.ShipInboundShipmenSummarytVo;
 import com.wimoor.amazon.inbound.pojo.vo.SummaryShipmentVo;
 import com.wimoor.amazon.inbound.service.IShipAddressService;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundBox;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundCase;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundDestinationAddress;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipment;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBox;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentBoxItem;
-import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundShipmentItem;
+import com.wimoor.amazon.inboundV2.mapper.ShipInboundShipmentBoxMapper;
+import com.wimoor.amazon.inboundV2.pojo.dto.*;
+import com.wimoor.amazon.inboundV2.pojo.entity.*;
+import com.wimoor.amazon.inboundV2.service.*;
 import com.wimoor.amazon.profit.pojo.vo.InputDimensions;
 import com.wimoor.amazon.profit.pojo.vo.ItemMeasure;
 import com.wimoor.amazon.util.HttpDownloadUtil;
@@ -60,15 +29,25 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 @Api(tags = "发货单")
 @RestController
@@ -158,6 +137,16 @@ public class ShipInboundPlanPlacementV2Controller {
 					dto.setShipmentstatus(null);
 					dto.setHasexceptionnum("true");
 			}
+		List<String> numbers=null;
+		if(StrUtil.isNotBlank(dto.getShipmentid())){
+			String mnumber=dto.getShipmentid();
+			mnumber=mnumber.replace("\n",",");
+			String[] split = mnumber.trim().split(",");
+			numbers=Arrays.asList(split);
+			numbers.removeIf(String::isEmpty);
+		}
+		dto.setShipmentids(numbers);
+
 		    IPage<ShipInboundShipmenSummarytVo> shiplist=shipInboundShipmentV2Service.findByTraceCondition(dto);
 	        return Result.success(shiplist);
 	    }
@@ -1001,8 +990,10 @@ public class ShipInboundPlanPlacementV2Controller {
 		}
 		return Result.success(ship);
 	}
-	 
+
+	    @ApiOperation(value = "保存物流分摊费用")
 		@PostMapping(value = "updateFeeByShipment")
+		@SystemControllerLog("手动保存物流分摊费用")
 		@Transactional
 		public Result<?> updateFeeByShipment(@RequestBody List<ShipInboundShipmentItem> list)   {
 			UserInfo user=UserInfoContext.get();
@@ -1041,7 +1032,7 @@ public class ShipInboundPlanPlacementV2Controller {
 			}else{
 				shipment=shipInboundShipmentV2Service.getById(shipmentid);
 			}
-			shipInboundShipmentV2Service.setExcelBoxDetail(user, workbook, shipment.getShipmentid());
+			shipInboundShipmentV2Service.setExcelBoxDetail(user, workbook, shipment);
 			workbook.write(fOut);
 			workbook.close();
 			fOut.flush();
@@ -1113,6 +1104,19 @@ public class ShipInboundPlanPlacementV2Controller {
 		}
 		shipInboundShipmentV2Service.updateById(shipment);
 		return Result.success();
+	}
+
+	@ApiOperation(value = "更新plan的运输方式")
+	@GetMapping("/updateShipmentTranStyle")
+	public Result<String> updateShipmentTranStyleAction(String shipmentid,String transtyle) {
+		 ShipInboundShipment shipment = shipInboundShipmentV2Service.getById(shipmentid);
+		if(shipment!=null) {
+				shipment.setTranstyle(transtyle);
+				shipInboundShipmentV2Service.updateById(shipment);
+				return Result.success("ok");
+		}else {
+			return Result.success(null);
+		}
 	}
 
 	@ApiOperation(value = "插看地址")

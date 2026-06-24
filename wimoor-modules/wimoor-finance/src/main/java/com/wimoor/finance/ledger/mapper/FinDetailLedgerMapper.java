@@ -1,15 +1,15 @@
 package com.wimoor.finance.ledger.mapper;
 
+import com.wimoor.finance.ledger.domain.FinDetailLedger;
+import com.wimoor.finance.ledger.domain.dto.FinLedgerDTO;
+import com.wimoor.finance.ledger.domain.dto.SubjectBalanceDTO;
+import org.apache.ibatis.annotations.Param;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import com.wimoor.finance.ledger.domain.FinDetailLedger;
-import com.wimoor.finance.ledger.domain.dto.FinLedgerDTO;
-import com.wimoor.finance.ledger.domain.dto.SubjectBalanceDTO;
-import org.apache.ibatis.annotations.Param;
 
 /**
  * 明细账表Mapper接口
@@ -43,6 +43,14 @@ public interface FinDetailLedgerMapper
      * @return 明细账表集合
      */
     public List<Map<String,Object>> selectList(FinLedgerDTO finDetailLedger);
+
+    /**
+     * 查询明细账中用到的科目树（包含父科目）
+     *
+     * @param finDetailLedger 查询参数
+     * @return 科目列表
+     */
+    public List<Map<String,Object>> subjectTree(FinLedgerDTO finDetailLedger);
 
     /**
      * 新增明细账表
@@ -108,6 +116,12 @@ public interface FinDetailLedgerMapper
             @Param("subjectCode") String subjectCode,
             @Param("startDate") LocalDate startDate);
 
+    // 计算父科目下所有子科目的期初余额总和
+    BigDecimal sumChildSubjectsOpeningBalance(
+            @Param("groupid") String groupid,
+            @Param("parentSubjectCode") String parentSubjectCode,
+            @Param("startDate") LocalDate startDate);
+
     // 计算指定期间内科目的借方发生额合计
     BigDecimal sumDebitAmountBySubjectAndPeriod(
             @Param("groupid") String groupid,
@@ -129,11 +143,7 @@ public interface FinDetailLedgerMapper
             @Param("endDate") LocalDate endDate);
 
     // 批量计算多个科目的余额信息
-    List<SubjectBalanceDTO> selectSubjectBalances(
-            @Param("groupid") String groupid,
-            @Param("subjectCodes") List<String> subjectCodes,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+    List<SubjectBalanceDTO> selectSubjectBalances(@Param("params") Map<String,Object> params);
 
     // 计算科目组合的余额（支持科目编码模式匹配）
     BigDecimal calculateSubjectGroupBalance(

@@ -1,11 +1,11 @@
 package com.wimoor.amazon.profit.service;
 
-import java.util.List;
-
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wimoor.amazon.profit.pojo.entity.InplaceFee;
 import com.wimoor.amazon.profit.pojo.entity.ManualProcessingFee;
 import com.wimoor.amazon.profit.pojo.entity.ProfitConfig;
+
+import java.util.List;
  
 public interface IProfitCfgService  extends IService<ProfitConfig> {
 
@@ -39,4 +39,6 @@ public interface IProfitCfgService  extends IService<ProfitConfig> {
 	public List<InplaceFee> findInplacefee(String country);
 
 	public List<ManualProcessingFee> findManualProcessingFee() ;
+
+    String findFinDefaultPlanIdByGroup(String groupid);
 }

@@ -1,25 +1,10 @@
 package com.wimoor.amazon.auth.service.impl;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.SocketAddress;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import com.amazon.spapi.api.*;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
+import cn.hutool.core.lang.Assert;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAAuthorizationCredentials;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.SellingPartnerAPIAA.ScopeConstants;
+import com.amazon.spapi.api.*;
 import com.amazon.spapi.client.ApiClient;
 import com.amazon.spapi.client.ApiException;
 import com.amazon.spapi.model.tokens.CreateRestrictedDataTokenRequest;
@@ -28,8 +13,22 @@ import com.amazon.spapi.model.tokens.RestrictedResource;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
-import cn.hutool.core.lang.Assert;
 import lombok.Setter;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @ConfigurationProperties(prefix = "auth")
@@ -393,6 +392,15 @@ public class ApiBuildService implements InitializingBean {
 
 	public MessagingApi getMessageApi(AmazonAuthority auth){
 		MessagingApi api=new MessagingApi.Builder()
+				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
+				.endpoint(getEndPoint(auth.getAWSRegion()))
+				.rateLimitConfigurationOnRequests(auth)
+				.build();
+		return api;
+	}
+
+	public QueriesApi getQueriesApi(AmazonAuthority auth){
+		QueriesApi api=new QueriesApi.Builder()
 				.lwaAuthorizationCredentials(getLWAAuthorizationCredentials(auth))
 				.endpoint(getEndPoint(auth.getAWSRegion()))
 				.rateLimitConfigurationOnRequests(auth)

@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -101,9 +102,7 @@ public class AssemblyServiceImpl extends  ServiceImpl<AssemblyMapper,Assembly> i
 	}
 
 	public List<Assembly> selectBySubid(String materialid) {
-		LambdaQueryWrapper<Assembly> query=new LambdaQueryWrapper<Assembly>();
-		query.eq(Assembly::getSubmid, materialid);
-		return assemblyMapper.selectList(query);
+		return assemblyMapper.selectMainList(materialid);
 	}
 
 	
@@ -122,6 +121,11 @@ public class AssemblyServiceImpl extends  ServiceImpl<AssemblyMapper,Assembly> i
 		// TODO Auto-generated method stub
 		return this.baseMapper.selectMainsDetailBySku(param);
 	}
- 
+
+	@Override
+	public List<Map<String, Object>> selectMainBySubid(String submid, String shopid) {
+		return this.baseMapper.selectMainBySubid(submid, shopid);
+	}
+
 
 }

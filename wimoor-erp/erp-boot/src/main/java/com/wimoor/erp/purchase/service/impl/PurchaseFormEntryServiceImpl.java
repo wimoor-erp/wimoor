@@ -3,6 +3,7 @@ package com.wimoor.erp.purchase.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.common.GeneralUtil;
@@ -10,11 +11,13 @@ import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AmazonClientOneFeignManager;
-import com.wimoor.erp.material.mapper.AssemblyEntryInstockMapper;
 import com.wimoor.erp.customer.mapper.CustomerMapper;
 import com.wimoor.erp.customer.pojo.entity.Customer;
 import com.wimoor.erp.inventory.pojo.vo.MaterialInventoryVo;
 import com.wimoor.erp.inventory.service.IInventoryService;
+import com.wimoor.erp.material.mapper.AssemblyEntryInstockMapper;
+import com.wimoor.erp.purchase.alibaba.mapper.PurchaseFormEntryAlibabaInfoMapper;
+import com.wimoor.erp.purchase.alibaba.pojo.entity.PurchaseFormEntryAlibabaInfo;
 import com.wimoor.erp.purchase.mapper.PurchaseFormEntryHistoryMapper;
 import com.wimoor.erp.purchase.mapper.PurchaseFormEntryMapper;
 import com.wimoor.erp.purchase.mapper.PurchaseFormMapper;
@@ -25,6 +28,7 @@ import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntryHistory;
 import com.wimoor.erp.purchase.service.IPurchaseFormEntryService;
 import com.wimoor.erp.stock.mapper.StockTakingItemMapper;
+import com.wimoor.erp.stock.service.IChangeWhFormEntryService;
 import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +39,7 @@ import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import com.wimoor.erp.stock.service.IChangeWhFormEntryService;
+
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -60,6 +64,7 @@ public class PurchaseFormEntryServiceImpl extends  ServiceImpl<PurchaseFormEntry
 	final IInventoryService iInventoryService;
 	final IChangeWhFormEntryService iChangeWhFormEntryService;
 	final StockTakingItemMapper stockTakingItemMapper;
+	final PurchaseFormEntryAlibabaInfoMapper purchaseFormEntryAlibabaInfoMapper;
 	@Autowired
 	FileUpload fileUpload;
     @Autowired
@@ -113,7 +118,7 @@ public class PurchaseFormEntryServiceImpl extends  ServiceImpl<PurchaseFormEntry
 			heCompany=customer.getName();
 			heName=customer.getContacts();
 			heAddress=customer.getAddress();
-			hePhone=customer.getPhone_num();
+			hePhone=customer.getPhoneNum();
 		}
 		 try {
 			 response.setContentType("application/force-download");// 设置强制下载不打开
@@ -657,6 +662,119 @@ public class PurchaseFormEntryServiceImpl extends  ServiceImpl<PurchaseFormEntry
 				}
 			}
 		}
+	}
+
+	@Override
+	public Object downloadPurchaseInfoData(Map<String, Object> map, UserInfo userinfo) {
+		String supplierid=map.get("supplierid").toString();
+		PurchaseForm from = purchaseFormMapper.selectById(map.get("formid").toString());
+		List<Map<String, Object>> entrylist = purchaseFormMapper.findEntryByIdAndSupplier(map.get("formid").toString(),supplierid);
+		if(entrylist.size()<=0 || entrylist==null) {
+			throw new BizException("无产品列表信息!");
+		}
+		Warehouse warehouse = warehouseService.getById(map.get("warehouseid").toString());
+		Customer customer=customerMapper.selectById(supplierid);
+		String myCompany=map.get("company").toString();
+		String myAddress=warehouse.getAddress();
+		String myName=map.get("buyerName").toString();
+
+		String myPhone="";
+		if(userinfo.getUserinfo().get("tel")!=null) {
+			myPhone=userinfo.getUserinfo().get("tel").toString();
+		}else {
+			myPhone=userinfo.getAccount();
+		}
+		String date=map.get("buyerDate").toString();
+		String remark="无";
+		if(from!=null) {
+			remark=from.getRemark();
+			if(StrUtil.isEmpty(remark)) {
+				remark="无";
+			}
+		}
+		if(StrUtil.isEmpty(remark.trim()))remark="无";
+		String deliverydate="        ";
+		if(entrylist.get(0).get("deliverydate")!=null&&StrUtil.isNotBlank(entrylist.get(0).get("deliverydate").toString())) {
+			deliverydate=entrylist.get(0).get("deliverydate").toString().substring(0, 10);
+		}
+		String heCompany="";
+		String heName="";
+		String heAddress="";
+		String hePhone="";
+		String heGoodtype="";
+		if(customer!=null) {
+			heCompany=customer.getName();
+			heName=customer.getContacts();
+			heAddress=customer.getAddress();
+			hePhone=customer.getPhoneNum();
+			heGoodtype=customer.getGoodtype();
+		}
+		if(entrylist.get(0)!=null){
+			Map<String, Object> entry = entrylist.get(0);
+			if(entry.get("id")!=null){
+				String entryid = entry.get("id").toString();
+				PurchaseFormEntryAlibabaInfo info = purchaseFormEntryAlibabaInfoMapper.selectById(entryid);
+				if(info!=null){
+					if(info.getOrderInfo()!=null) {
+						JSONObject orderInfo = JSONObject.parseObject(info.getOrderInfo());
+						if(orderInfo!=null) {
+							if(orderInfo.containsKey("result")) {
+								JSONObject result = orderInfo.getJSONObject("result");
+								if(result.containsKey("baseInfo")) {
+									JSONObject baseInfo = result.getJSONObject("baseInfo");
+									if(baseInfo.containsKey("sellerContact")) {
+										JSONObject sellerContact = baseInfo.getJSONObject("sellerContact");
+										if(sellerContact.containsKey("companyName")) {
+											if(StrUtil.isNotEmpty(sellerContact.getString("companyName"))){
+												heCompany = sellerContact.getString("companyName");
+											}
+											if(StrUtil.isNotEmpty(sellerContact.getString("name"))){
+												heName = sellerContact.getString("name");
+											}
+											if(StrUtil.isNotEmpty(sellerContact.getString("mobile"))){
+												hePhone = sellerContact.getString("mobile");
+											}
+										}
+
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		 Map<String,Object> resultMap=new HashMap<String,Object>();
+		 resultMap.put("{买方公司名称}",myCompany);
+		 resultMap.put("{买方联系人}",myName);
+		 resultMap.put("{买方地址}",myAddress);
+		 resultMap.put("{买方电话}",myPhone);
+		resultMap.put("{日期}",GeneralUtil.formatDate(new Date()));
+        resultMap.put("{订单编码}",from.getNumber());
+
+		resultMap.put("{卖方公司名称}",heCompany);
+		resultMap.put("{卖方联系人}",heName);
+		resultMap.put("{卖方地址}",heAddress);
+		resultMap.put("{卖方电话}",hePhone);
+		resultMap.put("{卖方货物类型}",heGoodtype);
+		List<Map<String,Object>> tablelist=new ArrayList<Map<String,Object>>();
+		for(int j=0;j<entrylist.size();j++) {
+			Map<String, Object> item = entrylist.get(j);
+			Map<String,Object> itemMap=new HashMap<String,Object>();
+			itemMap.put("{产品列表.序号}",j+1);
+			itemMap.put("{产品列表.图片}",item.get("image"));
+			itemMap.put("{产品列表.名称}",item.get("mname"));
+			itemMap.put("{产品列表.编码}",item.get("sku"));
+			itemMap.put("{产品列表.规格}",item.get("specification"));
+			itemMap.put("{产品列表.数量}",item.get("amount"));
+			itemMap.put("{产品列表.单位}",item.get("unit"));
+			itemMap.put("{产品列表.备注}",item.get("notice"));
+			itemMap.put("{产品列表.单价}",item.get("itemprice"));
+			itemMap.put("{产品列表.金额}",item.get("orderprice"));
+			tablelist.add(itemMap);
+			}
+           resultMap.put("{产品列表}",tablelist);
+		return resultMap;
 	}
 
 }

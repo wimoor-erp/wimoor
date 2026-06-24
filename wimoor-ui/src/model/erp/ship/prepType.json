@@ -1,0 +1,38 @@
+[
+{"value":"ITEM_BLACK_SHRINKWRAP","name":"隐蔽包装","description":"该物品需要黑色收缩包装。"},
+{"value":"ITEM_BLANKSTK","name":"需要遮盖","description":"该物品需要一张空白贴纸来遮盖无法被其他贴纸覆盖的错误条形码。"	},
+{"value":"ITEM_BOXING","name":"外箱加厚","description":"如果存在尖锐物品、易碎物品、危险液体和黑胶唱片等安全隐患，则可能需要使用外箱包装。"},	
+{"value":"ITEM_BUBBLEWRAP","name":"气泡包装",	"description":"该物品需要气泡包装。"},
+{"value":"ITEM_CAP_SEALING","name":"密封","description":"为了防止泄漏，产品需要采用以下类型之一的二次密封：感应密封、安全环、夹子、热缩塑料带或盒子。"},
+{"value":"ITEM_DEBUNDLE","name":"需拆分","description":"该商品需要拆开一组标有单独销售的商品。撕掉将多个库存单元组合在一起的胶带或收缩包装。"},	
+{"value":"ITEM_HANG_GARMENT","name":"需架子","description":"物品必须放置在衣架上。"},	
+{"value":"ITEM_LABELING","name":"需贴标","description":"商品上必须贴有 FNSKU 标签。。"},		
+{"value":"ITEM_NO_PREP","name":"无需准备","description":"该物品不需要任何准备。"},		
+{"value":"ITEM_POLYBAGGING","name":"塑料袋","description":"该物品需要用塑料袋包装。"},		
+{"value":"ITEM_RMOVHANG","name":"不能挂架子","description":"该物品不能挂在衣架上运输。"},		
+{"value":"ITEM_SETCREAT","name":"套装","description":"成套商品必须在包装上贴上成套标签。单个商品上的条形码不得朝外，也不得遮盖。"},		
+{"value":"ITEM_SETSTK","name":"成套外标","description":"成套商品必须在包装上标明为成套商品。在商品上贴上标签，明确说明商品必须作为单个商品接收和销售。"},		
+{"value":"ITEM_SIOC","name":"原装","description":"该物品以原有产品包装形式运送。。"},
+{"value":"ITEM_SUFFOSTK","name":"需警告","description":"开口大于或等于 12 厘米（平放时测量）的塑料袋必须带有窒息警告。此警告必须印在袋子上或以标签形式贴上。"},
+{"value":"ITEM_TAPING","name":"需录音","description":"表示需要录音。"}
+]
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

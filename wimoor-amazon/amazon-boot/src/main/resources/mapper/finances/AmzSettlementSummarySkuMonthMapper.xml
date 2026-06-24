@@ -773,4 +773,150 @@
 														 and marketplace_name=#{marketplaceName,jdbcType=CHAR}
 		                                                 and posted_date=#{fromDate,jdbcType=DATE};
 	</select>
+
+
+	<select id="summaryQuarter" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT YEAR(posted_date) yeardate,
+		QUARTER(posted_date)  quarterdate,
+		ifnull(m.currency,mk.currency) currency,
+		SUM(amount) amount
+		FROM db_amazon.t_amz_settlement_summary_month m
+		LEFT JOIN db_amazon.t_marketplace mk ON mk.point_name=m.marketplace_name
+		LEFT JOIN db_amazon.t_amazon_auth a on a.id=m.amazonAuthId
+		WHERE a.shop_id=#{params.shopid,jdbcType=CHAR}
+		<if test="params.marketplaceid != null">
+			AND mk.marketplaceid = #{params.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="params.groupid != null">
+			AND a.groupid = #{params.groupid,jdbcType=CHAR}
+		</if>
+		AND m.posted_date >=#{params.fromDate,jdbcType=CHAR}
+		AND m.posted_date &lt; #{params.endDate,jdbcType=CHAR}
+		AND m.amount_description='Principal'
+		AND m.transaction_type='Order'
+		AND m.amount_type='ItemPrice'
+		GROUP BY YEAR(m.posted_date),QUARTER(m.posted_date),ifnull(m.currency,mk.currency)
+	</select>
+
+	<select id="getSummaryMonth" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT  DATE_FORMAT(s.posted_date,'%y-%m') posted_date,
+		SUM(s.principal)+SUM(s.tax)  principal,
+		SUM(s.rpt_reimbursements_fee)  share_reimbursement_fee,
+		SUM(s.rpt_adv_spend_fee)*-1 rpt_adv_spend_fee,
+		SUM(ifnull(s.rpt_storage_fee,0)+IFNULL(s.rpt_long_storage_fee,0)) storagefee,
+		SUM(s.share_coupon_redemption_fee) share_coupon_redemption_fee,
+		SUM(ifnull(s.local_unit_price,0)*ifnull(s.sales,0))*-1 price,
+		SUM(s.fbafee) fbafee,
+		SUM(s.refund) refund,
+		SUM(s.commission) commission,
+		SUM(s.promotion) promotion,
+		SUM(s.shipping) shipping,
+		SUM(s.otherfee) otherfee,
+		SUM(s.profit_vat) profit_vat,
+		SUM(s.profit_customstax) profit_customstax
+		FROM
+		<if test="params.currency=='MARKET'">
+			db_amazon.t_amz_settlement_summary_sku_month s
+		</if>
+		<if test="params.currency=='CNY'">
+			db_amazon.t_amz_settlement_summary_sku_month_cny s
+		</if>
+		<if test="params.currency=='USD'">
+			db_amazon.t_amz_settlement_summary_sku_month_usd s
+		</if>
+		LEFT JOIN db_amazon.t_amazon_auth a ON a.id=s.amazonAuthId
+		left join db_amazon.t_marketplace mk on mk.point_name=s.marketplace_name
+		WHERE a.shop_id=#{params.shopid,jdbcType=CHAR}
+		<if test="params.marketplaceid != null">
+			AND mk.marketplaceid = #{params.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="params.groupid != null">
+			AND a.groupid = #{params.groupid,jdbcType=CHAR}
+		</if>
+		AND s.posted_date >=#{params.fromDate,jdbcType=CHAR}
+		AND s.posted_date &lt;= #{params.endDate,jdbcType=CHAR}
+		GROUP BY  DATE_FORMAT(s.posted_date,'%y-%m')
+	</select>
+
+	<select id="getSummaryMonthStorage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT DATE_FORMAT(m.posted_date,'%y-%m') posted_date,
+		ifnull(m.currency,mk.currency) currency,
+		sum(case when   (amount_description='Principal'  and amount_type='ItemPrice' and transaction_type='Order')
+		or (amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' )
+		then amount else 0 end ) principal,
+		sum(case when   amount_description='Principal'  and amount_type='ItemPrice' and transaction_type='Order'
+		then amount else 0 end ) principalWithoutTax,
+		sum(case when transaction_type='Refund' then amount else 0 end ) refund,
+		sum(case when  amount_description like 'Commission' and transaction_type='Order'  then amount else 0 end ) commission,
+		sum(case when  (amount_description like 'FBAPerUnitFulfillmentFee%' or amount_type like 'FBA fulfilment fee per unit%') and (transaction_type='Order' or transaction_type='AmazonFees')  then amount else 0 end ) fbafee,
+		SUM(case when 'FBA Inventory Reimbursement'=amount_type   AND m.transaction_type='other-transaction' then amount ELSE 0 END ) reimbursement,
+		sum(case when (amount_description='MarketplaceFacilitatorVAT-Principal' OR amount_description='MarketplaceFacilitatorVAT-Shipping')  AND amount_type='ItemWithheldTax'   then amount else 0 end) vat,
+		SUM(case when ((m.amount_description in ('DisposalComplete',
+		'FBAInboundTransportationFee',
+		'FBAInboundTransportationProgramFee',
+		'Storage Fee',
+		'StorageRenewalBilling')
+		AND m.transaction_type ='other-transaction') OR
+		(m.amount_type in  ('FBA Inventory Storage Fee','FBA Long Term Storage Fee')
+		and m.transaction_type='FBAFees'))
+		then amount else 0 end ) storagefee,
+		SUM( case when  (amount_type='Promotion' OR amount_type='PromotionFee' ) then amount ELSE 0 END ) promotion,
+		sum(case when ((amount_description='Shipping' and amount_type='ItemPrice'    )
+		or
+		(amount_description='ShippingChargeback' and amount_type='ItemFees'   )
+		or
+		(amount_description='ShippingTax' and amount_type='ItemPrice'   )
+		) then amount else 0 end ) shipping,
+		SUM(case when transaction_type='Liquidations' then amount ELSE 0 END ) liquidations,
+		sum(case when amount_type='CouponRedemptionFee' then amount else 0 END ) coupon,
+		SUM(  case when amount_description LIKE 'FBA International Freight Shipping%' then amount else 0 END)  freight,
+		SUM( case when ( (amount_description='DigitalServicesFee' OR amount_description='Digital Services Fee') AND   amount_type='ItemFees' ) then amount ELSE 0 END ) digital,
+		sum(case when
+		not(amount_description='Principal'and amount_type='ItemPrice'and transaction_type='Order')
+		and not (amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice')
+		and not ( transaction_type='Refund' AND amount_type='ItemPrice' AND amount_description='Principal'
+		OR (amount_description='Tax' and transaction_type='Refund' and amount_type='ItemPrice') )
+		and not ( (amount_description like 'Commission%' OR amount_description='RefundCommission')  and  amount_type='ItemFees'  )
+		and not ((amount_description like 'FBAPerUnitFulfillmentFee%' or amount_type like 'FBA fulfilment fee per unit%') and (transaction_type='Order' or transaction_type='AmazonFees'))
+		AND NOT ( 'FBA Inventory Reimbursement'=amount_type
+		OR 'Manual Processing Fee Reimbursement'=amount_type
+		OR 'Item Fee Adjustment'=amount_type )
+		and not (amount_type='CouponRedemptionFee' )
+		AND NOT (amount_description='DigitalServicesFee' AND   amount_type='ItemFees' )
+		AND NOT ( amount_description LIKE 'FBA International Freight Shipping%' )
+		and not ((amount_description='Shipping' and amount_type='ItemPrice'  )
+		or
+		(amount_description='ShippingChargeback' and amount_type='ItemFees'   )
+		or
+		(amount_description='ShippingTax' and amount_type='ItemPrice'  )
+		)
+		and not (amount_type='Promotion'   OR amount_type='PromotionFee')
+		AND NOT ( (amount_description='DigitalServicesFee' OR amount_description='Digital Services Fee') AND   amount_type='ItemFees' )
+		AND NOT (transaction_type='Liquidations')
+		and NOT ((amount_description='MarketplaceFacilitatorVAT-Principal' OR amount_description='MarketplaceFacilitatorVAT-Shipping') AND amount_type='ItemWithheldTax'   )
+
+		and not ((m.amount_description in ('DisposalComplete',
+		'FBAInboundTransportationFee',
+		'FBAInboundTransportationProgramFee',
+		'Storage Fee',
+		'StorageRenewalBilling')
+		AND m.transaction_type ='other-transaction') OR
+		(m.amount_type in  ('FBA Inventory Storage Fee','FBA Long Term Storage Fee')
+		and m.transaction_type='FBAFees'))
+		then amount else 0 end) other,
+		sum(amount) shopfee
+		FROM db_amazon.t_amz_settlement_summary_month m
+		LEFT JOIN db_amazon.t_marketplace mk ON mk.point_name=m.marketplace_name
+		LEFT JOIN db_amazon.t_amazon_auth a on a.id=m.amazonAuthId
+		WHERE a.shop_id=#{params.shopid,jdbcType=CHAR}
+		<if test="params.marketplaceid != null">
+			AND mk.marketplaceid = #{params.marketplaceid,jdbcType=CHAR}
+		</if>
+		<if test="params.groupid != null">
+			AND a.groupid = #{params.groupid,jdbcType=CHAR}
+		</if>
+		AND m.posted_date >=#{params.fromDate,jdbcType=CHAR}
+		AND m.posted_date &lt; #{params.endDate,jdbcType=CHAR}
+		GROUP BY DATE_FORMAT(m.posted_date,'%y-%m'),ifnull(m.currency,mk.currency)
+	</select>
 </mapper>

@@ -1,16 +1,8 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.*;
-
-import javax.annotation.Resource;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.reports.CreateReportSpecification;
 import com.amazon.spapi.model.reports.ReportOptions;
-import com.wimoor.amazon.util.AmzDateUtils;
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
 import com.wimoor.amazon.auth.pojo.entity.Marketplace;
@@ -20,10 +12,15 @@ import com.wimoor.amazon.report.pojo.entity.ReportRequestType;
 import com.wimoor.amazon.report.pojo.entity.ReportType;
 import com.wimoor.amazon.report.service.IReportRequestTypeService;
 import com.wimoor.amazon.summary.service.ISummaryOrderReportService;
+import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.amazon.util.EmojiFilterUtils;
 import com.wimoor.common.GeneralUtil;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.*;
 
 @Service("reportAmzOrderByLastUpdateService")
 public class ReportAmzOrderByLastUpdateServiceImpl extends ReportServiceImpl{
@@ -38,6 +35,12 @@ public class ReportAmzOrderByLastUpdateServiceImpl extends ReportServiceImpl{
 
 	public void   requestReport(AmazonAuthority amazonAuthority,Calendar cstart,Calendar cend,Boolean ignore) {
 		amazonAuthority.setUseApi("createReport");
+		if(GeneralUtil.isBetweenTime(8, 18)&&(ignore==null||ignore==false)) {
+			ignore=true;
+			//开始时间必须是结束时间往前推6小时内的时间
+			cstart.setTime(cend.getTime());
+			cstart.add(Calendar.HOUR,-6);
+		}
 		List<Marketplace> marketlist = marketplaceService.findbyauth(amazonAuthority.getId());
 		List<String> list=new ArrayList<String>();
 		CreateReportSpecification body=new CreateReportSpecification();

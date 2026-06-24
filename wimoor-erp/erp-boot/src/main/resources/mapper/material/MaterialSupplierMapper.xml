@@ -26,6 +26,7 @@
 		WHERE t.materialid=#{id,jdbcType=CHAR}
 		ORDER BY t.isdefault DESC;
    </select>
+
    <select id="selectSupplerOtherById" resultType="java.util.Map" parameterType="java.lang.String">
   		SELECT t.*,s.name FROM  t_erp_material_supplier t
 		LEFT JOIN t_erp_customer s ON s.id=t.supplierid

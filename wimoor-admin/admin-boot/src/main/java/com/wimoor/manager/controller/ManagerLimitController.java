@@ -1,16 +1,7 @@
 package com.wimoor.manager.controller;
 
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.admin.pojo.dto.QueryShopNameDTO;
 import com.wimoor.admin.service.ISysUserService;
@@ -19,10 +10,13 @@ import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.manager.pojo.entity.ManagerLimit;
 import com.wimoor.manager.service.IManagerLimitService;
-
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -77,7 +71,21 @@ public class ManagerLimitController {
 	
 	@PostMapping("/update")
 	public Result<?> save(@RequestBody ManagerLimit ml)  {
-	     return Result.success(iManagerLimitService.save(ml));
+		ManagerLimit old = iManagerLimitService.lambdaQuery().eq(ManagerLimit::getShopId, ml.getShopId()).one();
+		if(old!=null){
+			ml.setId(old.getId());
+			return Result.success(iManagerLimitService.updateById(ml));
+		}else{
+			return Result.failed("用户管理信息不存在");
+		}
+
+	}
+
+	@PostMapping("/updateRemark")
+	public Result<?> saveRemark(@RequestBody ManagerLimit ml)  {
+		ManagerLimit old = iManagerLimitService.lambdaQuery().eq(ManagerLimit::getShopId, ml.getShopId()).one();
+		old.setRemark(ml.getRemark());
+		return Result.success(iManagerLimitService.updateById(old));
 	}
 	
 	@GetMapping("/summary")

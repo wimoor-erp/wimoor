@@ -1,18 +1,23 @@
 package com.wimoor.amazon.adv.common.service.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.Resource;
-
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.wimoor.amazon.adv.common.dao.AmazonGroupMapper;
+import com.wimoor.amazon.adv.common.dao.AmzAdvAuthMapper;
+import com.wimoor.amazon.adv.common.dao.AmzAdvProfileMapper;
+import com.wimoor.amazon.adv.common.dao.AmzRegionMapper;
+import com.wimoor.amazon.adv.common.pojo.*;
+import com.wimoor.amazon.adv.common.service.IAmzAdvAuthService;
+import com.wimoor.amazon.adv.common.service.IAmzAdvRemindService;
+import com.wimoor.amazon.adv.exports.service.IAmzAdvSnapshotHandlerService;
+import com.wimoor.amazon.adv.report.service.IAmzAdvReportHandlerService;
+import com.wimoor.amazon.adv.task.service.IAdvSchedulePlanItemService;
+import com.wimoor.amazon.adv.task.service.IAdvSchedulePlanService;
+import com.wimoor.amazon.adv.utils.HttpClientUtil;
+import com.wimoor.amazon.base.BaseService;
+import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mvc.BizException;
+import lombok.Setter;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,32 +29,15 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-
-import com.alibaba.fastjson.JSONObject;
-import com.wimoor.amazon.adv.common.dao.AmazonGroupMapper;
-import com.wimoor.amazon.adv.common.dao.AmzAdvAuthMapper;
-import com.wimoor.amazon.adv.common.dao.AmzAdvProfileMapper;
-import com.wimoor.amazon.adv.common.dao.AmzRegionMapper;
-import com.wimoor.amazon.adv.common.pojo.AmazonGroup;
-import com.wimoor.amazon.adv.common.pojo.AmzAdvAuth;
-import com.wimoor.amazon.adv.common.pojo.AmzAdvProfile;
-import com.wimoor.amazon.adv.common.pojo.AmzRegion;
-import com.wimoor.amazon.adv.common.pojo.BaseException;
-import com.wimoor.amazon.adv.common.pojo.Marketplace;
-import com.wimoor.amazon.adv.common.service.IAmzAdvAuthService;
-import com.wimoor.amazon.adv.common.service.IAmzAdvRemindService;
-import com.wimoor.amazon.adv.report.service.IAmzAdvReportHandlerService;
-import com.wimoor.amazon.adv.exports.service.IAmzAdvSnapshotHandlerService;
-import com.wimoor.amazon.adv.task.service.IAdvSchedulePlanItemService;
-import com.wimoor.amazon.adv.task.service.IAdvSchedulePlanService;
-import com.wimoor.amazon.adv.utils.HttpClientUtil;
-import com.wimoor.amazon.base.BaseService;
-import com.wimoor.common.GeneralUtil;
-import com.wimoor.common.mvc.BizException;
-import lombok.Setter;
 import tk.mybatis.mapper.entity.Example;
 import tk.mybatis.mapper.entity.Example.Criteria;
 import tk.mybatis.mapper.util.StringUtil;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service("amzAdvAuthService")
 @ConfigurationProperties(prefix = "auth")
@@ -230,12 +218,6 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 	public String captureAmzAdvAuthByCode(String code, String region, String groupid) {
 		String url = "https://api.amazon.com/auth/o2/token";
 		String redirect_uri = this.getRedirecturl();
-//		if(region.toLowerCase().contains("fe")) {
-//			url="https://api.amazon.co.jp/auth/o2/token";
-//		}
-//		if(region.toLowerCase().contains("eu")) {
-//			url="https://api.amazon.co.uk/auth/o2/token";
-//		}
 		AmzRegion regionObject = amzRegionMapper.selectByPrimaryKey(region);
 		Map<String, String> map = new HashMap<String, String>();
 		Map<String, String> header = new HashMap<String, String>();
@@ -247,25 +229,13 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 		map.put("client_secret", regionObject.getClientSecret().trim());
 		map.put("code", code);
 		map.put("redirect_uri", redirect_uri);
-		String response = null;
-		try {
-			response = HttpClientUtil.postUrl(url, map, header, URLEncodedUtils.CONTENT_TYPE);
-		} catch (Exception e) {
-			if(e!=null) {
-				StackTraceElement[] s = e.getStackTrace();
-				if(s!=null) {
-					return "绑定处理---------"+s.toString();
-				}else {
-					return "绑定处理---------"+e.getMessage(); 
-				}
-			} 
-		}
+		String response  = HttpClientUtil.postUrl(url, map, header, URLEncodedUtils.CONTENT_TYPE);
 		if (response != null) {
 			AmazonGroup group = amazonGroupMapper.selectByPrimaryKey(groupid);
 			com.alibaba.fastjson.JSONObject item = com.alibaba.fastjson.JSON.parseObject(response);
 			AmzAdvAuth advauth = new AmzAdvAuth();
 			if(item==null) {
-				return "绑定处理---------未找到授权信息";
+				throw  new BizException( "绑定处理---------未找到授权信息");
 			}
 			advauth.setAccessToken(item.getString("access_token"));
 			advauth.setRefreshToken(item.getString("refresh_token"));
@@ -292,7 +262,7 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 				return "绑定成功";
 			}
 		}else {
-		   return "绑定处理---------获取授权信息失败";
+			throw  new BizException( "绑定处理---------获取授权信息失败");
 		}
 	}
 
@@ -647,8 +617,8 @@ public class AmzAdvAuthServiceImpl extends BaseService<AmzAdvAuth> implements IA
 	}
 
 	@Override
-	public List<AmzAdvAuth> selectLastAuthList() {
-		return amzAdvAuthMapper.selectLastAuthList();
+	public List<AmzAdvAuth> selectLastAuthList(String ftype) {
+		return amzAdvAuthMapper.selectLastAuthList(ftype);
 	}
 
 

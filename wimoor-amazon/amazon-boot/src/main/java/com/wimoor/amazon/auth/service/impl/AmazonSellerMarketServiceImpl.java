@@ -71,6 +71,7 @@ public class AmazonSellerMarketServiceImpl extends ServiceImpl<AmazonSellerMarke
 		} catch (LWAException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			 throw new BizException("LWA调用错误："+e.getMessage());
 		}
 	 
 	}

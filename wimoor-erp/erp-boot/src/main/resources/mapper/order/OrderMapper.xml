@@ -20,6 +20,9 @@
         <if test="param.warehouseid!=null and param.warehouseid!=''">
             AND o.warehouseid=#{param.warehouseid,jdbcType=CHAR}
         </if>
+        <if test="param.myself!=null and param.myself!=''">
+            and m.owner=#{param.myself,jdbcType=CHAR}
+        </if>
         <if test="param.sku!=null">
             AND (o.sku like #{param.sku,jdbcType=CHAR} or o.order_id like #{param.sku,jdbcType=CHAR})
         </if>
@@ -128,6 +131,9 @@
         where o.shopid=#{param.shopid,jdbcType=CHAR}
          and o.purchase_date &gt;=#{param.fromDate,jdbcType=CHAR}
          and o.purchase_date &lt;=  #{param.toDate,jdbcType=CHAR}
+        <if test="param.myself!=null and param.myself!=''">
+            and m.owner=#{param.myself,jdbcType=CHAR}
+        </if>
         <if test="param.platformid!=null and param.platformid!=''">
             AND o.platform_id=#{param.platformid,jdbcType=CHAR}
         </if>

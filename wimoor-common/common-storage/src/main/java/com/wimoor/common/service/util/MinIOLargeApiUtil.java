@@ -75,7 +75,7 @@ public class MinIOLargeApiUtil {
 			int length = outputstream.size();
 			inputStream = new ByteArrayInputStream(((ByteArrayOutputStream) outputstream).toByteArray());
 			MinioClient client=getClient();
-			createBucketIfAbsent(bucketName);
+			//createBucketIfAbsent(bucketName);
 			PutObjectArgs putObjectArgs = PutObjectArgs.builder()
 		                .bucket(bucketName)
 		                .object(objectName)

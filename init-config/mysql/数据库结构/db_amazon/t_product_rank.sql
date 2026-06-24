@@ -18,7 +18,7 @@
 CREATE TABLE IF NOT EXISTS `t_product_rank` (
   `id` bigint unsigned NOT NULL,
   `byday` datetime DEFAULT NULL,
-  `categoryId` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `categoryId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `rank` int DEFAULT NULL,
   `product_id` bigint unsigned DEFAULT NULL,
   `title` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,

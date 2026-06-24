@@ -149,7 +149,7 @@
 	    <if test="dateType == 'daily'">
 			t.bydate,
 		</if> 
-		    ad.name adGroupName,cm.name campaignName,k.matchType matchType,k.keywordText keywordText, 
+		    ifnull(ad.name,'无对应广告组') adGroupName,ifnull(cm.name,'无对应广告活动') campaignName,ifnull(k.matchType,'无对应匹配类型') matchType,ifnull(k.keywordText,'无对应关键词') keywordText,
 		    sum(impressions) impressions, sum(clicks) clicks, sum(cost) Spend, 
 		    ifnull((sum(clicks) / sum(impressions)),0) 'Click Thru Rate (CTR)',
 		    ifnull((sum(cost) / sum(clicks)),0) 'Cost Per Click (CPC)',

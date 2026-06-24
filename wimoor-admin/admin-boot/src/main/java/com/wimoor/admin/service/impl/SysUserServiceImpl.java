@@ -1,70 +1,31 @@
 package com.wimoor.admin.service.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.net.URLEncodeUtil;
+import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.ServiceException;
-import com.google.zxing.WriterException;
-import com.wimoor.admin.util.GoogleAuthenticatorUtils;
-import com.wimoor.admin.util.IpUtil;
-import com.wimoor.admin.util.QRCodeUtils;
-import org.apache.commons.net.util.Base64;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.zxing.WriterException;
 import com.wimoor.admin.common.util.PasswordHelper;
-import com.wimoor.admin.mapper.SysCompanyMapper;
-import com.wimoor.admin.mapper.SysUserDatalimitMapper;
-import com.wimoor.admin.mapper.SysUserGroupMapper;
-import com.wimoor.admin.mapper.SysUserInfoMapper;
-import com.wimoor.admin.mapper.SysUserMapper;
-import com.wimoor.admin.mapper.SysUserShopMapper;
+import com.wimoor.admin.mapper.*;
 import com.wimoor.admin.pojo.dto.UserDTO;
 import com.wimoor.admin.pojo.dto.UserInsertDTO;
 import com.wimoor.admin.pojo.dto.UserRegisterInfoDTO;
-import com.wimoor.admin.pojo.entity.SysCompany;
-import com.wimoor.admin.pojo.entity.SysDictItem;
-import com.wimoor.admin.pojo.entity.SysRole;
-import com.wimoor.admin.pojo.entity.SysUser;
-import com.wimoor.admin.pojo.entity.SysUserBind;
-import com.wimoor.admin.pojo.entity.SysUserDatalimit;
-import com.wimoor.admin.pojo.entity.SysUserGroup;
-import com.wimoor.admin.pojo.entity.SysUserInfo;
-import com.wimoor.admin.pojo.entity.SysUserRole;
-import com.wimoor.admin.pojo.entity.SysUserShop;
-import com.wimoor.admin.pojo.entity.SysUserWechatMP;
+import com.wimoor.admin.pojo.entity.*;
 import com.wimoor.admin.pojo.vo.UserVO;
-import com.wimoor.admin.service.ISysDictItemService;
-import com.wimoor.admin.service.ISysRoleService;
-import com.wimoor.admin.service.ISysUserBindService;
-import com.wimoor.admin.service.ISysUserDatalimitService;
-import com.wimoor.admin.service.ISysUserRoleService;
-import com.wimoor.admin.service.ISysUserService;
-import com.wimoor.admin.service.ISysUserWechatMPService;
+import com.wimoor.admin.service.*;
+import com.wimoor.admin.util.GoogleAuthenticatorUtils;
+import com.wimoor.admin.util.IpUtil;
+import com.wimoor.admin.util.QRCodeUtils;
 import com.wimoor.common.GeneralUtil;
+import com.wimoor.common.mapper.OperationLogMapper;
 import com.wimoor.common.mvc.BizException;
+import com.wimoor.common.pojo.entity.OperationLog;
 import com.wimoor.common.pojo.entity.Picture;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.service.IPictureService;
@@ -78,12 +39,24 @@ import com.wimoor.manager.service.ISysTariffPackagesService;
 import com.wimoor.sys.email.service.ISysMailManagerService;
 import com.wimoor.util.SpringUtil;
 import com.wimoor.util.UUIDUtil;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.UUID;
-import cn.hutool.core.net.URLEncodeUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.net.util.Base64;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 用户业务类
@@ -121,7 +94,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	private final ISysUserBindService iSysUserBindService;
 	
 	private final ISysMailManagerService iSysMailManagerService;
-	
+    private final OperationLogMapper operationLogMapper;
 	@Value("${sys.admin.id}")
 	String adminid;
 	public String getAdminid() {
@@ -244,7 +217,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	}
 	
 	public Map<String, Object> getUserInfoById(String id) {
-		return this.baseMapper.findUserInfoById(id);
+		Map<String, Object> infomap= this.baseMapper.findUserInfoById(id);
+		if(infomap==null) {infomap=new HashMap<String,Object>();}
+		SysUser m_user = this.getById(id);
+		String shopid = this.getUserShopByUser(m_user);
+        infomap.put("limit",this.iManagerLimitService.findManagerLimitByShopId(shopid));
+		return infomap;
 	}
 	
 	@Override
@@ -273,7 +251,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 			if(this.addUserWechatMPInfo(m_user,accesstoken,refreshtoken,openid,appType)) {
 				String shopid = getUserShopByUser(m_user);
 				m_user.setShopid(shopid);
-				m_user.setUserinfo( this.baseMapper.findUserInfoById(m_user.getId()));
+				setUserInfoMap(m_user);
 				SysUser user = this.getById(m_user.getId());
 				user.setLastlogintime(new Date());
 				this.updateById(user);
@@ -310,9 +288,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 			//m_user = this.findOneByAccountOrEmail("");
 			m_user.setShopid(getUserShopByUser(m_user));
 			m_user.setLastlogintime(new Date());
-			m_user.setUserinfo( this.baseMapper.findUserInfoById(m_user.getId()));
 			m_user.setLastloginip(IpUtil.getIpAddr());
 			this.baseMapper.updateById(m_user);
+			setUserInfoMap(m_user);
+			//添加用户登录记录
+			OperationLog log=new OperationLog();
+			log.setTime(new Date());
+			log.setIp(IpUtil.getIpAddr());
+			log.setUserid(m_user.getId());
+			log.setUsername(m_user.getAccount());
+			log.setLogtype("login");
+			log.setMethod("verifyAccount");
+			log.setParam("account="+account);
+			log.setDescription("用户登录");
+			operationLogMapper.insert(log);
 			return m_user;
 		}else{
 			throw new BizException("账号或密码有误");
@@ -368,13 +357,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	        	roles.add(item.getRoleId().toString());
 	        }
 			 info.setRoles(roles);
-			 
 			 LambdaQueryWrapper<SysUserDatalimit> queryLimit=new LambdaQueryWrapper<SysUserDatalimit>();
 			 queryLimit.eq(SysUserDatalimit::getUserid, user.getId());
     		 List<SysUserDatalimit> datalimitList = sysUserDatalimitMapper.selectList(queryLimit);
     		 List<String> datalimits = datalimitList.stream().filter(item -> item.getIslimit()).map(item -> item.getDatatype().toString()).collect(Collectors.toList());
     		 info.setDatalimits(datalimits);
-    		 
+			 ManagerLimit managerLimit = iManagerLimitService.getOne(new LambdaQueryWrapper<ManagerLimit>().eq(ManagerLimit::getShopId, user.getShopid()));
     		if(isadmin) {
     			info.setUsertype(UserType.admin.getCode());
     		}else if(ismanager) {
@@ -524,7 +512,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 						}
 						String shopid = getUserShopByUser(m_user);
 						m_user.setShopid(shopid);
-						m_user.setUserinfo( this.baseMapper.findUserInfoById(m_user.getId()));
+						setUserInfoMap(m_user);
 						result.add(m_user);
 					}
 				}
@@ -541,7 +529,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 					}
 					String shopid = getUserShopByUser(m_user);
 					m_user.setShopid(shopid);
-					m_user.setUserinfo( this.baseMapper.findUserInfoById(m_user.getId()));
+					setUserInfoMap(m_user);
 					result.add(m_user);
 				}
 			}
@@ -591,12 +579,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		if(mp2!=null){
 			for(SysUserWechatMP item:mp2){
 				SysUser useritem = this.getUserAllById(item.getUserid());
+				if(!validationChecking(useritem)){ continue; }
 				addList(userlist, useritem, item);
 			}
 		}
 		if(bindusers!=null){
 			for(SysUserBind item:bindusers){
 				SysUser useritem = this.getUserAllById(item.getUserid().toString());
+				if(!validationChecking(useritem)){ continue; }
 				addList(userlist, useritem, item);
 			}
 		}
@@ -617,6 +607,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 				for(SysUserWechatMP item:sublist2){
 					if(map.containsKey(item.getUserid())) {continue;}
 					SysUser useritem = this.getUserAllById(item.getUserid());
+					if(!validationChecking(useritem)){ continue; }
 					if(useritem!=null){
 						useritem.setLastloginsession(item.getOpenid());
 						useritem.setLastloginip(item.getFtype());
@@ -887,7 +878,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		managerLimit.setShopId(new BigInteger(company.getId()));
 		managerLimit.setOpratetime(LocalDateTime.now());
 		managerLimit.setCreatetime(LocalDateTime.now());
-		managerLimit.setLosingEffect(LocalDate.parse("2099-01-01"));
+		managerLimit.setExpirationTime(LocalDate.parse("2099-01-01"));
+		managerLimit.setEffectiveTime(LocalDate.now());
 		iManagerLimitService.save(managerLimit);
 		if(StrUtil.isNotBlank(dto.getEmail())) {
 			this.sendWelcomeEmail(dto.getEmail());

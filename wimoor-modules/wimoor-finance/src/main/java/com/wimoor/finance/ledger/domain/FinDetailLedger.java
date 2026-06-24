@@ -71,6 +71,12 @@ public class FinDetailLedger extends BaseEntity
     @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date createdTime;
 
+    private String startPeriod;
+    private String endPeriod;
+    private String period;
+    private Date startDate;
+    private Date endDate;
+
     public void setDetailId(Long detailId) 
     {
         this.detailId = detailId;
@@ -201,6 +207,36 @@ public class FinDetailLedger extends BaseEntity
         return createdTime;
     }
 
+    public String getStartPeriod() {
+        return startPeriod;
+    }
+    public void setStartPeriod(String startPeriod) {
+        this.startPeriod = startPeriod;
+    }
+    public String getEndPeriod() {
+        return endPeriod;
+    }
+    public void setEndPeriod(String endPeriod) {
+        this.endPeriod = endPeriod;
+    }
+    public String getPeriod() {
+        return period;
+    }
+    public void setPeriod(String period) {
+        this.period = period;
+    }
+    public Date getStartDate() {
+        return startDate;
+    }
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+    public Date getEndDate() {
+        return endDate;
+    }
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)

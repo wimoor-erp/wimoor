@@ -27,7 +27,7 @@ public interface SysTagsMapper extends BaseMapper<SysTags> {
 	        " FROM",
 	        " 	t_sys_tags t1",
 	        " 	INNER JOIN t_sys_tags_groups t2 ON t2.id=t1.taggroupid ",
-	        " WHERE t2.shop_id = #{shopid} ",
+	        " WHERE t2.shop_id = #{shopid} and t1.status=1 and t2.status=1",
 	        "</script>"})
 	List<SysTags> listbyshop(String shopid);
 }

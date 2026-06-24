@@ -108,8 +108,22 @@
 		SELECT * FROM t_amz_adv_auth t 
 		WHERE t.`disable`=0  
 	</select>
-	<select id="selectLastAuthList" resultType="com.wimoor.amazon.adv.common.pojo.AmzAdvAuth">
-		SELECT * FROM t_amz_adv_auth t WHERE t.disableTime IS NULL OR t.disableTime &lt;= DATE_SUB(NOW(), INTERVAL 10 HOUR)
+	<select id="selectLastAuthList" resultType="com.wimoor.amazon.adv.common.pojo.AmzAdvAuth" parameterType="java.lang.String">
+		SELECT t.* FROM t_amz_adv_auth t
+		LEFT JOIN (
+		SELECT MAX(p.advauthId) advauthId,MAX(s.requesttime) requesttime
+		<if test="ftype=='snapshot'">
+			FROM t_amz_adv_snapshot s
+		</if>
+		<if test="ftype=='report'">
+			FROM t_amz_adv_report_request s
+		</if>
+		LEFT JOIN  t_amz_adv_profile p ON p.id=s.profileid
+		GROUP BY p.advauthId
+		) v ON v.advauthId=t.id
+		WHERE (t.disableTime IS NULL OR t.disableTime &lt;= DATE_SUB(NOW(), INTERVAL 10 HOUR))
+		AND t.`disable`=0
+		ORDER BY IFNULL(v.requesttime,'1991-01-01') asc
 	</select>
 
 

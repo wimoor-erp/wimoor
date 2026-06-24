@@ -1,11 +1,12 @@
 package com.wimoor.amazon.inventory.pojo.vo;
 
-import java.io.Serializable;
-
 import lombok.Data;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+
 @Data
-public class ProductInventoryVo implements  Serializable {
+public class ProductInventoryVo implements Serializable {
 	/**
 	 * 
 	 */
@@ -26,5 +27,8 @@ public class ProductInventoryVo implements  Serializable {
     String afnUnsellableQuantity;
     String afnResearchingQuantity;
     String afnTotalQuantity;
+    Integer stockingCycle; // 安全库存周期
+    Integer minCycle; // 最小发货周期
+    BigDecimal firstLegCharges; // 头程运输成本
     ProductInventoryVo summary;
 }

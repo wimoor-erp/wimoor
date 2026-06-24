@@ -1,15 +1,14 @@
 package com.wimoor.finance.voucher.domain;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.wimoor.common.core.annotation.Excel;
 import com.wimoor.common.core.web.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 记账凭证对象 fin_vouchers
@@ -53,6 +52,9 @@ public class FinVouchers extends BaseEntity
     @Excel(name = "凭证状态：1-草稿，2-已审核，3-已过账，4-已作废")
     private Integer voucherStatus;
 
+    /** 数据来源：1-手动录入，2-导入，3-结账模版生成，4-单据同步 */
+    private Integer dataSource;
+
     /** 制单人用户ID */
     @Excel(name = "制单人用户ID")
     private String preparerBy;
@@ -62,6 +64,18 @@ public class FinVouchers extends BaseEntity
     /** 审核人用户ID */
     @Excel(name = "审核人用户ID")
     private String auditorBy;
+
+
+
+    private Long periodId;
+
+    public Long getPeriodId() {
+        return periodId;
+    }
+
+    public void setPeriodId(Long periodId) {
+        this.periodId = periodId;
+    }
 
     /** 过账时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -176,6 +190,14 @@ public class FinVouchers extends BaseEntity
     public Integer getVoucherStatus()
     {
         return voucherStatus;
+    }
+
+    public Integer getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(Integer dataSource) {
+        this.dataSource = dataSource;
     }
 
     public void setPreparerBy(String preparerBy)

@@ -1,18 +1,17 @@
 package com.wimoor.erp.material.mapper;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wimoor.erp.material.pojo.dto.PlanDTO;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.pojo.vo.MaterialVO;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 @Mapper
 public interface MaterialMapper extends BaseMapper<Material> {
 
@@ -31,8 +30,6 @@ public interface MaterialMapper extends BaseMapper<Material> {
 	MaterialVO findMaterialById(String id);
 
 	List<Material> selectAllSKUForSelect(@Param("sku")String sku, @Param("shopid")String shopid);
-	
-	Map<String,Object> findDimAndAsinBymid(@Param("sku")String sku,@Param("shopid")String shopid,@Param("marketplaceid")String marketplaceid,@Param("groupid")String groupid);
 	
 	List<Map<String, Object>> getForSum(@Param("shopid") String shopid,@Param("groupid") String groupid);
 

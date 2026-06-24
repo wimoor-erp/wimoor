@@ -1,15 +1,6 @@
 package com.wimoor.amazon.notifications.service.impl;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.lang.Assert;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
@@ -19,7 +10,14 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.wimoor.amazon.notifications.service.IAwsSQSMessageAdaperService;
-import cn.hutool.core.lang.Assert;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
 
 @Service("awsSQSService")
 public class AwsSQSService  implements InitializingBean {
@@ -83,9 +81,6 @@ public class AwsSQSService  implements InitializingBean {
 	boolean isrun=true;
 	public void runTask() {
 		// 请求消息
-		if(profiles!=null&&profiles.contains("dev")) {
-			return;
-		}
 		startSQS();
 		if(sqs==null) {
 			return;

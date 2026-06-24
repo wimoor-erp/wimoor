@@ -1,13 +1,12 @@
 package com.wimoor.amazon.product.pojo.dto;
 
-import java.util.List;
-
 import com.wimoor.common.pojo.entity.BasePageQuery;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value="ProductListQueryDTO对象", description="获取商品列表")
@@ -50,4 +49,5 @@ public class ProductListQuery extends BasePageQuery{
 	String paralist;
 	@ApiModelProperty(value = "标签查询条件", example = "123,456,122")
 	List<String> taglist;
+	Boolean downloadMSku=false;
 }

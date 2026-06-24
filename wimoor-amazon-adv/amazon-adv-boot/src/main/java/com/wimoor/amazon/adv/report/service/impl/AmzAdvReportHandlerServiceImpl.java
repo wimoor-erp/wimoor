@@ -155,7 +155,7 @@ public class AmzAdvReportHandlerServiceImpl implements IAmzAdvReportHandlerServi
          }
             Calendar c=Calendar.getInstance();
             List<Runnable> runnables = new ArrayList<Runnable>();
-			List<AmzAdvAuth> advauthlist =amzAdvAuthService.selectLastAuthList();
+			List<AmzAdvAuth> advauthlist =amzAdvAuthService.selectLastAuthList("report");
 			if(advauthlist==null || advauthlist.size()==0){
 				return;
 			}
@@ -394,7 +394,7 @@ public class AmzAdvReportHandlerServiceImpl implements IAmzAdvReportHandlerServi
 	@Override
 	public void requestReport() {
 		        List<Runnable> runnables = new ArrayList<Runnable>();
-				List<AmzAdvAuth> advauthlist =amzAdvAuthService.selectLastAuthList();
+				List<AmzAdvAuth> advauthlist =amzAdvAuthService.selectLastAuthList("report");
 				if(advauthlist==null || advauthlist.size()==0){
 					return;
 				}
@@ -454,7 +454,7 @@ public class AmzAdvReportHandlerServiceImpl implements IAmzAdvReportHandlerServi
 	@Override
 	public void requestProductAdsReport() {
 		List<Runnable> runnables = new ArrayList<Runnable>();
-		List<AmzAdvAuth> advauthlist =amzAdvAuthService.selectLastAuthList();
+		List<AmzAdvAuth> advauthlist =amzAdvAuthService.selectLastAuthList("report");
 		if(advauthlist==null || advauthlist.size()==0){
 			return;
 		}

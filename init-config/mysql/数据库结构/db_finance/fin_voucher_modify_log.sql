@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `fin_voucher_modify_log` (
   `reason` varchar(500) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '修改原因',
   PRIMARY KEY (`log_id`),
   KEY `idx_voucher_modify_log` (`groupid`,`voucher_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='凭证修改日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=694 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='凭证修改日志表';
 
 -- 数据导出被取消选择。
 

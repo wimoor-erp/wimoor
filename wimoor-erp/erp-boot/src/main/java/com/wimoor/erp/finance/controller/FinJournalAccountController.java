@@ -255,7 +255,7 @@ public class FinJournalAccountController {
 	@PostMapping(value = "/downExcelDate")
 	public void downExcelDateAction(@RequestBody FinQueryDTO dto, HttpServletResponse response){
 		// 创建新的Excel工作薄
-		SXSSFWorkbook workbook = new SXSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		// 将数据写入Excel
 		Map<String,Object> param = new HashMap<String, Object>();
 		UserInfo userinfo = UserInfoContext.get();

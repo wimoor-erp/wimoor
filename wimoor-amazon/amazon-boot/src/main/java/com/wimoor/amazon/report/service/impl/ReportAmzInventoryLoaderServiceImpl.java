@@ -22,7 +22,7 @@ public class ReportAmzInventoryLoaderServiceImpl extends ReportServiceImpl  impl
 	 * afn-researching-quantity	afn-reserved-future-supply	afn-future-supply-buyable
 	 */
 	@SuppressWarnings("unused")
-	public synchronized String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
+	public String treatResponse(AmazonAuthority amazonAuthority, BufferedReader br)  {
 		String mlog="";
 		int lineNumber = 0;
 		AmzInventoryCountryReport record = null;

@@ -2,14 +2,14 @@ package com.wimoor.amazon.product.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.amazon.common.pojo.entity.BaseEntity;
-
-import java.time.LocalDate;
-import java.util.Date;
-import java.math.BigInteger;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * <p>
@@ -54,6 +54,8 @@ public class AmzProductSalesPlan extends BaseEntity {
     private Integer avgsales;
     
     private Integer needpurchase;
+
+    private BigDecimal salesdayAvgsales;
 
     private Date opttime;
 

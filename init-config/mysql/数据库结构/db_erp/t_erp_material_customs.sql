@@ -21,18 +21,22 @@ CREATE TABLE IF NOT EXISTS `t_erp_material_customs` (
   `price` decimal(20,6) DEFAULT NULL,
   `code` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '海关编码',
   `rate` decimal(20,6) DEFAULT NULL,
-  `material` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '产品材质',
-  `materialcn` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `application` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '用途',
-  `url` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `material` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '产品材质',
+  `materialcn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `application` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '用途',
+  `url` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `elements` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `ename` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '产品英文名',
   `cname` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '产品中文名',
+  `unit` varchar(5) COLLATE utf8mb4_bin DEFAULT NULL,
+  `unit2` varchar(5) COLLATE utf8mb4_bin DEFAULT NULL,
+  `unitrate` decimal(20,2) DEFAULT NULL,
   `operator` bigint unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `creator` bigint unsigned DEFAULT NULL,
   `createtime` datetime DEFAULT NULL,
   PRIMARY KEY (`materialid`,`country`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='海关表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='海关表(国外入境），海关清关';
 
 -- 数据导出被取消选择。
 

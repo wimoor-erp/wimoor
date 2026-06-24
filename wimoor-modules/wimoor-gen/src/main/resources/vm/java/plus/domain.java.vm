@@ -1,0 +1,59 @@
+package ${packageName}.pojo.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+#if($table.crud || $table.tree || $table.sub)
+import java.util.Date;
+import java.util.List;
+#end
+#if($table.sub)
+import com.fasterxml.jackson.annotation.JsonInclude;
+#end
+
+/**
+ * ${functionName}对象 ${tableName}
+ * 
+ * @author ${author}
+ * @date ${datetime}
+ */
+@TableName("${tableName}")
+@Data
+#if($table.sub)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+#endif
+public class ${ClassName} extends BasePageQuery implements Serializable 
+{
+    private static final long serialVersionUID = 1L;
+
+#foreach ($column in $columns)
+#if($column.isPk)
+    /**
+     * ${column.columnComment}
+     */
+    @TableId(value = "${column.columnName}", type = IdType.${column.idType})
+    private ${column.javaType} ${column.javaField};
+#else
+#set($comment=$column.columnComment)
+#end
+#if($parentheseIndex != -1)
+    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
+#elseif($column.javaType == 'Date')
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "${comment}", width = 30, dateFormat = "yyyy-MM-dd")
+#else
+    @Excel(name = "${comment}")
+#end
+#end
+    private $column.javaType $column.javaField;
+
+#end
+#end
+#if($table.sub)
+    /** $table.subTable.functionName信息 */
+    private List<${subClassName}> ${subclassName}List;
+
+#end
+
+}

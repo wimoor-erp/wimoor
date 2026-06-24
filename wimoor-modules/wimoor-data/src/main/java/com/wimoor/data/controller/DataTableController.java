@@ -1,7 +1,7 @@
 package com.wimoor.data.controller;
 
 
-import com.wimoor.data.controller.result.Result;
+import com.wimoor.common.result.Result;
 import com.wimoor.data.service.IDataService;
 import com.wimoor.data.service.IDataTableMoveService;
 import org.springframework.beans.factory.annotation.Autowired;

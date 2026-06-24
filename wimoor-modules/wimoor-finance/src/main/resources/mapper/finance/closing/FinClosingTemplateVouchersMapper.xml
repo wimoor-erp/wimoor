@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.closing.mapper.FinClosingTemplateVouchersMapper">
+    
+    <resultMap type="com.wimoor.finance.closing.domain.FinClosingTemplateVouchers" id="FinClosingTemplateVouchersResult">
+        <result property="id"    column="id"    />
+        <result property="templateId"    column="template_id"    />
+        <result property="groupid"    column="groupid"    />
+        <result property="vourchesId"    column="vourches_id"    />
+        <result property="voucherDate"    column="voucher_date"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="modifyBy"    column="modify_by"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="datalog"    column="datalog"    />
+    </resultMap>
+
+    <sql id="selectFinClosingTemplateVouchersVo">
+        select id, template_id, groupid, vourches_id, voucher_date, created_time, updated_time, modify_by, create_by, datalog from fin_closing_template_vouchers
+    </sql>
+
+    <select id="selectFinClosingTemplateVouchersList" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateVouchers" resultMap="FinClosingTemplateVouchersResult">
+        <include refid="selectFinClosingTemplateVouchersVo"/>
+        <where>  
+            <if test="templateId != null and templateId != ''"> and template_id = #{templateId}</if>
+            <if test="groupid != null and groupid != ''"> and groupid = #{groupid}</if>
+            <if test="vourchesId != null and vourchesId != ''"> and vourches_id = #{vourchesId}</if>
+            <if test="voucherDate != null "> and voucher_date = #{voucherDate}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+            <if test="modifyBy != null and modifyBy != ''"> and modify_by = #{modifyBy}</if>
+        </where>
+    </select>
+    
+    <select id="selectByTemplateId" parameterType="String" resultMap="FinClosingTemplateVouchersResult">
+        <include refid="selectFinClosingTemplateVouchersVo"/>
+        where template_id = #{templateId}
+    </select>
+
+    <select id="selectByTemplate" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateVouchers" resultMap="FinClosingTemplateVouchersResult">
+        <include refid="selectFinClosingTemplateVouchersVo"/>
+        where template_id = #{templateId}
+        and groupid = #{groupid}
+        and voucher_date = #{voucherDate}
+    </select>
+    
+    <select id="selectFinClosingTemplateVouchersById" parameterType="String" resultMap="FinClosingTemplateVouchersResult">
+        <include refid="selectFinClosingTemplateVouchersVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinClosingTemplateVouchers" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateVouchers" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_closing_template_vouchers
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="templateId != null and templateId != ''">template_id,</if>
+            <if test="groupid != null and groupid != ''">groupid,</if>
+            <if test="vourchesId != null and vourchesId != ''">vourches_id,</if>
+            <if test="voucherDate != null">voucher_date,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="modifyBy != null and modifyBy != ''">modify_by,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="datalog != null and datalog != ''">datalog,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="templateId != null and templateId != ''">#{templateId},</if>
+            <if test="groupid != null and groupid != ''">#{groupid},</if>
+            <if test="vourchesId != null and vourchesId != ''">#{vourchesId},</if>
+            <if test="voucherDate != null">#{voucherDate},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="modifyBy != null and modifyBy != ''">#{modifyBy},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="datalog != null and datalog != ''">#{datalog},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinClosingTemplateVouchers" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateVouchers">
+        update fin_closing_template_vouchers
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="templateId != null and templateId != ''">template_id = #{templateId},</if>
+            <if test="groupid != null and groupid != ''">groupid = #{groupid},</if>
+            <if test="vourchesId != null and vourchesId != ''">vourches_id = #{vourchesId},</if>
+            <if test="voucherDate != null">voucher_date = #{voucherDate},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="modifyBy != null and modifyBy != ''">modify_by = #{modifyBy},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="datalog != null and datalog != ''">datalog = #{datalog},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinClosingTemplateVouchersById" parameterType="String">
+        delete from fin_closing_template_vouchers where id = #{id}
+    </delete>
+
+    <delete id="deleteFinClosingTemplateVouchersByIds" parameterType="String">
+        delete from fin_closing_template_vouchers where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteByVoucherId" parameterType="String">
+        delete from fin_closing_template_vouchers where vourches_id = #{voucherId}
+    </delete>
+</mapper>

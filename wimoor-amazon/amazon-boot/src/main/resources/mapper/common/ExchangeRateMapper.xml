@@ -42,6 +42,9 @@
 			) v
 		order by v.findex
 	</select>
-  
-   
+    <select id="findLastCaptuerDate" resultType="java.util.Date">
+        select max(utctime) from t_exchangerate
+    </select>
+
+
 </mapper>

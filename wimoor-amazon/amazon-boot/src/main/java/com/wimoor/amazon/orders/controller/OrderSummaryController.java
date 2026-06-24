@@ -1,17 +1,5 @@
 package com.wimoor.amazon.orders.controller;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.wimoor.amazon.common.service.ISummaryDataService;
 import com.wimoor.amazon.orders.pojo.dto.AmazonOrderSummaryDTO;
 import com.wimoor.amazon.orders.service.ISummaryAllService;
@@ -20,8 +8,14 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.impl.SystemControllerLog;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
-
 import io.swagger.annotations.Api;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
  
  
 
@@ -61,12 +55,22 @@ public class OrderSummaryController {
 
 	@PostMapping("/orderMonthsSummaryAll")
 	public Result<Map<String, Object>> orderMonthsSummaryAll(@RequestBody Map<String,Object> model)  {
+		UserInfo userinfo = UserInfoContext.get();
+		model.put("shopid", userinfo.getCompanyid());
 		Map<String, Object> resultMap = summaryAllService.orderMonthsSummaryAll(model);
 		return Result.success(resultMap) ;
 	}
 
 	@PostMapping("/orderSummaryAll")
 	public Result<BigDecimal> orderSummaryAll(@RequestBody Map<String,Object> model)  {
+		 UserInfo userinfo = UserInfoContext.get();
+		 if(model==null){
+			 model=new HashMap<String,Object>();
+		 }
+		 if(userinfo==null){
+			 return Result.failed("用户信息为空");
+		 }
+		 model.put("shopid", userinfo.getCompanyid());
 		 BigDecimal resultMap = summaryAllService.orderSummaryAll(model);
 		return Result.success(resultMap) ;
 	}

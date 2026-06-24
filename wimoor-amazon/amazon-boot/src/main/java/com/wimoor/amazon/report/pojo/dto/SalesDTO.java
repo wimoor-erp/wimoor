@@ -19,4 +19,5 @@ public class SalesDTO extends BasePageQuery{
 	String fromdatestr;
 	String enddatestr;
 	String summaryType;
+	String summaryData;
 }

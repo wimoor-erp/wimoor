@@ -75,6 +75,6 @@ public interface IAmzAdvAuthService extends IService<AmzAdvAuth>{
 
 	public List<AmzAdvAuth> selectNotDisableList();
 
-	public List<AmzAdvAuth> selectLastAuthList();
+	public List<AmzAdvAuth> selectLastAuthList(String ftype);
 
 }

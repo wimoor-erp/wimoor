@@ -18,7 +18,7 @@
 CREATE TABLE IF NOT EXISTS `t_sys_dict_item` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '' COMMENT '字典项名称',
-  `value` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '' COMMENT '字典项值',
+  `value` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '' COMMENT '字典项值',
   `dict_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '' COMMENT '字典编码',
   `sort` int DEFAULT '0' COMMENT '排序',
   `status` tinyint(1) DEFAULT '0' COMMENT '状态（0 停用 1正常）',
@@ -29,8 +29,9 @@ CREATE TABLE IF NOT EXISTS `t_sys_dict_item` (
   `gmt_create` datetime DEFAULT NULL COMMENT '创建时间',
   `gmt_modified` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `value_dict_code` (`dict_code`,`value`)
-) ENGINE=InnoDB AUTO_INCREMENT=1991342594173136944 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='字典数据表';
+  UNIQUE KEY `value_dict_code` (`dict_code`,`value`),
+  KEY `name_dict_code` (`name`,`dict_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=1991342594173137156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='字典数据表';
 
 -- 数据导出被取消选择。
 

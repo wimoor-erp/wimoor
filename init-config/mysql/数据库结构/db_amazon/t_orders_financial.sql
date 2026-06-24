@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `t_orders_financial` (
   `posted_date` datetime DEFAULT NULL COMMENT '出账时间',
   PRIMARY KEY (`id`),
   KEY `amazon_order_id` (`amazon_order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=201638 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=218729 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。
 

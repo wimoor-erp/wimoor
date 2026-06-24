@@ -10,10 +10,15 @@ public class ReportItemValueDTO {
     private String itemType;
     private String displayFormat;
     private BigDecimal amount;
+    private BigDecimal yearBeginAmount;
     private BigDecimal comparisonAmount;
     private BigDecimal changeAmount;
     private BigDecimal changeRate;
     private Boolean isLeaf;
+    /** 本年累计金额 */
+    private BigDecimal yearAmount;
+    /** 本月金额 */
+    private BigDecimal monthAmount;
 
     // Getters and Setters
     public String getItemCode() { return itemCode; }
@@ -37,6 +42,9 @@ public class ReportItemValueDTO {
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
 
+    public BigDecimal getYearBeginAmount() { return yearBeginAmount; }
+    public void setYearBeginAmount(BigDecimal yearBeginAmount) { this.yearBeginAmount = yearBeginAmount; }
+
     public BigDecimal getComparisonAmount() { return comparisonAmount; }
     public void setComparisonAmount(BigDecimal comparisonAmount) { this.comparisonAmount = comparisonAmount; }
 
@@ -48,4 +56,10 @@ public class ReportItemValueDTO {
 
     public Boolean getIsLeaf() { return isLeaf; }
     public void setIsLeaf(Boolean isLeaf) { this.isLeaf = isLeaf; }
+
+    public BigDecimal getYearAmount() { return yearAmount; }
+    public void setYearAmount(BigDecimal yearAmount) { this.yearAmount = yearAmount; }
+
+    public BigDecimal getMonthAmount() { return monthAmount; }
+    public void setMonthAmount(BigDecimal monthAmount) { this.monthAmount = monthAmount; }
 }

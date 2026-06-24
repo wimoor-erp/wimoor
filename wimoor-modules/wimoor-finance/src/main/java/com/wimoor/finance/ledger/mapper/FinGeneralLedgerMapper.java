@@ -99,4 +99,38 @@ public interface FinGeneralLedgerMapper
     List<Map<String, Object>> getAllSubjectBalance(@Param("groupid") String groupid,
                                                     @Param("period") String period);
 
+    /**
+     * 查询顶级科目总账汇总
+     */
+    List<Map<String, Object>> selectTopLevelSummary(FinLedgerDTO dto);
+
+    /**
+     * 查询指定期间的顶级科目总账汇总
+     */
+    List<Map<String, Object>> selectTopLevelSummaryByPeriod(@Param("groupid") String groupid,
+                                                            @Param("period") String period);
+
+    /**
+     * 查询日期范围内有余额的顶级科目总账汇总
+     */
+    List<Map<String, Object>> selectTopLevelSummaryByDateRange(@Param("groupid") String groupid,
+                                                               @Param("startPeriod") String startPeriod,
+                                                               @Param("endPeriod") String endPeriod);
+
+    /**
+     * 查询日期范围内的累计借方和贷方发生额
+     */
+    List<Map<String, Object>> selectCumulativeDebitCredit(@Param("groupid") String groupid,
+                                                          @Param("startPeriod") String startPeriod,
+                                                          @Param("endPeriod") String endPeriod);
+
+    /**
+     * 按租户删除所有总账记录
+     */
+    int deleteAllByGroupid(@Param("groupid") String groupid);
+
+    /**
+     * 从凭证分录汇总各科目各期间的借贷发生额
+     */
+    List<Map<String, Object>> sumEntriesBySubjectAndPeriod(@Param("groupid") String groupid);
 }

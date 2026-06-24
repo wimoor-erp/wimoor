@@ -1,36 +1,7 @@
 package com.wimoor.amazon.report.service.impl;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.nio.charset.Charset;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.zip.GZIPInputStream;
-
-import javax.annotation.Resource;
-
-import okhttp3.*;
-import org.springframework.stereotype.Service;
-import org.threeten.bp.OffsetDateTime;
-
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.SellingPartnerAPIAA.LWAException;
 import com.amazon.spapi.api.ReportsApi;
 import com.amazon.spapi.client.ApiCallback;
@@ -43,12 +14,7 @@ import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
 import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.service.IExchangeRateHandlerService;
-import com.wimoor.amazon.finances.mapper.AmzSettlementAccReportMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementAccStatementMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryDayMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementReportSummaryMonthMapper;
-import com.wimoor.amazon.finances.mapper.AmzSettlementSummarySkuMapper;
+import com.wimoor.amazon.finances.mapper.*;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementAccReport;
 import com.wimoor.amazon.finances.pojo.entity.AmzSettlementReport;
 import com.wimoor.amazon.profit.service.IProfitCfgCountryService;
@@ -59,9 +25,18 @@ import com.wimoor.amazon.summary.service.IAmazonSettlementAnalysisService;
 import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.util.UUIDUtil;
+import okhttp3.*;
+import org.springframework.stereotype.Service;
+import org.threeten.bp.OffsetDateTime;
 
-import cn.hutool.core.lang.UUID;
-import cn.hutool.core.util.StrUtil;
+import javax.annotation.Resource;
+import java.io.*;
+import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
  
 @Service("reportAmzSettlementListService")
 public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
@@ -99,11 +74,8 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 		  boolean doneEU = false;
 		  for(Marketplace market:marketlist) {
 			  if(market.getRegion().equals("EU")) {
-				  if(doneEU==false) {
-					  doneEU=true;
-				  }else {
-					  continue;
-				  }
+				  if(!doneEU) {  doneEU=true;  }
+				  else {  continue; }
 			  }
 			  List<String> reportTypes=new LinkedList<String>();
 			  reportTypes.add( myReportType());
@@ -147,12 +119,8 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 	}
 	
 	public  void downloadReport(AmazonAuthority amazonAuthority, ReportRequestRecord record,ReportDocument doc) {
-		record.setReportProcessingStatus("treat");
-		record.setIsrun(true);
-		iReportRequestRecordService.updateById(record);
 		String url =doc.getUrl();
 	    String compressionAlgorithm = doc.getCompressionAlgorithm()!=null?doc.getCompressionAlgorithm().getValue():null;
-	     
 	    try {
 	    	   download(amazonAuthority,url, compressionAlgorithm,record);
 	    } catch (IOException e) {
@@ -167,7 +135,7 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 	  
 }
 	
-	LocalDateTime getLocalTime(String currency,String date){
+	Date getLocalTime(String currency,String date){
 		SimpleDateFormat sdf2 =null;
 		if("USD".equals(currency)) {
 			sdf2=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -176,15 +144,22 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 				||"MXN".equals(currency)||"PLN".equals(currency)
 				||"TRY".equals(currency)||"AUD".equals(currency)
 				||"AED".equals(currency)||"BRL".equals(currency)
-				||"SAR".equals(currency)||"AED".equals(currency)
-				||"INR".equals(currency)||"SGD".equals(currency)) {
+				||"SAR".equals(currency)||"INR".equals(currency)
+				||"SGD".equals(currency)) {
 			sdf2=new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 		}else if("JPY".equals(currency) ) {
 			sdf2=new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		}
-		sdf2.setTimeZone(TimeZone.getTimeZone("UTC"));
 		try {
-			return AmzDateUtils.getLocalTime(sdf2.parse(date));
+			Calendar c=Calendar.getInstance();
+			c.setTime(sdf2.parse(date));
+			String marketPlaceId=marketplaceService.getMarketPlaceId(currency);
+			if(marketPlaceId!=null&&marketPlaceId.equals("EU")){
+				return GeneralUtil.getDatePlus(c,"DE");
+			}else{
+				Marketplace marketplace=marketplaceService.selectByPKey(marketPlaceId);
+				return GeneralUtil.getDatePlus(c,marketplace.getMarket());
+			}
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -203,14 +178,13 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 			}else {
 				sdf2=new SimpleDateFormat("yyyy-MM-dd");
 			}
-			
 		}else if("CAD".equals(currency)||"EUR".equals(currency)
 				||"GBP".equals(currency)||"SEK".equals(currency)
 				||"MXN".equals(currency)||"PLN".equals(currency)
 				||"TRY".equals(currency)||"AUD".equals(currency)
 				||"AED".equals(currency)||"BRL".equals(currency)
-				||"SAR".equals(currency)||"AED".equals(currency)
-				||"INR".equals(currency)||"SGD".equals(currency)) {
+				||"SAR".equals(currency)||"INR".equals(currency)
+				||"SGD".equals(currency)) {
 			if(date.length()>10) {
 				sdf2=new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 			}else {
@@ -222,9 +196,55 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 			}else {
 				sdf2=new SimpleDateFormat("yyyy/MM/dd");
 			}
-			
-		} 
-		sdf2.setTimeZone(TimeZone.getTimeZone("UTC"));
+		}
+
+		try {
+			Calendar c=Calendar.getInstance();
+			c.setTime(sdf2.parse(date));
+			String marketplaceid=marketplaceService.getMarketPlaceId(currency);
+			if(marketplaceid!=null&&marketplaceid.equals("EU")){
+				return GeneralUtil.getDatePlus(c,"DE");
+			}else{
+				Marketplace marketplace=marketplaceService.selectByPKey(marketplaceid);
+				return GeneralUtil.getDatePlus(c,marketplace.getMarket());
+			}
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	Date getDateTimeUTC(String currency,String date){
+		SimpleDateFormat sdf2 =null;
+		if(StrUtil.isBlank(date)){
+			return null;
+		}
+		if("USD".equals(currency)) {
+			if(date.length()>10) {
+				sdf2=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			}else {
+				sdf2=new SimpleDateFormat("yyyy-MM-dd");
+			}
+		}else if("CAD".equals(currency)||"EUR".equals(currency)
+				||"GBP".equals(currency)||"SEK".equals(currency)
+				||"MXN".equals(currency)||"PLN".equals(currency)
+				||"TRY".equals(currency)||"AUD".equals(currency)
+				||"AED".equals(currency)||"BRL".equals(currency)
+				||"SAR".equals(currency)||"INR".equals(currency)
+				||"SGD".equals(currency)) {
+			if(date.length()>10) {
+				sdf2=new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+			}else {
+				sdf2=new SimpleDateFormat("dd.MM.yyyy");
+			}
+		}else if("JPY".equals(currency) ) {
+			if(date.length()>10) {
+				sdf2=new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+			}else {
+				sdf2=new SimpleDateFormat("yyyy/MM/dd");
+			}
+		}
 		try {
 			return sdf2.parse(date);
 		} catch (ParseException e) {
@@ -233,6 +253,7 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 		}
 		return null;
 	}
+
 	String currencyToMarketplaceName(AmazonAuthority amazonAuthority ,String currency){
 		String marketname="";
 		if ("USD".equals(currency)) {
@@ -407,13 +428,15 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 					++index;
 					String depositdatetime=GeneralUtil.getIndexString(info, index);
 					if (depositdate== null) {
-						report.setPostedDate(postDate);
+						report.setPostedDate(GeneralUtil.getDateNoTime(postDate));
 						report.setPostedDateTime(postDate);
 					}else {
 						depositdate=depositdate.replace(" UTC", "");
 						depositdatetime=depositdatetime.replace(" UTC", "");
-						report.setPostedDate(getDateTime(currency,depositdate));
+						Date datetime = getDateTime(currency, depositdatetime);
+						report.setPostedDate(GeneralUtil.getDateNoTime(datetime));
 						report.setPostedDateTime(getDateTime(currency,depositdatetime));
+						report.setPostedDateTimeUTC(getDateTimeUTC(currency,depositdatetime));
 						if(report.getPostedDate()==null){
 							report.setPostedDate(postDate);
 						}else{
@@ -539,6 +562,14 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 	}
 	
 	  public String download(AmazonAuthority amazonAuthority,String url, String compressionAlgorithm,ReportRequestRecord record) throws IOException, IllegalArgumentException {
+		  // Execute the signed request.
+			  ReportRequestRecord recorddb = iReportRequestRecordService.getById(record.getId());
+			  if(recorddb.isIsrun()
+					  ||"treat".equals(recorddb.getReportProcessingStatus())
+			          ||"success".equals(recorddb.getReportProcessingStatus())
+			          ||!recorddb.getIsnewest()){
+				  return "skip";
+			  }
 		    OkHttpClient httpclient = new OkHttpClient();
 		    Request request = new Request.Builder().url(url).get().build();
 		    Response response = httpclient.newCall(request).execute();
@@ -550,7 +581,11 @@ public class ReportAmzSettlementListServiceImpl extends ReportServiceImpl  {
 				record.setLog(mlog);
 				iReportRequestRecordService.updateById(record);
 				return mlog;
-		    }
+		    }else{
+				record.setReportProcessingStatus("treat");
+				record.setIsrun(true);
+				iReportRequestRecordService.updateById(record);
+			}
 		    File tempfile = null;
 		    Charset charset =null;
 		    Closeable closeThis = null;

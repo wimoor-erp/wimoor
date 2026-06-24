@@ -1,14 +1,13 @@
 package com.wimoor.amazon.orders.pojo.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 @Data
 @TableName("t_orders_remark")
@@ -22,7 +21,10 @@ public class AmzOrdersRemark  implements Serializable{
 	
 	@TableField(value="feed_queueid")
     private String feedQueueid;
-	
+
+	@TableField(value="upload_destination_id")
+	private String uploadDestinationId;
+
 	@TableField(value="invoice_no")
 	private String invoiceNo;
 	

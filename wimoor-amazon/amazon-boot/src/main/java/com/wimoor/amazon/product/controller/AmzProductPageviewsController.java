@@ -1,16 +1,7 @@
 package com.wimoor.amazon.product.controller;
 
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.amazon.api.AdminClientOneFeignManager;
 import com.wimoor.amazon.auth.service.IAmazonAuthorityService;
@@ -21,10 +12,13 @@ import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.result.Result;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserLimitDataType;
-
-import cn.hutool.core.util.StrUtil;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -87,7 +81,7 @@ public class AmzProductPageviewsController {
 					iAmzProductPageviewsService.refreshDownload();
 				}
 		   }).start();
-	        return Result.success();
+	     return Result.success();
     }
 	
 	@GetMapping("/refreshSummary")  

@@ -1,47 +1,13 @@
 package com.wimoor.admin.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.net.URLDecoder;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.wimoor.admin.pojo.entity.SysUserWechatMP;
-import com.wimoor.admin.service.*;
-import com.wimoor.admin.util.GoogleAuthenticatorUtils;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
+import cn.hutool.core.util.StrUtil;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wimoor.admin.pojo.dto.SysUserRoleDTO;
 import com.wimoor.admin.pojo.dto.UserDTO;
@@ -50,7 +16,10 @@ import com.wimoor.admin.pojo.dto.UserRegisterInfoDTO;
 import com.wimoor.admin.pojo.entity.SysUser;
 import com.wimoor.admin.pojo.entity.SysUserBind;
 import com.wimoor.admin.pojo.entity.SysUserRole;
+import com.wimoor.admin.pojo.entity.SysUserWechatMP;
 import com.wimoor.admin.pojo.vo.UserVO;
+import com.wimoor.admin.service.*;
+import com.wimoor.admin.util.GoogleAuthenticatorUtils;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.mvc.FileUpload;
 import com.wimoor.common.mybatisplus.MysqlGenerator;
@@ -59,19 +28,27 @@ import com.wimoor.common.result.ResultCode;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
 import com.wimoor.sys.sms.util.AliyunSmsUtils;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.UUID;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.Mode;
-import cn.hutool.crypto.Padding;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Api(tags = "用户接口")
 @RestController
@@ -109,6 +86,23 @@ public class UserController {
 		UserInfo userInfo = UserInfoContext.get();
 		iSysUserService.detail(userInfo);
 		return Result.judge(true);
+	}
+
+	@ApiOperation(value = "登录用户注销该用户的账户信息")
+	@GetMapping("/unbindAccount")
+	public Object unbindAccountAction(HttpServletRequest request) {
+		UserInfo userInfo = UserInfoContext.get();
+		Map<String,Object> map=new HashMap<String, Object>();
+		int res=iSysUserService.unbindAccount(userInfo);
+		if(res>0) {
+			map.put("isOk", true);
+			map.put("msg", "注销成功！");
+		}else {
+			map.put("isOk", false);
+			map.put("msg", "注销失败，请联系管理员！");
+		}
+
+		return Result.success(map);
 	}
 
 	@PostMapping(value="/saveImage",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -235,7 +229,6 @@ public class UserController {
 			}
 			user.setPassword("***");
 			user.setSalt("***");
-			log.debug(account+"获取所有信息---时间："+new Date());
 			UserInfo info=iSysUserService.convertToUserInfo(user);
 			return Result.success(info);
 		}else {

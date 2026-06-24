@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_rpt_inventory_detail` (
   `refreshtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `uniquesku` (`referenceID`,`msku`,`byday`,`authid`,`eventType`,`fulfillmentCenter`,`disposition`) USING BTREE,
-  KEY `authid` (`authid`,`eventType`,`byday`) USING BTREE
+  KEY `authid` (`authid`,`byday`,`eventType`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC;
 
 -- 数据导出被取消选择。

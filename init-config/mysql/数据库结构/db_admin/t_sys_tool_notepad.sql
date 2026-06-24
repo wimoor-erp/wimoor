@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tool_notepad` (
   `shopid` bigint unsigned NOT NULL,
   `title` varchar(500) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `sku` char(50) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-  `content` varchar(2000) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `operator` bigint unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

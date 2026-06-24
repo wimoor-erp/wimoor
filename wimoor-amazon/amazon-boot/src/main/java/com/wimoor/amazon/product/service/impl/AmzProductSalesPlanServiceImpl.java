@@ -1,27 +1,7 @@
 package com.wimoor.amazon.product.service.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -63,11 +43,20 @@ import com.wimoor.amazon.util.AmzDateUtils;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.result.Result;
-
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * <p>
@@ -141,6 +130,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 		    int sales=0;
 		    int minCycleSale=0;
 		    Integer salesday=0;
+			BigDecimal salesdayAvgsales=new BigDecimal(0);
 		    int sumavgsale=0;
 		    Date shorttime=null;
 		    List<ProductInAftersale> salesafter=new LinkedList<ProductInAftersale>();
@@ -211,6 +201,7 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 			}
 			if(totalqty>=0) {
 				salesday++;
+				salesdayAvgsales=salesdayAvgsales.add(new BigDecimal(sales));
 			}
 			c.add(Calendar.DATE, 1);
 		}
@@ -237,6 +228,11 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 			  plan.setAvgsales(sumavgsale); 
 		 }
 		 plan.setSalesday(salesday);
+		 if(salesday>0){
+			 plan.setSalesdayAvgsales(salesdayAvgsales.divide(new BigDecimal(salesday),2,RoundingMode.HALF_UP));
+		 }else{
+			 plan.setSalesdayAvgsales(new BigDecimal(avgsales));
+		 }
 		 plan.setOpttime(new Date());
 		 plan.setSku(sku);
 		 plan.setShipday(shipcycle);
@@ -257,9 +253,6 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 
 	/**
 	 * 获取商品对应站点的备货周期，当没有时使用对应站点配置上的。
-	 * @param auth
-	 * @param marketplaceid
-	 * @param sku
 	 * @param fbacycle
 	 * @return
 	 */
@@ -335,7 +328,6 @@ public void handlePresaleSKU(AmazonAuthority auth,Marketplace market,
 	 * 准备计算的数据
 	 * @param auth
 	 * @param market
-	 * @param distribution
 	 * @param sku
 	 */
 	public void handlePresaleMarket(AmazonAuthority auth,Marketplace market ,String sku) {
@@ -854,7 +846,7 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 				item.put("dayship", "notoday");
 			}
 			item.put("shipRecordQuantity", ship.get("Quantity").toString());
-			item.put("shipRecordStatusName", ship.get("statusName").toString());
+			item.put("shipRecordStatusName",ship.get("statusName")!=null?ship.get("statusName").toString():"");
 			item.put("shipRecordStatus", ship.get("status").toString());
 			item.put("shipRecordDay", shiprecord);// 开始只展示一条记录，点击记录会显示最近3条发货记录
 			if (ship.get("arrivalTime") != null) {
@@ -868,7 +860,9 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 		}
    }
    
-    public void handItem(Map<String, Object> item,Map<String,Map<String,Object>> planmap,PlanDetailDTO dto) {
+    public void handItem(Map<String, Object> item,Map<String,Map<String,Object>> planmap,PlanDetailDTO dto,
+                         Map<String, Map<String, ProductInPresale>> presaleCache,
+                         Map<String, Integer> feignCache) {
 	    String psku=item.get("sku").toString();
 	    String marketplaceid=item.get("marketplaceid").toString();
 	    String amazonauthid =item.get("amazonauthid").toString();
@@ -968,15 +962,23 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 			}
 		 }
 		Integer overseaqty=0;
-		try {
-			Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(dto.getShopid(), groupid, msku, country,"false");
-		    if(Result.isSuccess(materialResult)&&materialResult.getData()!=null) {
-		    	if(materialResult.getData().get("overseaqty")!=null) {
-		    		overseaqty=Integer.valueOf(materialResult.getData().get("overseaqty").toString());
-		    	}
-		    }
-		}catch(FeignException e) {
-			 e.printStackTrace();
+		if(feignCache!=null) {
+			String feignKey = msku + "_" + country;
+			Integer cachedOverseaqty = feignCache.get(feignKey);
+			if(cachedOverseaqty!=null) {
+				overseaqty = cachedOverseaqty;
+			}
+		} else {
+			try {
+				Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(dto.getShopid(), groupid, msku, country,"false");
+			    if(Result.isSuccess(materialResult)&&materialResult.getData()!=null) {
+			    	if(materialResult.getData().get("overseaqty")!=null) {
+			    		overseaqty=Integer.valueOf(materialResult.getData().get("overseaqty").toString());
+			    	}
+			    }
+			}catch(FeignException e) {
+				 e.printStackTrace();
+			}
 		}
 		if(dto.getPlantype().equals("purchase")) {
 			Integer needpurchase=item.get("needpurchase")==null?0:Integer.parseInt(item.get("needpurchase").toString());
@@ -988,13 +990,41 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 				dto.setAmount(dto.getAmount()-needpurchase);
 			}
 		}
+		Map<String, ProductInPresale> prelist = null;
+		if(presaleCache!=null) {
+			String presaleKey = groupid + "_" + psku + "_" + marketplaceid;
+			prelist = presaleCache.get(presaleKey);
+		} else {
+			prelist = iProductInPresaleService.getPresale(psku,marketplaceid,groupid);
+		}
+		if(prelist==null) {
+			prelist = new HashMap<>();
+		}
+		Calendar c=Calendar.getInstance();
+		if(prelist.size()>0) {
+			int j=0;
+			for (int i = 1; i <= 180; i++) {
+				ProductInPresale old = prelist.get(GeneralUtil.formatDate(c.getTime()));
+				if (old == null) {
+					ProductInPresale presale = new ProductInPresale();
+					presale.setQuantity(sysavgsales);
+					prelist.put(GeneralUtil.formatDate(c.getTime()), presale);
+					j++;
+				}
+				if(j>=30) break;
+				c.add(Calendar.DATE, 1);
+			}
+			item.put("prelist", prelist);
+		}
+		// 动态计算 salesday、aftersalesday、salesdayAvgsales（基于实时库存+预估销量）
+		Map<String, Object> dynamicSales = this.getDynamicSalesData(prelist, sysavgsales, fbaquantity, overseaqty, reallyamount);
+		item.putAll(dynamicSales);
 		if(dto.getPlantype().equals("purchase")) {
 			int aftersalesday=item.get("aftersalesday")==null?0:Integer.parseInt(item.get("aftersalesday").toString());
 			int salesday=item.get("salesday")==null?0:Integer.parseInt(item.get("salesday").toString());
 			if(salesday>aftersalesday) {
 				item.put("aftersalesday",salesday);
 			}
-			item.putAll(this.getAfterSales(psku, marketplaceid,groupid, sysavgsales, fbaquantity, overseaqty, reallyamount));
 		}else {
 			int aftersalesday=item.get("aftersalesday")==null?0:Integer.parseInt(item.get("aftersalesday").toString());
 			int salesday=item.get("salesday")==null?0:Integer.parseInt(item.get("salesday").toString());
@@ -1027,17 +1057,81 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 						.or().eq(AmzInventoryPlanning::getCondition,"");
 			});
 			query.eq(AmzInventoryPlanning::getCountrycode,country);
-			AmzInventoryPlanning plandata = iAmzInventoryPlanningService.getOne(query);
+			List<AmzInventoryPlanning> plandataList = iAmzInventoryPlanningService.list(query);
+			AmzInventoryPlanning plandata=null;
+			for(AmzInventoryPlanning plandataItem:plandataList){
+				if(plandata==null||"New".equals(plandataItem.getCondition())){
+					plandata=plandataItem;
+				}
+			}
 			if(plandata!=null && dto.getPlantype().equals("ship")) {
 				item.put("invplandata", plandata);
 				item.put("fbainventorylevelhealthstatus", plandata.getFbaInventoryLevelHealthStatus());
 				item.put("historicaldaysofsupply", plandata.getHistoricalDaysOfSupply());
 			}
+
 		}
 		if(dto.getPlantype().equals("ship")) {
 			setShipRecord(item,dto.getShopid(),groupid,marketplaceid,psku,myfbacycle.getPutOnDays());
 		}
     }
+
+	/**
+	 * Feign并发调用专用线程池
+	 */
+	private static final java.util.concurrent.ExecutorService FEIGN_EXECUTOR = new java.util.concurrent.ThreadPoolExecutor(
+			20, 50, 60L, java.util.concurrent.TimeUnit.SECONDS,
+			new java.util.concurrent.LinkedBlockingQueue<>(200),
+			new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy()
+	);
+
+	/**
+	 * 并行预取海外仓库存数据（使用专用线程池 + 超时控制）
+	 */
+	private Map<String, Integer> preFetchFeignOverseaQty(List<Map<String, Object>> items, PlanDetailDTO dto) {
+		Map<String, Integer> feignCache = new java.util.concurrent.ConcurrentHashMap<>();
+		if(items==null || items.isEmpty()) return feignCache;
+		Map<String, Marketplace> marketMap = marketplaceService.findMapByMarketplaceId();
+		Set<String> processedKeys = new HashSet<>();
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
+		for(Map<String, Object> item:items) {
+			String msku = item.get("msku").toString();
+			String marketplaceid = item.get("marketplaceid").toString();
+			String country;
+			if(!marketplaceid.equals("EU")) {
+				Marketplace market = marketMap.get(marketplaceid);
+				if(market!=null) {
+					country = market.getMarket();
+				} else {
+					country = "EU";
+				}
+			} else {
+				country = "EU";
+			}
+			String feignKey = msku + "_" + country;
+			if(!processedKeys.add(feignKey)) continue;
+			String groupid = item.get("groupid").toString();
+			String finalCountry = country;
+			futures.add(CompletableFuture.runAsync(() -> {
+				try {
+					Result<Map<String, Object>> materialResult = erpClientOneFeign.getMSkuDeliveryAndInv(dto.getShopid(), groupid, msku, finalCountry, "false");
+					if(Result.isSuccess(materialResult) && materialResult.getData()!=null && materialResult.getData().get("overseaqty")!=null) {
+						feignCache.put(feignKey, Integer.valueOf(materialResult.getData().get("overseaqty").toString()));
+					}
+				} catch(FeignException e) {
+					// ignore
+				}
+			}, FEIGN_EXECUTOR));
+		}
+		try {
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+				.get(30, java.util.concurrent.TimeUnit.SECONDS);
+		} catch (Exception e) {
+			// 超时或其他异常，返回已获取的部分数据
+		}
+		return feignCache;
+	}
+
 	@Override
 	public List<Map<String,Object>> ExpandCountryDataByGroup(PlanDetailDTO dto) {
 		// TODO Auto-generated method stub
@@ -1061,8 +1155,18 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 		if(dto.getAmount()==null) {
 			dto.setAmount(0);
 		}
+		// 批量预取预估销量数据（按行级groupid+sku查询）
+		Set<String> skuSet = new HashSet<>();
+		Set<String> groupidSet = new HashSet<>();
 		for(Map<String, Object> item:result) {
-			handItem(item,planmap,dto);
+			skuSet.add(item.get("sku").toString());
+			groupidSet.add(item.get("groupid").toString());
+		}
+		Map<String, Map<String, ProductInPresale>> presaleCache = iProductInPresaleService.getPresaleBatch(groupidSet, skuSet);
+		// 批量预取海外仓库存数据（并行Feign调用）
+		Map<String, Integer> feignCache = preFetchFeignOverseaQty(result, dto);
+		for(Map<String, Object> item:result) {
+			handItem(item,planmap,dto, presaleCache, feignCache);
 		}
 		return result;
 	}
@@ -1084,9 +1188,19 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 		if(dto.getAmount()==null) {
 			dto.setAmount(0);
 		}
+		// 批量预取预估销量数据（按行级groupid+sku查询）
+		Set<String> skuSet = new HashSet<>();
+		Set<String> groupidSet = new HashSet<>();
+		for(Map<String, Object> item:countryresult) {
+			skuSet.add(item.get("sku").toString());
+			groupidSet.add(item.get("groupid").toString());
+		}
+		Map<String, Map<String, ProductInPresale>> presaleCache = iProductInPresaleService.getPresaleBatch(groupidSet, skuSet);
+		// 批量预取海外仓库存数据（并行Feign调用）
+		Map<String, Integer> feignCache = preFetchFeignOverseaQty(countryresult, dto);
 		for(Map<String, Object> item:countryresult) {
 			String msku=item.get("msku").toString();
-			handItem(item,planmap,dto);
+			handItem(item,planmap,dto, presaleCache, feignCache);
 			List<Map<String, Object>> itemlist = result.get(msku);
 			if(itemlist==null) {
 				itemlist=new LinkedList<Map<String,Object>>();
@@ -1185,31 +1299,57 @@ public void setShipRecord(Map<String,Object> item,String shopid,String groupid,S
 		return afterSales;
 	}
 
-	public Map<String,Object> getAfterSales(String sku,String marketplaceid,String groupid,int avgsales,int fbaInventoryQty,Integer overseaqty,int amount) {
-		// TODO Auto-generated method stub
-	    Map<String, ProductInPresale> prelist = iProductInPresaleService.getPresale(sku,marketplaceid,groupid);
-	    int afterSales=0;
-		Calendar c=Calendar.getInstance();
-		 int totalqty=overseaqty+fbaInventoryQty+amount;
-		 for(int i=1;i<=180;i++) {
+	/**
+	 * 动态计算可售天数和可售天数日均销量
+	 * salesday：不考虑采购入库，当前库存(FBA+海外仓)能撑几天
+	 * aftersalesday：考虑采购入库后，库存能撑几天
+	 * salesdayAvgsales：可售天数内的日均销量
+	 * @param prelist 预估销量数据
+	 * @param avgsales 系统日均销量
+	 * @param fbaInventoryQty FBA库存（含已提交发货单formqty）
+	 * @param overseaqty 海外仓库存
+	 * @param amount 已下单采购量
+	 * @return 包含 salesday, aftersalesday, salesdayAvgsales
+	 */
+	public Map<String,Object> getDynamicSalesData(Map<String, ProductInPresale> prelist,int avgsales,int fbaInventoryQty,Integer overseaqty,int amount) {
+		int salesday = 0;
+		int afterSales = 0;
+		BigDecimal salesdayAvgsales = BigDecimal.ZERO;
+		Calendar c = Calendar.getInstance();
+		// salesday：不考虑采购入库
+		int baseqty = overseaqty + fbaInventoryQty;
+		// aftersalesday：考虑采购入库
+		int afterqty = baseqty + amount;
+		for (int i = 1; i <= 180; i++) {
 			ProductInPresale old = prelist.get(GeneralUtil.formatDate(c.getTime()));
 			int sales;
-			if(old==null) {
-				sales=avgsales;
+			if (old == null || old.getQuantity() == null) {
+				sales = avgsales;
 			} else {
-				sales=old.getQuantity();
+				sales = old.getQuantity();
 			}
-			totalqty=totalqty-sales;
-			if(totalqty>=0) {
+			baseqty = baseqty - sales;
+			afterqty = afterqty - sales;
+			if (baseqty >= 0) {
+				salesday++;
+				salesdayAvgsales = salesdayAvgsales.add(new BigDecimal(sales));
+			}
+			if (afterqty >= 0) {
 				afterSales++;
-			}else{
+			}
+			if (baseqty < 0 && afterqty < 0) {
 				break;
 			}
 			c.add(Calendar.DATE, 1);
-		 }
-		Map<String,Object> result=new HashMap<String,Object>();
-		//result.put("salesday", salesday);
+		}
+		Map<String, Object> result = new HashMap<>();
+		result.put("salesday", salesday);
 		result.put("aftersalesday", afterSales);
+		if (salesday > 0) {
+			result.put("salesdayAvgsales", salesdayAvgsales.divide(new BigDecimal(salesday), 2, RoundingMode.HALF_UP));
+		} else {
+			result.put("salesdayAvgsales", BigDecimal.ZERO);
+		}
 		return result;
 	}
 

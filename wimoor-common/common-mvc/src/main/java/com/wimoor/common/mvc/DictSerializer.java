@@ -28,7 +28,7 @@ public class DictSerializer extends StdSerializer<Object> implements ContextualS
 	private static final long serialVersionUID = -3760186239175316241L;
 	/** 字典注解 */
     private Dict dict;
-    
+
     public DictSerializer() {
         super(Object.class);
     }
@@ -58,19 +58,19 @@ public class DictSerializer extends StdSerializer<Object> implements ContextualS
     }
     
     private static String changeLabel(String type,String code) {
-        if(code.indexOf(",") > -1) {
+        if(code.contains(",")) {
             String[] strs = code.split(",");
             if (strs.length > 1) {
                 StringBuilder sb = new StringBuilder();
                 for (String str : strs) {
                     // 从缓存中获取字典。如果不行，通过SpringUtil.getBean(); 获取服务处理
-                    sb.append(getDictDataOptions(type, str)).append(",");
+                    sb.append(getDictNameByValue(type, str)).append(",");
                 }
                 return sb.substring(0, sb.length() - 1);
             }
         }
         // 从缓存中获取字典。如果不行，通过SpringUtil.getBean(); 获取服务处理
-        return getDictDataOptions(type, code);
+        return getDictNameByValue(type, code);
     }
     
     @SuppressWarnings("null")
@@ -87,13 +87,13 @@ public class DictSerializer extends StdSerializer<Object> implements ContextualS
         return prov.findNullValueSerializer(null);
     }
 
-    public static String getDictDataOptions(String typeCode,String value) {
+    public static String getDictValueByName(String typeCode, String name) {
     	RedisTemplate<String, Object> redisTemplate=SpringUtil.getBean("redisTemplate");
     	if(redisTemplate==null) {
     		return null;
     	}
-        if (redisTemplate.hasKey("dict:"+typeCode+":"+value)){
-            return (String) redisTemplate.opsForValue().get("dict:"+typeCode+":"+value);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey("dict:" + typeCode + ":" + name))){
+            return (String) redisTemplate.opsForValue().get("dict:"+typeCode+":"+name);
         }
         RestTemplate restTemplate=SpringUtil.getBean("restTemplateApi");
      	if(restTemplate==null) {
@@ -105,21 +105,57 @@ public class DictSerializer extends StdSerializer<Object> implements ContextualS
         }catch(Exception e) {
         	e.printStackTrace();
         }
-       
-        if(result!=null&&Result.isSuccess(result)&&result.getData()!=null) {
+        if(Result.isSuccess(result)&&result.getData()!=null) {
         	List<?> dictDataList = (List<?>) result.getData();
             if(CollUtil.isNotEmpty(dictDataList)) {
             	 for (Object dictDataOptions : dictDataList) {
             		 Map<String, Object> map = BeanUtil.beanToMap(dictDataOptions);
-            		 if(map!=null&&map.get("value")!=null)
-                     redisTemplate.opsForValue().set("dict:"+typeCode+":"+map.get("value"),map.get("name"));
+            		 if(map!=null&&map.get("name")!=null)
+                       redisTemplate.opsForValue().set("dict-name:"+typeCode+":"+map.get("name"),map.get("value"));
                  }
             }
-            if (redisTemplate.hasKey("dict:"+typeCode+":"+value)){
-                return (String) redisTemplate.opsForValue().get("dict:"+typeCode+":"+value);
+            if (Boolean.TRUE.equals(redisTemplate.hasKey("dict-name:" + typeCode + ":" + name))){
+                return (String) redisTemplate.opsForValue().get("dict-name:"+typeCode+":"+name);
             }
         }
         
+        return null;
+    }
+
+
+    public static String getDictNameByValue(String typeCode, String value) {
+        RedisTemplate<String, Object> redisTemplate=SpringUtil.getBean("redisTemplate");
+        if(redisTemplate==null) {
+            return null;
+        }
+        if (Boolean.TRUE.equals(redisTemplate.hasKey("dict:" + typeCode + ":" + value))){
+            return (String) redisTemplate.opsForValue().get("dict:"+typeCode+":"+value);
+        }
+        RestTemplate restTemplate=SpringUtil.getBean("restTemplateApi");
+        if(restTemplate==null) {
+            return null;
+        }
+        Result<?> result =null;
+        try {
+            result= restTemplate.getForObject("http://wimoor-admin/admin/api/v1/dict-items/select_list/"+typeCode,Result.class);
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        if(Result.isSuccess(result) && result.getData() != null) {
+            List<?> dictDataList = (List<?>) result.getData();
+            if(CollUtil.isNotEmpty(dictDataList)) {
+                for (Object dictDataOptions : dictDataList) {
+                    Map<String, Object> map = BeanUtil.beanToMap(dictDataOptions);
+                    if(map!=null&&map.get("value")!=null)
+                        redisTemplate.opsForValue().set("dict:"+typeCode+":"+map.get("value"),map.get("name"));
+                }
+            }
+            if (Boolean.TRUE.equals(redisTemplate.hasKey("dict:" + typeCode + ":" + value))){
+                return (String) redisTemplate.opsForValue().get("dict:"+typeCode+":"+value);
+            }
+        }
+
         return null;
     }
 }

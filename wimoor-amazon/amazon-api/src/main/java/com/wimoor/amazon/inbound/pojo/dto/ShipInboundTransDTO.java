@@ -1,19 +1,17 @@
 package com.wimoor.amazon.inbound.pojo.dto;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Date;
-
-import javax.validation.constraints.Size;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wimoor.common.pojo.entity.BizBaseEntity;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value="ShipInboundTrans对象", description="物流信息")
@@ -80,7 +78,12 @@ public class ShipInboundTransDTO extends BizBaseEntity{
     @ApiModelProperty(value = "出港时间")
 	@TableField(value="outarrtime")
 	private Date outarrtime;
-	
+
+	@ApiModelProperty(value = "发货时间")
+	@TableField(exist=false)
+	private Date shipdate;
+
+
     @ApiModelProperty(value = "到港时间")
 	@TableField(value="inarrtime")
 	private Date inarrtime;

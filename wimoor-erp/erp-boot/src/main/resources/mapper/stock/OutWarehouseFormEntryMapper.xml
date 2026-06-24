@@ -19,7 +19,9 @@
   </select>
   
    <select id="findFormDetailByFormid" resultType="java.util.Map" parameterType="java.lang.String" >
-    select m.sku sku,m.name,c.name supplier,IFNULL(p.location,p.url) image,i.fulfillable fulfillable, a.* 
+    select m.sku sku,m.name,c.name supplier,IFNULL(p.location,p.url) image,
+           i.fulfillable fulfillable,m.price*a.amount price,
+           a.*
     from t_erp_outwh_form_entry a 
     left join t_erp_outwh_form fm on fm.id=a.formid
     left join t_erp_material m on a.materialid = m.id 

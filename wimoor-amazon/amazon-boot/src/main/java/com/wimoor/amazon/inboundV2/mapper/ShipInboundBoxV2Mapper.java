@@ -1,5 +1,6 @@
 package com.wimoor.amazon.inboundV2.mapper;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,4 +17,5 @@ public interface ShipInboundBoxV2Mapper extends BaseMapper<ShipInboundBox>{
     List<Map<String, Object>> getAreCaseBoxInfo(@Param("formid")String formid,@Param("shipmentid") String shipmentid);
 	List<Map<String, Object>> findListByPackageGroupidCase(@Param("formid")String formid,@Param("packingGroupId") String packingGroupId);
     List<Map<String, Object>> findListAllByShipmentid(@Param("formid")String formid, @Param("shipmentid")String shipmentid);
+    List<LinkedHashMap<String, Object>> findBoxDetailByFormId(@Param("formid")String formid, @Param("shipmentid")String shipmentid);
 }

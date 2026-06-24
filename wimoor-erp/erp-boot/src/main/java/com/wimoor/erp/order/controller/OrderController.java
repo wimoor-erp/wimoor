@@ -9,6 +9,7 @@ import com.wimoor.common.result.Result;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.common.user.UserLimitDataType;
 import com.wimoor.erp.common.pojo.entity.ChartLine;
 import com.wimoor.erp.material.pojo.entity.Material;
 import com.wimoor.erp.material.service.IMaterialService;
@@ -214,6 +215,9 @@ public class OrderController {
         }else{
             param.put("sku",null);
         }
+        if(userinfo.isLimit(UserLimitDataType.owner)){
+            param.put("myself",userinfo.getId());
+        }
         param.put("shopid",userinfo.getCompanyid());
         return Result.success(orderService.findByCondition(dto));
     }
@@ -225,6 +229,9 @@ public class OrderController {
             param.put("sku","%"+param.get("sku").toString().trim()+"%");
         }else{
             param.put("sku",null);
+        }
+        if(userinfo.isLimit(UserLimitDataType.owner)){
+            param.put("myself",userinfo.getId());
         }
         param.put("shopid",userinfo.getCompanyid());
         return Result.success(orderService.findOrderByCondition(dto));
@@ -248,6 +255,9 @@ public class OrderController {
                 param.put("sku",null);
             }
             param.put("shopid",userinfo.getCompanyid());
+            if(userinfo.isLimit(UserLimitDataType.owner)){
+                param.put("myself",userinfo.getId());
+            }
             List<Map<String, Object>> list = orderService.listOrderByCondition(dto);
             Workbook workbook = new SXSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");
@@ -339,6 +349,9 @@ public class OrderController {
             param.put("categoryid",null);
         }
         param.put("shopid",user.getCompanyid());
+        if(user.isLimit(UserLimitDataType.owner)){
+            param.put("myself",user.getId());
+        }
         return Result.success(orderService.findMaterialByCondition(dto.getPage(),param));
     }
     @ApiOperation(value = "下载feedfile文件")
@@ -367,6 +380,9 @@ public class OrderController {
             }
             if(StrUtil.isBlank(param.get("categoryid"))) {
                 param.put("categoryid",null);
+            }
+            if(user.isLimit(UserLimitDataType.owner)){
+                param.put("myself",user.getId());
             }
             param.put("shopid",user.getCompanyid());
             List<Map<String, Object>> list = orderService.findMaterialBySelect(param);

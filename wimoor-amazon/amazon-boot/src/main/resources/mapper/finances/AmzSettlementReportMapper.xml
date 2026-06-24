@@ -342,18 +342,19 @@
       merchant_order_id, adjustment_id, shipment_id, 
       marketplace_name, amount_type, amount_description, 
       amount, fulfillment_id, posted_date, 
-      posted_date_time, order_item_code, merchant_order_item_id, 
+      posted_date_time,posted_date_time_utc, order_item_code, merchant_order_item_id,
       merchant_adjustment_item_id, sku, quantity_purchased, 
       promotion_id,amazonAuthId)
     values 
     <foreach collection ="list" item="stm" index= "index" separator =",">
-    ( uuid_short(),#{stm.settlementId,jdbcType=BIGINT}, #{stm.currency,jdbcType=CHAR}, #{stm.transactionType,jdbcType=CHAR}, #{stm.orderId,jdbcType=CHAR}, 
-      #{stm.merchantOrderId,jdbcType=CHAR}, #{stm.adjustmentId,jdbcType=CHAR}, #{stm.shipmentId,jdbcType=CHAR}, 
-      #{stm.marketplaceName,jdbcType=CHAR}, #{stm.amountType,jdbcType=CHAR}, #{stm.amountDescription,jdbcType=CHAR}, 
-      #{stm.amount,jdbcType=DECIMAL},       #{stm.fulfillmentId,jdbcType=CHAR}, #{stm.postedDate,jdbcType=DATE}, 
-      #{stm.postedDateTime,jdbcType=TIMESTAMP}, #{stm.orderItemCode,jdbcType=CHAR}, #{stm.merchantOrderItemId,jdbcType=CHAR}, 
-      #{stm.merchantAdjustmentItemId,jdbcType=CHAR}, #{stm.sku,jdbcType=CHAR}, #{stm.quantityPurchased,jdbcType=INTEGER}, 
-      #{stm.promotionId,jdbcType=CHAR}, #{stm.amazonAuthId,jdbcType=CHAR}
+    ( uuid_short(),
+      #{stm.settlementId,jdbcType=BIGINT},       #{stm.currency,jdbcType=CHAR}, #{stm.transactionType,jdbcType=CHAR}, #{stm.orderId,jdbcType=CHAR},
+      #{stm.merchantOrderId,jdbcType=CHAR},      #{stm.adjustmentId,jdbcType=CHAR}, #{stm.shipmentId,jdbcType=CHAR},
+      #{stm.marketplaceName,jdbcType=CHAR},      #{stm.amountType,jdbcType=CHAR}, #{stm.amountDescription,jdbcType=CHAR},
+      #{stm.amount,jdbcType=DECIMAL},            #{stm.fulfillmentId,jdbcType=CHAR}, #{stm.postedDate,jdbcType=DATE},
+      #{stm.postedDateTime,jdbcType=TIMESTAMP},  #{stm.postedDateTimeUTC,jdbcType=TIMESTAMP}, #{stm.orderItemCode,jdbcType=CHAR},
+      #{stm.merchantOrderItemId,jdbcType=CHAR},  #{stm.merchantAdjustmentItemId,jdbcType=CHAR}, #{stm.sku,jdbcType=CHAR},
+      #{stm.quantityPurchased,jdbcType=INTEGER}, #{stm.promotionId,jdbcType=CHAR}, #{stm.amazonAuthId,jdbcType=CHAR}
     )
     </foreach> 
     </insert>
@@ -364,7 +365,7 @@
       merchant_order_id, adjustment_id, shipment_id, 
       marketplace_name, amount_type, amount_description, 
       amount, fulfillment_id, posted_date, 
-      posted_date_time, order_item_code, merchant_order_item_id, 
+      posted_date_time,posted_date_time_utc, order_item_code, merchant_order_item_id,
       merchant_adjustment_item_id, sku, quantity_purchased, 
       promotion_id,amazonAuthId)
     values 
@@ -373,7 +374,7 @@
       #{stm.merchantOrderId,jdbcType=CHAR}, #{stm.adjustmentId,jdbcType=CHAR}, #{stm.shipmentId,jdbcType=CHAR}, 
       #{stm.marketplaceName,jdbcType=CHAR}, #{stm.amountType,jdbcType=CHAR}, #{stm.amountDescription,jdbcType=CHAR}, 
       #{stm.amount,jdbcType=DECIMAL},       #{stm.fulfillmentId,jdbcType=CHAR}, #{stm.postedDate,jdbcType=DATE}, 
-      #{stm.postedDateTime,jdbcType=TIMESTAMP}, #{stm.orderItemCode,jdbcType=CHAR}, #{stm.merchantOrderItemId,jdbcType=CHAR}, 
+      #{stm.postedDateTime,jdbcType=TIMESTAMP},#{stm.postedDateTimeUTC,jdbcType=TIMESTAMP}, #{stm.orderItemCode,jdbcType=CHAR}, #{stm.merchantOrderItemId,jdbcType=CHAR},
       #{stm.merchantAdjustmentItemId,jdbcType=CHAR}, #{stm.sku,jdbcType=CHAR}, #{stm.quantityPurchased,jdbcType=INTEGER}, 
       #{stm.promotionId,jdbcType=CHAR}, #{stm.amazonAuthId,jdbcType=CHAR}
     )
@@ -388,5 +389,177 @@
 		select  sum(amount) from t_amz_settlement_report 
 		WHERE settlement_id=#{settlement_id,jdbcType=CHAR}
    </select>
-    
+	<select id="findSettlementSummarySku" parameterType="java.util.Map" resultType="java.util.Map">
+			select
+			v2.currency,
+			v2.groupname,
+			v2.marketname,
+			v2.asin,
+			v2.sku,
+			v2.pname,
+			v2.mname,
+			v2.image,
+			v2.categoryname,
+			v2.ownername,
+			v2.sales,
+			v2.price,
+			v2.`refundorder` refundsales,
+			v2.order_amount,
+			v2.storageFee skuStorageFee,
+			v2.rpt_adv_spend_fee,
+			v2.fin_sum_fee,
+			v2.local_unit_price,
+			ifnull(v.principalWithoutTax,0)
+			+ifnull(v.refund,0)
+			+ifnull(v.fbafee,0)
+			+ifnull(v.digital,0)
+			+ifnull(v.commission,0)
+			+ifnull(v.reimbursement,0)
+			-ifnull(v2.storageFee,0)
+			-ifnull(v2.rpt_adv_spend_fee,0)
+			-ifnull(v2.fin_sum_fee,0)
+			-ifnull(v2.price,0) profit,
+			( ifnull(v.principalWithoutTax,0)
+			+ifnull(v.refund,0)
+			+ifnull(v.fbafee,0)
+			+ifnull(v.digital,0)
+			+ifnull(v.commission,0)
+			+ifnull(v.reimbursement,0)
+			-ifnull(v2.storageFee,0)
+			-ifnull(v2.rpt_adv_spend_fee,0)
+			-ifnull(v2.fin_sum_fee,0)
+			-ifnull(v2.price,0))/v.principalWithoutTax profitRate,
+			v.*
+			from
+			(
+			select
+			m.amazonAuthId,
+			m.marketplace_name,
+			m.sku,
+			max(m.currency) currency,
+			max(g.name) groupname,
+			max(mk.name) marketname,
+			max(i.name) pname,
+			max(i.asin) asin,
+			max(mt.name) mname,
+			max(ifnull(p.location,p.url)) image,
+			max(c.name) categoryname,
+			max(u.name) ownername,
+			sum(sales) sales,
+			sum(order_amount) order_amount,
+			sum(m.`local_unit_price`*m.sales) price,
+			max(m.`local_unit_price`) `local_unit_price`,
+			sum(m.`refundorder`) `refundorder`,
+			sum(case when m.sku like 'amzn.gr.%' then 0 else ifnull(m.rpt_storage_fee,0)+ifnull(m.rpt_long_storage_fee,0) end)  storageFee,
+			sum(m.rpt_adv_spend_fee) rpt_adv_spend_fee,
+			sum(m.fin_sum_fee) fin_sum_fee
+			from  t_amz_settlement_summary_sku_month m
+			left join t_product_info i on i.id=m.pid
+			left join t_marketplace mk on mk.point_name=m.marketplace_name
+			left join t_erp_material mt on mt.id=m.mid
+			left join t_erp_material_category c on c.id=m.categoryid
+			left join t_picture p on p.id=i.image
+			left join t_amazon_auth a on a.id=m.amazonAuthId
+			left join t_amazon_group g on g.id=a.groupid
+			left join t_userinfo u on u.id=m.owner
+			WHERE a.shop_id=#{params.shopid,jdbcType=CHAR}
+			<if test="params.marketplaceid != null">
+				AND mk.marketplaceid = #{params.marketplaceid,jdbcType=CHAR}
+			</if>
+			<if test="params.groupid != null">
+				AND a.groupid = #{params.groupid,jdbcType=CHAR}
+			</if>
+			<if test="params.amazonauthid != null">
+				AND m.amazonAuthId = #{params.amazonauthid,jdbcType=CHAR}
+			</if>
+			<if test="params.search != null">
+				AND m.sku like #{params.search,jdbcType=CHAR}
+			</if>
+			AND m.posted_date >=#{params.fromDate,jdbcType=CHAR}
+			AND m.posted_date &lt; #{params.endDate,jdbcType=CHAR}
+			GROUP BY m.amazonAuthId,m.marketplace_name,m.sku) v2
+			left join (SELECT  m.sku vsku,m.amazonAuthId,m.marketplace_name,
+			sum(case when   (amount_description='Principal'  and amount_type='ItemPrice' and transaction_type='Order')
+			or (amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice' )
+			then amount else 0 end ) principal,
+			sum(case when   amount_description='Principal'  and amount_type='ItemPrice' and transaction_type='Order'
+			then amount else 0 end ) principalWithoutTax,
+			sum(case when transaction_type='Refund' then amount else 0 end ) refund,
+			sum(case when  amount_description like 'Commission' and transaction_type='Order'  then amount else 0 end ) commission,
+			sum(case when  (amount_description like 'FBAPerUnitFulfillmentFee%' or amount_type like 'FBA fulfilment fee per unit%' ) and (transaction_type='Order'  or transaction_type='AmazonFees')  then amount else 0 end ) fbafee,
+			SUM(case when 'FBA Inventory Reimbursement'=amount_type   AND m.transaction_type='other-transaction' then amount ELSE 0 END ) reimbursement,
+			sum(case when (amount_description='MarketplaceFacilitatorVAT-Principal' OR amount_description='MarketplaceFacilitatorVAT-Shipping')  AND amount_type='ItemWithheldTax'   then amount else 0 end) vat,
+			SUM(case when ((m.amount_description in ('DisposalComplete',
+							'FBAInboundTransportationFee',
+							'FBAInboundTransportationProgramFee',
+							'Storage Fee',
+							'StorageRenewalBilling')
+							AND m.transaction_type ='other-transaction') OR
+							(m.amount_type in  ('FBA Inventory Storage Fee','FBA Long Term Storage Fee')
+							and m.transaction_type='FBAFees'))
+			then amount else 0 end ) storagefee,
+			SUM( case when  (amount_type='Promotion' OR amount_type='PromotionFee' ) then amount ELSE 0 END ) promotion,
+			sum(case when ((amount_description='Shipping' and amount_type='ItemPrice'    )
+			or
+			(amount_description='ShippingChargeback' and amount_type='ItemFees'   )
+			or
+			(amount_description='ShippingTax' and amount_type='ItemPrice'   )
+			) then amount else 0 end ) shipping,
+			SUM(case when transaction_type='Liquidations' then amount ELSE 0 END ) liquidations,
+			sum(case when amount_type='CouponRedemptionFee' then amount else 0 END ) coupon,
+			SUM(  case when amount_description LIKE 'FBA International Freight Shipping%' then amount else 0 END)  freight,
+			SUM( case when ( (amount_description='DigitalServicesFee' OR amount_description='Digital Services Fee') AND   amount_type='ItemFees' ) then amount ELSE 0 END ) digital,
+			sum(case when
+			not(amount_description='Principal'and amount_type='ItemPrice'and transaction_type='Order')
+			and not (amount_description='Tax' and transaction_type='Order' and amount_type='ItemPrice')
+			and not ( transaction_type='Refund' AND amount_type='ItemPrice' AND amount_description='Principal'
+			OR (amount_description='Tax' and transaction_type='Refund' and amount_type='ItemPrice') )
+			and not ( (amount_description like 'Commission%' OR amount_description='RefundCommission')  and  amount_type='ItemFees'  )
+			and not ((amount_description like 'FBAPerUnitFulfillmentFee%' or amount_type like 'FBA fulfilment fee per unit%' ) and (transaction_type='Order' or transaction_type='AmazonFees'))
+			AND NOT ( 'FBA Inventory Reimbursement'=amount_type
+			OR 'Manual Processing Fee Reimbursement'=amount_type
+			OR 'Item Fee Adjustment'=amount_type )
+			and not (amount_type='CouponRedemptionFee' )
+			AND NOT (amount_description='DigitalServicesFee' AND   amount_type='ItemFees' )
+			AND NOT ( amount_description LIKE 'FBA International Freight Shipping%' )
+			and not ((amount_description='Shipping' and amount_type='ItemPrice'  )
+			or
+			(amount_description='ShippingChargeback' and amount_type='ItemFees'   )
+			or
+			(amount_description='ShippingTax' and amount_type='ItemPrice'  )
+			)
+			and not (amount_type='Promotion'   OR amount_type='PromotionFee')
+			AND NOT ( (amount_description='DigitalServicesFee' OR amount_description='Digital Services Fee') AND   amount_type='ItemFees' )
+			AND NOT (transaction_type='Liquidations')
+			and NOT ((amount_description='MarketplaceFacilitatorVAT-Principal' OR amount_description='MarketplaceFacilitatorVAT-Shipping') AND amount_type='ItemWithheldTax'   )
+			and not ((m.amount_description in ('DisposalComplete',
+						'FBAInboundTransportationFee',
+						'FBAInboundTransportationProgramFee',
+						'Storage Fee',
+						'StorageRenewalBilling')
+						AND m.transaction_type ='other-transaction') OR
+						(m.amount_type in  ('FBA Inventory Storage Fee','FBA Long Term Storage Fee')
+						and m.transaction_type='FBAFees'))
+			then amount else 0 end) other,
+			sum(amount) shopfee
+			FROM t_amz_settlement_summary_day m
+			LEFT JOIN t_marketplace mk ON mk.point_name=m.marketplace_name
+			LEFT JOIN t_amazon_auth a on a.id=m.amazonAuthId
+			WHERE a.shop_id=#{params.shopid,jdbcType=CHAR}
+			<if test="params.marketplaceid != null">
+				AND mk.marketplaceid = #{params.marketplaceid,jdbcType=CHAR}
+			</if>
+			<if test="params.groupid != null">
+				AND a.groupid = #{params.groupid,jdbcType=CHAR}
+			</if>
+			<if test="params.amazonauthid != null">
+				AND m.amazonAuthId = #{params.amazonauthid,jdbcType=CHAR}
+			</if>
+			AND m.posted_date >=#{params.fromDate,jdbcType=CHAR}
+			AND m.posted_date &lt; #{params.endDate,jdbcType=CHAR}
+			GROUP BY m.amazonAuthId,m.marketplace_name,m.sku) v
+			on  v2.amazonAuthId=v.amazonAuthId and v2.sku=v.vsku
+			and v2.marketplace_name=v.marketplace_name
+		</select>
+
 </mapper>

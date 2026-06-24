@@ -1,26 +1,10 @@
 package com.wimoor.amazon.inboundV2.service.impl;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.amazon.spapi.model.fulfillmentinboundV20240320.*;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wimoor.amazon.inbound.service.IFulfillmentInboundService;
-import com.wimoor.amazon.inboundV2.pojo.entity.*;
-import com.wimoor.amazon.inventory.service.IInventorySupplyService;
-import com.wimoor.amazon.util.AmzDateUtils;
-import com.wimoor.common.GeneralUtil;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.threeten.bp.OffsetDateTime;
-
+import cn.hutool.core.util.StrUtil;
 import com.amazon.spapi.model.fulfillmentinbound.LabelOwner;
+import com.amazon.spapi.model.fulfillmentinboundV20240320.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
@@ -30,33 +14,44 @@ import com.wimoor.amazon.auth.service.IAmazonGroupService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.common.service.IDaysalesFormulaService;
 import com.wimoor.amazon.inbound.pojo.entity.ShipAddress;
-import com.wimoor.amazon.inbound.service.IAmzShipFulfillmentCenterService;
-import com.wimoor.amazon.inbound.service.IShipAddressService;
-import com.wimoor.amazon.inbound.service.IShipAddressToService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentRecordV2Service;
+import com.wimoor.amazon.inbound.pojo.entity.ShipInboundTrans;
+import com.wimoor.amazon.inbound.service.*;
 import com.wimoor.amazon.inboundV2.mapper.ShipInboundPlanV2Mapper;
 import com.wimoor.amazon.inboundV2.pojo.dto.InboundPlansDTO;
 import com.wimoor.amazon.inboundV2.pojo.dto.ShipPlanListDTO;
+import com.wimoor.amazon.inboundV2.pojo.entity.*;
 import com.wimoor.amazon.inboundV2.pojo.vo.ShipInboundItemVo;
 import com.wimoor.amazon.inboundV2.pojo.vo.ShipPlanVo;
 import com.wimoor.amazon.inboundV2.pojo.vo.SummaryPlanVo;
-import com.wimoor.amazon.inboundV2.service.IInboundApiHandlerService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundBoxService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundCaseService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundItemService;
-import com.wimoor.amazon.inboundV2.service.IShipInboundOperationService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundPlanService;
 import com.wimoor.amazon.inboundV2.service.IShipInboundShipmentService;
+import com.wimoor.amazon.inboundV2.service.*;
+import com.wimoor.amazon.inventory.service.IInventorySupplyService;
 import com.wimoor.amazon.product.mapper.ProductInfoMapper;
 import com.wimoor.amazon.product.service.IProductInPresaleService;
+import com.wimoor.amazon.util.AmzDateUtils;
+import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.ship.pojo.dto.ShipFormDTO;
 import com.wimoor.erp.ship.pojo.dto.ShipItemDTO;
-
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.threeten.bp.OffsetDateTime;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("shipInboundPlanV2Service")
 @RequiredArgsConstructor
@@ -85,15 +80,20 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanV2Map
 	final IInboundApiHandlerService iInboundApiHandlerService;
 	final IFulfillmentInboundService iFulfillmentInboundService;
 	final IInventorySupplyService iInventorySupplyService;
+	@Autowired
+	@Lazy
+	IShipInboundTransService shipInboundTransService;
 	public void saveShipInboundPlan(ShipInboundPlan inplan) {
 		// TODO Auto-generated method stub
 		if(inplan.getSourceAddress()==null){
 			throw new BizException("发货地址不能为空");
 		}
-		 AmazonAuthority auth = this.amazonAuthorityService.selectByGroupAndMarket(inplan.getGroupid(), inplan.getMarketplaceid());
-	     if(auth!=null) {
-	    	 inplan.setAmazonauthid(auth.getId());
-	     }
+		if(StrUtil.isBlank(inplan.getAmazonauthid())){
+			AmazonAuthority auth = this.amazonAuthorityService.selectByGroupAndMarket(inplan.getGroupid(), inplan.getMarketplaceid());
+			if(auth!=null) {
+				inplan.setAmazonauthid(auth.getId());
+			}
+		}
 		 save(inplan);
 	     for(ShipInboundItem item:inplan.getPlanitemlist()) {
 	    	 item.setFormid(inplan.getId());
@@ -125,9 +125,13 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanV2Map
 			if(item.getConfirmQuantity()==null) {
 				item.setConfirmQuantity(item.getQuantity());
 			}
+			if(old.getQuantity()==null) {
+				old.setQuantity(0);
+			}
 			if(old.getConfirmQuantity()==null) {
 				old.setConfirmQuantity(old.getQuantity());
 			}
+
 			dto.setQuantity(item.getConfirmQuantity()-old.getConfirmQuantity());
 			dto.setSku(item.getSku());
 			list.add(dto);
@@ -270,6 +274,23 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanV2Map
 			vo.setAddress(address);
 			SummaryPlanVo summary = showPlanListByPlanid(formid);
 		    List<ShipInboundItemVo> itemlist = iShipInboundItemService.listByFormid(formid);
+			BigDecimal shipfee=BigDecimal.ZERO;
+			if(vo.getAuditstatus()>=6){
+				List<ShipInboundShipment> shipments = this.shipInboundShipmentService.lambdaQuery().eq(ShipInboundShipment::getFormid, formid).list();
+				if(shipments!=null&&shipments.size()>0){
+					for(ShipInboundShipment shipment:shipments) {
+						if(StrUtil.isNotBlank(shipment.getShipmentConfirmationId())){
+							ShipInboundTrans trans = this.shipInboundTransService.lambdaQuery().eq(ShipInboundTrans::getShipmentid, shipment.getShipmentConfirmationId()).one();
+							if(trans!=null&&trans.getSingleprice()!=null){
+								shipfee=shipfee.add(trans.getSingleprice().multiply(trans.getTransweight()).add(trans.getOtherfee()!=null?trans.getOtherfee():BigDecimal.ZERO));
+							}
+						}
+					}
+				}
+			}
+
+
+		    summary.setTransfee(shipfee);
 			vo.setItemlist(itemlist);
 			vo.setPlansummary(summary);
             return vo;
@@ -861,6 +882,44 @@ public class ShipInboundPlanServiceImpl extends ServiceImpl<ShipInboundPlanV2Map
 					}
 				}
 			}
+		}
+	}
+
+	@Override
+	public void changeShipInboundPlanItem(ShipInboundPlan old, String itemid, Integer qty) {
+		if(StrUtil.isBlank(itemid)) {
+			throw new BizException("商品ID不能为空");
+		}
+		ShipInboundItem item = iShipInboundItemService.getById(itemid);
+		if(item == null) {
+			throw new BizException("商品不存在");
+		}
+		Integer newQty = null;
+		if(qty!=null) {
+			try {
+				newQty = qty;
+				if(newQty < 0) {
+					throw new BizException("发货数量不能小于0");
+				}
+			} catch(NumberFormatException e) {
+				throw new BizException("发货数量格式不正确");
+			}
+		}
+		if(newQty != null && !newQty.equals(item.getQuantity())) {
+			List<ShipInboundItem> itemList = new ArrayList<>();
+			item.setConfirmQuantity(newQty);
+			itemList.add(item);
+			ShipFormDTO mydto = getFormDTO(old, itemList);
+			if(old.getInvtype() != 2) {
+				this.erpClientOneFeign.updateItemQty(mydto);
+			}
+			item.setQuantity(newQty);
+			if(item.getConfirmQuantity() == null) {
+				item.setConfirmQuantity(newQty);
+			}
+			item.setOperator(old.getOperator());
+			item.setOpttime(old.getOpttime());
+			iShipInboundItemService.updateById(item);
 		}
 	}
 

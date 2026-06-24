@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_purchase_form_entry` (
   `operator` bigint unsigned DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `amount` int DEFAULT NULL,
-  `itemprice` decimal(10,2) DEFAULT NULL,
+  `itemprice` decimal(16,4) DEFAULT NULL,
   `audittime` datetime DEFAULT NULL,
   `auditor` bigint unsigned DEFAULT NULL,
   `orderprice` decimal(10,2) DEFAULT NULL,

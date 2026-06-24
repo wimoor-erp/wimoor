@@ -1,12 +1,13 @@
 package com.wimoor.gen.domain;
 
-import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.ArrayUtils;
 import com.wimoor.common.core.constant.GenConstants;
 import com.wimoor.common.core.utils.StringUtils;
 import com.wimoor.common.core.web.domain.BaseEntity;
+import org.apache.commons.lang3.ArrayUtils;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * 业务表 gen_table
@@ -43,6 +44,9 @@ public class GenTable extends BaseEntity
 
     /** 前端类型（element-ui模版 element-plus模版） */
     private String tplWebType;
+
+    /** 后端类型（mybatis plus模版 mybatis page模版） */
+    private String tplJavaType;
 
     /** 生成包路径 */
     @NotBlank(message = "生成包路径不能为空")
@@ -176,6 +180,14 @@ public class GenTable extends BaseEntity
     public void setTplWebType(String tplWebType)
     {
         this.tplWebType = tplWebType;
+    }
+
+    public String getTplJavaType() {
+        return tplJavaType;
+    }
+
+    public void setTplJavaType(String tplJavaType) {
+        this.tplJavaType = tplJavaType;
     }
 
     public String getPackageName()

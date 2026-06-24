@@ -47,7 +47,7 @@
 		max(tg.creator) creator,max(tg.createtime) createtime,max(tg.isfinance) isfinance,max(tg.tax_number) tax_number,max(tg.company) company
 		from t_amazon_group tg 
 		inner join t_amazon_auth a on tg.id=a.groupid
-		where a.shop_id=#{shopid,jdbcType=CHAR}
+		where a.shop_id=#{shopid,jdbcType=CHAR} and ifnull(tg.isdelete,0)=0 and ifnull(a.disable,0)=0
 		group by tg.name,tg.id
 		order by tg.findex
 	</select>
@@ -56,7 +56,7 @@
 		select distinct g.id, g.name, g.shopid
 		from t_amazon_group g
 		inner join t_amz_adv_auth a on g.id=a.groupid
-		where a.shopid = #{shopid,jdbcType=CHAR}
+		where a.shopid = #{shopid,jdbcType=CHAR} and ifnull(g.isdelete,0)=0
 	</select>
 	
 	<select id="findAdvGroup" resultType="java.util.Map" parameterType="java.lang.String">

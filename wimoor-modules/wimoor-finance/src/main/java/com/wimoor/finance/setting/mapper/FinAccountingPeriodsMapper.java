@@ -71,4 +71,11 @@ public interface FinAccountingPeriodsMapper
     List<FinAccountingPeriods> selectOpenPeriods(@Param("groupid") String groupid);
 
     List<FinAccountingPeriods> selectSubsequentClosedPeriods(@Param("groupid") String groupid, @Param("period") String period);
+
+    /**
+     * 查询当前会计期间
+     * @param groupid 租户ID
+     * @return 当前会计期间
+     */
+    FinAccountingPeriods selectCurrentPeriod(@Param("groupid") String groupid);
 }

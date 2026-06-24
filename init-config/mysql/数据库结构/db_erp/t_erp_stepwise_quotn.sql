@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `t_erp_stepwise_quotn` (
   `id` bigint unsigned NOT NULL,
   `material` bigint unsigned DEFAULT NULL,
   `amount` int DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL,
+  `price` decimal(16,4) DEFAULT NULL,
   `operator` bigint unsigned DEFAULT NULL COMMENT '操作人',
   `opttime` datetime DEFAULT NULL COMMENT '操作时间',
   `oldid` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,

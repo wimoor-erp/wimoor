@@ -17,6 +17,7 @@
 -- 导出  表 db_admin.t_sys_dept 结构
 CREATE TABLE IF NOT EXISTS `t_sys_dept` (
   `id` bigint unsigned NOT NULL,
+  `code` char(50) DEFAULT NULL,
   `name` char(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `parent_id` bigint unsigned DEFAULT NULL,
   `tree_path` char(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,

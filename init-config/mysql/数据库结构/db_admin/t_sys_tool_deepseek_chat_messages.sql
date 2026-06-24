@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `t_sys_tool_deepseek_chat_messages` (
   `metadata` json DEFAULT NULL COMMENT '附加元数据，如代码高亮信息、文件信息等',
   PRIMARY KEY (`id`),
   KEY `idx_session_id` (`session_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=951 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 数据导出被取消选择。
 

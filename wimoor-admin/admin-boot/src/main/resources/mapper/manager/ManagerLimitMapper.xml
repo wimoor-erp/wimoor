@@ -21,7 +21,8 @@
         <result column="existProfitPlanCount" property="existProfitPlanCount" />
         <result column="existdayOpenAdvCount" property="existdayOpenAdvCount" />
         <result column="tariffpackage" property="tariffpackage" />
-        <result column="losingEffect" property="losingEffect" />
+        <result column="expirationTime" property="expirationTime" />
+		<result column="effectiveTime" property="effectiveTime" />
         <result column="remark" property="remark" />
         <result column="opratetime" property="opratetime" />
         <result column="createtime" property="createtime" />
@@ -41,7 +42,8 @@
          ui.name userName,
          ifnull(s.name,ui.company) shopName,
          u.createDate,
-         m.losingEffect,
+         m.expirationTime,
+		 m.effectiveTime,
 		 m.remark,
 		 ui.tel telephone,
 		 ui.email email,
@@ -69,7 +71,7 @@
 		  SELECT case when zu.leader_id=#{param.adminid,jdbcType=CHAR}  then zu.id else zu.leader_id end userid,  COUNT(zlg.id) countnum
 				  from t_sys_operationlog zlg
 				LEFT JOIN t_user zu ON zu.id=zlg.userid
-				WHERE   method='com.plum.frame.controller.LoginController.pageAction()'
+				WHERE   method='verifyAccount'
 				AND  zlg.time>DATE_SUB(CURDATE(),INTERVAL 10 day)
 				group by case when zu.leader_id=#{param.adminid,jdbcType=CHAR} then zu.id else zu.leader_id end 
 		) vvlg on vvlg.userid=u.id
@@ -110,7 +112,7 @@
 	 		ifnull(a.existProductCount,0) existProductCount,ifnull(a.existOrderCount,0) existOrderCount,
 	 		ifnull(a.existMember,0) existMember, ifnull(a.existProfitPlanCount,0) existProfitPlanCount,
 	 		ifnull(a.existdayOpenAdvCount,0)existdayOpenAdvCount,
-	 		a.tariffpackage,a.losingEffect,a.remark,a.opratetime,a.createtime,a.oprate,a.logicVersion
+	 		a.tariffpackage,a.expirationTime,a.effectiveTime,a.remark,a.opratetime,a.createtime,a.oprate,a.logicVersion
 	 		,a.neverNoticeShop,a.afterNnoticeTariff
     from t_manager_limit a  where  a.shopId = #{shopid,jdbcType=CHAR} 
   </select>

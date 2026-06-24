@@ -110,6 +110,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import com.wimoor.util.ExcelExportUtil;
  
 
 @Service("shipInboundShipmentService")
@@ -967,37 +968,22 @@ public ShipInboundShipmenSummarytVo getUnSyncShipment(String groupid, String mar
 
 	@Override
 	public void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, String shipmentid) {
-		Sheet sheet = workbook.createSheet("sheet1");
-		List<LinkedHashMap<String, Object>> boxlist = this.baseMapper.findBoxDetailByShipmentId(shipmentid);
-		Row row = sheet.createRow(0);
-		int index = 0;
-		if (boxlist == null || boxlist.size() == 0) {
+		// 获取数据
+		List<Map<String, Object>> boxlist = this.baseMapper.findBoxDetailByShipmentId(shipmentid);
+		if (boxlist == null || boxlist.isEmpty()) {
 			return;
 		}
-		Cell cell = row.createCell(0);
-		cell.setCellValue("SKU");
-		cell = row.createCell(1);
-		cell.setCellValue("装箱数量");
-		cell = row.createCell(2);
-		cell.setCellValue("箱号");
-		cell = row.createCell(3);
-		cell.setCellValue("重量(Kg)");
-		cell = row.createCell(4);
-		cell.setCellValue("长度(cm)");
-		cell = row.createCell(5);
-		cell.setCellValue("宽度(cm)");
-		cell = row.createCell(6);
-		cell.setCellValue("高度(cm)");
-
-		for (int i = 0; i < boxlist.size(); i++) {
-			Row skurow = sheet.createRow(i + 1);
-			Map<String, Object> skumap = boxlist.get(i);
-			index = 0;
-			for (String key : skumap.keySet()) {
-				cell = skurow.createCell(index++);
-				cell.setCellValue(skumap.get(key).toString());
-			}
-		}
+		// 定义表头（使用固定的顺序）
+		LinkedHashMap<String, String> headers = new LinkedHashMap<String, String>();
+		headers.put("sku", "SKU");
+		headers.put("amount", "装箱数量");
+		headers.put("boxno", "箱号");
+		headers.put("weight", "重量(Kg)");
+		headers.put("length", "长度(cm)");
+		headers.put("width", "宽度(cm)");
+		headers.put("height", "高度(cm)");
+		// 使用ExcelExportUtil导出
+		ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, boxlist);
 	}
 	
 	@Transactional

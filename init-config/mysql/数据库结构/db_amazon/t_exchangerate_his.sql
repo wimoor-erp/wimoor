@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS `t_exchangerate_his` (
   `byday` date DEFAULT NULL,
   `isnewest` bit(1) DEFAULT b'0',
   PRIMARY KEY (`id`),
-  KEY `index_name` (`name`,`byday`)
-) ENGINE=InnoDB AUTO_INCREMENT=489651 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='汇率';
+  UNIQUE KEY `index_name` (`name`,`byday`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=496815 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='汇率';
 
 -- 数据导出被取消选择。
 

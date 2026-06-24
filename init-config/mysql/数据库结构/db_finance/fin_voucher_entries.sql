@@ -20,18 +20,21 @@ CREATE TABLE IF NOT EXISTS `fin_voucher_entries` (
   `groupid` bigint unsigned NOT NULL COMMENT '租户ID',
   `voucher_id` bigint unsigned NOT NULL COMMENT '关联的凭证ID',
   `entry_no` int NOT NULL COMMENT '分录序号',
-  `subject_id` bigint unsigned DEFAULT NULL COMMENT '会计科目ID',
+  `subject_id` bigint unsigned NOT NULL COMMENT '会计科目ID',
+  `summary` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '摘要说明',
   `debit_amount` decimal(15,2) DEFAULT '0.00' COMMENT '借方金额',
   `credit_amount` decimal(15,2) DEFAULT '0.00' COMMENT '贷方金额',
-  `summary` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '摘要说明',
-  `auxiliary_type` tinyint DEFAULT NULL COMMENT '辅助核算类型：1-部门，2-员工，3-客户，4-供应商，5-项目',
-  `auxiliary_id` bigint DEFAULT NULL COMMENT '辅助核算对象ID',
+  `original_amount` decimal(20,6) DEFAULT NULL,
+  `currency` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `exchange_rate` decimal(20,6) DEFAULT NULL,
+  `quantity` int DEFAULT NULL,
+  `unit_price` decimal(20,2) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`entry_id`),
   KEY `idx_voucher_entries_tenant_subject` (`groupid`,`subject_id`) USING BTREE COMMENT '租户分录科目索引',
   KEY `tenant_id` (`groupid`,`voucher_id`) USING BTREE,
   KEY `voucher_id` (`voucher_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='凭证分录明细表，存储凭证的每一笔分录信息';
+) ENGINE=InnoDB AUTO_INCREMENT=10163 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='凭证分录明细表，存储凭证的每一笔分录信息';
 
 -- 数据导出被取消选择。
 

@@ -45,8 +45,8 @@ public class AmzAdvReportTreatPurchaseProductServiceImpl extends AmzAdvReportTre
                 amzAdvReportPurchaseProduct.setRoyaltyQualifiedBorrows(item.getInteger("royaltyQualifiedBorrows"));
                 amzAdvReportPurchaseProduct.setRoyaltyQualifiedBorrowsFromClicks(item.getInteger("royaltyQualifiedBorrowsFromClicks"));
                 amzAdvReportPurchaseProduct.setPortfolioId(item.getBigInteger("portfolioId"));
-                amzAdvReportPurchaseProduct.setCampaignName(item.getString("campaignName"));
-                amzAdvReportPurchaseProduct.setAdGroupName(item.getString("adGroupName"));
+                //amzAdvReportPurchaseProduct.setCampaignName(item.getString("campaignName"));
+                //amzAdvReportPurchaseProduct.setAdGroupName(item.getString("adGroupName"));
                 amzAdvReportPurchaseProduct.setKeyword(item.getString("keyword"));
                 amzAdvReportPurchaseProduct.setKeywordType(item.getString("keywordType"));
                 amzAdvReportPurchaseProduct.setAdvertisedAsin(item.getString("advertisedAsin"));

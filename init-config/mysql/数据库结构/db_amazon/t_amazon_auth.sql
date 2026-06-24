@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `t_amazon_auth` (
   `role_arn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `client_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `client_secret` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `proxy_ip` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `proxy_ip` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `proxy_port` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index 3` (`sellerid`),

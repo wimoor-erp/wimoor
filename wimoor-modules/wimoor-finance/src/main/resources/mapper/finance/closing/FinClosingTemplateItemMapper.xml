@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.finance.closing.mapper.FinClosingTemplateItemMapper">
+    
+    <resultMap type="com.wimoor.finance.closing.domain.FinClosingTemplateItem" id="FinClosingTemplateItemResult">
+        <result property="id"    column="id"    />
+        <result property="closingTemplateId"    column="closing_template_id"    />
+        <result property="summary"    column="summary"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="amountField"    column="amount_field"    />
+        <result property="direction"    column="direction"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+        <result property="modifyBy"    column="modify_by"    />
+        <result property="createBy"    column="create_by"    />
+    </resultMap>
+
+    <sql id="selectFinClosingTemplateItemVo">
+        select id, closing_template_id, summary, subject_id, amount_field, direction, created_time, updated_time, modify_by, create_by from fin_closing_template_item
+    </sql>
+
+    <select id="selectFinClosingTemplateItemList" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateItem" resultMap="FinClosingTemplateItemResult">
+        <include refid="selectFinClosingTemplateItemVo"/>
+        <where>  
+            <if test="closingTemplateId != null  and closingTemplateId != ''"> and closing_template_id = #{closingTemplateId}</if>
+            <if test="summary != null  and summary != ''"> and summary = #{summary}</if>
+            <if test="subjectId != null  and subjectId != ''"> and subject_id = #{subjectId}</if>
+            <if test="amountField != null  and amountField != ''"> and amount_field = #{amountField}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+            <if test="direction != null  and direction != ''"> and direction = #{direction}</if>
+            <if test="modifyBy != null  and modifyBy != ''"> and modify_by = #{modifyBy}</if>
+        </where>
+    </select>
+    
+    <select id="selectFinClosingTemplateItemById" parameterType="String" resultMap="FinClosingTemplateItemResult">
+        <include refid="selectFinClosingTemplateItemVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFinClosingTemplateItem" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateItem" useGeneratedKeys="true" keyProperty="id">
+        insert into fin_closing_template_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="closingTemplateId != null">closing_template_id,</if>
+            <if test="summary != null">summary,</if>
+            <if test="subjectId != null">subject_id,</if>
+            <if test="amountField != null">amount_field,</if>
+            <if test="direction != null">direction,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="modifyBy != null">modify_by,</if>
+            <if test="createBy != null">create_by,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="closingTemplateId != null">#{closingTemplateId},</if>
+            <if test="summary != null">#{summary},</if>
+            <if test="subjectId != null">#{subjectId},</if>
+            <if test="amountField != null">#{amountField},</if>
+            <if test="direction != null">#{direction},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="modifyBy != null">#{modifyBy},</if>
+            <if test="createBy != null">#{createBy},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFinClosingTemplateItem" parameterType="com.wimoor.finance.closing.domain.FinClosingTemplateItem">
+        update fin_closing_template_item
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="closingTemplateId != null">closing_template_id = #{closingTemplateId},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="subjectId != null">subject_id = #{subjectId},</if>
+            <if test="amountField != null">amount_field = #{amountField},</if>
+            <if test="direction != null">direction = #{direction},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="modifyBy != null">modify_by = #{modifyBy},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFinClosingTemplateItemById" parameterType="String">
+        delete from fin_closing_template_item where id = #{id}
+    </delete>
+
+    <delete id="deleteFinClosingTemplateItemByIds" parameterType="java.util.List">
+        delete from fin_closing_template_item where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

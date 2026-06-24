@@ -80,7 +80,7 @@
 	<select id="selectMainBySubid" resultType="java.util.Map" parameterType="java.lang.String">
 		select IFNULL(pic.location,pic.url) image,m.name name, m.color color,ifnull(m.boxnum,0) boxnum,
 			m.sku sku ,m.price price ,c.name supplier,m.delivery_cycle,a.subnumber MOQ,i2.inbound,
-			i2.outbound,i2.fulfillable,a.mainmid 
+			i2.outbound,i2.fulfillable,a.mainmid ,is_ass_price
 		from t_erp_assembly a
 		left join t_erp_material m on a.mainmid = m.id
 		left join t_erp_customer c on c.id=m.supplier
@@ -108,7 +108,9 @@
 		left join t_erp_material m2 on a.mainmid = m2.id
 		left join t_erp_customer c on c.id=m.supplier
 		left join t_picture pic on m.image=pic.id
-		where mainmid = #{mainmid,jdbcType=CHAR} ORDER BY m.sku desc
+		where mainmid = #{mainmid,jdbcType=CHAR}
+		  AND  m.isDelete = 0
+		ORDER BY m.sku desc
 	</select>
 	
 	<select id="selectByMainDetailmid" resultType="java.util.Map" parameterType="java.lang.String">
@@ -133,9 +135,19 @@
 
 	<select id="selectAssemblySub" resultMap="BaseResultMap" parameterType="java.lang.String">
 		select * 
-		from t_erp_assembly t 
-		where t.mainmid=#{mainmid,jdbcType=CHAR} 
-			and t.submid is not null;
+		from t_erp_assembly t
+		 LEFT JOIN t_erp_material m ON t.submid = m.id
+		where t.mainmid=#{mainmid,jdbcType=CHAR}
+		  AND  m.isDelete = 0
+	</select>
+
+	<select id="selectMainList" resultType="com.wimoor.erp.material.pojo.entity.Assembly">
+		SELECT
+			a.*
+		FROM t_erp_assembly a
+		LEFT JOIN t_erp_material m ON a.mainmid = m.id
+		WHERE a.submid = #{materialid}
+		  AND  m.isDelete = 0
 	</select>
 
 </mapper>

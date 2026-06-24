@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `t_amz_product_sales_plan` (
   `needpurchase` int DEFAULT NULL,
   `ship_min_cycle_sale` int DEFAULT NULL,
   `salesday` int DEFAULT NULL,
+  `salesday_avgsales` decimal(20,6) DEFAULT NULL,
   `opttime` datetime DEFAULT NULL,
   `short_time` date DEFAULT NULL,
   PRIMARY KEY (`id`),

@@ -1,11 +1,11 @@
 package com.wimoor.common.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.wimoor.common.pojo.entity.Picture;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.wimoor.common.pojo.entity.Picture;
 
 public interface IPictureService extends IService<Picture>  {
 	/**
@@ -21,5 +21,5 @@ public interface IPictureService extends IService<Picture>  {
 	public Picture downloadPicturelocal(String pictureid, String filePath, String ftpPath) throws Exception ;
 	public Picture downloadPictureMaterial(String pictureid, String filePath, String ftpPath) throws Exception;
 	public Picture uploadPicture(InputStream dataInputStream, String sourcePath, String destinationPath, String imageName, String pictureid) throws IOException;
-	
+    void removePicture(String pkgimage);
 }

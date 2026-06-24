@@ -40,5 +40,5 @@ public interface AmzAdvAuthMapper extends BaseMapper<AmzAdvAuth>{
 
 	List<AmzAdvAuth> selectNotDisableList();
 
-    List<AmzAdvAuth> selectLastAuthList();
+    List<AmzAdvAuth> selectLastAuthList(@Param("ftype")String ftype);
 }

@@ -1,22 +1,19 @@
 package com.wimoor.finance.setting.controller;
 
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.wimoor.finance.setting.domain.FinAuxiliaryTypes;
-import com.wimoor.finance.setting.service.IFinAuxiliaryTypesService;
+import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.controller.BaseController;
 import com.wimoor.common.core.web.domain.Result;
-import com.wimoor.common.core.utils.poi.ExcelUtil;
 import com.wimoor.common.core.web.page.TableDataInfo;
+import com.wimoor.common.user.UserInfo;
+import com.wimoor.common.user.UserInfoContext;
+import com.wimoor.finance.setting.domain.FinAuxiliaryTypes;
+import com.wimoor.finance.setting.service.IFinAuxiliaryTypesService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 辅助核算类别Controller
@@ -34,8 +31,8 @@ public class FinAuxiliaryTypesController extends BaseController
     /**
      * 查询辅助核算类别列表
      */
-    @GetMapping("/list")
-    public TableDataInfo list(FinAuxiliaryTypes finAuxiliaryTypes)
+    @PostMapping("/list")
+    public TableDataInfo list(@RequestBody FinAuxiliaryTypes finAuxiliaryTypes)
     {
         startPage();
         List<FinAuxiliaryTypes> list = finAuxiliaryTypesService.selectFinAuxiliaryTypesList(finAuxiliaryTypes);
@@ -68,7 +65,16 @@ public class FinAuxiliaryTypesController extends BaseController
     @PostMapping
     public Result add(@RequestBody FinAuxiliaryTypes finAuxiliaryTypes)
     {
+        finAuxiliaryTypes.setCreateTime(new Date());
+        finAuxiliaryTypes.setUpdateTime(new Date());
+        finAuxiliaryTypes.setUpdateBy(getUsername());
+        finAuxiliaryTypes.setCreateBy(getUsername());
         return toResult(finAuxiliaryTypesService.insertFinAuxiliaryTypes(finAuxiliaryTypes));
+    }
+
+    private String getUsername() {
+        UserInfo user= UserInfoContext.get();
+        return user.getUserName();
     }
 
     /**
@@ -77,6 +83,8 @@ public class FinAuxiliaryTypesController extends BaseController
     @PutMapping
     public Result edit(@RequestBody FinAuxiliaryTypes finAuxiliaryTypes)
     {
+        finAuxiliaryTypes.setUpdateTime(new Date());
+        finAuxiliaryTypes.setUpdateBy(getUsername());
         return toResult(finAuxiliaryTypesService.updateFinAuxiliaryTypes(finAuxiliaryTypes));
     }
 

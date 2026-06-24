@@ -1,57 +1,5 @@
 package com.wimoor.common.core.utils.poi;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.ClientAnchor;
-import org.apache.poi.ss.usermodel.DataFormat;
-import org.apache.poi.ss.usermodel.DataValidation;
-import org.apache.poi.ss.usermodel.DataValidationConstraint;
-import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Drawing;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.Name;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.util.IOUtils;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
-import org.apache.poi.xssf.usermodel.XSSFDataValidation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.wimoor.common.core.annotation.Excel;
 import com.wimoor.common.core.annotation.Excel.ColumnType;
 import com.wimoor.common.core.annotation.Excel.Type;
@@ -63,6 +11,31 @@ import com.wimoor.common.core.utils.StringUtils;
 import com.wimoor.common.core.utils.file.FileTypeUtils;
 import com.wimoor.common.core.utils.file.ImageUtils;
 import com.wimoor.common.core.utils.reflect.ReflectUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.util.IOUtils;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDataValidation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Excel相关处理
@@ -300,8 +273,8 @@ public class ExcelUtil<T>
         }
         catch (Exception e)
         {
-            log.error("导入Excel异常{}", e.getMessage());
-            throw new UtilException(e.getMessage());
+            log.error("导入Excel异常", e);
+            throw new UtilException("导入Excel失败: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
         }
         finally
         {
@@ -338,12 +311,16 @@ public class ExcelUtil<T>
             Map<String, Integer> cellMap = new HashMap<String, Integer>();
             // 获取表头
             Row heard = sheet.getRow(titleNum);
+            if (heard == null) {
+                throw new IOException("Excel表头行不存在");
+            }
             for (int i = 0; i < heard.getPhysicalNumberOfCells(); i++)
             {
                 Cell cell = heard.getCell(i);
                 if (StringUtils.isNotNull(cell))
                 {
-                    String value = this.getCellValue(heard, i).toString();
+                    Object cellValue = this.getCellValue(heard, i);
+                    String value = cellValue != null ? cellValue.toString() : null;
                     cellMap.put(value, i);
                 }
                 else
@@ -363,6 +340,9 @@ public class ExcelUtil<T>
                     fieldsMap.put(column, objects);
                 }
             }
+            if (fieldsMap.isEmpty()) {
+                throw new IOException("Excel表头与实体类字段不匹配，未找到任何可导入的字段");
+            }
             for (int i = titleNum + 1; i <= rows; i++)
             {
                 // 从第2行开始取数据,默认第一行是表头.
@@ -380,20 +360,27 @@ public class ExcelUtil<T>
                     // 如果不存在实例则新建.
                     entity = (entity == null ? clazz.newInstance() : entity);
                     // 从map中得到对应列的field.
-                    Field field = (Field) entry.getValue()[0];
-                    Excel attr = (Excel) entry.getValue()[1];
+                    Object[] fieldInfo = entry.getValue();
+                    if (fieldInfo == null || fieldInfo.length < 2) {
+                        continue;
+                    }
+                    Field field = (Field) fieldInfo[0];
+                    Excel attr = (Excel) fieldInfo[1];
+                    if (field == null || attr == null) {
+                        continue;
+                    }
                     // 取得类型,并根据对象类型设置值.
                     Class<?> fieldType = field.getType();
                     if (String.class == fieldType)
                     {
                         String s = Convert.toStr(val);
-                        if (s.matches("^\\d+\\.0$"))
+                        if (s!=null && s.matches("^\\d+\\.0$"))
                         {
                             val = StringUtils.substringBefore(s, ".0");
                         }
                         else
                         {
-                            String dateFormat = field.getAnnotation(Excel.class).dateFormat();
+                            String dateFormat = attr.dateFormat();
                             if (StringUtils.isNotEmpty(dateFormat))
                             {
                                 val = parseDateToStr(dateFormat, val);
@@ -1464,7 +1451,7 @@ public class ExcelUtil<T>
         {
             return row;
         }
-        Object val = "";
+        Object val =null;
         try
         {
             Cell cell = row.getCell(column);

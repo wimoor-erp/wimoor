@@ -14,5 +14,5 @@ public interface IAmazonGroupService  extends IService<AmazonGroup> {
 
 	AmazonGroup findAmazonGroupByName(String groupname, String companyid);
 
-	List<Map<String,Object>> selectTaskInfoList(String sellerid, String marketplaceid);
+	List<Map<String,Object>> selectTaskInfoList(String sellerid, String marketplaceid, String reportType);
 }

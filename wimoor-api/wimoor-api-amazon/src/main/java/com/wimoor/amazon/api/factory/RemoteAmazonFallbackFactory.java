@@ -27,6 +27,26 @@ public class RemoteAmazonFallbackFactory implements FallbackFactory<RemoteAmazon
             public Result<List<Map<String,Object>>> getAmazonGroupAction() {
                 return Result.failed("获取亚马逊组失败:" + throwable.getMessage());
             }
+
+            @Override
+            public Result<?> getMarketplaceAction(String name) {
+                return null;
+            }
+
+            @Override
+            public Result<?> getMarketplaceByCountryAction(String country) {
+                return null;
+            }
+
+            @Override
+            public Result<?> getMonthReportAction(Map<String, Object> param) {
+                return null;
+            }
+
+            @Override
+            public Result<List<Map<String, Object>>> getMyCurrencyRate(String byday) {
+                return null;
+            }
         };
     }
 

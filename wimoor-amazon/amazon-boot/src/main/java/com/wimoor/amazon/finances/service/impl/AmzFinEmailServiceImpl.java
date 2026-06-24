@@ -1,17 +1,5 @@
 package com.wimoor.amazon.finances.service.impl;
 
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
-
 import com.wimoor.admin.pojo.dto.SysEmailDTO;
 import com.wimoor.amazon.api.AdminClientOneFeignManager;
 import com.wimoor.amazon.api.ErpClientOneFeignManager;
@@ -25,6 +13,12 @@ import com.wimoor.amazon.finances.service.IAmzFinEmailService;
 import com.wimoor.amazon.inventory.mapper.InventoryReportMapper;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.FileUpload;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.Map.Entry;
 
 @Service
 public class AmzFinEmailServiceImpl implements IAmzFinEmailService{
@@ -255,7 +249,7 @@ public class AmzFinEmailServiceImpl implements IAmzFinEmailService{
 		buf.append("<span style='color: rgb(192, 192, 192); font-size: x-small;'> 如果您有任何关于用户体验方面的问题或建议，都可联系我们：service@wimoor.com </span>");
 		buf.append("</div>");
 		buf.append("<div>");
-		buf.append("<span style='color: rgb(192, 192, 192); font-size: x-small;'> 如有其它疑问，请拨打wimoor官方热线 86-13554833402获得更多帮助,Copyright © 2017 深圳市万墨信息科技有限公司版权所有   </span>");
+		buf.append("<span style='color: rgb(192, 192, 192); font-size: x-small;'> 如有其它疑问，请拨打wimoor官方热线 86-13554833402获得更多帮助,Copyright © 2017 深圳市深码创科技有限公司版权所有   </span>");
 		buf.append("</div>");
 		buf.append("</div>");
 		buf.append("</div>");

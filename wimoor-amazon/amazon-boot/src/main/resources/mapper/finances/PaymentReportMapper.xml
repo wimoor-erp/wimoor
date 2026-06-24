@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wimoor.amazon.finances.mapper.PaymentReportMapper">
+
+    <resultMap id="BaseResultMap" type="com.wimoor.amazon.finances.pojo.entity.PaymentReport">
+            <id property="id" column="id" />
+            <result property="reportType" column="report_type" />
+            <result property="dateTime" column="date_time" />
+            <result property="settlementId" column="settlement_id" />
+            <result property="transactionType" column="transaction_type" />
+            <result property="orderId" column="order_id" />
+            <result property="sku" column="sku" />
+            <result property="quantity" column="quantity" />
+            <result property="store" column="store" />
+            <result property="fulfillment" column="fulfillment" />
+            <result property="orderCity" column="order_city" />
+            <result property="orderState" column="order_state" />
+            <result property="orderPostCode" column="order_post_code" />
+            <result property="taxCollectionModel" column="tax_collection_model" />
+            <result property="productSales" column="product_sales" />
+            <result property="productSalesTax" column="product_sales_tax" />
+            <result property="shippingCredits" column="shipping_credits" />
+            <result property="shippingCreditsTax" column="shipping_credits_tax" />
+            <result property="giftWrapCredits" column="gift_wrap_credits" />
+            <result property="giftWrapCreditsTax" column="gift_wrap_credits_tax" />
+            <result property="regulatoryFee" column="regulatory_fee" />
+            <result property="taxOnRegulatoryFee" column="tax_on_regulatory_fee" />
+            <result property="promotionalRebate" column="promotional_rebate" />
+            <result property="promotionalRebateTax" column="promotional_rebate_tax" />
+            <result property="marketplaceWithheldTax" column="marketplace_withheld_tax" />
+            <result property="sellingFees" column="selling_fees" />
+            <result property="fbaFees" column="fba_fees" />
+            <result property="otherTransactionFees" column="other_transaction_fees" />
+            <result property="otherFees" column="other_fees" />
+            <result property="total" column="total" />
+            <result property="taxAmount" column="tax_amount" />
+            <result property="totalAmount" column="total_amount" />
+            <result property="createtime" column="createtime" />
+            <result property="opttime" column="opttime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,report_type,date_time,settlement_id,transaction_type,order_id,
+        sku,quantity,store,fulfillment,order_city,
+        order_state,order_post_code,tax_collection_model,product_sales,product_sales_tax,
+        shipping_credits,shipping_credits_tax,gift_wrap_credits,gift_wrap_credits_tax,regulatory_fee,
+        tax_on_regulatory_fee,promotional_rebate,promotional_rebate_tax,marketplace_withheld_tax,selling_fees,
+        fba_fees,other_transaction_fees,other_fees,total,tax_amount,
+        total_amount,createtime,opttime
+    </sql>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        replace into t_amz_payment_report (
+            report_type, date_time, settlement_id, transaction_type, order_id,
+            sku, quantity, store, fulfillment, order_city,
+            order_state, order_post_code, tax_collection_model, product_sales, product_sales_tax,
+            shipping_credits, shipping_credits_tax, gift_wrap_credits, gift_wrap_credits_tax, regulatory_fee,
+            tax_on_regulatory_fee, promotional_rebate, promotional_rebate_tax, marketplace_withheld_tax, selling_fees,
+            fba_fees, other_transaction_fees, other_fees, total, tax_amount,
+            total_amount, createtime, opttime
+        ) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+                #{item.reportType,jdbcType=VARCHAR},
+                #{item.dateTime,jdbcType=TIMESTAMP},
+                #{item.settlementId,jdbcType=VARCHAR},
+                #{item.transactionType,jdbcType=VARCHAR},
+                #{item.orderId,jdbcType=VARCHAR},
+                #{item.sku,jdbcType=VARCHAR},
+                #{item.quantity,jdbcType=INTEGER},
+                #{item.store,jdbcType=VARCHAR},
+                #{item.fulfillment,jdbcType=VARCHAR},
+                #{item.orderCity,jdbcType=VARCHAR},
+                #{item.orderState,jdbcType=VARCHAR},
+                #{item.orderPostCode,jdbcType=VARCHAR},
+                #{item.taxCollectionModel,jdbcType=VARCHAR},
+                #{item.productSales,jdbcType=DECIMAL},
+                #{item.productSalesTax,jdbcType=DECIMAL},
+                #{item.shippingCredits,jdbcType=DECIMAL},
+                #{item.shippingCreditsTax,jdbcType=DECIMAL},
+                #{item.giftWrapCredits,jdbcType=DECIMAL},
+                #{item.giftWrapCreditsTax,jdbcType=DECIMAL},
+                #{item.regulatoryFee,jdbcType=DECIMAL},
+                #{item.taxOnRegulatoryFee,jdbcType=DECIMAL},
+                #{item.promotionalRebate,jdbcType=DECIMAL},
+                #{item.promotionalRebateTax,jdbcType=DECIMAL},
+                #{item.marketplaceWithheldTax,jdbcType=DECIMAL},
+                #{item.sellingFees,jdbcType=DECIMAL},
+                #{item.fbaFees,jdbcType=DECIMAL},
+                #{item.otherTransactionFees,jdbcType=DECIMAL},
+                #{item.otherFees,jdbcType=DECIMAL},
+                #{item.total,jdbcType=DECIMAL},
+                #{item.taxAmount,jdbcType=DECIMAL},
+                #{item.totalAmount,jdbcType=DECIMAL},
+                #{item.createtime,jdbcType=TIMESTAMP},
+                #{item.opttime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+</mapper>

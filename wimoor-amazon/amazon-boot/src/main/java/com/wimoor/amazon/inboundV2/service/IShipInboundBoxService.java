@@ -1,5 +1,7 @@
 package com.wimoor.amazon.inboundV2.service;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +13,8 @@ import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundItem;
 import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundOperation;
 import com.wimoor.amazon.inboundV2.pojo.entity.ShipInboundPlan;
 import com.wimoor.common.user.UserInfo;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface IShipInboundBoxService  extends IService<ShipInboundBox>{
 	public List<ShipInboundBox> findListByPackageGroupid(String formid,String packageGroupid) ;
@@ -29,4 +33,7 @@ public interface IShipInboundBoxService  extends IService<ShipInboundBox>{
     Map<String, Object> getShipmentBoxDetialCase(PackingDTO dto);
 	Map<String, Object> getBoxDetialCase(PackingDTO dto);
 	List<Map<String,Object>> findListAllByShipmentid(String formid,String shipmentid);
+    void setExcelBoxDetail(UserInfo user, SXSSFWorkbook workbook, String formid);
+	ShipCartDTO getDetailFromExcel(MultipartFile file, String formid) throws IOException;
+	public List<LinkedHashMap<String, Object>> findBoxDetailByFormId(String formid, String shipmentid);
 }

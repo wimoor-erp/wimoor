@@ -1,36 +1,8 @@
 package com.wimoor.amazon.product.service.impl;
 
-import java.io.File;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.annotation.Resource;
-
-import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.amazon.spapi.model.productpricing.DetailedShippingTimeType;
-import com.amazon.spapi.model.productpricing.MoneyType;
-import com.amazon.spapi.model.productpricing.OfferDetail;
-import com.amazon.spapi.model.productpricing.OfferDetailList;
-import com.amazon.spapi.model.productpricing.PrimeInformationType;
-import com.amazon.spapi.model.productpricing.ShipsFromType;
+import com.amazon.spapi.model.productpricing.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wimoor.amazon.auth.pojo.entity.AmazonAuthority;
@@ -41,13 +13,29 @@ import com.wimoor.amazon.auth.service.IFollowOfferService;
 import com.wimoor.amazon.auth.service.IMarketplaceService;
 import com.wimoor.amazon.notifications.service.IAwsSQSMessageHandlerService;
 import com.wimoor.amazon.product.mapper.ProductFollowMapper;
+import com.wimoor.amazon.product.mapper.ProductInfoMapper;
 import com.wimoor.amazon.product.pojo.entity.FollowOfferChange;
 import com.wimoor.amazon.product.pojo.entity.ProductFollow;
+import com.wimoor.amazon.product.pojo.entity.ProductRank;
 import com.wimoor.amazon.product.service.IFollowOfferChangeService;
 import com.wimoor.amazon.product.service.IProductFollowHandlerService;
 import com.wimoor.amazon.product.service.IProductInAutopriceService;
+import com.wimoor.amazon.product.service.IProductRankService;
 import com.wimoor.amazon.util.HttpUtils;
 import com.wimoor.common.GeneralUtil;
+import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.annotation.Resource;
+import java.io.File;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
 
 @Service("productFollowHandlerService")
 public class ProductFollowHandlerServiceImpl  extends ServiceImpl<ProductFollowMapper, ProductFollow> implements IProductFollowHandlerService,IAwsSQSMessageHandlerService { 
@@ -62,6 +50,10 @@ public class ProductFollowHandlerServiceImpl  extends ServiceImpl<ProductFollowM
 	IFollowOfferChangeService followOfferChangeService;
 	@Autowired
 	IProductInAutopriceService iProductInAutopriceService;
+	@Resource
+	ProductInfoMapper productInfoMapper;
+	@Resource
+	IProductRankService iProductRankService;
 	public List<Marketplace> marketplacelist = new ArrayList<Marketplace>();
 	
 	public void recordProductFollow(String authid,String asin,String marketplaceid ,Date timeofChange,Integer offernumber){
@@ -502,13 +494,38 @@ public class ProductFollowHandlerServiceImpl  extends ServiceImpl<ProductFollowM
 			if(summary==null) {
 				return true;
 			}
+		    AmazonAuthority auth = this.amazonAuthorityService.selectBySellerId(sellerId);
+			JSONArray salesRankings=summary.getJSONArray("SalesRankings");
+			if(salesRankings!=null && salesRankings.size()>0){
+				 for (int i = 0; i < salesRankings.size(); i++) {
+					 JSONObject item=salesRankings.getJSONObject(i);
+					 String productCategoryId=item.getString("ProductCategoryId");
+					 Integer rank=item.getIntValue("Rank");
+					 // 更新t_product_rank表
+					 List<String> productIdList = productInfoMapper.selectByAsinAndMarketplace(asin, marketplaceId, auth.getId());
+					 for(String productId:productIdList){
+						 if(productId != null) {
+								 ProductRank productRank = new ProductRank();
+								 productRank.setId(amazonAuthorityService.getUUID());
+								 productRank.setByday(new Date());
+								 productRank.setCategoryid(productCategoryId);
+								 productRank.setRank(rank);
+								 productRank.setProductId(productId);
+								 productRank.setIsmain(i == 0); // 第一个分类设为主分类
+								 productRank.setIsnewest(true);
+								 iProductRankService.insert(productRank);
+						 }
+					 }
+
+				 }
+
+			}
 			JSONArray numberOfOffers = summary.getJSONArray("NumberOfOffers");
 			int number=0;
 			for(int i=0;i<numberOfOffers.size();i++) {
 				number=number+numberOfOffers.getJSONObject(i).getIntValue("OfferCount");
 				
 			}
-		    AmazonAuthority auth = this.amazonAuthorityService.selectBySellerId(sellerId);
 		    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			sdf.setTimeZone(TimeZone.getDefault());
 			recordProductFollow(auth.getId(), asin, marketplaceId, sdf.parse(timeOfOfferChange), number);

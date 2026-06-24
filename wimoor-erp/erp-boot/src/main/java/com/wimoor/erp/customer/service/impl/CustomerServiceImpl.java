@@ -53,6 +53,7 @@ public class CustomerServiceImpl extends  ServiceImpl<CustomerMapper,Customer> i
 		titlemap.put("name", "客户名称");
 		titlemap.put("number", "客户编码");
 		titlemap.put("ftype", "客户分类");
+		titlemap.put("goodtype", "货物类型");
 		titlemap.put("contacts", "联系人");
 		titlemap.put("phone_num", "联系电话");
 		titlemap.put("contact_info", "其它联系信息");

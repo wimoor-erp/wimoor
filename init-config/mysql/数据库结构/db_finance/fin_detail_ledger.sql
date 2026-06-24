@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `fin_detail_ledger` (
   PRIMARY KEY (`detail_id`),
   KEY `tenant_id_2` (`groupid`,`entry_id`) USING BTREE,
   KEY `idx_detail_ledger_tenant_subject_date` (`groupid`,`subject_id`,`voucher_date`) USING BTREE COMMENT '租户明细账科目日期索引'
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='明细账表，记录每个科目的明细发生情况';
+) ENGINE=InnoDB AUTO_INCREMENT=6045 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='明细账表，记录每个科目的明细发生情况';
 
 -- 数据导出被取消选择。
 

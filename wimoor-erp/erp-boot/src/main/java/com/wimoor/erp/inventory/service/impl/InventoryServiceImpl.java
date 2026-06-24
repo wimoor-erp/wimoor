@@ -606,7 +606,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		return this.baseMapper.findNotFBABySku(warehouseid, skuid, shopid);
 	}
 
-	public IPage<Map<String, Object>> selectInventoryCost(Page<?> page,String warehouseid, String sku, String shopid, String byday) {
+	public IPage<Map<String, Object>> selectInventoryCost(Page<?> page,String warehouseid, String sku, String shopid, String byday, String isAvgPrice) {
 		if (GeneralUtil.isEmpty(sku)) {
 			sku = null;
 		} else {
@@ -619,11 +619,11 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			Date mbyday = fmt.parse(byday);
 			Date today = GeneralUtil.getDateNoTime(new Date());
 			if (byday.equals(fmt.format(today)) || mbyday.after(today)) {
-				pagelist = this.baseMapper.findInventoryNowCost(page,warehouseid, sku, shopid);
-				map = this.baseMapper.findInventoryNowCostTotal(warehouseid, sku, shopid);
+				pagelist = this.baseMapper.findInventoryNowCost(page,warehouseid, sku, shopid, isAvgPrice);
+				map = this.baseMapper.findInventoryNowCostTotal(warehouseid, sku, shopid, isAvgPrice);
 			} else {
-				pagelist = this.baseMapper.findInventoryCost(page,warehouseid, sku, shopid, byday);
-				map = this.baseMapper.findInventoryCostTotal(warehouseid, sku, shopid, byday);
+				pagelist = this.baseMapper.findInventoryCost(page,warehouseid, sku, shopid, byday, isAvgPrice);
+				map = this.baseMapper.findInventoryCostTotal(warehouseid, sku, shopid, byday, isAvgPrice);
 			}
 		} catch (ParseException e) {
 			throw new BizException("库存日期解析失败");
@@ -767,7 +767,7 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 		}
 	}
 
-	public List<Map<String, Object>> selectInventoryCostAll(String warehouseid, String sku, String shopid, String byday) {
+	public List<Map<String, Object>> selectInventoryCostAll(String warehouseid, String sku, String shopid, String byday, String isAvgPrice) {
 		if (GeneralUtil.isEmpty(sku)) {
 			sku = null;
 		} else {
@@ -779,9 +779,9 @@ public class InventoryServiceImpl  extends ServiceImpl<InventoryMapper,Inventory
 			Date mbyday = fmt.parse(byday);
 			Date today = GeneralUtil.getDateNoTime(new Date());
 			if (byday.equals(fmt.format(today)) || mbyday.after(today)) {
-				pagelist = this.baseMapper.findInventoryNowCost(warehouseid, sku, shopid);
+				pagelist = this.baseMapper.findInventoryNowCost(warehouseid, sku, shopid, isAvgPrice);
 			} else {
-				pagelist = this.baseMapper.findInventoryCost(warehouseid, sku, shopid, byday);
+				pagelist = this.baseMapper.findInventoryCost(warehouseid, sku, shopid, byday, isAvgPrice);
 			}
 		} catch (ParseException e) {
 			throw new BizException("库存日期解析失败");

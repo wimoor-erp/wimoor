@@ -1,20 +1,6 @@
 package com.wimoor.erp.material.service.impl;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.wimoor.erp.common.pojo.entity.ErpBaseFormEntry;
-import com.wimoor.erp.ship.pojo.dto.ShipInboundItemVo;
-import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
-import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
-import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -25,29 +11,21 @@ import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AdminClientOneFeignManager;
-import com.wimoor.erp.material.mapper.AssemblyFormEntryMapper;
-import com.wimoor.erp.material.mapper.AssemblyFormMapper;
-import com.wimoor.erp.material.mapper.AssemblyMapper;
-import com.wimoor.erp.material.pojo.dto.AssemblyFormListDTO;
-import com.wimoor.erp.material.pojo.entity.Assembly;
-import com.wimoor.erp.material.pojo.entity.AssemblyEntryInstock;
-import com.wimoor.erp.material.pojo.entity.AssemblyForm;
-import com.wimoor.erp.material.pojo.entity.AssemblyFormEntry;
 import com.wimoor.erp.assembly.pojo.vo.AssemblyVO;
-import com.wimoor.erp.material.service.IAssemblyEntryInstockService;
-import com.wimoor.erp.material.service.IAssemblyFormEntryService;
-import com.wimoor.erp.material.service.IAssemblyFormService;
-import com.wimoor.erp.material.service.IAssemblyService;
 import com.wimoor.erp.common.pojo.entity.EnumByInventory;
+import com.wimoor.erp.common.pojo.entity.ErpBaseFormEntry;
 import com.wimoor.erp.common.pojo.entity.Operate;
 import com.wimoor.erp.common.pojo.entity.Status;
 import com.wimoor.erp.inventory.mapper.InventoryMapper;
 import com.wimoor.erp.inventory.pojo.entity.InventoryParameter;
 import com.wimoor.erp.inventory.service.IInventoryFormAgentService;
 import com.wimoor.erp.inventory.service.IInventoryService;
-import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.service.IMaterialService;
-import com.wimoor.erp.material.service.IStepWisePriceService;
+import com.wimoor.erp.material.mapper.AssemblyFormEntryMapper;
+import com.wimoor.erp.material.mapper.AssemblyFormMapper;
+import com.wimoor.erp.material.mapper.AssemblyMapper;
+import com.wimoor.erp.material.pojo.dto.AssemblyFormListDTO;
+import com.wimoor.erp.material.pojo.entity.*;
+import com.wimoor.erp.material.service.*;
 import com.wimoor.erp.purchase.mapper.PurchaseFormEntryMapper;
 import com.wimoor.erp.purchase.pojo.dto.PurchaseSaveDTO;
 import com.wimoor.erp.purchase.pojo.entity.PurchaseForm;
@@ -55,11 +33,22 @@ import com.wimoor.erp.purchase.pojo.entity.PurchaseFormEntry;
 import com.wimoor.erp.purchase.service.IPurchaseFormService;
 import com.wimoor.erp.purchase.service.IPurchasePlanService;
 import com.wimoor.erp.purchase.service.IPurchaseWareHouseStatusService;
+import com.wimoor.erp.ship.pojo.dto.ShipInboundItemVo;
+import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmenSummarytVo;
 import com.wimoor.erp.ship.pojo.dto.ShipInboundShipmentDTO;
+import com.wimoor.erp.warehouse.pojo.entity.Warehouse;
 import com.wimoor.erp.warehouse.service.IWarehouseService;
-
-import cn.hutool.core.util.StrUtil;
+import com.wimoor.erp.warehouse.service.IWarehouseShelfInventoryService;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
  
 

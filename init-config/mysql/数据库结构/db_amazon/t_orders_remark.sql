@@ -17,6 +17,7 @@
 -- 导出  表 db_amazon.t_orders_remark 结构
 CREATE TABLE IF NOT EXISTS `t_orders_remark` (
   `amazon_order_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `upload_destination_id` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `feed_queueid` bigint unsigned DEFAULT NULL,
   `review_send_time` datetime DEFAULT NULL,
   `review_send_operator` bigint DEFAULT NULL,

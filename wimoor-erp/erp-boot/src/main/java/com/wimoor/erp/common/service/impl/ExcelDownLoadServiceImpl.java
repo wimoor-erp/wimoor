@@ -1,47 +1,39 @@
 package com.wimoor.erp.common.service.impl;
 
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import com.wimoor.erp.warehouse.service.IWarehouseService;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Service;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.service.ISerialNumService;
 import com.wimoor.common.user.UserInfo;
 import com.wimoor.erp.api.AmazonClientOneFeignManager;
-import com.wimoor.erp.material.mapper.AssemblyMapper;
-import com.wimoor.erp.material.pojo.entity.Assembly;
 import com.wimoor.erp.common.service.IExcelDownLoadService;
 import com.wimoor.erp.customer.mapper.CustomerMapper;
 import com.wimoor.erp.customer.pojo.entity.Customer;
-import com.wimoor.erp.material.mapper.MaterialConsumableMapper;
-import com.wimoor.erp.material.mapper.MaterialCustomsMapper;
-import com.wimoor.erp.material.mapper.MaterialMapper;
-import com.wimoor.erp.material.mapper.MaterialSupplierMapper;
-import com.wimoor.erp.material.mapper.MaterialSupplierStepwiseMapper;
-import com.wimoor.erp.material.pojo.entity.DimensionsInfo;
-import com.wimoor.erp.material.pojo.entity.Material;
-import com.wimoor.erp.material.pojo.entity.MaterialBrand;
-import com.wimoor.erp.material.pojo.entity.MaterialCategory;
-import com.wimoor.erp.material.pojo.entity.MaterialCustoms;
-import com.wimoor.erp.material.pojo.entity.MaterialSupplier;
-import com.wimoor.erp.material.pojo.entity.MaterialSupplierStepwise;
+import com.wimoor.erp.material.mapper.*;
+import com.wimoor.erp.material.pojo.entity.*;
 import com.wimoor.erp.material.pojo.vo.MaterialConsumableVO;
 import com.wimoor.erp.material.service.IDimensionsInfoService;
 import com.wimoor.erp.material.service.IMaterialBrandService;
 import com.wimoor.erp.material.service.IMaterialCategoryService;
-import cn.hutool.core.util.StrUtil;
+import com.wimoor.erp.material.service.IMaterialService;
+import com.wimoor.erp.warehouse.service.IWarehouseService;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Service("excelDownLoadService")
 @RequiredArgsConstructor
@@ -59,6 +51,10 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 	final AssemblyMapper assemblyMapper;
 	final IWarehouseService warehouseService;
 	final AmazonClientOneFeignManager amazonClientOneFeign;
+	final MaterialCustomMapper materialCustomMapper;
+	@Autowired
+	@Lazy
+	IMaterialService materialService;
 	@Override
 	public void uploadMaterialFile(UserInfo user, InputStream inputStream, Row info) {
 		// TODO Auto-generated method stub
@@ -93,6 +89,11 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				info.getCell(5).setCellType(CellType.STRING);
 				otherContact = info.getCell(5).getStringCellValue();
 			}
+			String goodtype = null;
+			if (info.getCell(6) != null) {
+				info.getCell(6).setCellType(CellType.STRING);
+				goodtype = info.getCell(6).getStringCellValue();
+			}
 
 			if (StrUtil.isEmpty(name) || StrUtil.isEmpty(contacts)
 					|| StrUtil.isEmpty(address)) {
@@ -123,11 +124,12 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 					throw new BizException("系统编码错误，请重新导入！");
 				}
 				customer.setFtype(ftype);
+				customer.setGoodtype(goodtype);
 				customer.setContacts(contacts);
 				if(phone!=null){
-					customer.setPhone_num(phone.toString());
+					customer.setPhoneNum(phone.toString());
 				}
-				customer.setContact_info(otherContact);
+				customer.setContactInfo(otherContact);
 				customer.setAddress(address);
 				customer.setOperator(user.getId());
 				customer.setShopid(user.getCompanyid());
@@ -136,11 +138,12 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 			} else {
 				customer.setName(name);
 				customer.setFtype(ftype);
+				customer.setGoodtype(goodtype);
 				customer.setContacts(contacts);
 				if(phone!=null){
-					customer.setPhone_num(phone.toString());
+					customer.setPhoneNum(phone.toString());
 				}
-				customer.setContact_info(otherContact);
+				customer.setContactInfo(otherContact);
 				customer.setAddress(address);
 				customer.setOperator(user.getId());
 				customer.setShopid(user.getCompanyid());
@@ -332,8 +335,13 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 			info.getCell(22).setCellType(CellType.STRING);
 			owner = info.getCell(22).getStringCellValue();
 		}
+		Boolean is_ass_price = null;
+		if (info.getCell(23) != null) {
+			info.getCell(23).setCellType(CellType.STRING);
+			is_ass_price =info.getCell(23)!=null? "是".equals(info.getCell(23).getStringCellValue()):false;
+		}
 		if (StrUtil.isEmpty(sku)) {
-			throw new BizException("Excel文件中必填字段为空！");
+			return;
 		}else {
 			sku=sku.trim();
 		}
@@ -347,6 +355,11 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 		material.setShopid(user.getCompanyid());
 		material.setSku(sku);
 		material.setName(name);
+		if((material.getIssfg()==null||material.getIssfg().equals("1"))&&(is_ass_price!=null&&is_ass_price)){
+			material.setIsAssPrice(is_ass_price);
+		}else{
+			material.setIsAssPrice(false);
+		}
 		if("product".equals(mtype)) {
 			material.setMtype(0);
 		}else if("consumable".equals(mtype)) {
@@ -438,10 +451,12 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 			brandqueryWrapper.eq("name", brandname);
 			List<MaterialBrand> brandlist = materialBrandService.list(brandqueryWrapper);
 			if(brandlist!=null && brandlist.size()>0) {
-				material.setBrand(brandlist.get(0).getId());
+				material.setBrandid(brandlist.get(0).getId());
 			}else {
-				material.setBrand(null);
+				material.setBrandid(null);
 			}
+		}else{
+			material.setBrandid(null);
 		}
 		if(StrUtil.isNotEmpty(categoryname)) {
 			QueryWrapper<MaterialCategory> catequeryWrapper=new QueryWrapper<MaterialCategory>();
@@ -474,11 +489,17 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 		material.setOperator(user.getId());
 		material.setOpttime(new Date());
 		material.setSpecification(specification);
+		material.setDelete(false);
 		if(StrUtil.isNotEmpty(material.getId())) {
 			materialMapper.updateById(material);
 		}else {
 			material.setCreatedate(new Date());
 			materialMapper.insert(material);
+		}
+		if(material.getIsAssPrice()!=null&&material.getIsAssPrice()) {
+			materialService.calcAssPrice(material.getId());
+		}else if(material.getIssfg()!=null&&material.getIssfg().equals("2")){
+			materialService.calcAssMainPrice(material.getId(),material.getShopid());
 		}
 		 try {
 				//同步修改产品的负责人
@@ -551,6 +572,11 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 					info.getCell(7).setCellType(CellType.STRING);
 					moq = info.getCell(7).getStringCellValue();
 				}
+				String remark=null;
+				if (info.getCell(12) != null) {
+					info.getCell(12).setCellType(CellType.STRING);
+					remark = info.getCell(12).getStringCellValue();
+				}
 				//再插入新纪录
 				MaterialSupplier entity=new MaterialSupplier();
 				entity.setSupplierid(supid);
@@ -566,6 +592,7 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				entity.setCreater(user.getId());
 				entity.setCreatedate(new Date());
 				if(StrUtil.isNotEmpty(badrate))entity.setBadrate(Float.parseFloat(badrate));
+				entity.setRemark(remark);
 				
 				QueryWrapper<MaterialSupplier> mqueryWrapper=new QueryWrapper<MaterialSupplier>();
 				mqueryWrapper.eq("materialid", material.getId());
@@ -653,7 +680,7 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				info.getCell(10).setCellType(CellType.STRING);
 				String phone = info.getCell(10).getStringCellValue();
 				if(phone!=null && StrUtil.isNotBlank(phone.trim())){
-					supplier.setPhone_num(phone);
+					supplier.setPhoneNum(phone);
 				}
 			}
 			if (info.getCell(11) != null) {
@@ -693,7 +720,7 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				info.getCell(10).setCellType(CellType.STRING);
 				String phone = info.getCell(10).getStringCellValue();
 				if(phone!=null && StrUtil.isNotBlank(phone.trim())){
-					supplier.setPhone_num(phone);
+					supplier.setPhoneNum(phone);
 				}
 			}
 			if (info.getCell(11) != null) {
@@ -737,6 +764,11 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 					info.getCell(7).setCellType(CellType.STRING);
 					moq = info.getCell(7).getStringCellValue();
 				}
+				String remark=null;
+				if (info.getCell(12) != null) {
+					info.getCell(12).setCellType(CellType.STRING);
+					remark = info.getCell(12).getStringCellValue();
+				}
 				//再插入新纪录
 				MaterialSupplier entity=new MaterialSupplier();
 				entity.setSupplierid(supid);
@@ -747,20 +779,28 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				entity.setOperator(user.getId());
 				if(StrUtil.isNotEmpty(moq))entity.setMOQ(Integer.parseInt(moq));
 				entity.setMaterialid(material.getId());
-				entity.setIsdefault(false);//备选
 				if(StrUtil.isNotEmpty(deliverycycle))entity.setDeliverycycle(Integer.parseInt(deliverycycle));
 				entity.setCreater(user.getId());
 				entity.setCreatedate(new Date());
 				if(StrUtil.isNotEmpty(badrate))entity.setBadrate(Float.parseFloat(badrate));
-
+				entity.setRemark(remark);
 				QueryWrapper<MaterialSupplier> mqueryWrapper=new QueryWrapper<MaterialSupplier>();
 				mqueryWrapper.eq("materialid", material.getId());
 				mqueryWrapper.eq("supplierid", supid);
 				MaterialSupplier one = materialSupplierMapper.selectOne(mqueryWrapper);
 				if(one!=null) {
-					entity.setId(one.getId());
-					materialSupplierMapper.updateById(entity);
+					one.setRemark(entity.getRemark());
+					one.setBadrate(entity.getBadrate());
+					one.setMOQ(entity.getMOQ());
+					one.setDeliverycycle(entity.getDeliverycycle());
+					one.setOthercost(entity.getOthercost());
+					one.setPurchaseurl(entity.getPurchaseurl());
+					one.setProductcode(entity.getProductcode());
+					one.setOperator(entity.getOperator());
+					one.setOpttime(entity.getOpttime());
+					materialSupplierMapper.updateById(one);
 				}else {
+					entity.setIsdefault(false);//备选
 					materialSupplierMapper.insert(entity);
 				}
 				material.setPurchaseUrl(purchaseurl);
@@ -921,6 +961,26 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 					info.getCell(10).setCellType(CellType.STRING);
 					url = info.getCell(10).getStringCellValue();
 				}
+				String elements=null;
+				if (info.getCell(11) != null) {
+					info.getCell(11).setCellType(CellType.STRING);
+					elements = info.getCell(11).getStringCellValue();
+				}
+				String unit=null;
+				if (info.getCell(12) != null) {
+					info.getCell(12).setCellType(CellType.STRING);
+					unit = info.getCell(12).getStringCellValue();
+				}
+				String unit2=null;
+				if (info.getCell(13) != null) {
+					info.getCell(13).setCellType(CellType.STRING);
+					unit2 = info.getCell(13).getStringCellValue();
+				}
+				String unitrate=null;
+				if (info.getCell(14) != null) {
+					info.getCell(14).setCellType(CellType.STRING);
+					unitrate = info.getCell(14).getStringCellValue();
+				}
 
 				MaterialCustoms entity=new MaterialCustoms();
 				entity.setMaterialid(material.getId());
@@ -934,14 +994,20 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				entity.setUrl(url);
 				entity.setOpttime(new Date());
 				entity.setOperator(user.getId());
+				entity.setElements(elements);
+				entity.setUnit(unit);
+				entity.setUnit2(unit2);
 				if(price!=null&&GeneralUtil.isNumericzidai(price)){
 					entity.setPrice(new BigDecimal(price));
 				}
 				if(rate!=null&&GeneralUtil.isNumericzidai(rate)){
 					entity.setRate(new BigDecimal(rate));
 				}
+				if(unitrate!=null&&GeneralUtil.isNumericzidai(unitrate)){
+					entity.setUnitrate(new BigDecimal(unitrate));
+				}
 				//先删除后加
-				if(StrUtil.isNotBlank(entity.getCountry())){
+				if(StrUtil.isNotBlank(entity.getCountry())&&!"CN".equals(entity.getCountry())){
 					//先删除后添加
 					QueryWrapper<MaterialCustoms> queryWrapper=new QueryWrapper<MaterialCustoms>();
 					queryWrapper.eq("materialid", material.getId());
@@ -959,24 +1025,26 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 						materialCustomsMapper.update(entity, query);
 					}
 				}else{
-					//先删除后添加
-					QueryWrapper<MaterialCustoms> queryWrapper=new QueryWrapper<MaterialCustoms>();
+					 MaterialCustom custom=new MaterialCustom();
+					 BeanUtil.copyProperties(entity, custom);
+					 if(price!=null&&GeneralUtil.isNumericzidai(price)){
+						custom.setPrice(new BigDecimal(price));
+					 }
+					 if(rate!=null&&GeneralUtil.isNumericzidai(rate)){
+						custom.setRate(new BigDecimal(rate));
+					 }
+					QueryWrapper<MaterialCustom> queryWrapper=new QueryWrapper<MaterialCustom>();
 					queryWrapper.eq("materialid", material.getId());
-					materialCustomsMapper.delete(queryWrapper);
-					String[] countrys=new String[]{"US","MX","CA","JP","IN","TR","UK","SG","IT","ES","SE","FR","DE","PL","NL","SA","EG","BE","BR","AU","AE"};
-					for(String item: countrys){
-						entity.setCountry(item);
-						QueryWrapper<MaterialCustoms> query=new QueryWrapper<MaterialCustoms>();
-						query.eq("materialid", material.getId());
-						query.eq("country",country);
-						MaterialCustoms old=materialCustomsMapper.selectOne(query);
-						if(old==null) {
-							entity.setCreator(user.getId());
-							entity.setCreatetime(new Date());
-							materialCustomsMapper.insert(entity);
-						}else {
-							materialCustomsMapper.update(entity, query);
-						}
+					materialCustomMapper.delete(queryWrapper);
+					QueryWrapper<MaterialCustom> query=new QueryWrapper<MaterialCustom>();
+					query.eq("materialid", material.getId());
+					MaterialCustom old=materialCustomMapper.selectOne(query);
+					if(old==null) {
+						entity.setCreator(user.getId());
+						entity.setCreatetime(new Date());
+						materialCustomMapper.insert(custom);
+					}else {
+						materialCustomMapper.update(custom, query);
 					}
 
 				}
@@ -1011,8 +1079,12 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				String assemblyitem = assemblyArr[i];
 				assemblyitem=assemblyitem.replace("{", "");
 				assemblyitem=assemblyitem.replace("}", "");
-				String subsku=assemblyitem.split(":")[0];
-				String amount=assemblyitem.split(":")[1];
+				String[] assemblyitemArray=assemblyitem.split(":");
+				if(assemblyitemArray.length!=2) {
+					throw new BizException("子产品格式错误！");
+				}
+				String subsku=assemblyitemArray[0];
+				String amount=assemblyitemArray[1];
 				Material submaterial = getMaterialById(user.getCompanyid(), subsku);
 				if(submaterial!=null && ("2".equals(submaterial.getIssfg()) || "0".equals(submaterial.getIssfg()) )) {
 					Assembly entity=new Assembly();
@@ -1037,9 +1109,8 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 						}
 					}
 				}else {
-					throw new BizException("子产品不支持添加已经是组合品的产品！");
+					throw new BizException("子产品不支持添加已经是组合品的产品，或者解析不出子SKU");
 				}
-				
 			}
 			if(count>0) {
 				material.setIssfg("1");
@@ -1047,6 +1118,8 @@ public class ExcelDownLoadServiceImpl implements IExcelDownLoadService{
 				material.setOperator(user.getId());
 				materialMapper.updateById(material);
 			}
+		}else if(material!=null){
+			throw new BizException("子产品格式错误！");
 		}
 		
 	}

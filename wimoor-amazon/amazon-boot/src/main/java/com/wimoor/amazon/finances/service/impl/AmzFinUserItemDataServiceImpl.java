@@ -41,8 +41,10 @@ import com.wimoor.amazon.finances.service.IAmzFinUserItemDataService;
 import com.wimoor.common.GeneralUtil;
 import com.wimoor.common.mvc.BizException;
 import com.wimoor.common.user.UserInfo;
-
-/**
+import com.wimoor.util.ExcelExportUtil;
+import  java.util.function.Function;
+import java.util.LinkedHashMap;
+/**;
  * <p>
  * 客户导入的SKU财务项费用-应用于商品营收其他费用项目导入 服务实现类
  * </p>
@@ -149,130 +151,90 @@ public class AmzFinUserItemDataServiceImpl extends ServiceImpl<AmzFinUserItemDat
 
 	@Override
 	public void setExcelBookByOtherFee(SXSSFWorkbook workbook, List<Map<String, Object>> list) {
-		if (list.size() > 0 && list != null) {
-			Sheet sheet = workbook.createSheet("sheet1");
-			// 在索引0的位置创建行（最顶端的行）
-			Row trow = sheet.createRow(0);
-			Cell cell = null;
-			cell = trow.createCell(0);
-			cell.setCellValue("店铺");
-			cell = trow.createCell(1);
-			cell.setCellValue("站点");
-			cell = trow.createCell(2);
-			cell.setCellValue("费用类型");
-			cell = trow.createCell(3);
-			cell.setCellValue("SKU");
-			cell = trow.createCell(4);
-			cell.setCellValue("货币");
-			cell = trow.createCell(5);
-			cell.setCellValue("金额");
-			cell = trow.createCell(6);
-			cell.setCellValue("日期");
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				Map<String, Object> map = list.get(i);
-				cell = row.createCell(0);  
-				Object groupname = map.get("groupname");
-				if (groupname != null) {
-					cell.setCellValue(groupname.toString());
-				}
-				cell = row.createCell(1);  
-				Object marketname = map.get("marketname");
-				if (marketname != null) {
-					cell.setCellValue(marketname.toString());
-				}
-				cell = row.createCell(2);  
-				Object itemname = map.get("itemname");
-				if (itemname != null) {
-					cell.setCellValue(itemname.toString());
-				}
-				cell = row.createCell(3);  
-				Object sku = map.get("sku");
-				if (sku != null) {
-					cell.setCellValue(sku.toString());
-				}
-				cell = row.createCell(4);  
-				Object currency = map.get("currency");
-				if (currency != null) {
-					cell.setCellValue(currency.toString());
-				}
-				cell = row.createCell(5);  
-				Object amount = map.get("amount");
-				if (amount != null) {
-					cell.setCellValue(amount.toString());
-				}
-				cell = row.createCell(6);  
-				Object byday = map.get("byday");
-				if (byday != null) {
-					cell.setCellValue(byday.toString());
-				}
-			}
-		} else {
-			try {
-				throw new Exception("没有数据可导出！");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		// 检查数据是否为空（使用工具类会自动检查，但这里可以提前友好提示）
+		if (list == null || list.isEmpty()) {
+			throw new RuntimeException("没有数据可导出！");
 		}
+
+		// 定义表头
+		LinkedHashMap<String, String> headers = new LinkedHashMap<String, String>();
+		headers.put("groupname", "店铺");
+		headers.put("marketname", "站点");
+		headers.put("itemname", "费用类型");
+		headers.put("sku", "SKU");
+		headers.put("currency", "货币");
+		headers.put("amount", "金额");
+		headers.put("byday", "日期");
+
+		// 使用工具类导出
+		ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, list);
 	}
 
 	@Override
 	public void setExcelBookByOtherFeeMonth(SXSSFWorkbook workbook, List<Map<String, Object>> list,String title) {
-		if (list.size() > 0 && list != null) {
-			Sheet sheet = workbook.createSheet("sheet1");
-			// 在索引0的位置创建行（最顶端的行）
-			Row trow = sheet.createRow(0);
-			Cell cell = null;
-			cell = trow.createCell(0);
-			cell.setCellValue("日期");
-			cell = trow.createCell(1);
-			cell.setCellValue("店铺");
-			cell = trow.createCell(2);
-			cell.setCellValue("站点");
-			cell = trow.createCell(3);
-			cell.setCellValue("费用类型");
-			cell = trow.createCell(4);
-			cell.setCellValue("货币");
-			cell = trow.createCell(5);
-			cell.setCellValue("金额");
-			for (int i = 0; i < list.size(); i++) {
-				Row row = sheet.createRow(i + 1);
-				Map<String, Object> map = list.get(i);
-				cell = row.createCell(0);  
-			    cell.setCellValue(title);
-				cell = row.createCell(1);  
-				Object groupname = map.get("groupname");
-				if (groupname != null) {
-					cell.setCellValue(groupname.toString());
-				}
-				cell = row.createCell(2);  
-				Object marketname = map.get("marketname");
-				if (marketname != null) {
-					cell.setCellValue(marketname.toString());
-				}
-				cell = row.createCell(3);  
-				Object itemname = map.get("itemname");
-				if (itemname != null) {
-					cell.setCellValue(itemname.toString());
-				}
-				cell = row.createCell(4);  
-				Object currency = map.get("currency");
-				if (currency != null) {
-					cell.setCellValue(currency.toString());
-				}
-				cell = row.createCell(5);  
-				Object amount = map.get("amount");
-				if (amount != null) {
-					cell.setCellValue(amount.toString());
-				}
-			}
-		} else {
 			try {
-				throw new Exception("没有数据可导出！");
+				// 参数校验 - 修复原代码中的逻辑错误
+				// 原代码: if (list.size() > 0 && list != null) 有逻辑问题，应该先判空
+				if (list == null || list.isEmpty()) {
+					throw new RuntimeException("没有数据可导出！");
+				}
+
+				// 定义表头映射关系
+				LinkedHashMap<String, String> headers = new LinkedHashMap<String, String>();
+				headers.put("title", "日期");        // 第一列：固定值
+				headers.put("groupname", "店铺");    // 第二列：店铺
+				headers.put("marketname", "站点");   // 第三列：站点
+				headers.put("itemname", "费用类型"); // 第四列：费用类型
+				headers.put("currency", "货币");     // 第五列：货币
+				headers.put("amount", "金额");       // 第六列：金额
+
+				// 创建值转换器
+				Map<String, Function<Object, Object>> converters = new HashMap<String, Function<Object, Object>>();
+
+				// 1. 为title字段设置固定值转换器
+				converters.put("title", value -> {
+					// 无论数据中是否有title字段，都返回传入的title参数值
+					return title;
+				});
+
+				// 2. 金额格式化转换器（可选）
+				converters.put("amount", value -> {
+					if (value != null) {
+						try {
+							// 如果是数字，格式化为两位小数
+							if (value instanceof Number) {
+								double amountValue = ((Number) value).doubleValue();
+								return String.format("%.2f", amountValue);
+							} else if (value instanceof String) {
+								// 如果是字符串，尝试解析为数字
+								double amountValue = Double.parseDouble((String) value);
+								return String.format("%.2f", amountValue);
+							}
+						} catch (Exception e) {
+							// 格式化失败，返回原值
+						}
+						return value.toString();
+					}
+					return "";
+				});
+
+				// 3. 为其他字段提供空值处理（可选）
+				Function<Object, Object> nullToEmpty = value -> value != null ? value : "";
+				converters.put("groupname", nullToEmpty);
+				converters.put("marketname", nullToEmpty);
+				converters.put("itemname", nullToEmpty);
+				converters.put("currency", nullToEmpty);
+
+				// 调用通用导出方法
+				ExcelExportUtil.exportToExcel(workbook, "sheet1", headers, list, converters);
+
+			} catch (RuntimeException e) {
+				System.err.println("导出异常: " + e.getMessage());
+				throw e; // 重新抛出异常
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.err.println("导出过程发生错误: " + e.getMessage());
+				throw new RuntimeException("导出失败: " + e.getMessage(), e);
 			}
-		}
 	}
 	public List<Map<String,Object>> loadFile(UserInfo user, InputStream inputStream ) {
 		Workbook workbook = null;

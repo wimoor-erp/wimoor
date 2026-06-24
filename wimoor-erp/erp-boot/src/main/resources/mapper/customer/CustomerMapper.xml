@@ -7,6 +7,7 @@
     <result column="number" property="number" jdbcType="CHAR" />
     <result column="fullname" property="fullname" jdbcType="VARCHAR" />
     <result column="ftype" property="ftype" jdbcType="CHAR" />
+    <result column="goodtype" property="goodtype" jdbcType="VARCHAR" />
     <result column="contacts" property="contacts" jdbcType="VARCHAR" />
     <result column="phone_num" property="phoneNum" jdbcType="VARCHAR" />
     <result column="contact_info" property="contactInfo" jdbcType="VARCHAR" />
@@ -16,11 +17,11 @@
     <result column="opttime" property="opttime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Base_Column_List" >
-    id, name, number, fullname, ftype, contacts, phone_num, contact_info, address, shopid, 
+    id, name, number, fullname, ftype, goodtype, contacts, phone_num, contact_info, address, shopid, 
     operator, opttime
   </sql>
   <select id="findByCondition"  resultType="java.util.Map" parameterType="java.lang.String" >
-	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
+	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.goodtype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
       u.name operator2, opttime
 	 from  t_erp_customer c
 	 left join t_userinfo u on u.id=c.operator
@@ -30,6 +31,7 @@
 	 and (c.name like #{search,jdbcType=CHAR}
 	 or c.number like #{search,jdbcType=CHAR}
 	 or c.fullname like #{search,jdbcType=CHAR}
+	 or c.goodtype like #{search,jdbcType=CHAR}
 	 or c.contacts like #{search,jdbcType=CHAR}
 	 or c.phone_num like #{search,jdbcType=CHAR}
 	 or c.address like #{search,jdbcType=CHAR}
@@ -38,7 +40,7 @@
   </select>
   
   <select id="findByShopId"  resultMap="BaseResultMap"  parameterType="java.lang.String" >
-	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
+	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.goodtype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
       u.name operator, opttime
 	 from  t_erp_customer c
 	 left join t_userinfo u on u.id=c.operator
@@ -49,7 +51,7 @@
 	  </if>
   </select>
   <select id="findByName"  resultMap="BaseResultMap"  parameterType="java.lang.String" >
-	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
+	 select    c.id, c.name, c.number, c.fullname,p.value ftype, c.goodtype, c.contacts, c.phone_num, c.contact_info, c.address, c.shopid, 
       u.name operator, opttime
 	 from  t_erp_customer c
 	 left join t_userinfo u on u.id=c.operator

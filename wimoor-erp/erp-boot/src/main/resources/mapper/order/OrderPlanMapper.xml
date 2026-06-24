@@ -248,7 +248,7 @@
         ifnull(ifnull(cy.stockingCycle,v2.stocking_cycle),3) stocking_cycle,
         IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7) min_cycle,
         IFNULL(v2.put_on_days,2) put_on_days,
-        IFNULL(ifnull(cy.first_leg_charges,v2.first_leg_days),30) first_leg_days,
+        IFNULL(v2.first_leg_days,30) first_leg_days,
         (ifnull(v2.stocking_cycle,0)+IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7)+ifnull(v2.put_on_days,0)+ifnull(v2.first_leg_days,0))	shipday,
         ifnull(i.quantity,0) + ifnull((select sum(e.amount)
         from t_erp_dispatch_oversea_form  f
@@ -343,7 +343,7 @@
         ifnull(ifnull(cy.stockingCycle,v2.stocking_cycle),3) stocking_cycle,
         IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7) min_cycle,
         IFNULL(v2.put_on_days,2) put_on_days,
-        IFNULL(ifnull(cy.first_leg_charges,v2.first_leg_days),30) first_leg_days,
+        IFNULL(v2.first_leg_days,30) first_leg_days,
         (ifnull(v2.stocking_cycle,0)+IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7)+ifnull(v2.put_on_days,0)+ifnull(v2.first_leg_days,0))	shipday,
         i.quantity fulfillable,
         ww.id localwarehouseid,
@@ -405,7 +405,7 @@
                ifnull(ifnull(cy.stockingCycle,v2.stocking_cycle),3) stocking_cycle,
                IFNULL(ifnull(cy.min_cycle,v2.min_cycle),7) min_cycle,
                IFNULL(v2.put_on_days,2) put_on_days,
-               IFNULL(ifnull(cy.first_leg_charges,v2.first_leg_days),30) first_leg_days,
+               IFNULL(v2.first_leg_days,30) first_leg_days,
                (ifnull(v2.stocking_cycle,0)+ifnull(v2.min_cycle,0)+ifnull(v2.put_on_days,0)+ifnull(v2.first_leg_days,0))	shipday,
                ifnull(i.quantity,0)  fulfillable,
                 ifnull((select sum(e.amount)
